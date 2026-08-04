@@ -231,6 +231,8 @@ void K_GENERATOR::closeAllUnstructuredMeshes(
     sizemax += sizemaxloc;
   }
 
+  if (sizemax == 0) return; // exteriorFaces is empty or has no points
+
   // Creation du kdtree et des tableaux d'indirection
   FldArrayF ftemp(sizemax,3);
   E_Float* xp = ftemp.begin(1);
@@ -267,7 +269,7 @@ void K_GENERATOR::closeAllUnstructuredMeshes(
     indicesOrig[nov] = indicesOrigLoc;
   }
 
-  for (E_Int nov = 0; nov <nzones; nov++)
+  for (E_Int nov = 0; nov < nzones; nov++)
   {
     E_Int* indicesOrigLoc = indicesOrig[nov]->begin();
 #pragma omp parallel default(shared)

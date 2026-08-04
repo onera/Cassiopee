@@ -37,10 +37,7 @@ PyObject* K_OCC::getFaceArea(PyObject* self, PyObject* args)
   if (!PYPARSETUPLE_(args, O_ O_, &hook, &listFaces)) return NULL;
 
   GETPACKET;
-  
-  TopTools_IndexedMapOfShape& surfaces = *(TopTools_IndexedMapOfShape*)packet[1];
-  //TopTools_IndexedMapOfShape& edges = *(TopTools_IndexedMapOfShape*)packet[2];
-  TopExp_Explorer expl;
+  GETMAPSURFACES;
 
   E_Float area = 0.;
   if (listFaces == Py_None) // all faces of topshape

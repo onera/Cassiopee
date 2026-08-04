@@ -353,7 +353,7 @@ def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None, 
 
 #==============================================================================
 # zones is a list of zones, but sorted by procs
-# Ex: [ [zonesDeProc0], [zonesDeProc1], ...]
+# Ex: [ [zonesFromProc0], [zonesFromProc1], ...]
 # IN: list of zones to replace in t
 # IN: size: number of processors
 # Puts zones in the tree by identifying zone names
@@ -592,7 +592,7 @@ def computeGraph(t, type='bbox', t2=None, procDict=None, rank=0,
                     updateGraph__(graph, proc, popp, z[0])
 
 
-    elif type == 'ID_Unsteady': # base sur les interpolations data
+    elif type == 'ID_Unsteady': # based on interpolation data
         graphSteadyList=[]; graphUnsteadyList=[]
         for i in range(1, nbpass+1):
             graph_steady = {}; graph_unsteady = {}

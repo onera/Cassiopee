@@ -17,11 +17,7 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 # include "generator.h"
-using namespace std;
-using namespace K_FLD;
 # include "Tetgen/tetgen.h"
-int __Error__ = 0;
-jmp_buf __env__;
 
 //=========================================================================
 /* Generation de maillage tetra a partir d'un maillage surfacique (tetgen) 
@@ -322,13 +318,14 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
   // out: output mesh
   // addin: if != NULL, list of constraint points
   // bgmin: if != NULL, background mesh with size function
-  int val;
-  val = setjmp(__env__); // enregistre l'environnement pour retour d'erreur
-  if (val == 0) // premier passage
+  
+  try
+  {
     tetrahedralize(&b, &in, &out, NULL, NULL);
-
-  if (val == 1) // erreur
-  { 
+  } 
+  catch (int x)
+  {
+    printf("Error: tetgen: error no %d.\n", x);
     PyErr_SetString(PyExc_TypeError, "tetgen: failed.");
     return NULL;
   }

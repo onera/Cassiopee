@@ -17,8 +17,10 @@ import numpy
 from OCC import readCAD, writeCAD, createEmptyCAD, freeHook, \
     getNbEdges, getNbFaces, getFileAndFormat, \
     printOCAF, getFaceNameInOCAF, getEdgeNameInOCAF, \
-    getFaceNos, getEdgeNos, \
+    getFaceNos, getEdgeNos, getEdgesByFace, \
+    getEdgeLength, getMinMaxEdgeLength, \
     getFaceArea, getFaceVolume, getFaceMassCenter, getBoundingBox, \
+    checkFaceOverlap, \
     _translate, _rotate, _scale, _fixShape, _sewing, _reverse, _splitFaces, \
     _mergeFaces, _trimFaces, _removeFaces, _removeEdges, \
     _extractFaces, _fillHole, \
@@ -609,7 +611,7 @@ def meshAllPara(hook, hmin=-1., hmax=-1., hausd=-1.):
     D2._addProcNode(t, Cmpi.rank)
     return t
 
-#=============================
+#==================================================
 def meshAllOCC(hook, hausd, angularDeflection=28.):
     t = C.newPyTree(['EDGES', 'FACES'])
 
@@ -745,6 +747,35 @@ def _remeshTreeFromEdges(hook, t, edges):
         z[2].append(cad)
         b[2][cd] = z
 
+    return None
+
+# remesh automatically for quality enhancement or FAILED faces
+def _remeshTree4Qual(hook, t):
+    nbFaces = getNbFaces(hook)
+    # find missing faces
+    found = numpy.array((nbFaces), dtype=numpy.int32)
+    found[:] = False
+    FACES = Internal.getNodeFromName1(t, 'FACES')
+    zones = Internal.getZones(FACES)
+    for z in zones:
+        CAD = Internal.getNodeFromName1(z, 'CAD')
+        no = Internal.getNodeFromName1(CAD, 'no')
+        no = Internal.getValue(no)
+        found[no-1] = True
+    w = numpy.where(found == False)
+    nedges = []
+    for i in w: # toutes les faces failed
+        edgeno = OCC.getEdgesByFace(hook, i+1)
+        for e in edgeno:
+            if e not in nedges: nedges.append(e)
+    edges = []
+    EDGES = Internal.getNodeFromName1(t, 'EDGES')
+    zones = Internal.getZones(EDGES)
+    for e in nedges:
+        z = zones[e-1]
+        z = G.refine(z, 0.5)
+        edges.append(z)
+    _remeshTreeFromEdges(hook, t, edges)
     return None
 
 # modify hsize for faces from hlist
@@ -955,7 +986,6 @@ def _meshAllFacesTri(hook, t, metric=True, faceList=None, hList=[], hmin=-1., hm
 
 # mesh all faces or a subset from edges U
 def _meshAllFacesStruct(hook, t, faceList=None):
-
     b = Internal.getNodeFromName1(t, 'EDGES')
     dedges = []
     for z in Internal.getZones(b):
@@ -1512,15 +1542,16 @@ def _updateTree(t, oldNbEdges, oldNbFaces, new2OldEdgeMap, new2OldFaceMap):
     _setLonelyEdgesColor(t)
     return None
 
+# internal function
 def identifyTags__(a):
     array = C.getFields(Internal.__FlowSolutionNodes__, a, "__tag__", api=3)[0]
     return OCC.identifyTags__(array)
 
-# add family name on faces taken from OCAF compounds
+# add family name on faces taken from OCAF labels
 def _addOCAFCompoundNames(hook, t):
     # FACES
-    ret = getFaceNameInOCAF(hook)
     pos = getAllPos(t)
+    ret = getFaceNameInOCAF(hook)
     r = len(ret)//2
     b = Internal.getNodeFromName1(t, 'FACES')
     for i in range(r):
@@ -1532,10 +1563,8 @@ def _addOCAFCompoundNames(hook, t):
                 C._tagWithFamily(z, name, add=True)
             except: pass
         C._addFamily2Base(b, name)
-
     # EDGES
-    ret = OCC.occ.getEdgeNameInOCAF2(hook)
-    pos = getAllPos(t)
+    ret = OCC.getEdgeNameInOCAF(hook)
     r = len(ret)//2
     b = Internal.getNodeFromName1(t, 'EDGES')
     for i in range(r):
@@ -1550,11 +1579,17 @@ def _addOCAFCompoundNames(hook, t):
 
     return None
 
-def getComponents(t):
+# get components
+# IN: t: meshed tree
+# IN: tol: tolerance for face zipping
+# IN: byOCAFLabels: if true, make component following OCAF
+# return components with a field tag corresponding to face number
+def getComponents(t, tol=1.e-12, byOCAFLabels=False):
     """Return the number of components in t, taggings faces with component number."""
     import Transform.PyTree as T
-    # init FACES with a tag
     FACES = Internal.getNodeFromName1(t, 'FACES')
+
+    # add the no to FACES as __tag__ field
     zones = Internal.getZones(FACES)
     for z in zones:
         # Get face number
@@ -1564,11 +1599,41 @@ def getComponents(t):
         # init tag
         C._initVars(z, '__tag__ = %d'%no)
 
-    # join all zones
-    G._zip(zones, 1.e-10) # volontairement in place, maybe useless
-    a = T.join(zones)
-    #a = T.splitConnexity(a)
-    a = T.splitManifold(a)
+    if byOCAFLabels: # by OCAF Labels components
+        # Find components by OCAF names if possible
+        zones = Internal.getZones(FACES)
+        families = C.getFamilyZoneNames(FACES)
+        found = {}
+        for z in zones: found[z[0]] = False
+        compounds = {}
+        for f in families:
+            zs = C.getFamilyZones(FACES, f)
+            for z in zs: found[z[0]] = True
+            compounds[f] = zs
+        rest = []
+        for n in found:
+            if not found[n]:
+                z = Internal.getNodeFromName1(zones, n)
+                rest.append(z)
+        compounds['noLabels'] = rest
+        a = []
+        for c in compounds:
+            print(f"INFO: building component {c}...", flush=True)
+            zs = compounds[c]
+            if zs == []: continue
+            G._zip(zs, tol) # volontairement in place, maybe useless
+            b = T.join(zs, tol=tol) # for self closing not done by zip
+            #b = T.splitConnexity(b)
+            b = T.splitManifold(b)
+            a += b
+        for c, z in enumerate(a): z[0] = f"component{c}"
+    else:
+        # join all zones
+        G._zip(zones, tol) # volontairement in place, maybe useless
+        a = T.join(zones, tol=tol) # for self closing not done by zip
+        #a = T.splitConnexity(a)
+        a = T.splitManifold(a)
+        for c, z in enumerate(a): z[0] = f"component{c}"
 
     # Identify faces in component
     tags = {}
@@ -1578,21 +1643,26 @@ def getComponents(t):
     # Get the component number for each zone
     pos = getAllPos(t)
     for k in tags:
-        C._addFamily2Base(FACES, 'Component%02d'%k)
+        C._addFamily2Base(FACES, 'Component%03d'%k)
         faces = tags[k]
         for f in faces:
             z = getFace(t, pos, f)
-            C._tagWithFamily(z, 'Component%02d'%k, add=True)
+            C._tagWithFamily(z, 'Component%03d'%k, add=True)
 
     return a
 
 # tell if component (as obtained by getComponent) is watertight
-def isWatertight(component, leaks=[]):
-    """Tell if componenent is watertight."""
+# IN: component: one zone component
+# IN: tol: tol to discard degenerated exterior faces check
+# OUT: leaks: leaks corresponding to exterior faces
+def isWatertight(component, leaks=[], tol=1.e-12):
+    """Tell if component is watertight."""
     import Post.PyTree as P
     import Transform.PyTree as T
+    import Geom.PyTree as D
     ext = P.exteriorFaces(component)
     ext = T.splitConnexity(ext)
-    leaks += ext
+    for e in ext: # check if exterior are not degenerated
+        if D.getLength(e) > tol: leaks += [e]
     if leaks != []: return False
     else: return True

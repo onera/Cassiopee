@@ -5,11 +5,8 @@ import Connector.PyTree as X
 import Geom.PyTree as D
 import Post.PyTree as P
 import Dist2Walls.PyTree as DTW
-import Transform.PyTree as T
-import Initiator.PyTree as I
 import Converter.Internal as Internal
-import Connector.ToolboxIBM as IBM
-import KCore.test as test
+import Post.IBM as P_IBM
 import numpy
 
 N = 41
@@ -49,5 +46,5 @@ zones = Internal.getNodesFromType2(t, 'Zone_t')
 X.miseAPlatDonorTree__(zones, tc, graph=None)
 # attention compact=0 car t n est pas compacte
 X._setInterpTransfers(t,tc, bcType=0,varType=2,variablesIBC=vars,compact=0,compactD=1)
-z = IBM.extractIBMWallFields(tc, tb=tb)
+z = P_IBM.extractIBMWallFields(tc, tb=tb)
 C.convertPyTree2File(z,"out.cgns")

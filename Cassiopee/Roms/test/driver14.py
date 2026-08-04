@@ -1,54 +1,56 @@
 # driver: parametric surface from lines and spline
 import Roms.Driver as D
 
+T1 = D.Part("Part1")
+
 # Create parameter
-hauteur = D.Scalar('hauteur')
+hauteur = T1.Scalar('hauteur')
 hauteur.range = [0., 1., 0.1]
 
 # Create points
-P1 = D.Point('P1', (0,0,0))
+P1 = T1.Point('P1', (0,0,0))
 
-P2 = D.Point('P2', (1,0,0))
+P2 = T1.Point('P2', (1,0,0))
 
-P3 = D.Point('P3', (1.5,1,0))
-D.Eq(P3.y, hauteur)
+P3 = T1.Point('P3', (1.5,1,0))
+T1.Eq(P3.y, hauteur)
 
-P4 = D.Point('P4', (2.5,1,0))
-D.Eq(P4.y, hauteur)
+P4 = T1.Point('P4', (2.5,1,0))
+T1.Eq(P4.y, hauteur)
 
-P5 = D.Point('P5', (3,0,0))
+P5 = T1.Point('P5', (3,0,0))
 
-P6 = D.Point('P6', (4,0,0))
+P6 = T1.Point('P6', (4,0,0))
 
-P7 = D.Point('P7', (4,2,0))
+P7 = T1.Point('P7', (4,2,0))
 
-P8 = D.Point('P8', (0,2,0))
+P8 = T1.Point('P8', (0,2,0))
 
 # Create lines
-spline1 = D.Spline1('spline1', [P1,P2,P3,P4,P5,P6])
+spline1 = T1.Spline1('spline1', [P1,P2,P3,P4,P5,P6])
 
-line1 = D.Line('line1', P6, P7)
-line2 = D.Line('line2', P7, P8)
-line3 = D.Line('line3', P8, P1)
+line1 = T1.Line('line1', P6, P7)
+line2 = T1.Line('line2', P7, P8)
+line3 = T1.Line('line3', P8, P1)
 
 # Create sketch
-sketch1 = D.Sketch('sketch1', [spline1, line1, line2, line3], h=[0.01,0.01,0.01])
+sketch1 = T1.Sketch('sketch1', [spline1, line1, line2, line3], h=[0.01,0.01,0.01])
 
 # surface
-surface1 = D.Fill(sketch=sketch1, h=[0.1,0.1,0.1])
+surface1 = T1.Fill(sketch=sketch1, h=[0.1,0.1,0.1])
 
 # solve
-D.DRIVER.solve()
+T1.solve()
 
-D.DRIVER.instantiate({'hauteur': 0.5})
+T1.instantiate({'hauteur': 0.5})
 m = surface1.MeshAsReference()
 #surface1.writeCAD('out.step')
 
 import CPlot.PyTree as CPlot, time
-point = D.DRIVER.walkDOE()
+point = T1.walkDOE()
 while point is not None:
-    D.DRIVER.instantiate(point)
+    T1.instantiate(point)
     m = surface1.Dmesh()
     CPlot.display(m, mode='scalar')
-    point = D.DRIVER.walkDOE()
+    point = T1.walkDOE()
     time.sleep(0.5)

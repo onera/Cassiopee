@@ -27,7 +27,6 @@ static PyMethodDef Pyconnector [] =
 {
   {"getIBMPtsBasic", K_CONNECTOR::getIBMPtsBasic, METH_VARARGS},
   {"getIBMPtsWithFront", K_CONNECTOR::getIBMPtsWithFront, METH_VARARGS},
-  {"getIBMPtsWithTwoFronts", K_CONNECTOR::getIBMPtsWithTwoFronts, METH_VARARGS},
   {"getIBMPtsWithoutFront", K_CONNECTOR::getIBMPtsWithoutFront, METH_VARARGS},
   {"optimizeOverlap", K_CONNECTOR::optimizeOverlap, METH_VARARGS},
   {"maximizeBlankedCells", K_CONNECTOR::maximizeBlankedCells, METH_VARARGS},
@@ -105,7 +104,6 @@ static PyMethodDef Pyconnector [] =
   {"_updateNatureForIBM",K_CONNECTOR::_updateNatureForIBM, METH_VARARGS},//on a zone, in place
   {"indiceToCoord2",K_CONNECTOR::indiceToCoord2, METH_VARARGS},//on a zone, in place
   {"correctCoeffList",K_CONNECTOR::correctCoeffList, METH_VARARGS},//on a zone, in place
-  {"_blankClosestTargetCells",K_CONNECTOR::_blankClosestTargetCells, METH_VARARGS},
   {"_modCellN1",K_CONNECTOR::_modCellN1, METH_VARARGS},
   {"_modCellN2",K_CONNECTOR::_modCellN2, METH_VARARGS},
   {"___setQintersectionLBM", K_CONNECTOR::___setQintersectionLBM, METH_VARARGS},

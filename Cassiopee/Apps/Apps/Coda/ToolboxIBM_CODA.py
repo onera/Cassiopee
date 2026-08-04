@@ -1,7 +1,8 @@
 """Toolbox for CODA."""
 import Converter.PyTree as C
 import Converter.Internal as Internal
-import Connector.ToolboxIBM as TIBM
+import Connector.IBM as X_IBM
+import Generator.IBM as G_IBM
 import Transform.PyTree as T
 import Converter
 import Converter.Distributed as CD
@@ -183,7 +184,7 @@ def prepare(t_case, t, tskel, check=False):
         # Creation of the 2D body for IBM preprocessing
         T._addkplane(tb)
         T._contract(tb, (0,0,0), (1,0,0), (0,1,0), dz)
-    t = TIBM.blankByIBCBodies(t, tb, 'nodes', dimPb)
+    t = X_IBM.blankByIBCBodies(t, tb, 'nodes', dimPb)
     test.printMem(">>> Blanking [end]")
     print('Nb of Cartesian grids=%d.'%len(Internal.getZones(t)))
     npts = 0
@@ -471,17 +472,17 @@ def prepareOctree(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=
     # Octree identical on all procs
     test.printMem('>>> Octree unstruct [start]')
 
-    o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfars=dfarList,
-                         to=to, tbox=tbox, snearsf=snearsf,
-                         dimPb=dimPb, vmin=vmin,
-                         expand=expand, dfarDir=dfarDir)
+    o = G_IBM.buildOctree(tb, snears=snears, snearFactor=1., dfars=dfarList,
+                          to=to, tbox=tbox, snearsf=snearsf,
+                          dimPb=dimPb, vmin=vmin,
+                          expand=expand, dfarDir=dfarDir)
     if rank==0 and check: C.convertPyTree2File(o, fileout)
     bbo = G.bbox(o)
 
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
-    parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfars=dfarList, to=to, tbox=tbox, snearsf=snearsf,
-                                        dimPb=dimPb, vmin=vmin)
+    parento = G_IBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfars=dfarList, to=to, tbox=tbox, snearsf=snearsf,
+                                         dimPb=dimPb, vmin=vmin)
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree
@@ -496,7 +497,7 @@ def prepareOctree(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=
 
     # fill vmin + merge in parallel
     test.printMem(">>> Octree struct [start]")
-    res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000)
+    res = G_IBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000)
     del p
     if parento is not None:
         for po in parento: del po
@@ -581,7 +582,7 @@ def prepareOctree(t_case, t_out, vmin=5, dfarList=[], dfar=10., snears=0.01, NP=
         # Creation of the 2D body for IBM preprocessing
         T._addkplane(tb)
         T._contract(tb, (0,0,0), (1,0,0), (0,1,0), dz)
-    t = TIBM.blankByIBCBodies(t, tb, 'nodes', dimPb)
+    t = X_IBM.blankByIBCBodies(t, tb, 'nodes', dimPb)
     test.printMem(">>> Blanking [end]")
     print('Nb of Cartesian grids=%d.'%len(Internal.getZones(t)))
     npts = 0

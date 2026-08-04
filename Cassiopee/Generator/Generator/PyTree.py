@@ -978,7 +978,7 @@ def _closeLegacy(t, tol=1.e-12, suppressDegeneratedNGons=False):
 def close(a, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True,
           rmDuplicatedFaces=True, rmDuplicatedElts=True,
           rmDegeneratedFaces=True, rmDegeneratedElts=True,
-          indices=None):
+          indices=None, status=None):
     """Merge vertices distant of tol and remove multiply defined vertices/faces/elements.
     Usage: close(array, tol, rmOverlappingPts, rmOrphanPts, rmDuplicatedFaces,
                  rmDuplicatedElts, rmDegeneratedFaces, rmDegeneratedElts,
@@ -986,13 +986,13 @@ def close(a, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True,
     t = Internal.copyRef(a)
     _close(t, tol, rmOverlappingPts, rmOrphanPts, rmDuplicatedFaces,
            rmDuplicatedElts, rmDegeneratedFaces, rmDegeneratedElts,
-           indices=indices)
+           indices=indices, status=status)
     return t
 
 def _close(t, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True,
            rmDuplicatedFaces=True, rmDuplicatedElts=True,
            rmDegeneratedFaces=True, rmDegeneratedElts=True,
-           indices=None):
+           indices=None, status=None):
     """Merge vertices distant of tol and remove multiply defined vertices/faces/elements.
     Usage: close(array, tol, rmOverlappingPts, rmOrphanPts, rmDuplicatedFaces,
                  rmDuplicatedElts, rmDegeneratedFaces, rmDegeneratedElts,
@@ -1001,21 +1001,23 @@ def _close(t, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True,
     fields = Generator.close(fields, tol, rmOverlappingPts, rmOrphanPts,
                              rmDuplicatedFaces, rmDuplicatedElts,
                              rmDegeneratedFaces, rmDegeneratedElts,
-                             indices=indices)
+                             indices=indices, status=status)
     C.setFields(fields, t, 'nodes')
     return None
 
-def rmOrphans(a):
+def rmOrphans(a, status=None):
     """Remove orphan vertices."""
     return close(a, rmOverlappingPts=False, rmOrphanPts=True,
                  rmDuplicatedFaces=False, rmDuplicatedElts=False,
-                 rmDegeneratedFaces=False, rmDegeneratedElts=False)
+                 rmDegeneratedFaces=False, rmDegeneratedElts=False,
+                 status=status)
 
-def _rmOrphans(a):
+def _rmOrphans(a, status=None):
     """Remove orphan vertices."""
     return _close(a, rmOverlappingPts=False, rmOrphanPts=True,
                   rmDuplicatedFaces=False, rmDuplicatedElts=False,
-                  rmDegeneratedFaces=False, rmDegeneratedElts=False)
+                  rmDegeneratedFaces=False, rmDegeneratedElts=False,
+                  status=status)
 
 def zip(a, tol=1.e-12):
     """Zip zones if they are distant of tol."""

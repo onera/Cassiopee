@@ -122,8 +122,16 @@ elif [ "$MAC" = "ld_coda" ]; then
     export ELSAPROD=$ELSAPROD$EXT
     . /etc/profile.d/modules-onera.sh
     module purge
+    
     module load lapack/3.9.1-gnu831
     module load occt/7.6.1-gnu831
+    
+    #module load socle-fs/gnu1210_openmpi405
+    #source /stck/rhea/coda_modules/expose_modules.sh 2026.05
+    #module load fsdm
+    #module load fsoversetblanking
+    #module load coda
+
     module load gcc/12.1.0
     module load openmpi/4.0.5-gnu831
     module load python/3.10.8-gnu831
@@ -133,6 +141,7 @@ elif [ "$MAC" = "ld_coda" ]; then
     PROD_PYTHONPATH=/stck/rhea/opt/python3.10_modules/lib/python3.10/site-packages
     module use /stck/rhea/juno_coda_v2025_11/modules/linux-rocky8-x86_64_v3
     module load coda/2025.11.1-gnu12.1.0 fszoltanintegration/2025.11.1-gnu12.1.0 fsoversetblanking/2025.11.1-gnu12.1.0 fsui-coda/2025.11.1-gnu12.1.0 fsui-coda-plugin-coda-coupling/2025.11.1-gnu12.1.0 fsgridvelocity/2025.11.1-gnu12.1.0
+
     export PRODMODE=3
     export PYTHONEXE=python3
     export PIP_DISABLE_PIP_VERSION_CHECK=1
@@ -432,8 +441,8 @@ elif [ "$MAC" = "juno_gpu" ]; then
     export SLURM_CONF_SERVER=10.33.131.11:6817
     unset OMP_PLACES
 
-elif [ "$MAC" = "juno_coda" ]; then
-#----------------------------- juno coda --------------------------------------
+elif [ "$MAC" = "juno_coda2" ]; then
+#----------------------------- juno coda2 --------------------------------------
     export ELSAPROD=juno_coda
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
@@ -478,18 +487,21 @@ elif [ "$MAC" = "juno_coda" ]; then
     export SLURM_CONF_SERVER=10.33.131.11:6817
     unset OMP_PLACES
 
-elif [ "$MAC" = "juno_coda2" ]; then
+elif [ "$MAC" = "juno_coda" ]; then
 #----------------------------- juno coda --------------------------------------
-    export ELSAPROD=juno_coda2
+    export ELSAPROD=juno_coda
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads
     export OMP_NUM_THREADS=48
     source /opt/tools/Modules/init/bash
     module purge
 
-    module load lapack/3.9.1-gnu831
     module load occt/7.6.1-gnu831
     module load socle-fs/gnu1210_openmpi405
+    source /stck/rhea/coda_modules/expose_modules.sh 2026.05
+    module load fsdm
+    module load fsoversetblanking
+    module load coda
 
     export PYTHONEXE=python3
     export PRODMODE=1
@@ -601,6 +613,32 @@ elif [ "$MAC" = "sator_gcc" ]; then
 
 elif [ "$MAC" = "sator_coda" ]; then
 #----------------------------- sator coda -------------------------------------
+    export ELSAPROD=sator_coda
+    export ELSAPROD=$ELSAPROD$EXT
+    # Nbre de threads
+    export OMP_NUM_THREADS=48
+    source /opt/tools/Modules/init/bash
+    module purge
+
+    module load emacs/27.2-gnu831
+    module load occt/7.6.1-gnu831
+    module load socle-fs/gnu1210_openmpi405
+    source /stck/rhea/coda_modules/expose_modules.sh 2026.05
+    module load fsdm
+    module load fsoversetblanking
+    module load coda
+
+    export OMP_PLACES=cores
+    export PYTHONEXE=python3
+    export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    export XMODIFIERS="@im=none"
+    export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
+    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+    export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
+
+elif [ "$MAC" = "sator_coda2" ]; then
+#----------------------------- sator coda2 -------------------------------------
     export ELSAPROD=sator_coda
     export ELSAPROD=$ELSAPROD$EXT
     # Nbre de threads

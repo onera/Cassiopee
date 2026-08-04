@@ -4,7 +4,8 @@ import KCore.test as test
 import Converter.PyTree as C
 import Converter.Mpi as Cmpi
 import Converter.Internal as Internal
-import Connector.ToolboxIBM as TIBM
+import Generator.IBM as G_IBM
+import Connector.IBM as X_IBM
 import Connector.PyTree as X
 import Transform.PyTree as T
 import numpy
@@ -34,8 +35,8 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
     # Octree identical on all procs
     test.printMem('>>> Octree unstruct [start]')
     # Build octree
-    o = TIBM.buildOctree(tb, snears=snears, snearFactor=1., dfars=dfarList, to=to,
-                         dimPb=dimPb, vmin=vmin, expand=expand)
+    o = G_IBM.buildOctree(tb, snears=snears, snearFactor=1., dfars=dfarList, to=to,
+                          dimPb=dimPb, vmin=vmin, expand=expand)
     # addRefinementZones
     if tbox is not None:
         o = addRefinementZones(o, tbox, snearsf, vmin=vmin, dim=dimPb)
@@ -43,8 +44,8 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
 
     # build parent octree 3 levels higher
     # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
-    parento = TIBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfars=dfarList, to=to, tbox=tbox,
-                                        snearsf=snearsf, dimPb=dimPb, vmin=vmin)
+    parento = G_IBM.buildParentOctrees__(o, tb, snears=snears, snearFactor=4., dfars=dfarList, to=to, tbox=tbox,
+                                         snearsf=snearsf, dimPb=dimPb, vmin=vmin)
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree
@@ -58,7 +59,7 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
 
     # fill vmin + merge in parallel
     test.printMem(">>> Octree struct [start]")
-    res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=sizeMax)
+    res = G_IBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=sizeMax)
     del p
     if parento is not None:
         for po in parento: del po
@@ -88,8 +89,8 @@ def generateCartMesh(t_case, snears=0.01, dfar=10., dfarList=[], vmin=21, check=
         coords = None; zones = None
         test.printMem(">>> extended cart grids (after rmXZones) [end]")
 
-        TIBM._addBCOverlaps(t, bbox=bb)
-        TIBM._addExternalBCs(t, bbox=bb, dimPb=dimPb)
+        G_IBM._addBCOverlaps(t, bbox=bb)
+        G_IBM._addExternalBCs(t, bbox=bb, dimPb=dimPb)
 
     else:
         if dimPb == 3: ratios = [[2,2,2],[4,4,4],[8,8,8],[16,16,16]]
@@ -128,7 +129,7 @@ def addRefinementZones(o, tbox, snearsf=None, vmin=15, dim=3):
         for box in boxes:
             volmin2 = 1.09*(snearsf[nob]*(vmin-1))**(dim)
             C._initVars(to,'centers:cellN',1.)
-            to = TIBM.blankByIBCBodies(to, tbox, 'centers', dim)
+            to = X_IBM.blankByIBCBodies(to, tbox, 'centers', dim)
             C._initVars(to,'{centers:indicator}=({centers:indicator}>0.)+({centers:indicator}<1.)*logical_and({centers:cellN}<0.001, {centers:vol}>%f)'%volmin2)
             nob += 1
 

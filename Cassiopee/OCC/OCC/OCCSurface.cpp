@@ -189,8 +189,8 @@ K_OCC::OCCSurface::parametersSample(const K_FLD::FloatArray&coord3D, K_FLD::Floa
     N[1] = (Nc+1)%szSmpl;              // next
       
     //
-    d2[0]=K_MESH::Edge::edgePointMinDistance2<3>(pos3D.col(N[0]), pos3D.col(Nc), Pt, lambda[0]);
-    d2[1]=K_MESH::Edge::edgePointMinDistance2<3>(pos3D.col(Nc), pos3D.col(N[1]), Pt, lambda[1]);
+    d2[0] = K_MESH::Edge::edgePointMinDistance2<3>(pos3D.col(N[0]), pos3D.col(Nc), Pt, lambda[0]);
+    d2[1] = K_MESH::Edge::edgePointMinDistance2<3>(pos3D.col(Nc), pos3D.col(N[1]), Pt, lambda[1]);
     
     // Linear interpolation
     if (d2[0] < d2[1])

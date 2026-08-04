@@ -765,7 +765,10 @@ def convertExt2Format__(fileName):
         '.step': 'fmt_step',
         '.ref': 'bin_pickle',
         '.ref1': 'bin_pickle',
-        '.ref2': 'bin_pickle'
+        '.ref2': 'bin_pickle',
+        '.ref3': 'bin_pickle',
+        '.ref4': 'bin_pickle',
+        '.ref5': 'bin_pickle'
     }
     extension = os.path.splitext(fileName)[-1]
     fmt = ext2Format.get(extension.lower(), 'unknown')
@@ -1990,14 +1993,18 @@ def checkFileType(fileName):
     #header = file.read(512)  # read first 512 bytes
     header = os.read(file, 512)
     os.close(file)
-
     if header[1:4] == b'HDF': return 'bin_hdf'
     if header[4:7] == b'ADF': return 'bin_adf'
     if header[0:5] == b'#!TDV': return 'bin_tp'
     if header[0:5] == b'TITLE' or header[0:5] == b'title' or header[0:9] == b"VARIABLES" or header[0:9] == b"variables" or header[0:8] == b"FILETYPE" or header[0:8] == b"filetype":
         return 'fmt_tp'
+    if header[0] == 0x80 and header[1] <= 0x10: return 'bin_pickle'
     if header.find(b"MeshVersionUnformatted") != -1: return 'bin_mesh'
     if header.find(b"MeshVersionFormatted") != -1: return 'fmt_mesh'
+    if header.find(b"ply") != -1: return 'bin_ply'
+    if header.find(b"#FIG") == 0: return 'fmt_xfig'
+    if header.find(b"<svg") != -1: return 'fmt_svg'
+    if header.find(b"PNG") == 1: return 'bin_png'
     if header.find(b"NDIME=") != -1: return 'fmt_su2'
     if header.find(b"DONNEES GENERALES") != -1 or header.find(b"--------") != -1: return 'fmt_cedre'
     if header[0:8] == b'CEDRE_IO': return 'bin_cedre'
@@ -2007,10 +2014,6 @@ def checkFileType(fileName):
         EndMesh = header.find(b"$EndMeshFormat")
         if EndMesh == 20: return 'fmt_gmsh'
         elif EndMesh == 25: return 'bin_gmsh'
-    if header.find(b"ply") != -1: return 'bin_ply'
-    if header.find(b"#FIG") == 0: return 'fmt_xfig'
-    if header.find(b"<svg") != -1: return 'fmt_svg'
-    if header.find(b"PNG") == 1: return 'bin_png'
     import binascii as b
     beader = b.b2a_hex(header)
     eol = b"0a"

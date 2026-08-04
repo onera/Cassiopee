@@ -129,7 +129,7 @@ class KdTree {
     void __getClosest_through_path(size_type n, const E_Float *Xn, size_type & m, E_Float& d2) const;
     
     /// Underneath algorithm for the getInBox method.
-    void __getInBox(size_type ci, size_type axis, const E_Float* mBox, const E_Float* MBox, std::vector<size_type>& out) const;   
+    void __getInBox(size_type ci, size_type axis, const E_Float* mBox, const E_Float* MBox, std::vector<size_type>& out) const;
 
   private:
 

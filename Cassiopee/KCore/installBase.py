@@ -886,27 +886,6 @@ installDict = {
         'NvccAdditionalOptions': []
     },
 
-    'juno_coda2': {
-        'description': 'Machine dev Juno rocky8 (ONERA) (env. coda)',
-        'f77compiler': 'gfortran',
-        'f90compiler': 'gfortran',
-        'Cppcompiler': 'gcc',
-        'CppAdditionalOptions': [
-            '-DCACHELINE=64',
-            '-DNB_SOCKET=2',
-            '-DCORE_PER_SOCK=48',
-            '-DSIMD=AVX512'
-        ],
-        'f77AdditionalOptions': [],
-        'useOMP': True,
-        'static': False,
-        'additionalIncludePaths': [],
-        'additionalLibs': [],
-        'additionalLibPaths': [],
-        'useCuda': False,
-        'NvccAdditionalOptions': []
-    },
-
     'juno': {
         'description': 'Machine dev Juno rocky8 (ONERA)',
         'f77compiler': 'ifort',

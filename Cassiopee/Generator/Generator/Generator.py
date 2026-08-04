@@ -834,31 +834,36 @@ def closeLegacy(array, tol=1.e-12, suppressDegeneratedNGons=False):
 def close(array, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True,
           rmDuplicatedFaces=True, rmDuplicatedElts=True,
           rmDegeneratedFaces=True, rmDegeneratedElts=True,
-          indices=None):
+          indices=None, status=None):
     """Close an unstructured mesh defined by an array gathering points closer than tol.
     Usage: close(array, tol)"""
     exportIndirPts = False
     if isinstance(indices, list) and not indices: exportIndirPts = True
     if isinstance(array[0], list):
         out = []
+        modified = False
         for a in array:
             indirl = None
             if len(a) == 5: # merge intra-borders (C-type meshes)
                 outl = generator.closeBorders([a], [], tol)[0]
             else:
+                statusl = {}
                 outl = generator.closeMesh(a, tol, rmOverlappingPts,
                                            rmOrphanPts, rmDuplicatedFaces,
                                            rmDuplicatedElts, rmDegeneratedFaces,
-                                           rmDegeneratedElts, exportIndirPts)
+                                           rmDegeneratedElts, exportIndirPts,
+                                           statusl)
+                modified |= statusl.get("modified", False)
                 if exportIndirPts: outl, indirl = outl
             out.append(outl)
             if exportIndirPts: indices.append(indirl)
+        if isinstance(status, dict): status["modified"] = modified
         return out
     else:
         out = generator.closeMesh(array, tol, rmOverlappingPts,
                                   rmOrphanPts, rmDuplicatedFaces,
                                   rmDuplicatedElts, rmDegeneratedFaces,
-                                  rmDegeneratedElts, exportIndirPts)
+                                  rmDegeneratedElts, exportIndirPts, status)
         if exportIndirPts:
             out, indirl = out
             indices.append(indirl)
@@ -873,7 +878,8 @@ def zip(array, tol=1e-12):
         for a in array:
             if len(a) == 4:
                 ext = P.exteriorFaces(a)
-                if C.getNCells(ext) > 0: extFaces.append(ext)
+                #if C.getNCells(ext) > 0: print("NULL FACE EXT", flush=True)
+                extFaces.append(ext)
         return generator.closeBorders(array, extFaces, tol)
     else:
         return generator.closeBorders([array], [], tol)[0]

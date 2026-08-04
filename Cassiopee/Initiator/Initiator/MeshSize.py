@@ -1,7 +1,7 @@
 # Return first mesh size for y+=1
 import math
 
-# Mesh size comme pointwise (couche limite turbulente attachee)
+# Mesh size as pointwise (attached turbulent boundary layer)
 def meshSize1(UInf, RoInf, MuInf, LInf, yplus=1.):
     """Return first cell height to match y+."""
     ReInf = RoInf*UInf*LInf/MuInf
@@ -13,14 +13,14 @@ def meshSize1(UInf, RoInf, MuInf, LInf, yplus=1.):
     print('INFO: utau: %20.16g'%utau)
     return hp
 
-# a partir du Reynolds
+# From the Reynolds number
 def meshSize2(UInf, RoInf, ReInf, LInf, yplus=1.):
     """Return first cell height to match y+."""
     MuInf = RoInf*UInf*LInf/ReInf
     return meshSize1(UInf, RoInf, MuInf, LInf, yplus)
 
-# Marco - couche limite turbulente attachee
-# avec correction de e/c = rapport de epaisseur sur corde
+# Marco - attached turbulent boundary layer
+# with correction of e/c = thickness to chord ratio
 def meshSize3(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1.):
     """Return first cell height to match y+."""
     xsurL = 0.5
@@ -32,7 +32,7 @@ def meshSize3(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1.):
     print('INFO: utau: %20.16g'%utau)
     return hp
 
-# Marco - couche limite laminaire
+# Marco - laminar boundary layer
 def meshSize4(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1.):
     """Return first cell height to match y+."""
     xsurL = 0.5
@@ -56,9 +56,9 @@ def meshSize(UInf, RoInf, ReInf, LInf, esurc=0.012, yplus=1., algo='Turbulent'):
         raise ValueError('meshSize: unknown algo.')
 
 def boundaryLayerHeight(ReInf, algo='Turbulent'):
-    """Return boundary layer height."""
+    """Return adimensioned boundary layer height."""
     if algo == 'Laminar':
-        delta = 0.75*5*ReInf**(-0.5)
+        delta = 0.75*5.0*ReInf**(-0.5)
     elif algo == 'Turbulent':
         delta = 0.75*0.37*ReInf**(-1./5.)
     return delta

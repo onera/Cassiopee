@@ -1,6 +1,3 @@
-# IMPROVEMENTS
-# cartRX in offsets ?
-# snear to adjust as in FAST/IBM
 import Converter.PyTree as C
 import Converter.Mpi as Cmpi
 import Transform.PyTree as T
@@ -14,68 +11,75 @@ import os, numpy, math, time
 
 __TOL__ = 1.0e-9
 
-def selectTboxZonesFromGeom(tb, iLocal, snearTmp, listTboxSnearAdd):
-    # Select all zones in a base from tb that do not have the maximum snear
-    # These zones are copied and saved in a list. These zones have the IBM node that specified the snear & number of base in the tb
-    maxSnearLocal = max(snearTmp)
-    bases = Internal.getBases(tb)
-    # per zone - create a copy & assume it will be a new base
-    for z in Internal.getZones(bases[iLocal]):
-        snearNode = Internal.getNodeFromName(z, 'snear')
-        snearVal = Internal.getValue(snearNode)
-        # if zone has the same snear as max, add None node
-        zCopy = None
-        if snearVal < maxSnearLocal*0.9:
-            zCopy = Internal.copyTree(z)
-            Internal._createUniqueChild(Internal.getNodeFromName1(zCopy, '.Solver#define'), 'baseNumber', 'DataArray_t', int(iLocal))
-            Internal._setValue(snearNode, maxSnearLocal)
-        listTboxSnearAdd.append(zCopy)
-    return listTboxSnearAdd
-
-def createTboxSnearAdd(listTboxSnear, vmins, dim=3, vminTboxAtLeastOne=False):
+#==================================================================
+# Helper functions for input geometry tree (tb)
+#==================================================================
+def createTboxSnear__(tb, vmins, snears, dim=3):
     import Geom.PyTree as D
     import Geom.IBM as D_IBM
-    vminsTboxAdd = []
-    snearsTboxAdd = []
-    tboxAdd = None
-    for base in listTboxSnear:
-        if base is not None:
-            snear = Internal.getValue(Internal.getNodeFromName(base, 'snear'))
-            baseNum = Internal.getValue(Internal.getNodeFromName(base, 'baseNumber'))
-            vminLocalNode = Internal.getNodeFromName(base, 'vmin')
-            # Close the open zone/base from tb
-            if dim == 2:
-                bNew = D_IBM.closeContour(base)
-                bNew = T.reorder(bNew, (1,2,3))
-                bNew = D.uniformize(bNew, N=1000)
 
-            else:
-                bNew = D_IBM.closeSurface(base, isSmooth=True)
-                bNew = Internal.getZones(bNew)
-                bNew= Internal.rmNodesByName(bNew, '.Solver#define')
-                bNew= Internal.rmNodesByName(bNew, 'FlowSolution#Centers')
-                bNew = T.join(bNew)
+    tboxSnear = []
+    snearsTboxSnear = []
+    vminsTboxSnear = []
 
-            if tboxAdd is None:
-                tboxAdd = C.newPyTree(["Base"+'_'+str(baseNum)+'_'+base[0], bNew])
-            else:
-                base = Internal.createBaseNode("Base"+'_'+str(baseNum)+'_'+base[0], cellDim=3);
-                tboxAdd[2].append(base)
-                base[2].append(bNew)
-            if vminLocalNode:
-                vminLocal = Internal.getValue(vminLocalNode)
-                vminsTboxAddTmp = [5]*len(vmins[baseNum])
-                for i in range(len(vminLocal)):
-                    vminsTboxAddTmp[i]=vminLocal[i]
-                vminsTboxAdd.append(vminsTboxAddTmp)
-            else:
-                if vminTboxAtLeastOne:
-                    vminsTboxAddTmp = [5]*len(vmins[baseNum])
-                    vminsTboxAdd.append(vminsTboxAddTmp)
+    # per base - snear in zones are all equal?
+    for nob, baseLocal in enumerate(Internal.getBases(tb)):
+        snearsLocal = snears[nob]
+        vminsLocal = vmins[nob]
+        snearsLocal = list(set(snearsLocal))
+        maxSnearLocal = max(snearsLocal)
+
+        if len(snearsLocal) > 1: # different snear values in base
+            # update snears based in maxSnearLocal
+            snears[nob] = [maxSnearLocal]*len(snears[nob])
+
+            # find zones with local snear < maxSnearLocal
+            # Set vmin per zone - if not specifically set in tb the default 5 is used
+            for z in Internal.getZones(baseLocal):
+                vminLocal = Internal.getNodeFromName2(z, 'vmin')
+                if vminLocal is not None:
+                    vminLocal = Internal.getValue(vminLocal)
+                    if isinstance(vminLocal, numpy.ndarray): vminLocal = vminLocal.tolist()
+                    else: vminLocal = [vminLocal]
+                    vminLocal.append(5)
                 else:
-                    vminsTboxAdd.append(vmins[baseNum])
-            snearsTboxAdd.append([snear])
-    return tboxAdd, snearsTboxAdd, vminsTboxAdd
+                    vminLocal = [5]*len(vminsLocal)
+
+
+                snearLocal = Internal.getNodeFromName2(z, 'snear')
+                if snearLocal is not None: snearLocal = Internal.getValue(snearLocal)
+                else: continue
+
+                if snearLocal < maxSnearLocal*0.9:
+                    zoneLocal = Internal.copyTree(z)
+                    zoneLocal = Internal.rmNodesByName(zoneLocal, '.Solver#define')
+
+                    # Close the open zone/base from tb
+                    if dim == 2:
+                        zoneLocal = D_IBM.closeContour(zoneLocal)
+                        zoneLocal = T.reorder(zoneLocal, (1,2,3))
+                        zoneLocal = D.uniformize(zoneLocal, N=1000)
+                    else:
+                        zoneLocal = D_IBM.closeSurface(zoneLocal, isSmooth=True)
+                        zoneLocal = Internal.getZones(zoneLocal)
+                        zoneLocal = Internal.rmNodesByName(zoneLocal, 'FlowSolution#Centers')
+                        zoneLocal = T.join(zoneLocal)
+
+                    # Add closed zone to tboxSnear
+                    tboxSnear.extend(['Base%d_%s'%(nob, z[0]), zoneLocal])
+
+                    # update snearsTboxSnear
+                    snearsTboxSnear.append([snearLocal])
+
+                    # update vminsTboxSnear
+                    vminsTboxSnear.append(vminLocal)
+
+    if tboxSnear:
+        tboxSnear = C.newPyTree(tboxSnear)
+    else:
+        tboxSnear = None
+
+    return snears, tboxSnear, snearsTboxSnear, vminsTboxSnear
 
 def _addExtensionInfo(tb, dictExtension, dictTolerance=None):
     # example of the dictExtension - the value provided (-1, 1) correspond to
@@ -104,11 +108,6 @@ def createExtension__(tbIn):
     if Cmpi.master: print('Creating automatic extension at symmetry plane...start', flush=True)
 
     tb = Internal.copyTree(tbIn)
-    baseSYM    = Internal.getNodesFromName1(tb,"SYM")
-    if baseSYM:
-        # Remove SYM Base & Zones - keep real closed tb & tbox
-        tb = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
-        tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
     bases = Internal.getBases(tb)
     # do each base separately
     for bTmp in bases:
@@ -161,7 +160,7 @@ def createExtension__(tbIn):
                 for zb in zonesb:
                     minval = C.getMinValue(zb, '%s'%varName2)
                     maxval = C.getMaxValue(zb, '%s'%varName2)
-                    if abs(maxval-maxvalOrig) > tolLocalPlane or abs(minval-maxvalOrig) > tolLocalPlane: saveZones.append(zb) # save zones that are not superimposed on the orignal planar
+                    if abs(maxval-maxvalOrig) > tolLocalPlane or abs(minval-minvalOrig) > tolLocalPlane: saveZones.append(zb) # save zones that are not superimposed on the orignal planar
                 # convert the extruded faces QUAD -> Tri
                 for zb in saveZones:
                     dim = Internal.getZoneDim(zb);
@@ -206,7 +205,7 @@ def holeInterpolatedWrapper__(to, opt, noffsets, cellNNameLocal='cellN', dirLoca
     #to = X.setHoleInterpolatedPoints(to, depth=depthLocal, cellNName=cellNNameLocal, loc='nodes', dir=dirLocal)
     return to
 
-def vminsInputCheck__(vminsIN, numBaseTMP, levelMaxTMP):
+def vminsInputCheck__(vminsIN, nbasesTMP, levelMaxTMP):
     import copy
     vminsTMP = copy.deepcopy(vminsIN)
     # list of vminsTMP
@@ -215,16 +214,30 @@ def vminsInputCheck__(vminsIN, numBaseTMP, levelMaxTMP):
         if not isinstance(vminsTMP[0],list): vminsTMP = [vminsTMP] # vmin = [] --> vmin = [[]]
 
         # vmin = [[],[]] --> vmin = [[],[],[]] for 3 bases
-        while len(vminsTMP) < numBaseTMP: vminsTMP.append(vminsTMP[-1])
+        while len(vminsTMP) < nbasesTMP: vminsTMP.append(vminsTMP[-1])
     else:
         # vmin = 10
-        vminsTMP = numpy.ones((numBaseTMP,levelMaxTMP))*vminsTMP
+        vminsTMP = numpy.ones((nbasesTMP,levelMaxTMP))*vminsTMP
         vminsTMP = vminsTMP.tolist() # needed
+
+    vminsLocal = numpy.ones((nbasesTMP, levelMaxTMP))
+    for nob in range(nbasesTMP):
+        if not isinstance(vminsTMP[nob],list):
+            vminsLocal[nob][:] = vminsTMP[nob][:]
+        elif len(vminsTMP[nob]) < levelMaxTMP:
+            vminsLocal[nob][:len(vminsTMP[nob])] = vminsTMP[nob][:]
+            vminsLocal[nob][len(vminsTMP[nob]):] = vminsTMP[nob][-1]
+        elif len(vminsTMP[nob]) > levelMaxTMP:
+            vminsLocal[nob][:] = vminsTMP[nob][:levelMaxTMP]
+        else:
+            vminsLocal[nob][:] = vminsTMP[nob][:]
+
+    vminsTMP = []
+    for nob in range(nbasesTMP):
+        vminsTMP.append(list(vminsLocal[nob]))
+        vminsTMP[nob] = [max(5,v) for v in vminsTMP[nob]] # vmin values should not be inferior to a given threshold
     return vminsTMP
 
-# Important note: This function (__addItemDict) must be moved into adaptMesh__ if only used in that function.
-#                 Leaving it here temporarily - no certainty that it wont be used elsewhere.
-#                 If by June 2026 it is not used elsewhere make definite move to adaptMesh__
 def _addItemDict__(d, key, value):
     if key in d:
         d[key].append(value)
@@ -232,7 +245,7 @@ def _addItemDict__(d, key, value):
         d[key] = [value]
     return None
 
-def getListSnear__(tb,snears):
+def getListSnear__(tb, snears):
     # List of snears
     if not isinstance(snears, list):
         snearsList = []
@@ -247,13 +260,10 @@ def getListSnear__(tb,snears):
         bodies = Internal.getZones(tb)
         if len(bodies) != len(snears): raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of snears.')
     snears = snearsList
-    tbTMP = Internal.copyTree(tb)
-    baseSYM = Internal.getNodesFromName1(tbTMP, "SYM")
-    if baseSYM: tbTMP = Internal.rmNodesByNameAndType(tbTMP, 'SYM', 'CGNSBase_t')
-    numBase = len(Internal.getBases(tbTMP))
-    return snears, numBase
+    nbases = len(Internal.getBases(tb))
+    return snears, nbases
 
-def checkBaseNames__(tb,tbox):
+def checkBaseNames__(tb, tbox):
     # check consistency of base names in tb and tbox
     # check that tb does not have base names that repeat
     # check that the tb and tbox do not have the same names
@@ -273,10 +283,31 @@ def checkBaseNames__(tb,tbox):
                 baseNameListLocal.append(b[0])
     return None
 
+def getSymmetryPlaneInfo__(tb, dim=3):
+    # determine where the symmetry plane is by dir
+    # 1 : xmin, 2 : ymin, 3 = zmin
+    baseSYM = Internal.getNodesFromName1(tb, "SYM")
+    dir_sym = 0
+    if baseSYM:
+        symplane = []
+        for zsym in Internal.getZones(baseSYM):
+            if C.getMaxValue(zsym,'centers:cellN')>0.: symplane.append(zsym)
+        [xmin, ymin, zmin, xmax, ymax, zmax] = G.bbox(symplane)
+        if abs(xmax-xmin) < __TOL__:
+            dir_sym=1;
+        elif abs(ymax-ymin) < __TOL__:
+            dir_sym=2;
+        elif abs(zmax-zmin) < __TOL__ and dim == 3:
+            dir_sym=3;
+    return dir_sym
+
+#==================================================================
+# Automatic offset generation
 # Generation of the list of offset surfaces starting from tb
 # IN: offsetValues : list of float values defining the offset distance to tb
 # if opt: mmgs is used to coarsen the tb surface to optimize distance field
 # returns a tree toffset
+#==================================================================
 def cleanOffset__(offsetTmp):
     ## Get estimates of the edges of the surface mesh
     a = G.bboxOfCells(offsetTmp)
@@ -288,8 +319,8 @@ def cleanOffset__(offsetTmp):
             val = Internal.getNodeFromName(z, 'edge_'+var)[1]
             positive = val[val > __TOL__]
             if positive.any(): values2print.append([positive.mean(), positive.min(), positive.max()])
-    minVal   = numpy.array(values2print[:3])[:, 1]
-    meanVal  = numpy.array(values2print[:3])[:, 0]
+    minVal = numpy.array(values2print[:3])[:,1]
+    meanVal = numpy.array(values2print[:3])[:,0]
     closeVal = max(0.975 * minVal.mean() + 0.025 * meanVal.mean(), 1.e-6) # 0.975 & 0.025 are partially 'arbitrary' - TODO: better choice of weights
     if Cmpi.master: print('Offset: Close value:: %g'%closeVal, flush=True)
     Internal._rmNodesFromType(offsetTmp, "FlowSolution_t")
@@ -297,10 +328,10 @@ def cleanOffset__(offsetTmp):
     offsetTmp = G.close(offsetTmp, closeVal)
     return offsetTmp
 
-def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTbox=0, tbv2=None, blankCellsAlgo='xray'):
+def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, nboxes=0, tbv2=None, blankCellsAlgo='xray'):
     import Geom.IBM as D_IBM
     if offsetValues == []: return []
-    numBase = len(Internal.getBases(tb))
+    nbases = len(Internal.getBases(tb))
     if Cmpi.master: print('Generating list of offsets...start', flush=True)
 
     minSnear=1e10
@@ -317,7 +348,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
             node = Internal.getNodesFromNameAndType(b, '*_sym', 'Zone_t')
             if node: listShiftBase.append(b[0])
         tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
-    numBase = len(Internal.getBases(tb))
+    nbases = len(Internal.getBases(tb))
     if opt and dim == 3:
         for nob in range(len(tb[2])):
             if Internal.getType(tb[2][nob]) == 'CGNSBase_t':
@@ -364,13 +395,13 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
 
     t_offset = C.newPyTree()
     no_offsetGlobal = 0
-    for nBase, tbLocal in enumerate(Internal.getBases(tb)):
+    for nob, tbLocal in enumerate(Internal.getBases(tb)):
         BB = G.bbox(tbLocal)
         ni = 150; nj = 150; nk = 150
         XRAYDIM1 = 3*ni; XRAYDIM2 = 3*nj
 
-        offsetValMin = min(offsetValues[nBase])
-        offsetValMax = max(offsetValues[nBase])
+        offsetValMin = min(offsetValues[nob])
+        offsetValMax = max(offsetValues[nob])
         alpha = 1.1
         delta = alpha*offsetValMax
         xmin = BB[0]-delta; ymin = BB[1]-delta; zmin = BB[2]-delta
@@ -418,7 +449,7 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         DTW._distance2Walls(b, tbLocalTmp, type='ortho', loc='nodes', signed=0)
         tElapse = time.perf_counter()-t0
         tElapse = Cmpi.allreduce(tElapse, op=Cmpi.MAX)
-        if Cmpi.master: print("Generate list of offsets: Base %s Num. %d:dist2wall: %.2fs"%(tbLocal[0], nBase, tElapse), flush=True)
+        if Cmpi.master: print("Generate list of offsets: Base %s Num. %d:dist2wall: %.2fs"%(tbLocal[0], nob, tElapse), flush=True)
 
         C._initVars(b,"cellN",1.)
         # merging of symmetrical bodies in the original blanking bodies
@@ -430,32 +461,105 @@ def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, numTb
         if dim == 2 or blankCellsAlgo == 'xray': X._blankCells(t, bodies, BM, blankingType='node_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM2) #or blankCellsAlgo == 'xray'
         else: X._blankCellsTri(t, bodies, BM, blankingType='node_in')
         C._initVars(t, '{TurbulentDistance}={TurbulentDistance}*({cellN}>0.)-{TurbulentDistance}*({cellN}<1.)')
-        #Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nBase) # DEBUG ONLY
+        #Cmpi.convertPyTree2File(b, 'meshForOffsetBase%d.cgns'%nob) # DEBUG ONLY
 
         # all body offsets are prefaced by 'z_offsetBase' - only the zone name
         # all tbox offsets are prefaced by 'Tbox_offsetBase' - only the zone name
         preffixLocal = 'z_offsetBase'
-        if nBase >= numBase-numTbox: preffixLocal = 'Tbox_offsetBase'
-        for no_offset, offsetval in enumerate(offsetValues[nBase]):
-            if Cmpi.master: print("Offset %d - value: %g - snear: %g"%(no_offset, offsetval, snears[nBase][0]*2**no_offset), flush=True)
+        if nob >= nbases-nboxes: preffixLocal = 'Tbox_offsetBase'
+        for no_offset, offsetval in enumerate(offsetValues[nob]):
+            if Cmpi.master: print("Offset %d - value: %g - snear: %g"%(no_offset, offsetval, snears[nob][0]*2**no_offset), flush=True)
             iso = P.isoSurfMC(t, 'TurbulentDistance', offsetval)
             iso = Cmpi.allgatherZones(iso)
             iso = C.convertArray2Tetra(iso)
             iso = T.join(iso)
-            #if Cmpi.master:C.convertPyTree2File(iso,'offset_Before%d_%d.cgns'%(nBase, no_offset)) #leave here for now - related to cleanOffset
+            #if Cmpi.master:C.convertPyTree2File(iso,'offset_Before%d_%d.cgns'%(nob, no_offset)) #leave here for now - related to cleanOffset
             iso = cleanOffset__(offsetTmp=iso)
-            #if Cmpi.master:C.convertPyTree2File(iso,'offset_After%d_%d.cgns'%(nBase, no_offset)) #leave here for now - related to cleanOffset
+            #if Cmpi.master:C.convertPyTree2File(iso,'offset_After%d_%d.cgns'%(nob, no_offset)) #leave here for now - related to cleanOffset
             #Cmpi.barrier()
             #iso = G.close(iso, tol=1.e-6)
             iso = T.smooth(iso)
-            iso[0]='%s%d_%d'%(preffixLocal, nBase, no_offset)
-            D_IBM._setSnear(iso, snears[nBase][0]*2**no_offset)
-            C._addBase2PyTree(t_offset, 'OFFSETBase%d_%d'%(nBase, no_offset))
+            iso[0]='%s%d_%d'%(preffixLocal, nob, no_offset)
+            D_IBM._setSnear(iso, snears[nob][0]*2**no_offset)
+            C._addBase2PyTree(t_offset, 'OFFSETBase%d_%d'%(nob, no_offset))
             t_offset[2][no_offsetGlobal+1][2]=[iso]
             no_offsetGlobal += 1
     return t_offset
 
+#==================================================================
+# Automatic skeleton mesh generation
 # Generates an isotropic skeleton mesh to be adapted then by AMR
+#==================================================================
+def _addPhysicalBCs__(z_ngon, tb, dim=3):
+    # Addition of Physical BCs on the skeleton NGON Mesh
+    bbo = G.bbox(z_ngon)
+
+    dir_sym = getSymmetryPlaneInfo__(tb,dim=dim)
+
+    xmin = bbo[0]; ymin = bbo[1]; zmin = bbo[2]
+    xmax = bbo[3]; ymax = bbo[4]; zmax = bbo[5]
+
+    extFaces = P.exteriorFaces(z_ngon)
+    extFaces = T.splitSharpEdges(extFaces, 80.)
+
+    zbc_xmin = []; zbc_xmax = [];
+    zbc_ymin = []; zbc_ymax = [];
+    zbc_zmin = []; zbc_zmax = []
+    for e in extFaces:
+        bbe = G.bbox(e)
+        xmine = bbe[0]; ymine = bbe[1]; zmine = bbe[2]
+        xmaxe = bbe[3]; ymaxe = bbe[4]; zmaxe = bbe[5]
+        dx = xmaxe-xmine; dy = ymaxe-ymine; dz = zmaxe-zmine
+        if dx < __TOL__ and abs(xmine-xmin) < __TOL__: zbc_xmin.append(e)
+        elif dx < __TOL__ and abs(xmaxe-xmax) < __TOL__: zbc_xmax.append(e)
+        elif dy < __TOL__ and abs(ymine-ymin) < __TOL__: zbc_ymin.append(e)
+        elif dy < __TOL__ and abs(ymaxe-ymax) < __TOL__: zbc_ymax.append(e)
+        elif dz < __TOL__ and abs(zmine-zmin) < __TOL__: zbc_zmin.append(e)
+        elif dz < __TOL__ and abs(zmaxe-zmax) < __TOL__: zbc_zmax.append(e)
+
+    zbc_xmin = T.join(zbc_xmin); zbc_xmin[0] = 'xmin'
+    zbc_xmax = T.join(zbc_xmax); zbc_xmax[0] = 'xmax'
+    zbc_ymin = T.join(zbc_ymin); zbc_ymin[0] = 'ymin'
+    zbc_ymax = T.join(zbc_ymax); zbc_ymax[0] = 'ymax'
+    zbc_zmin = T.join(zbc_zmin); zbc_zmin[0] = 'zmin'
+    zbc_zmax = T.join(zbc_zmax); zbc_zmax[0] = 'zmax'
+    if dir_sym == 1:
+        zbc_xmin[0] = C.getZoneName("BCSymmetryPlane")
+        C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane", subzone=zbc_xmin)
+        C._addBC2Zone(z_ngon, 'BCFarfield'     , "BCFarfield"    , subzone=zbc_xmax)
+    else:
+        zbc_xmin[0] = C.getZoneName("BCFarfield")
+        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_xmin)
+        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_xmax)
+
+    if dir_sym == 2:
+        zbc_ymin[0] = C.getZoneName("BCSymmetryPlane")
+        C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane", subzone=zbc_ymin)
+        C._addBC2Zone(z_ngon, 'BCFarfield'     , "BCFarfield"    , subzone=zbc_ymax)
+
+    else:
+        zbc_ymin[0] = C.getZoneName("BCFarfield")
+        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_ymin)
+        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_ymax)
+
+    if dim == 2:
+        zbc_zmin[0] = C.getZoneName("BCSymmetryPlane")
+        zbc_zmax[0] = C.getZoneName("BCSymmetryPlane")
+        C._addBC2Zone(z_ngon, 'BCSymmetryPlane', "BCSymmetryPlane", subzone=zbc_zmin)
+        C._addBC2Zone(z_ngon, 'BCSymmetryPlane', "BCSymmetryPlane", subzone=zbc_zmax)
+    else:
+        if dir_sym == 3:
+            zbc_zmin[0] = C.getZoneName("BCSymmetryPlane")
+            C._addBC2Zone(z_ngon, 'BCSymmetryPlane', "BCSymmetryPlane", subzone=zbc_zmin)
+            C._addBC2Zone(z_ngon, 'BCFarfield'     , "BCFarfield"     , subzone=zbc_zmax)
+
+        else:
+            zbc_zmin[0] = C.getZoneName("BCFarfield")
+            C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_zmin)
+            C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_zmax)
+
+    return None
+
 def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
     surfaces=[]; dfarList=[]; snearsList=[]; levelSkelList=[]
     # This clips the upper limit on the number of offset level to the input value.
@@ -463,33 +567,52 @@ def generateSkeletonMesh__(tb, snears, dfars, dim, levelSkel, octreeMode):
     forceUpperLimitOffset = True
     if levelSkel==50: forceUpperLimitOffset = False
 
-    # list of dfars
-    bodies = Internal.getZones(tb)
+    # list of lists of dfars
+    bodies = Internal.getBases(tb)
     if not isinstance(dfars, list):
-        dfars = [dfars*1.]*len(bodies)
-        for c, z in enumerate(bodies):
-            n = Internal.getNodeFromName2(z, 'dfar')
-            if n is not None: dfars[c] = Internal.getValue(n)*1.
+        dfars = []
+        for base in Internal.getBases(tb):
+            dfarsTmp = []
+            for z in Internal.getZones(base):
+                n = Internal.getNodeFromName2(z, 'dfar')
+                if n is not None: dfarsTmp.append(Internal.getValue(n)*1.)
+            dfars.append(dfarsTmp)
     else:
-        if len(bodies) != len(dfars): raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of dfars.')
+        if len(bodies) != len(dfars):
+            raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of dfars.')
+        else:
+            for nob, base in enumerate(Internal.getBases(tb)):
+                bodies = Internal.getZones(base)
+                if len(bodies) != len(dfars[nob]):
+                    raise ValueError('generateAMRMesh (generateSkeletonMesh__): Number of bodies is not equal to the size of dfars.')
     levelSkelInput = levelSkel
-    for c, z in enumerate(bodies):
-        levelSkel = levelSkelInput
-        if dfars[c] > -1: #body snear is only considered if dfar_loc > -1
-            surfaces.append(z)
-            # Pull request note: levelSkelLoc causes regressions in the mesh generation
-            levelSkelLoc = int(math.log2(dfars[c]/snears[c])) # as the dfar is fixed we do not need a fraction of the dfar to get the levelSkelLoc
-            #levelSkelLoc = int(math.log2(0.2*dfars[c]/snears[c])) # Old levelSkelLoc. Stays here in case it is needed in the future
-            #if not forceUpperLimitOffset: levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small ## I am leaving it commented due to the comment aboe.
-            if forceUpperLimitOffset: levelSkel = min(levelSkel, levelSkelLoc)
-            dfarloc = dfars[c]
-            snearloc = 2**levelSkel*snears[c]
-            while snearloc > dfarloc/2: # security so that levelSkel is not too big
-                snearloc  /= 2.
-                levelSkel -= 1
-            levelSkelList.append(levelSkel)
-            snearsList.append(snearloc)
-            dfarList.append(dfarloc)
+    for nob, base in enumerate(Internal.getBases(tb)):
+        if min(dfars[nob]) > -1: #body snear is only considered if dfar_loc > -1
+            # Check if base has '*_sym' zones. These zones are generated during the
+            # symmetrization of the tb needed for symmetric cases
+            numZones = len(Internal.getZones(base))
+            numSnears = len(snears[nob])
+            snearLocTmp = snears[nob]
+            # snear does not include the symmetrized zones. If tb has these '*_sym' zones
+            # snearLocTmp is equal to the double length of snear for that base
+            if numZones > numSnears: snearLocTmp = snears[nob]+snears[nob]
+
+            for noz, z in enumerate(Internal.getZones(base)):
+                levelSkel = levelSkelInput
+                surfaces.append(z)
+                # Pull request note: levelSkelLoc causes regressions in the mesh generation
+                levelSkelLoc = int(math.log2(dfars[nob][noz]/snearLocTmp[noz])) # as the dfar is fixed we do not need a fraction of the dfar to get the levelSkelLoc
+                #levelSkelLoc = int(math.log2(0.2*dfars[c]/snears[c])) # Old levelSkelLoc. Stays here in case it is needed in the future
+                #if not forceUpperLimitOffset: levelSkel = max(levelSkel, levelSkelLoc) # security so that levelSkel is not too small ## I am leaving it commented due to the comment aboe.
+                if forceUpperLimitOffset: levelSkel = min(levelSkel, levelSkelLoc)
+                dfarloc = dfars[nob][noz]
+                snearloc = 2**levelSkel*snearLocTmp[noz]
+                while snearloc > dfarloc/2: # security so that levelSkel is not too big
+                    snearloc  /= 2.
+                    levelSkel -= 1
+                levelSkelList.append(levelSkel)
+                snearsList.append(snearloc)
+                dfarList.append(dfarloc)
 
     o = G.octree(surfaces, snearList=snearsList, dfarList=dfarList, balancing=1, octreeMode=octreeMode)
     levelSkel = max(levelSkelList)
@@ -652,32 +775,36 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
     Internal._adaptNGon32NGon4(o)
     return o, levelSkel
 
-def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False, blankCellsAlgo='xray'):
+#==================================================================
+# Automatic AMR mesh adaptation
+# Uses XCore algorithm by Imad Hammani
+#==================================================================
+def tagOutsideBody__(o, body, dim=3, h_target=-1., opt=False, noffsets=None, coarseXray=False, blankCellsAlgo='xray'):
     # To avoid adapting inside the bodies when the bodies and the tbox intersect we have this function.
     # It tags the inside of the bodies as cellN=0 and then multiplies the indicator. i.e. the parts inside the body will be zero.
 
     to = C.newPyTree(["OCTREE"]); to[2][1][2]=Internal.getZones(o)
     C._initVars(to, 'centers:indicatorTmp', 0.)
 
-    if dim == 2: tbTMP = T.addkplane(tbTMP)
-    bodies1 = [Internal.getZones(tbTMP)]
-    bb1 = G.bbox(tbTMP)
+    if dim == 2: body = T.addkplane(body)
+    bodies1 = [Internal.getZones(body)]
+    bb1 = G.bbox(body)
     L1 = max(bb1[3]-bb1[0], bb1[4]-bb1[1])
     if dim == 3: L1 = max(L1, bb1[5]-bb1[2])
 
     BM = numpy.ones((1,1), dtype=Internal.E_NpyInt)
 
     # ideally we should use blankCellsTri to avoid XRAYDIM but currently not safe
-    XRAYDIM1 = int(L1/h_target)+10;
+    XRAYDIM1 = int(L1/h_target) + 10;
     # [Temp. Patch] - This need to be generalized. Works for all test cases currently considered but the sample size is limited to 2 in 3D (M6 & CRM Case1 HLPW5)
-    if (noffsets is None) or (noffsets > 2) or coarseXray: XRAYDIM1 = max(500, min(5000, XRAYDIM1))  #x1
-    elif noffsets == 2: XRAYDIM1 = max(1500, min(15000, XRAYDIM1));                  #x3
-    elif noffsets == 1: XRAYDIM1 = max(2500, min(25000, XRAYDIM1));                  #x5
-    elif noffsets == 0: XRAYDIM1 = max(5000, min(50000, XRAYDIM1));                  #x10
+    if (noffsets is None) or (noffsets > 2) or coarseXray: XRAYDIM1 = max(500, min(5000, XRAYDIM1)) #x1
+    elif noffsets == 2: XRAYDIM1 = max(1500, min(15000, XRAYDIM1)) #x3
+    elif noffsets == 1: XRAYDIM1 = max(2500, min(25000, XRAYDIM1)) #x5
+    elif noffsets == 0: XRAYDIM1 = max(5000, min(50000, XRAYDIM1)) #x10
     # XRAYDIM1 = max(500, min(5000, XRAYDIM1)); # XRAYDIM1 = max(5000, min(50000, XRAYDIM1)); is too expensive need to find another solution
     C._initVars(to, "cellNIn", 1.)
 
-    # tbTMP - offset body - blankCells is more tested due to uncertainties on the quality of the offset
+    # body - offset body - blankCells is more tested due to uncertainties on the quality of the offset
     if dim == 2: to = X.blankCells(to, bodies1, BM, blankingType='node_in',
                                    XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
                                    cellNName='cellN') # or blankCellsAlgo == 'xray'
@@ -685,7 +812,7 @@ def tagOutsideBody__(o, tbTMP, dim=3, h_target=-1., opt=False, noffsets=None, co
 
     to = holeInterpolatedWrapper__(to, opt, noffsets, cellNNameLocal='cellN', dirLocal=int(dim), functionName='tagOutsideBody')
     to = C.node2Center(to,["cellN"])
-    C._initVars(to, "{centers:indicatorTmp}=({centers:cellN}>0)")
+    C._initVars(to, "{centers:indicatorTmp} = ({centers:cellN}>0)")
     C._rmVars(to, ["cellN","centers:cellN"])
     o = Internal.getZones(to)[0]
     return o
@@ -719,23 +846,22 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
         L2 = max(L1, bb2[5]-bb2[2])
 
     # ideally we should use blankCellsTri to avoid XRAYDIM but currently not safe
-    XRAYDIM1 = int(L1/h_target)+10; XRAYDIM2 = int(L2/h_target)+10
+    XRAYDIM1 = int(L1/h_target) + 10; XRAYDIM2 = int(L2/h_target) + 10
     # [Temp. Patch] - This need to be generalized. Works for all test cases currently considered but the sample size is limited to 2 in 3D (M6 & CRM Case1 HLPW5)
     # XRAYDIM1 = min(5000, XRAYDIM1); XRAYDIM2 = min(5000, XRAYDIM2)
     # XRAYDIM1 = max(500, XRAYDIM1); XRAYDIM2 = max(500, XRAYDIM2)
-    # Pull request note: causes regressions in the mesh generation
     if (noffsets is None) or (noffsets > 2) or coarseXray:
-        XRAYDIM1 = max(500, min(5000, XRAYDIM1))  #x1
-        XRAYDIM2 = max(500, min(5000, XRAYDIM2))  #x1
+        XRAYDIM1 = max(500, min(5000, XRAYDIM1)) #x1
+        XRAYDIM2 = max(500, min(5000, XRAYDIM2)) #x1
     elif noffsets == 2:
-        XRAYDIM1 = max(1500, min(15000, XRAYDIM1)); #x3
-        XRAYDIM2 = max(1500, min(15000, XRAYDIM2))  #x3
+        XRAYDIM1 = max(1500, min(15000, XRAYDIM1)) #x3
+        XRAYDIM2 = max(1500, min(15000, XRAYDIM2)) #x3
     elif noffsets == 1:
-        XRAYDIM1 = max(2500, min(25000, XRAYDIM1)); #x5
-        XRAYDIM2 = max(2500, min(25000, XRAYDIM2))  #x5
+        XRAYDIM1 = max(2500, min(25000, XRAYDIM1)) #x5
+        XRAYDIM2 = max(2500, min(25000, XRAYDIM2)) #x5
     elif noffsets == 0:
-        XRAYDIM1 = max(5000, min(50000, XRAYDIM1)); #x10
-        XRAYDIM2 = max(5000, min(50000, XRAYDIM2))  #x10
+        XRAYDIM1 = max(5000, min(50000, XRAYDIM1)) #x10
+        XRAYDIM2 = max(5000, min(50000, XRAYDIM2)) #x10
 
     C._initVars(to, "cellNOut", 1.)
     C._initVars(to, "cellNIn", 1.)
@@ -745,22 +871,22 @@ def tagInsideOffset__(o, offset1=None, offset2=None, dim=3, h_target=-1., opt=Fa
                                                                cellNName='cellNIn')
     else: to = X.blankCellsTri(to, bodies2, BM, blankingType='node_in', cellNName='cellNIn')
 
-    if isTbox: C._initVars(to, '{cellN}=({cellNIn}<1)')
+    if isTbox: C._initVars(to, '{cellN}=({cellNIn} < 1)')
     else:
         if dim == 2 : to = X.blankCells(to, bodies1, BM, blankingType='node_in',
                                         XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1, dim=dim,
                                         cellNName='cellNOut') #or blankCellsAlgo == 'xray'
         else: to = X.blankCellsTri(to, bodies1, BM, blankingType='node_in', cellNName='cellNOut')
         to = holeInterpolatedWrapper__(to, opt, noffsets, cellNNameLocal='cellNOut', functionName='tagInsideOffset', dirLocal=int(dim))
-        C._initVars(to, '{cellN}=({cellNIn}<1)*({cellNOut}>0.)')
+        C._initVars(to, '{cellN} = ({cellNIn} < 1)*({cellNOut} > 0.)')
 
     to = C.node2Center(to, ["cellN"])
-    C._initVars(to, "{centers:indicatorTmp}=({centers:cellN}>0.)")
-    #
+    C._initVars(to, "{centers:indicatorTmp} = ({centers:cellN} > 0.)")
+
     G._getVolumeMap(to)
-    vol_target = h_target**dim * 1.01 # add a tolerance
+    vol_target = (h_target**dim) * 1.01 # add a tolerance
     C._initVars(to, "{centers:indicatorTmp}={centers:indicatorTmp}*({centers:vol}>%g)"%(vol_target))
-    #
+
     C._rmVars(to, ["cellN", "cellNIn", "cellNOut", "centers:cellN", "centers:vol", "centers:h"])
     o = Internal.getZones(to)[0]
     return o
@@ -1188,137 +1314,7 @@ def _createBCStandard__(a_hexa, a):
         _createQuadConnectivityFromNgonPointList__(a_hexa, a, PL, bcname, bctype)
     return None
 
-def adaptMesh__(fileSkeleton, hmin, tb, bbo, toffset=None, dim=3, loadBalancing=False, opt=False, numTbox=0, blankCellsAlgo='xray'):
-    from mpi4py import MPI # for MPI_Init
-    coarseXray = False
-    bbtb = G.bbox(tb)
-    lenMax = 0.0
-    for i in range(dim): lenMax = max(bbo[i+3]-bbo[i], lenMax)
-    if lenMax/hmin < 100: coarseXray = True
-
-    numBase = len(Internal.getZones(tb))
-    o, res = XC.loadAndSplitNGon(fileSkeleton)
-    Cmpi.barrier()
-    gcells = res[5]
-    gfaces = res[6]
-    comm = res[1]
-    if dim == 3: normal2D=None
-    else: normal2D = numpy.array([0.0, 0.0, 1.0])
-    hookAM = XC.AdaptMesh_Init(o, normal2D, comm=comm, gcells=gcells, gfaces=gfaces)
-    offset_zones = Internal.getZones(toffset)
-    offset_inside = [Internal.getZones(tb)]
-    noffsetBase = []
-
-    sortDicOffsetIBM  = {}
-    sortDicOffsetTbox = {}
-    newOffsetsTbox    = []
-    # combine zones with the same snear
-    for i in offset_zones:
-        # dict={snear1:[OffsetzoneName1,OffsetzoneName2], snear2:[OffsetzoneName3,OffsetzoneName4]}
-        if 'Tbox' in i[0]:
-            hminLocal = Internal.getValue(Internal.getNodeFromName2(i, 'snear'))
-            _addItemDict__(sortDicOffsetTbox, hminLocal, i[0])
-        else:
-            hminLocal = Internal.getValue(Internal.getNodeFromName2(i, 'snear'))
-            _addItemDict__(sortDicOffsetIBM, hminLocal, i[0])
-
-    # newOffsetsIBM=[[Offsetzone1,Offsetzone2], [Offsetzone3,Offsetzone4]]
-    # corresponding for tbox also
-    newOffsetsIBM = []
-    for snearLocal in sortDicOffsetIBM:
-        tmpOffset = []
-        for tt in sortDicOffsetIBM[snearLocal]:tmpOffset.append(Internal.getNodeFromName(offset_zones, tt))
-        newOffsetsIBM.append(tmpOffset)
-
-    if numTbox > 0:
-        for snearLocal in sortDicOffsetTbox:
-            tmpOffset = []
-            for tt in sortDicOffsetTbox[snearLocal]:tmpOffset.append(Internal.getNodeFromName(offset_zones, tt))
-            newOffsetsTbox.append(tmpOffset)
-        offset_inside.append(None)
-
-    noffsetBase = [len(newOffsetsIBM), len(newOffsetsTbox)]
-    offset_zonesNew = [newOffsetsIBM, newOffsetsTbox]
-    offset_name = ['IBM body', 'tbox'] # for I/O purposes only
-    noffsets = max(noffsetBase) # max offset for all the bases
-    for i in range(noffsets-1, -1,-1):
-        if Cmpi.master: print('\n------------------------> Adapt Offset level %d ... start'%i, flush=True)
-        for nBase in range(1+min(1,numTbox)): #nBase = 0(IBM), 1(tbox - if it exists))
-            # if i (offset) is greater than the num. offset for nBase - we continue to the next offset number
-            if i > noffsetBase[nBase]-1: continue
-            if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...start"%offset_name[nBase], flush=True)
-            offsetloc = offset_zonesNew[nBase][i][0] # as all offset at this level have the same snear we just take the first one in the list
-            hminLocal = Internal.getValue(Internal.getNodeFromName2(offsetloc, 'snear'))
-            hx        = hminLocal# * 2**i
-            adaptPass = 0
-            adapting  = True
-            while adapting:
-                Ncells = Cmpi.getNCells(o)
-                C._initVars(o,'centers:indicator',0.)
-                # loop through the offsets in the list for base=nBase and offset level=i
-                for numOffTmp, offsetlocTmp in enumerate(offset_zonesNew[nBase][i]):
-                    # body offset: tag the region between the body & the offset
-                    # tbox offset: tagethe region enclosed by the offset
-                    # offset1: cgns base of tb or tbox (tag outside)
-                    # offset2: offset (tag inside)
-                    o = tagInsideOffset__(o,  offset1=offset_inside[nBase], offset2=offsetlocTmp, dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
-                    C._initVars(o,"{centers:indicator}={centers:indicator}+{centers:indicatorTmp}")
-                    C._rmVars(o, ["centers:indicatorTmp"])
-                # Pull request note: tagOutsideBody causes regressions in the mesh generation for test cases: Connector/prepAMRFull_*.py
-                # tag cellN=0 the region enclosed inside the body - need to avoid adapting inside the body when the tbox cuts the body
-                o = tagOutsideBody__(o, tbTMP=offset_inside[0], dim=dim, h_target=hx, opt=opt, noffsets=i, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
-                C._initVars(o,"{centers:indicator}={centers:indicator}*{centers:indicatorTmp}")
-                C._rmVars(o, ["centers:indicatorTmp"])
-                ## AdaptMesh -> 0=no refinement | >=1 refinement
-                ## To avoid unexpected behaviors the indicator needs to be binary --> 0=no refinement & 1=refinement
-                C._initVars(o,"{centers:indicator}=({centers:indicator}>=1)")
-                indicMax = C.getMaxValue(o,"centers:indicator")
-                indicMax = Cmpi.allgather(indicMax)
-                indicMax = max(indicMax)
-                if indicMax<1. or (i == 0 and adaptPass > 0 and nBase == 0):
-                    adapting=False
-                    C._rmVars(o,["centers:indicator"])
-                    break
-                else:
-                    if Cmpi.master: print("......Recursive AdaptMesh:: level %d...start"%adaptPass, flush=True)
-                    f = Internal.getNodeFromName(o, 'indicator')[1]
-                    REF = f.astype(dtype=Internal.E_NpyInt)
-                    XC.AdaptMesh_AssignRefData(hookAM, REF)
-                    # [TODO] check if 4 cells is a global limit
-                    # it was found that at least 4 cells are required if not the PT-Scotch partitioning can have partitions with 0 cells. This is empirical and subject to change as the sample
-                    # size of the test cases increases
-                    if loadBalancing and Ncells//Cmpi.size>3 and adaptPass<1: XC.AdaptMesh_LoadBalance(hookAM)
-                    XC.AdaptMesh_Adapt(hookAM)
-                    o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
-                    o = Internal.getZones(o)[0]
-                    #Cmpi.convertPyTree2File(o,'check_AdaptMesh%d_pass%d.cgns'%(i,adaptPass)) # Leave here for now. very useful for debugging
-                    if Cmpi.master: print("......Recursive AdaptMesh:: level %d...end"%adaptPass, flush=True)
-                    adaptPass+=1
-            if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...end"%offset_name[nBase], flush=True)
-    if Cmpi.master: print('------------------------> Adapt Offset level %d ... end'%i, flush=True)
-
-    o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1) #ok - base per proc
-    o = Internal.getZones(o)[0]
-    owners = XC.AdaptMesh_ExtractOwners(hookAM)
-    levels = XC.AdaptMesh_ExtractCellLevels(hookAM)
-    halo_levels = XC.AdaptMesh_ExtractHaloCellLevels(hookAM)
-    neighbours = XC.AdaptMesh_ExtractNeighbours(hookAM)
-    cranges = XC.AdaptMesh_ExtractCellRanges(hookAM)
-    cart_hexa = XC.AdaptMesh_ExtractMesh(hookAM, conformize=0)
-    XC.AdaptMesh_Exit(hookAM)
-
-    # BCs
-    zone_nonconformal_inter = createPseudoBCQuadNQuadInter__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
-    zone_nonconformal_intra = createPseudoBCQuadNQuadIntra__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
-    zone_nonconformal = T.join(zone_nonconformal_inter, zone_nonconformal_intra)
-    _createBCNearMatch__(cart_hexa, zone_nonconformal)
-    _createBCStandard__(cart_hexa, o)
-    del o
-
-    Cmpi._setProc(cart_hexa, Cmpi.rank)
-    return cart_hexa
-
-def _addBC2Zone__(z, bndName, bndType, zbc, loc='FaceCenter', zdnrName=None):
+def _addBC2Zone__(z, bndName, bndType, zbc):
     s = bndType.split(':')
     bndType1 = s[0]
     if len(s) > 1: bndType2 = s[1]
@@ -1358,105 +1354,169 @@ def _addBC2Zone__(z, bndName, bndType, zbc, loc='FaceCenter', zdnrName=None):
     Internal.createUniqueChild(info, 'ElementRange', 'IndexRange_t', value=numpy.array([[maxElt+1, maxElt+neb]]))
     return None
 
-# determine where the symmetry plane is by dir
-# 1 : xmin, 2 : ymin, 3 = zmin
-def getSymmetryPlaneInfo__(tb, dim=3):
-    baseSYM = Internal.getNodesFromName1(tb, "SYM")
-    dir_sym = 0
-    if baseSYM:
-        symplane = []
-        for zsym in Internal.getZones(baseSYM):
-            if C.getMaxValue(zsym,'centers:cellN')>0.: symplane.append(zsym)
-        [xmin, ymin, zmin, xmax, ymax, zmax] = G.bbox(symplane)
-        if abs(xmax-xmin) < __TOL__:
-            dir_sym=1;
-        elif abs(ymax-ymin) < __TOL__:
-            dir_sym=2;
-        elif abs(zmax-zmin) < __TOL__ and dim == 3:
-            dir_sym=3;
-    return dir_sym
+def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False, opt=False, nboxes=0, blankCellsAlgo='xray', isBodiesIntersect=False):
+    from mpi4py import MPI # for MPI_Init
+    import Generator.Mpi as Gmpi
 
-#==================================================================
-# Addition of Physical BCs on the skeleton NGON Mesh
-#==================================================================
-def _addPhysicalBCs__(z_ngon, tb, dim=3):
-    bbo = G.bbox(z_ngon)
+    o, res = XC.loadAndSplitNGon(fileSkeleton)
+    Cmpi.barrier()
 
-    dir_sym = getSymmetryPlaneInfo__(tb,dim=dim)
+    coarseXray = False
+    lenMax = 0.0
+    bbo = Gmpi.bbox(o)
+    for i in range(dim): lenMax = max(bbo[i+3]-bbo[i], lenMax)
+    if lenMax/hmin < 100: coarseXray = True
 
-    xmin = bbo[0]; ymin = bbo[1]; zmin = bbo[2]
-    xmax = bbo[3]; ymax = bbo[4]; zmax = bbo[5]
+    # init. AdaptMesh
+    gcells = res[5]
+    gfaces = res[6]
+    comm = res[1]
+    if dim == 3: normal2D = None
+    else: normal2D = numpy.array([0.0, 0.0, 1.0])
+    hookAM = XC.AdaptMesh_Init(o, normal2D, comm=comm, gcells=gcells, gfaces=gfaces)
 
-    extFaces = P.exteriorFaces(z_ngon)
-    extFaces = T.splitSharpEdges(extFaces, 80.)
+    # get new Offset lists for and tbox
+    sortDictOffsetIBM = {}
+    sortDictOffsetTbox = {}
+    newOffsetsIBM = []
+    newOffsetsTbox = []
+    # -> dictOffset = {snear1:[OffsetzoneName1,OffsetzoneName2], snear2:[OffsetzoneName3,OffsetzoneName4]}
+    # -> newOffsets = [[Offsetzone1,Offsetzone2], [Offsetzone3,Offsetzone4]]
 
-    zbc_xmin = []; zbc_xmax = [];
-    zbc_ymin = []; zbc_ymax = [];
-    zbc_zmin = []; zbc_zmax = []
-    for e in extFaces:
-        bbe = G.bbox(e)
-        xmine = bbe[0]; ymine = bbe[1]; zmine = bbe[2]
-        xmaxe = bbe[3]; ymaxe = bbe[4]; zmaxe = bbe[5]
-        dx = xmaxe-xmine; dy = ymaxe-ymine; dz = zmaxe-zmine
-        if dx < __TOL__ and abs(xmine-xmin) < __TOL__: zbc_xmin.append(e)
-        elif dx < __TOL__ and abs(xmaxe-xmax) < __TOL__: zbc_xmax.append(e)
-        elif dy < __TOL__ and abs(ymine-ymin) < __TOL__: zbc_ymin.append(e)
-        elif dy < __TOL__ and abs(ymaxe-ymax) < __TOL__: zbc_ymax.append(e)
-        elif dz < __TOL__ and abs(zmine-zmin) < __TOL__: zbc_zmin.append(e)
-        elif dz < __TOL__ and abs(zmaxe-zmax) < __TOL__: zbc_zmax.append(e)
-
-    zbc_xmin = T.join(zbc_xmin); zbc_xmin[0] = 'xmin'
-    zbc_xmax = T.join(zbc_xmax); zbc_xmax[0] = 'xmax'
-    zbc_ymin = T.join(zbc_ymin); zbc_ymin[0] = 'ymin'
-    zbc_ymax = T.join(zbc_ymax); zbc_ymax[0] = 'ymax'
-    zbc_zmin = T.join(zbc_zmin); zbc_zmin[0] = 'zmin'
-    zbc_zmax = T.join(zbc_zmax); zbc_zmax[0] = 'zmax'
-    if dir_sym == 1:
-        zbc_xmin[0] = C.getZoneName("BCSymmetryPlane")
-        C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane", subzone=zbc_xmin)
-        C._addBC2Zone(z_ngon, 'BCFarfield'     , "BCFarfield"    , subzone=zbc_xmax)
-    else:
-        zbc_xmin[0] = C.getZoneName("BCFarfield")
-        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_xmin)
-        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_xmax)
-
-    if dir_sym == 2:
-        zbc_ymin[0] = C.getZoneName("BCSymmetryPlane")
-        C._addBC2Zone(z_ngon, 'BCSymmetryPlane',"BCSymmetryPlane", subzone=zbc_ymin)
-        C._addBC2Zone(z_ngon, 'BCFarfield'     , "BCFarfield"    , subzone=zbc_ymax)
-
-    else:
-        zbc_ymin[0] = C.getZoneName("BCFarfield")
-        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_ymin)
-        C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_ymax)
-
-    if dim == 2:
-        zbc_zmin[0] = C.getZoneName("BCSymmetryPlane")
-        zbc_zmax[0] = C.getZoneName("BCSymmetryPlane")
-        C._addBC2Zone(z_ngon, 'BCSymmetryPlane', "BCSymmetryPlane", subzone=zbc_zmin)
-        C._addBC2Zone(z_ngon, 'BCSymmetryPlane', "BCSymmetryPlane", subzone=zbc_zmax)
-    else:
-        if dir_sym == 3:
-            zbc_zmin[0] = C.getZoneName("BCSymmetryPlane")
-            C._addBC2Zone(z_ngon, 'BCSymmetryPlane', "BCSymmetryPlane", subzone=zbc_zmin)
-            C._addBC2Zone(z_ngon, 'BCFarfield'     , "BCFarfield"     , subzone=zbc_zmax)
-
+    # combine zones with the same snear
+    for z in Internal.getZones(toffset):
+        if 'Tbox' in z[0]:
+            hminLocal = Internal.getValue(Internal.getNodeFromName2(z, 'snear'))
+            _addItemDict__(sortDictOffsetTbox, hminLocal, z[0])
         else:
-            zbc_zmin[0] = C.getZoneName("BCFarfield")
-            C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_zmin)
-            C._addBC2Zone(z_ngon, 'BCFarfield', "BCFarfield", subzone=zbc_zmax)
+            hminLocal = Internal.getValue(Internal.getNodeFromName2(z, 'snear'))
+            _addItemDict__(sortDictOffsetIBM, hminLocal, z[0])
+    # Needed for tbox & tboxSnear cases
+    sortDictOffsetIBM=dict(sorted(sortDictOffsetIBM.items()))
+    sortDictOffsetTbox=dict(sorted(sortDictOffsetTbox.items()))
 
-    return None
+    for snearLocal in sortDictOffsetIBM:
+        tmpOffset = []
+        for tt in sortDictOffsetIBM[snearLocal]: tmpOffset.append(Internal.getNodeFromName(toffset, tt))
+        newOffsetsIBM.append(tmpOffset)
+
+    for snearLocal in sortDictOffsetTbox:
+        tmpOffset = []
+        for tt in sortDictOffsetTbox[snearLocal]: tmpOffset.append(Internal.getNodeFromName(toffset, tt))
+        newOffsetsTbox.append(tmpOffset)
+
+    # init. offset lists
+    offset_nbases = [len(newOffsetsIBM), len(newOffsetsTbox)]
+    offset_names = ['IBM body', 'tbox'] # for I/O purposes only
+    offset_zones = [newOffsetsIBM, newOffsetsTbox]
+    offset_inside = [Internal.getZones(tb)]
+    if nboxes > 0: offset_inside.append(None)
+
+    noffsets = max(offset_nbases) # max offset for all the bases
+
+    for level in range(noffsets-1, -1, -1):
+        if Cmpi.master: print('\n------------------------> Adapt Offset level %d ... start'%level, flush=True)
+        for nob in range(1 + min(1,nboxes)): # nob = 0(IBM), 1(tbox - if it exists))
+            # if level (offset) is greater than the num. offset for nob - we continue to the next offset number
+            if level > offset_nbases[nob]-1: continue
+            if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...start"%offset_names[nob], flush=True)
+
+            offsetLocal = offset_zones[nob][level][0]
+            hx = Internal.getValue(Internal.getNodeFromName2(offsetLocal, 'snear'))
+            adaptPass = 0
+            adapting = True
+
+            while adapting:
+                Ncells = Cmpi.getNCells(o)
+                C._initVars(o, 'centers:indicator', 0.)
+
+                # loop through the offsets in the list for base=nob and offset level=i
+                for offsetLocal in offset_zones[nob][level]:
+                    # Needed for tbox & tboxSnear cases
+                    hminLocal = Internal.getValue(Internal.getNodeFromName2(offsetLocal, 'snear'))
+                    hx = min(hx, hminLocal)
+                    # body offset: tag the region between the body & the offset
+                    # tbox offset: tag the region enclosed by the offset
+                    # offset1: cgns base of tb or tbox (tag outside)
+                    # offset2: offset (tag inside)
+                    o = tagInsideOffset__(o, offset1=offset_inside[nob], offset2=offsetLocal, dim=dim, h_target=hminLocal, opt=opt, noffsets=level, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
+                    C._initVars(o, "{centers:indicator} = {centers:indicator} + {centers:indicatorTmp}")
+                    C._rmVars(o, ["centers:indicatorTmp"])
+
+                if isBodiesIntersect:
+                    if Cmpi.master: print('Warning: Bases in tb intersect - recursive tagOutsideBody to avoid refining the intersection of the bases...', flush=True)
+                    for base in Internal.getBases(tb):
+                        o = tagOutsideBody__(o, body=base, dim=dim, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
+                        C._initVars(o, "{centers:indicator} = {centers:indicator} * {centers:indicatorTmp}")
+                        C._rmVars(o, ["centers:indicatorTmp"])
+                # tag cellN=0 the region enclosed inside the body - need to avoid adapting inside the body when the tbox cuts the body
+                o = tagOutsideBody__(o, body=offset_inside[0], dim=dim, h_target=hx, opt=opt, noffsets=level, coarseXray=coarseXray, blankCellsAlgo=blankCellsAlgo)
+                C._initVars(o, "{centers:indicator} = {centers:indicator} * {centers:indicatorTmp}")
+                C._rmVars(o, ["centers:indicatorTmp"])
+
+                # AdaptMesh -> 0: no refinement & >=1: refinement
+                # To avoid unexpected behaviors the indicator needs to be binary -> 0: no refinement & 1: refinement
+                C._initVars(o, "{centers:indicator} = ({centers:indicator} >= 1)")
+
+                indicMax = Cmpi.getMaxValue(o, "centers:indicator")
+                if indicMax < 1. or (level == 0 and adaptPass > 0 and nob == 0): # break
+                    adapting = False
+                    C._rmVars(o, ["centers:indicator"])
+                else:
+                    if Cmpi.master: print("......Recursive AdaptMesh:: npass %d...start"%adaptPass, flush=True)
+                    f = Internal.getNodeFromName(o, 'indicator')[1]
+                    REF = f.astype(dtype=Internal.E_NpyInt)
+                    XC.AdaptMesh_AssignRefData(hookAM, REF)
+                    # [TODO] check if 4 cells is a global limit
+                    # it was found that at least 4 cells are required if not the PT-Scotch partitioning can have partitions with 0 cells. This is empirical and subject to change as the sample
+                    # size of the test cases increases
+                    if loadBalancing and Ncells//Cmpi.size > 3 and adaptPass < 1: XC.AdaptMesh_LoadBalance(hookAM)
+                    XC.AdaptMesh_Adapt(hookAM)
+                    o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1)
+                    o = Internal.getZones(o)[0]
+                    if False: Cmpi.convertPyTree2File(o,'check_AdaptMesh%d_pass%d.cgns'%(i,adaptPass)) # Leave here for now. very useful for debugging
+                    if Cmpi.master: print("......Recursive AdaptMesh:: npass %d...end"%adaptPass, flush=True)
+                    adaptPass += 1
+
+            if Cmpi.master: print("~~~~~~~~~~Base %s AdaptMesh...end"%offset_names[nob], flush=True)
+
+    if Cmpi.master: print('------------------------> Adapt Offset level %d ... end'%level, flush=True)
+
+    o = XC.AdaptMesh_ExtractMesh(hookAM, conformize=1) #ok - base per proc
+    o = Internal.getZones(o)[0]
+    owners = XC.AdaptMesh_ExtractOwners(hookAM)
+    levels = XC.AdaptMesh_ExtractCellLevels(hookAM)
+    halo_levels = XC.AdaptMesh_ExtractHaloCellLevels(hookAM)
+    neighbours = XC.AdaptMesh_ExtractNeighbours(hookAM)
+    cranges = XC.AdaptMesh_ExtractCellRanges(hookAM)
+    cart_hexa = XC.AdaptMesh_ExtractMesh(hookAM, conformize=0)
+    XC.AdaptMesh_Exit(hookAM)
+
+    # BCs
+    zone_nonconformal_inter = createPseudoBCQuadNQuadInter__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
+    zone_nonconformal_intra = createPseudoBCQuadNQuadIntra__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
+    zone_nonconformal = T.join(zone_nonconformal_inter, zone_nonconformal_intra)
+    _createBCNearMatch__(cart_hexa, zone_nonconformal)
+    _createBCStandard__(cart_hexa, o)
+    del o
+
+    Cmpi._setProc(cart_hexa, Cmpi.rank)
+    return cart_hexa
 
 #==================================================================
-# Generation of the AMR mesh for IBMs
 # MAIN FUNCTION
+# Generation of the AMR mesh for IBMs
 # opt = True: for offset surface generation if it takes too long (depending on the resolution of tb)
 #==================================================================
 def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
-                    opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=None,
-                    tbv2=None, blankCellsAlgo='xray', tIn=None):
-    NumMinDxLarge=1
+                    opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=3,
+                    blankCellsAlgo='xray', tIn=None, **kwargs):
+    import Geom.IBM as D_IBM
+    import copy
+    # debug parameters
+    tbv2 = kwargs.get('tbv2', None)
+    NumMinDxLarge = kwargs.get('NumMinDxLarge', 1)
+    isDebuggingPrint = kwargs.get('isDebuggingPrint', False)
 
     Cmpi.trace('AMR Mesh Generation...start', master=True)
     fileSkeleton = 'skeleton.cgns'
@@ -1467,14 +1527,15 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     #  b) If levelMax/=0 :
     #     1) if levelMax > max automatic # determined (autoMaxLevel) --> levelMax = autoMaxLevel
     #     2) if levelMax < autoMaxLevel --> farfield grid will be finer than that with autoMaxLevel
-    if levelMax<1:
-        levelMax=50 #random large number
+    if levelMax < 1:
+        levelMax = 50 # random large number
         if Cmpi.master:
             print("=======================================================================", flush=True)
             print("========================       WARNING!        ========================", flush=True)
             print("================== Automatic # of Refinement Levels ===================", flush=True)
             print("============ Optimal # of Offsets for least number of cells ===========", flush=True)
             print("=======================================================================", flush=True)
+
     # NumMinDxLarge : min. number of cells at the largest Deltax between the first refinement & the domain boundary conditions
     # e.g. NumMinDxLarge = 1
     #      |   |   |
@@ -1489,134 +1550,142 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         NumMinDxLarge = 1
     NumMinDxLarge += 1 # we add one as the check later on is on nodes & not cells.
 
-    # check to see if the sym bases have snear?
-    baseSYM    = Internal.getNodesFromName1(tb,"SYM")
-    isSymLocal = False
-    if baseSYM:
-        zoneTmp = Internal.getZones(baseSYM)
-        if Internal.getNodeFromName(baseSYM, 'snear'):
-            isSymLocal = True
+    #============================
+    # STEP 1: Check baseSYM
+    #============================
+    dir_sym = getSymmetryPlaneInfo__(tb, dim=dim)
+    baseSYM = Internal.getNodesFromName1(tb, "SYM")
+    tb_noSym = Internal.copyTree(tb)
 
-    checkBaseNames__(tb,tbox)
-
-    # snears & numBase for the input tb only.
-    # If isSymLocal snear includes the 6 for the symb base & a copy of all the oringal zones.
-    # NumBase is only the num. of 'real' bodies
-    snears, numBase = getListSnear__(tb, snears)
-
-    ## --------- Variable Snear on Immersed Boundary ---------
-    #snear = list of [Base1, Base2]; Base1 = list of [zone1, zones2]
-    if Cmpi.master: print('Checking if multiple snear on the same immsered boundary...start', flush=True)
-    isTboxSnearAdd = False
-    listTboxSnearAdd = []
-    # loop per base
-    tbTmp = Internal.copyTree(tb)
     if baseSYM:
         # Remove SYM Base & Zones - keep real closed tb & tbox
-        tbTmp = Internal.rmNodesByNameAndType(tbTmp, 'SYM', 'CGNSBase_t')
-        tbTmp = Internal.rmNodesByNameAndType(tbTmp, '*_sym*', 'Zone_t')
-    for iLocal, snearTmp in enumerate(snears):
-        # per base - snear in zones are all equal?
-        diffSnearValues = len(set(snearTmp)) > 1
-        if diffSnearValues:
-            isTboxSnearAdd = True
-            # snear in zones (per base) are not all equal
-            listTboxSnearAdd = selectTboxZonesFromGeom(tbTmp, iLocal, snearTmp, listTboxSnearAdd)
-    if isTboxSnearAdd:
-        if Cmpi.master: print('Identified multiple snear on the same immsered boundary', flush=True)
-        for s1 in snears:
-            maxVal = max(s1)
-            s1[:] = [maxVal] * len(s1)
-    del tbTmp
-    if Cmpi.master: print('Checking if multiple snear on the same immsered boundary...end', flush=True)
-    ## --------- --------- --------- --------- --------- ---------
+        tb_noSym = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
+        tb_noSym = Internal.rmNodesByNameAndType(tb_noSym, '*_sym*', 'Zone_t')
 
-    snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
-
-    if baseSYM:
         if tbv2 is not None:
             # Keep this option for expert & debug purposes
             tbv2 = C.convertFile2PyTree(tbv2)
         else:
             # Default operating mode
-            tbv2 = createExtension__(tb)
-            # Remove SYM Base & Zones - keep real closed tb & tbox
-            tbTmp = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
-            tbTmp = Internal.rmNodesByNameAndType(tbTmp, '*_sym*', 'Zone_t')
-            if len(Internal.getZones(tbv2)) == len(Internal.getZones(tbTmp)): tbv2 = None
-            del tbTmp
+            tbv2 = createExtension__(tb_noSym)
+            if len(Internal.getZones(tbv2)) == len(Internal.getZones(tb_noSym)): tbv2 = None
+
         if check and Cmpi.master and tbv2: C.convertPyTree2File(tbv2, os.path.join(localDir, "tb_extension.cgns"))
 
-    # list of vmins
-    # This section::
-    # ================== SECTION START ==================
-    # Checks that the vmin input is correct & if needed corrects it (if info. is missing it will apply default values & default copies)
-    vmins = vminsInputCheck__(vmins, numBase, levelMax)
+    ##Check if bases in the same tb intersect
+    isBodiesIntersect = False
+    bases = Internal.getBases(tb_noSym)
+    for i in range(1,len(bases)):
+        zI = T.join(Internal.getZones(bases[i]))
+        for j in range(0,i):
+            zJ = T.join(Internal.getZones(bases[j]))
+            intersect = G.bboxIntersection(zI,zJ)
+            if intersect>0:
+                isBodiesIntersect=True
+                break;
 
-    snearsTbox = []
-    numTbox    = 0
-    tb_tbox    = Internal.copyTree(tb)
+    #============================
+    # STEP 2: Check snears/vmins
+    #============================
+    checkBaseNames__(tb, tbox)
+    # NumBase is only the num. of 'real' bodies
+    snears, nbases = getListSnear__(tb_noSym, snears)
+    # Checks that the vmin input is correct & if needed corrects it
+    # (if info. is missing it will apply default values & default copies)
+    vmins = vminsInputCheck__(vmins, nbases, levelMax)
+
+    # Note snearsSave --> snears of the tb (without symmetry planes/zones) with the same format as in tb
+    # i.e. snearsSave = [[0.001, 0.002, 0.004], [0.001]] --> [[SnearsTb1], [SnearsTb2], ...., [SnearsTbN]]
+    # Needed for G.octree
+    snearsSave = copy.deepcopy(snears)
+
+    ## Debugging print - to be commented in commited version
+    if Cmpi.master and isDebuggingPrint:
+        print('WARNING:: Debug - after Step 2 check snears/vmins - snears=', snears, flush=True)
+        print('WARNING:: Debug - after Step 2 check snears/vmins - snearsSave=', snearsSave, flush=True)
+        print('WARNING:: Debug - after Step 2 check snears/vmins - vmins=', vmins, flush=True)
+        print('WARNING:: Debug - after Step 2 check snears/vmins - nbases=', nbases, flush=True)
+        print('===========================================================', flush=True)
+    #============================
+    # STEP 3: Check tbox
+    #============================
+    tb_tbox = Internal.copyTree(tb)
+    tb_tbox_noSym = Internal.copyTree(tb_noSym)
+
+    nboxes = 0
     if tbox:
-        numTbox     = len(Internal.getBases(tbox))
+        snearsTbox, nboxes = getListSnear__(tbox, 1)
+        vminsTbox = vminsInputCheck__(vminsTbox, nboxes, levelMax)
+
         tb_tbox[2] += Internal.getBases(tbox)
+        tb_tbox_noSym[2] += Internal.getBases(tbox)
 
-        if vminsTbox is None:
-            vminsTbox = numpy.ones((numTbox,levelMax))*3
-            vminsTbox = vminsTbox.tolist()
-        else:
-            vminsTbox = vminsInputCheck__(vminsTbox, numTbox, levelMax)
-
-        Cmpi.barrier()
-        snearsTbox, tmpRMV = getListSnear__(tbox, 1)
         vmins.extend(vminsTbox)
+        snears.extend(snearsTbox)
+        nbases += nboxes
 
-    # add the tbox snear parameters
-    snearEnd = len(snears)
-    if isSymLocal: snearEnd = -1
-    snearsTbTbox = snears[0:snearEnd]
-    if snearsTbox: snearsTbTbox.extend(snearsTbox)
+    ## Debugging print - to be commented in commited version
+    if Cmpi.master and isDebuggingPrint:
+        print('WARNING:: Debug - after Step 3 check tbox - snears=', snears, flush=True)
+        print('WARNING:: Debug - after Step 3 check tbox - vmins=', vmins, flush=True)
+        print('WARNING:: Debug - after Step 3 check tbox - nbases=', nbases, flush=True)
+        print('WARNING:: Debug - after Step 3 check tbox - nboxes=', nboxes, flush=True)
+        print('===========================================================', flush=True)
+    #============================
+    # STEP 4: Check multi. snears
+    #============================
+    # Behavior for vmins to variable snear zones
+    # 1) snear zone has a specific vmin in #Solver.define--> use that vmin
+    # 2) snear zone doesnt have a specific vmin in #Solver.define --> use the default vmin of 5
 
-    numBase = numBase + numTbox
-    vminsLocal = numpy.ones((numBase, levelMax))
-    for nBase in range(numBase):
-        if not isinstance(vmins[nBase],list):
-            vminsLocal[nBase][:] = vmins[nBase][:]
-        elif len(vmins[nBase]) < levelMax:
-            vminsLocal[nBase][:len(vmins[nBase])] = vmins[nBase][:]
-            vminsLocal[nBase][len(vmins[nBase]):] = vmins[nBase][-1]
-        elif len(vmins[nBase]) > levelMax:
-            vminsLocal[nBase][:] = vmins[nBase][:levelMax]
-        else:
-            vminsLocal[nBase][:] = vmins[nBase][:]
-    vmins=[]
-    for nBase in range(numBase):
-        vmins.append(list(vminsLocal[nBase]))
-        vmins[nBase] = [max(5,v) for v in vmins[nBase]] # vmin values should not be inferior to a given threshold
-    # ================== SECTION END  ==================
+    snears, tboxSnear, snearsTboxSnear, vminsTboxSnear = createTboxSnear__(tb_noSym, vmins, snears, dim=dim)
+    nboxesSnear = 0
+    if tboxSnear:
+        if Cmpi.master and check: C.convertPyTree2File(tboxSnear, os.path.join(localDir, 'tboxSnear.cgns'))
 
-    ## --------- Variable Snear on Immersed Boundary ---------
-    if isTboxSnearAdd:
-        if Cmpi.master: print('Creating local tbox for each multiple snear on the same immsered boundary...start', flush=True)
-        vminTboxAtLeastOne = False
-        for z in listTboxSnearAdd:
-            if z is not None:
-                vminLocalNode = Internal.getNodeFromName(z, 'vmin')
-                if vminLocalNode:
-                    vminTboxAtLeastOne=True
-                    break
-        tboxAdd, snearsTboxAdd, vminsTboxAdd = createTboxSnearAdd(listTboxSnearAdd, vmins, dim=dim, vminTboxAtLeastOne=vminTboxAtLeastOne)
-        if Cmpi.master and check: C.convertPyTree2File(tboxAdd, os.path.join(localDir, "tboxAdd.cgns"))
-        # same approach as tbox
-        numTbox = len(Internal.getBases(tboxAdd))
-        numBase += numTbox
-        tb_tbox[2] += Internal.getBases(tboxAdd)
-        snearsTbTbox.extend(snearsTboxAdd)
-        vmins.extend(vminsTboxAdd)
-        if Cmpi.master: print('Creating local tbox for each multiple snear on the same immsered boundary...end', flush=True)
-    ## --------- --------- --------- --------- --------- ---------
+        nboxesSnear = len(Internal.getBases(tboxSnear))
+        vminsTboxSnear = vminsInputCheck__(vminsTboxSnear, nboxesSnear, levelMax)
 
-    tCartin = False
+        tb_tbox[2] += Internal.getBases(tboxSnear)
+        tb_tbox_noSym[2] += Internal.getBases(tboxSnear)
+
+        vmins.extend(vminsTboxSnear)
+        snears.extend(snearsTboxSnear)
+        nbases += nboxesSnear
+        nboxes += nboxesSnear
+
+    ## Debugging print - to be commented in commited version
+    if Cmpi.master and isDebuggingPrint:
+        print('WARNING:: Debug - after Step 4 check multi snears - snears=', snears, flush=True)
+        print('WARNING:: Debug - after Step 4 check multi snears - vmins=', vmins, flush=True)
+        print('WARNING:: Debug - after Step 4 check multi snears - snearsTboxSnear=', snearsTboxSnear, flush=True)
+        print('WARNING:: Debug - after Step 4 check multi snears - vminsTboxSnear=', vminsTboxSnear, flush=True)
+        print('WARNING:: Debug - after Step 4 check multi snears - nboxesSnear=', nboxesSnear, flush=True)
+        print('WARNING:: Debug - after Step 4 check multi snears - nbases=', nbases, flush=True)
+        print('WARNING:: Debug - after Step 4 check multi snears - nboxes=', nboxes, flush=True)
+        print('===========================================================', flush=True)
+    #============================
+    # STEP 5: Generate back. grid
+    #============================
+    # use tIn (background grid) or automatically generate octree skeleton
+    tCartIn = False
     extrude = False
+    # Recal: snears = [snearTbMaxSnear1, snearTbMaxSnear2, ..., snearTbMaxSnearN,
+    #                  snearTbox1, snearTbox2, ..., snearTboxN,
+    #                  snearTbVariableSnearZones1, snearTbVariableSnearZones2, ..., snearTbVariableSnearZonesN]
+    # i.e. all the Tbs, all the volume ref. Tboxes, all snear variable Tboxes
+    #if nboxes > 0: snearsTmp = snears[:-nboxes] # only keep body snears
+    #else: snearsTmp = snears
+    snearMin = min(item for sub in snears for item in sub)
+
+    ## Debugging print - to be commented in commited version
+    if Cmpi.master and isDebuggingPrint:
+        print('WARNING:: Debug - begining of  Step 5 - snearMin=', snearMin, flush=True)
+        print('===========================================================', flush=True)
+
+    # key for no regression:
+    #if nboxesSnear > 0: nboxes = nboxesSnear #Can be commented
+
     if tIn is None:
         if Cmpi.master:
             print("=======================================================================", flush=True)
@@ -1625,154 +1694,163 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         # levelSkel: initial refinement level of the skeleton octree
         # might be tuned
         # Input: tb, no tbox; snears of tb only in flat (list of zone snears), dfars - integer value is ok
-        o, newLevelMax = generateSkeletonMesh__(tb, snears=snearsFlat, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
+        o, newLevelMax = generateSkeletonMesh__(tb, snears=snearsSave, dfars=dfars, dim=dim, levelSkel=levelMax, octreeMode=octreeMode)
+
+        # correct vmins to match newLevelMax if necessary
+        if newLevelMax != levelMax:
+            if Cmpi.master:
+                print("=======================================================================", flush=True)
+                print("========================       WARNING!        ========================", flush=True)
+                print("================= Input Number of AMR Levels too high =================", flush=True)
+                print("=============== Using Automatic # of Refinement Levels ================", flush=True)
+                print("====== # of AMR Levels: Old levelMax = %d || New levelMax = %d ========"%(levelMax, newLevelMax), flush=True)
+                print("=======================================================================", flush=True)
+            levelMax = newLevelMax
+            for nob in range(nbases):
+                while len(vmins[nob]) < newLevelMax: vmins[nob].append(vmins[nob][-1]) # if newLevelMax > levelMax
+                vmins[nob] = vmins[nob][:newLevelMax] # if newLevelMax < levelMax
     else:
         if Cmpi.master:
             print("=======================================================================", flush=True)
             print("===================== Using input background grid  ====================", flush=True)
             print("=======================================================================", flush=True)
-        tCartin = True; newLevelMax = levelMax
+        tCartIn = True
         if isinstance(tIn, str): o = Cmpi.convertFile2PyTree(tIn)
         else: o = Internal.copyTree(tIn)
         del tIn
-        deltaY = (C.getMinValue(o,"centers:vol"))**(1/dim)
-        ymin = C.getMinValue(o, 'CoordinateY'); ymax = C.getMaxValue(o, 'CoordinateY')
-        if abs((ymax-ymin)-deltaY)< 1.e-08: extrude=True
+        deltaY = (C.getMinValue(o, 'centers:vol'))**(1/dim)
+        ymin, ymax = C.getMinValue(o, 'CoordinateY'), C.getMaxValue(o, 'CoordinateY')
+        if abs((ymax-ymin)-deltaY) < 1.e-08: extrude = True
         if Cmpi.master and extrude:
             print("=======================================================================", flush=True)
             print("============== 2.5D Test Case: Extrusion in Y-direction  ==============", flush=True)
             print("=======================================================================", flush=True)
 
-    if newLevelMax != levelMax:
-        if Cmpi.master:
-            print("=======================================================================", flush=True)
-            print("========================       WARNING!        ========================", flush=True)
-            print("================= Input Number of AMR Levels too high =================", flush=True)
-            print("=============== Using Automatic # of Refinement Levels ================", flush=True)
-            print("====== # of AMR Levels: Old levelMax = %d || New levelMax = %d ========"%(levelMax, newLevelMax), flush=True)
-            print("=======================================================================", flush=True)
-        for nBase in range(numBase):
-            while len(vmins[nBase]) < newLevelMax: vmins[nBase].append(vmins[nBase][-1]) # if newLevelMax > levelMax
-            vmins[nBase]    = vmins[nBase][:newLevelMax] # if newLevelMax < levelMax
-            levelMax = newLevelMax
-
-    G._getVolumeMap(o)
-    hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
-    hmin = hmin_skel * 2 ** (-levelMax)
-    if Cmpi.master: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
-
-    # Leaving here for now just in case we decided to reactive this option in the future. The chosen option is to reduce the cell size (increase the # of cells) of the octree skeleton grid.
-    #Ncells = C.getNCells(o)
-    #if Ncells < Cmpi.size:
-    #    raise ValueError('There are more MPI processes (Nmpi) [%d] than number of cells in the background skeleton/octree mesh (Ncells) [%d]. Note: Nmpi ≤ Ncells. Exiting...'%(Cmpi.size, Ncells))
-    #    Cmpi.abort(errorcode=1)
-
-    # Modifies the snears such that they are always a multiple of the smallest snear
-    # Needed to quarantee a smooth transition of the flow field
-    # If octree=0, this guarantees that the min snear previous obtained is propagated to the other snears
-    minSnearsOrig = min(snearsFlat)
-    if abs(hmin-minSnearsOrig) > __TOL__:
-        for nBase in range(numBase):
-            # we only check the first zone of each base as CODA (currently)
-            # cant handle snear changes in the same base - no change in res at the surface of the IB (immersed boundary)
-            snearMult = snearsTbTbox[nBase][0]//minSnearsOrig
-            snearsTbTbox[nBase] = [snearMult*hmin]
-
     # mandatory save file for loadAndSplit for adaptation
     if Cmpi.master: C.convertPyTree2File(o, pathSkeleton)
     Cmpi.barrier()
 
-    bbo = G.bbox(o)
-    minval_bbo = C.getMinValue(o, 'GridCoordinates');
-    maxval_bbo = C.getMaxValue(o, 'GridCoordinates');
+    # Leaving here for now just in case we decided to reactive this option in the future. The chosen option is to reduce the cell size (increase the # of cells) of the octree skeleton grid.
+    if False:
+        Ncells = C.getNCells(o)
+        if Ncells < Cmpi.size:
+            raise ValueError('There are more MPI processes (Nmpi) [%d] than number of cells in the background skeleton/octree mesh (Ncells) [%d]. Note: Nmpi ≤ Ncells. Exiting...'%(Cmpi.size, Ncells))
+            Cmpi.abort(errorcode=1)
 
-    dir_sym      = getSymmetryPlaneInfo__(tb, dim=dim)
-    # adaptation of the mesh wrt to the bodies (finest level) and offsets
-    # only a part is returned per processor
-    tb_tboxLocal = Internal.copyTree(tb_tbox)
-    if baseSYM:
-        # Remove SYM Base & Zones - keep real closed tb & tbox
-        tb_tboxLocal = Internal.rmNodesByNameAndType(tb_tboxLocal, 'SYM', 'CGNSBase_t')
-        tb_tboxLocal = Internal.rmNodesByNameAndType(tb_tboxLocal, '*_sym*', 'Zone_t')
-
+    #============================
+    # STEP 6: Update snears
+    #============================
+    # Modifies the snears such that they are always a multiple of the smallest snear
+    # Needed to quarantee a smooth transition of the flow field
+    # If octree=0, this guarantees that the min snear previous obtained is propagated to the other snears
+    G._getVolumeMap(o)
+    hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
+    hmin = hmin_skel * 2 ** (-levelMax)
+    if Cmpi.master: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
+    if abs(hmin-snearMin) > __TOL__:
+        for nob in range(nbases):
+            # we only check the first zone of each base as CODA (currently)
+            # cant handle snear changes in the same base - no change in res at the surface of the IB (immersed boundary)
+            snearMult = snears[nob][0] // snearMin
+            snears[nob] = [snearMult*hmin]
+    ## Debugging print - to be commented in commited version
+    if Cmpi.master and isDebuggingPrint:
+        print('WARNING:: Debug - end of  Step 6 - snears=', snears, flush=True)
+        print('===========================================================', flush=True)
+    #============================
+    # STEP 7: Update dfars
+    #============================
     # New calc. of dfar max. This is done based on the distance between the IBM & the domain edges.
     # The min of this becomes the dfar max. Need to consider the tbox also as cannot have hanging nodes @ BC
     # is per base so there are no cross-contamination constraints (e.g. tbox constaining tb)
-    dfarmaxLocal = []
-    for nBase, tbLocal in enumerate(Internal.getBases(tb_tboxLocal)):
-        bbTbLocal = G.bbox(tbLocal)
+    dfars = []
 
-        minval_bbTbLocal = C.getMinValue(tbLocal, 'GridCoordinates');
-        maxval_bbTbLocal = C.getMaxValue(tbLocal, 'GridCoordinates');
-        dfarmax   = 1e10
+    bbo = G.bbox(o)
+    minval_bbo = C.getMinValue(o, 'GridCoordinates')
+    maxval_bbo = C.getMaxValue(o, 'GridCoordinates')
+
+    for b in Internal.getBases(tb_tbox_noSym):
+        bbloc = G.bbox(b)
+        minval_bbloc = C.getMinValue(b, 'GridCoordinates')
+        maxval_bbloc = C.getMaxValue(b, 'GridCoordinates')
+
+        dfarmax = 1e10
         for i in range(dim):
-            isSkipMin=False; isSkipMax=False;
-            if tCartin:
-                if (minval_bbTbLocal[i]<=minval_bbo[i]-2*__TOL__): isSkipMin=True
-                if (maxval_bbTbLocal[i]>=maxval_bbo[i]+2*__TOL__): isSkipMax=True
-            if extrude and i==1: continue
-            if i+1 == dir_sym or isSkipMin: dfarmaxTmp = abs(bbTbLocal[i+3]-bbo[i+3])
-            elif isSkipMax: dfarmaxTmp = abs(bbTbLocal[i]-bbo[i])
-            else: dfarmaxTmp = min(abs(bbTbLocal[i]-bbo[i]), abs(bbTbLocal[i+3]-bbo[i+3]))
-            dfarmax    = min(dfarmaxTmp, dfarmax)
-        dfarmaxLocal.append(dfarmax-NumMinDxLarge*hmin_skel)
+            isSkipMin, isSkipMax = False, False
+            if tCartIn:
+                if (minval_bbloc[i] <= minval_bbo[i] - 2*__TOL__): isSkipMin=True
+                if (maxval_bbloc[i] >= maxval_bbo[i] + 2*__TOL__): isSkipMax=True
+            if extrude and i == 1: continue
+            if i+1 == dir_sym or isSkipMin: dfarmaxLocal = abs(bbloc[i+3]-bbo[i+3])
+            elif isSkipMax: dfarmaxLocal = abs(bbloc[i]-bbo[i])
+            else: dfarmaxLocal = min(abs(bbloc[i]-bbo[i]), abs(bbloc[i+3]-bbo[i+3]))
+            dfarmax = min(dfarmaxLocal, dfarmax)
+        dfars.append(dfarmax-NumMinDxLarge*hmin_skel)
 
     # Old dfar max calc. Stays here in case it is needed in the future
-    dfarmax = min(bbo[3]-bbo[0], bbo[4]-bbo[1])
-    if dim == 3: dfarmax = min(dfarmax, bbo[5]-bbo[2])
+    if False:
+        dfarmax = min(bbo[3]-bbo[0], bbo[4]-bbo[1])
+        if dim == 3: dfarmax = min(dfarmax, bbo[5]-bbo[2])
 
+    #============================
+    # STEP 8: Generate offsets
+    #============================
     if toffset == None:
         offsetValues = []
-        for nBase in range(numBase):
-            offsetprev       = 0.
+        for nob in range(nbases):
+            dfarmaxLocal = dfars[nob]
+            offsetPrev = 0.
             offsetValuesBase = []
-            for no_adapt in range(len(vmins[nBase])):
-                hminLocal = snearsTbTbox[nBase][0]
-                offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]
-                # Pull request note: the line below causes regressions in the mesh generation
-                if offsetloc < 0.99*dfarmaxLocal[nBase]:
-                    #if offsetloc < 0.99*dfarmax: # for old dfar max cal. Stays here in case it is needed in the future
-                    offsetValuesBase.append(offsetloc)
-                    offsetprev=offsetloc
+            for level in range(len(vmins[nob])):
+                hminLocal = snears[nob][0]
+                offsetLocal = offsetPrev + hminLocal*(2**level) * vmins[nob][level]
+                if offsetLocal < 0.99*dfarmaxLocal: # old: if offsetLocal < 0.99*dfarmax:
+                    offsetValuesBase.append(offsetLocal)
+                    offsetPrev = offsetLocal
+
             if not offsetValuesBase:
-                if tCartin:
-                    hminLocal = snearsTbTbox[nBase][0]
-                    offsetloc = hminLocal*1
-                    offsetValuesBase.append(offsetloc)
+                if tCartIn:
+                    hminLocal = snears[nob][0]
+                    offsetLocal = hminLocal
+                    offsetValuesBase.append(offsetLocal)
                 else:
-                    no_adapt = 0
-                    offsetloc = offsetprev + hminLocal*(2**no_adapt)*vmins[nBase][no_adapt]
-                    raise ValueError('Base #%d has no offset values. The first offset (closest to the body) is at a distance of %g which is larger than the max allowable distance of %g. Exiting...'%(nBase, offsetloc, 0.99*dfarmaxLocal[nBase]))
+                    level = 0
+                    offsetLocal = offsetPrev + hminLocal*(2**level)*vmins[nob][level]
+                    raise ValueError('Base #%d has no offset values. The first offset (closest to the body) is at a distance of %g which is larger than the max allowable distance of %g. Exiting...'%(nob, offsetLocal, 0.99*dfarmaxLocal))
                     Cmpi.abort(errorcode=1)
+
             offsetValues.append(offsetValuesBase)
 
         # generate list of offsets
         # tb & tbox
         if Cmpi.master: print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
-        toffset = generateListOfOffsets__(tb_tbox, snearsTbTbox, offsetValues=offsetValues, dim=dim, opt=opt, numTbox=numTbox, tbv2=tbv2, blankCellsAlgo=blankCellsAlgo)
+        toffset = generateListOfOffsets__(tb_tbox, snears, offsetValues=offsetValues, dim=dim, opt=opt, nboxes=nboxes, tbv2=tbv2, blankCellsAlgo=blankCellsAlgo)
         if check and Cmpi.master: C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
 
+    #============================
+    # STEP 9: Mesh adaptation
+    #============================
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor
-    if baseSYM:
-        # Remove SYM Base & Zones - keep real closed tb
-        tb = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
-        tb = Internal.rmNodesByNameAndType(tb, '*_sym*', 'Zone_t')
-
-    Cmpi.barrier()
     # only tb --> for blanking & tagging inside the geometry
-    o = adaptMesh__(pathSkeleton, hmin, tb, bbo, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, numTbox=numTbox, blankCellsAlgo=blankCellsAlgo)
+    Cmpi.barrier()
+    o = adaptMesh__(pathSkeleton, hmin, tb_noSym, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, nboxes=nboxes, blankCellsAlgo=blankCellsAlgo, isBodiesIntersect=isBodiesIntersect)
     Cmpi.trace('AMR Mesh Generation...end', master=True)
+
     return o # requirement for X_AMR (one zone per base, one base per proc)
 
-def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=None):
+#==================================================================
+# Generate Cartesian background grid for tIn input in generateAMRMesh
+#==================================================================
+def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=None, **kwargs):
+    isDebuggingPrint = kwargs.get('isDebuggingPrint', False)
     # levelMax is not required.
     #  a) If levelMax=0 the max # of levels will be automatically determined for a best fit.
     #  b) If levelMax/=0 :
     #     1) if levelMax > max automatic # determined (autoMaxLevel) --> levelMax = autoMaxLevel
     #     2) if levelMax < autoMaxLevel --> farfield grid will be finer than that with autoMaxLevel
-    if levelMax<1:
-        levelMax=50 #random large number
+    if levelMax < 1:
+        levelMax = 50 #random large number
         if Cmpi.master:
             print("=======================================================================", flush=True)
             print("========================       WARNING!        ========================", flush=True)
@@ -1780,11 +1858,14 @@ def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=
             print("============ Optimal # of Offsets for least number of cells ===========", flush=True)
             print("=======================================================================", flush=True)
 
-    # snears & numBase for the input tb only.
-    # If isSymLocal snear includes the 6 for the symb base & a copy of all the oringal zones.
+    # snears & nbases for the input tb only.
     # NumBase is only the num. of 'real' bodies
-    snears, numBase = getListSnear__(tb, snears)
+    snears, _ = getListSnear__(tb, snears)
     snearsFlat = [item for sub in snears for item in sub] # needed for G.octree
+    ## Debugging print - to be commented in commited version
+    if Cmpi.master and isDebuggingPrint:
+        print('snears=', snears, flush=True)
+        print('snearsFlat=', snearsFlat, flush=True)
 
     if dictGridCart is None: dictGridCart = {'gridType': 'octree'}
     if dictGridCart['gridType'] == 'cartesian':
@@ -1793,7 +1874,6 @@ def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=
         if 'matchExtent' not in dictGridCart: dictGridCart['matchExtent'] = [True, True, True, False, False, False]
         if 'extrude' not in dictGridCart: dictGridCart['extrude'] = False
 
-    extrude = dictGridCart['extrude']
     # e.g. for dictGridCart
     #dictGridCart={
     #    'gridType': 'cartesian',
@@ -1802,17 +1882,13 @@ def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=
     #    'matchExtent': [False, False, False, True, True, False]
     #}
 
-    # check to see if the sym bases have snear?
-    baseSYM    = Internal.getNodesFromName1(tb,"SYM")
-    isSymLocal = False
+    # check to see if the sym bases have snear
+    baseSYM = Internal.getNodesFromName1(tb,"SYM")
     if baseSYM:
-        zoneTmp = Internal.getZones(baseSYM)
         if Internal.getNodeFromName(baseSYM, 'snear'):
-            isSymLocal = True
+            if Cmpi.master: print('Background Grid Type=cartesian && IBM symmetry plane are currently not compatible. Exiting...', flush=True)
+            Cmpi.barrier(); Cmpi.abort()
 
-    if isSymLocal:
-        if Cmpi.master: print('Background Grid Type=cartesian && IBM symmetry plane are currently not compatible. Exiting...', flush=True)
-        Cmpi.barrier(); Cmpi.abort()
     o, newLevelMax = generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelMax)
 
     if newLevelMax != levelMax:
@@ -1826,183 +1902,8 @@ def generateCartBackgroundGrid(tb, levelMax=0, snears=0.01, dim=3, dictGridCart=
         levelMax = newLevelMax
 
     G._getVolumeMap(o)
-    hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
-    hmin = hmin_skel * 2 ** (-levelMax)
+    hmin_skel = (C.getMinValue(o, "centers:vol"))**(1/dim)
+    hmin = hmin_skel * 2**(-levelMax)
     if Cmpi.master: print(" Minimum spacing = ", hmin, hmin_skel, flush=True)
 
     return o, newLevelMax
-
-
-# ORIG F.Basile files - kept 'just in case' - TO BE DELETED AFTER [06/2026]
-#def createQuadSurfaceFromNgonPointListBigFaceOrig__(a, cranges, indices_owners=[], dimPb=3):
-#    a = Internal.getZones(a)[0] # get first zone
-#    faces = Internal.getNGonNode(a)
-#    vol_cells = Internal.getNFaceNode(a)
-#
-#    EC_volcells = Internal.getNodeFromName(vol_cells, "ElementConnectivity")[1]
-#    EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
-#
-#    ER_volcells = Internal.getNodeFromName(vol_cells, "ElementRange")[1]
-#    ER_faces = Internal.getNodeFromName(faces, "ElementRange")[1]
-#
-#    offset_volcells = Internal.getNodeFromName(vol_cells, "ElementStartOffset")[1]
-#    offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
-#
-#    length_volcells = offset_volcells[1:] - offset_volcells[:-1]
-#    length_faces = offset_faces[1:] - offset_faces[:-1]
-#    lens_vol = numpy.unique(length_volcells)
-#    lens_faces = numpy.unique(length_faces)
-#    coordsx_a = Internal.getNodeFromName(a, "CoordinateX")[1]
-#    coordsy_a = Internal.getNodeFromName(a, "CoordinateY")[1]
-#    coordsz_a = Internal.getNodeFromName(a, "CoordinateZ")[1]
-#    nb_vertices_a = len(coordsx_a)
-#
-#    if len(indices_owners) == 0:
-#        indices_owners = range(len(length_volcells))
-#
-#    if dimPb == 3: n_smallfaces = 4
-#    else: n_smallfaces = 2
-#
-#    list_bigface = []
-#    for index_volume in indices_owners:
-#        stride = cranges[index_volume]
-#        stride_offset = numpy.cumsum(stride)
-#        idx_vol_init = offset_volcells[index_volume]
-#
-#        idx_sides = []
-#        for i in range(6):
-#            if stride[i] == n_smallfaces:
-#                idx_sides.append(i)
-#        if idx_sides != []:
-#            for idx_side in idx_sides:
-#                indices_faces = []
-#                start_idx = stride_offset[idx_side-1] if idx_side>0 else 0
-#                for i in range(start_idx,stride_offset[idx_side]):
-#                    face = EC_volcells[idx_vol_init+i]
-#                    indices_faces.append(face)
-#                conn_Nfaces = numpy.zeros((n_smallfaces,4), dtype=Internal.E_NpyInt)
-#                for i,idx_face in enumerate(indices_faces):
-#                    idx_face_init = offset_faces[idx_face-1]
-#                    len_face = length_faces[idx_face-1]
-#
-#                    if len_face != 4:
-#                        indices_face_5nodes = findFifthNode__(idx_face, offset_faces, length_faces, EC_faces, coordsx_a, coordsy_a, coordsz_a)
-#                    k = 0
-#                    for j in range(len_face):
-#                        if len_face == 4 or (len_face != 4 and not j in indices_face_5nodes):
-#                            conn_Nfaces[i][k] = EC_faces[idx_face_init+j]
-#                            k+=1
-#                if dimPb == 3: [point0, point1, point2, point3] = reorderNodesInCanonicalOrderForBigFace3D(conn_Nfaces)
-#                else: [point0, point1, point2, point3] = reorderNodesInCanonicalOrderForBigFace2D(conn_Nfaces)
-#                list_bigface.append([point0, point1, point2, point3])
-#
-#    len_new_faces = len(list_bigface)
-#    flat_list_bigfaces = numpy.array([x for xs in list_bigface for x in xs])
-#
-#    zsnc_big_internal = Internal.newZone(name="Zone",zsize=[[nb_vertices_a, len_new_faces,0]], ztype="Unstructured")
-#    gcBI = Internal.newGridCoordinates(parent=zsnc_big_internal)
-#    Internal.newDataArray('CoordinateX', value=coordsx_a, parent=gcBI)
-#    Internal.newDataArray('CoordinateY', value=coordsy_a, parent=gcBI)
-#    Internal.newDataArray('CoordinateZ', value=coordsz_a, parent=gcBI)
-#    Internal.newElements(name="GridElements", etype=7, econnectivity=flat_list_bigfaces, erange=[1, len_new_faces], eboundary=0, parent=zsnc_big_internal)
-#    return zsnc_big_internal
-#
-#def createQuadSurfaceFromNgonPointListSmallFaceOrig__(a, PL):
-#    a = Internal.getZones(a)[0] # get first zone
-#    faces = Internal.getNGonNode(a)
-#    vol_cells = Internal.getNFaceNode(a)
-#
-#    #EC_volcells = Internal.getNodeFromName(vol_cells, "ElementConnectivity")[1]
-#    EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
-#
-#    #ER_volcells = Internal.getNodeFromName(vol_cells, "ElementRange")[1]
-#    #ER_faces = Internal.getNodeFromName(faces, "ElementRange")[1]
-#
-#    offset_volcells = Internal.getNodeFromName(vol_cells, "ElementStartOffset")[1]
-#    offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
-#
-#    length_volcells = offset_volcells[1:] - offset_volcells[:-1]
-#    length_faces = offset_faces[1:] - offset_faces[:-1]
-#    #lens_vol = numpy.unique(length_volcells)
-#    #lens_faces = numpy.unique(length_faces)
-#
-#    coordsx_a = Internal.getNodeFromName(a, "CoordinateX")[1]
-#    coordsy_a = Internal.getNodeFromName(a, "CoordinateY")[1]
-#    coordsz_a = Internal.getNodeFromName(a, "CoordinateZ")[1]
-#    nb_vertices_a = len(coordsx_a)
-#
-#    len_new_faces = len(PL)
-#    len_EC_faces = len(PL)*4
-#    new_EC_ngon_faces = numpy.zeros(len_EC_faces, dtype=Internal.E_NpyInt)
-#    idx_new = 0
-#    for idx in PL:
-#        idx_face_init = offset_faces[idx-1]
-#        len_face = length_faces[idx-1]
-#        if len_face !=4:
-#            indices_face_5nodes = findFifthNode__(idx, offset_faces, length_faces, EC_faces, coordsx_a, coordsy_a, coordsz_a)
-#        for i in range(len_face):
-#            if len_face == 4 or (len_face != 4 and not i in indices_face_5nodes):
-#                new_EC_ngon_faces[idx_new] = EC_faces[idx_face_init+i]
-#                idx_new += 1
-#
-#    zone = Internal.newZone(name="Zone",zsize=[[nb_vertices_a, len_new_faces, 0]], ztype="Unstructured")
-#    gc = Internal.newGridCoordinates(parent=zone)
-#    Internal.newDataArray('CoordinateX', value=coordsx_a, parent=gc)
-#    Internal.newDataArray('CoordinateY', value=coordsy_a, parent=gc)
-#    Internal.newDataArray('CoordinateZ', value=coordsz_a, parent=gc)
-#    elt = Internal.newElements(name="GridElements", etype=7, econnectivity=new_EC_ngon_faces, erange=[1, len_new_faces], eboundary=0, parent=zone)
-#    return zone
-#
-#def _createQuadConnectivityFromNgonPointListOrig__(a_hexa, a, PL, bcname, bctype):
-#    a = Internal.getZones(a)[0] # get first zone
-#    faces = Internal.getNGonNode(a)
-#    vol_cells = Internal.getNFaceNode(a)
-#
-#    EC_volcells = Internal.getNodeFromName(vol_cells, "ElementConnectivity")[1]
-#    EC_faces = Internal.getNodeFromName(faces, "ElementConnectivity")[1]
-#
-#    ER_volcells = Internal.getNodeFromName(vol_cells, "ElementRange")[1]
-#    ER_faces = Internal.getNodeFromName(faces, "ElementRange")[1]
-#
-#    offset_volcells = Internal.getNodeFromName(vol_cells, "ElementStartOffset")[1]
-#    offset_faces = Internal.getNodeFromName(faces, "ElementStartOffset")[1]
-#
-#    length_volcells = offset_volcells[1:] - offset_volcells[:-1]
-#    length_faces = offset_faces[1:] - offset_faces[:-1]
-#    lens_vol = numpy.unique(length_volcells)
-#    lens_faces = numpy.unique(length_faces)
-#
-#    coordsx_a = Internal.getNodeFromName(a, "CoordinateX")[1]
-#    coordsy_a = Internal.getNodeFromName(a, "CoordinateY")[1]
-#    coordsz_a = Internal.getNodeFromName(a, "CoordinateZ")[1]
-#    nb_vertices_a = len(coordsx_a)
-#
-#    len_new_faces = len(PL)
-#    len_EC_faces = len(PL) * 4
-#    new_EC_ngon_faces = numpy.zeros(len_EC_faces, dtype=Internal.E_NpyInt)
-#    idx_new = 0
-#    for idx in PL:
-#        idx_face_init = offset_faces[idx - 1]
-#        len_face = length_faces[idx - 1]
-#        if len_face != 4:
-#            indices_face_5nodes = findFifthNode__(idx, offset_faces, length_faces, EC_faces, coordsx_a, coordsy_a, coordsz_a)
-#        for i in range(len_face):
-#            if len_face == 4 or (len_face != 4 and not i in indices_face_5nodes):
-#                new_EC_ngon_faces[idx_new] = EC_faces[idx_face_init + i]
-#                idx_new += 1
-#
-#    elts = Internal.getNodesFromType(a_hexa, "Elements_t")
-#    maxElt = Internal.getNodeFromName(elts[-1], "ElementRange")[1][1]
-#    zones = Internal.getZones(a_hexa)
-#    Internal.newElements(
-#        name=bcname,
-#        etype=7,
-#        econnectivity=new_EC_ngon_faces,
-#        erange=[maxElt + 1, maxElt + len_new_faces],
-#        eboundary=0,
-#        parent=zones[0]
-#    )
-#    C._addBC2Zone(zones[0], bcname, bctype, elementRange=[maxElt + 1, maxElt + len_new_faces])
-#    return None
-#
-#

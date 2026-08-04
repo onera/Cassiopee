@@ -22,8 +22,10 @@ __all__ = ['convertCAD2Arrays',
            'readCAD', 'writeCAD', 'createEmptyCAD', 'freeHook',
            'getNbEdges', 'getNbFaces', 'getFileAndFormat',
            'printOCAF', 'getFaceNameInOCAF', 'getEdgeNameInOCAF',
-           'getFaceNos', 'getEdgeNos',
-           'getFaceArea', 'getFaceVolume', 'getFaceMassCenter', 'getBoundingBox',
+           'getFaceNos', 'getEdgeNos', 'getEdgesByFace',
+           'getEdgeLength', 'getMinMaxEdgeLength', 'getFaceArea',
+           'getFaceVolume', 'getFaceMassCenter', 'getBoundingBox',
+           'checkFaceOverlap',
            '_translate', '_rotate', '_scale', '_fixShape', '_sewing', '_reverse',
            '_splitFaces', '_mergeFaces', '_trimFaces', '_untrimFaces',
            '_removeFaces', '_removeEdges', '_extractFaces',
@@ -541,7 +543,7 @@ def ultimate(hook, hmax, hausd=-1, metric=True):
 # IN: hook: cad hook
 # IN: i: no de la face
 # IN: edges structured one per wire
-# IN: hmax: hmin/hmax/hausd par face
+# IN: hmin/hmax/hausd: par face
 # IN: close: if True, close mesh
 # IN: aniso: if True, anisotropic mesher
 #===============================================================================
@@ -551,9 +553,6 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, close, aniso, mesh, FA
     edgesSav = []
     for e in edges: edgesSav.append(Converter.copy(e))
     #_scaleUV(edgesSav, vu='u', vv='v')
-    #if i == 2:
-    #    Converter.convertArrays2File(edgesSav, 'edgesSav.plt')
-    #    exit(0)
 
     # must close in uv space
     edges = switch2UV2(edges)
@@ -617,6 +616,8 @@ def meshFaceInUV(hook, i, edges, grading, close, mesh, FAILED):
             a = Generator.close(a, 1.e-10) # needed for periodic faces
         if occ.getFaceOrientation(hook, i) == 0:
             o = Transform.reorder(o, (-1,))
+        o = Converter.initVars(o, '{u}=0.')
+        o = Converter.initVars(o, '{v}=0.')
         mesh.append(o)
         SUCCESS = True
     except Exception as e:
@@ -655,6 +656,9 @@ def meshFaceWithPointedHat(hook, i, edges, close, mesh):
         a = Generator.close(a, 1.e-10) # needed for periodic faces
     if occ.getFaceOrientation(hook, i) == 0:
         o = Transform.reorder(o, (-1,))
+    o = Converter.initVars(o, '{u}=0.')
+    o = Converter.initVars(o, '{v}=0.')
+
     mesh.append(o)
 
     return True
@@ -670,13 +674,153 @@ def meshAllEdges(hook, hmin, hmax, hausd, N, edgeList=None, order=1):
         e = occ.meshOneEdge(hook, i, hmin, hmax, hausd, N, None)
         dedges.append(e)
     dedges = Generator.zip(dedges, tol=hmin/100.) # safe and necessary for corner/seam points
+    dedges = regularizeEdges(hook, dedges, 1.e-7)
     #if order > 1:
     #    dedges = switch2UV(dedges)
     #    for i, e in enumerate(dedges):
     #        e = Converter.convertLO2HO(e, order=order)
     #        dedges[i] = occ.evalEdge(hook, e, i+1)
-
     return dedges
+
+# regularize edges
+# IN: edges: meshed edges
+def regularizeEdges(hook, edges, tol=1.e-12):
+    import KCore.Vector as Vector
+    # get extreme points and h
+    Pe = {}
+    for c, e in enumerate(edges):
+        P1 = Converter.getValue(e, 0)
+        P2 = Converter.getValue(e, -1)
+        ne = Converter.getNPts(e)
+        if ne == 2:
+            h1 = Vector.sub(P1, P2)
+            h1 = Vector.norm(h1)
+            h2 = h1
+        elif ne >= 3:
+            P1b = Converter.getValue(e, 1)
+            h1 = Vector.sub(P1, P1b)
+            h1 = Vector.norm(h1)
+            P2b = Converter.getValue(e, -2)
+            h2 = Vector.sub(P2, P2b)
+            h2 = Vector.norm(h2)
+        Pe[c] = (P1, h1, P2, h2)
+    nbEdges = len(edges)
+    for c in range(nbEdges):
+        #print(f"examining edge {c+1}")
+        edge = edges[c]
+        if KCore.isNamePresent(edge, 'CoordinateX') != -1:
+            edge2 = Converter.extractVars(edge, ['CoordinateX','CoordinateY','CoordinateZ'])
+        else:
+            edge2 = Converter.extractVars(edge, ['x','y','z'])
+        Pe1 = Pe[c]
+        # left side of edge
+        hmin1 = Pe1[1]
+        for d in range(nbEdges):
+            Pe2 = Pe[d]
+            if c != d:
+                d1 = Vector.sub(Pe1[0], Pe2[0])
+                d1 = Vector.norm(d1)
+                if d1 < tol:
+                    hmin1 = min(hmin1, Pe2[1])
+                    #print(f"is connected to {d+1} with h={Pe2[1]}")
+                d2 = Vector.sub(Pe1[0], Pe2[2])
+                d2 = Vector.norm(d2)
+                if d2 < tol:
+                    hmin1 = min(hmin1, Pe2[3])
+                    #print(f"is connected to {d+1} with h={Pe2[3]}")
+
+        # right side of edge
+        hmin2 = Pe1[3]
+        for d in range(nbEdges):
+            Pe2 = Pe[d]
+            if c != d:
+                d1 = Vector.sub(Pe1[2], Pe2[0])
+                d1 = Vector.norm(d1)
+                if d1 < tol:
+                    hmin2 = min(hmin2, Pe2[1])
+                    #print(f"is connected to {d+1} with h={Pe2[1]}")
+
+                d2 = Vector.sub(Pe1[2], Pe2[2])
+                d2 = Vector.norm(d2)
+                if d2 < tol:
+                    hmin2 = min(hmin2, Pe2[3])
+                    #print(f"is connected to {d+1} with h={Pe2[3]}")
+
+        # by refine
+        #factor = -1
+        #if hmin1 < 0.9*Pe1[1]: # remesh
+        #    factor = Pe1[1]/hmin1
+        #    factor = max(factor, 3.0)
+        #if hmin2 < 0.9*Pe1[3]: # remesh
+        #    factor = max(factor, Pe1[3]/hmin2)
+        #    factor = max(factor, 3.0)
+        #if factor > 0:
+        #    print("remeshing", factor)
+        #    edge2 = Generator.refine(edge2, factor, 1)
+        #    edge2 = Geom.getCurvilinearAbscissa(edge2)
+        #    edge2 = occ.meshOneEdge(hook, c+1, -1, -1, -1, -1, edge2)
+        #    edges[c] = edge2
+
+        # by geometric remeshing
+        factor = -1
+        if hmin1 < 0.9*Pe1[1]:
+            hmin1 = max(hmin1, Pe1[1]/3.0) # limiteur
+            npts = Converter.getNPts(edge2)
+            b1 = Transform.subzone(edge2, (1,1,1), (npts//2+1,1,1))
+            b2 = Transform.subzone(edge2, (npts//2+1,1,1), (-1,1,1))
+            #print(Converter.getNPts(edge2), Converter.getNPts(b1), Converter.getNPts(b2))
+            P4 = Converter.getValue(b2, 0)
+            P5 = Converter.getValue(b2, 1)
+            h = Vector.sub(P4, P5)
+            h = Vector.norm(h)
+            L = Geom.getLength(b1)
+            if L < hmin1+h: h = 0.7*h
+            #print(hmin1, h, L)
+            if hmin1 > 1.e-12 and h > 1.e-12 and L > hmin1+h:
+                d = Geom.distrib2(b1, hmin1, h, algo=1)
+                d = Geom.getDistribution(d)
+                b1 = Generator.map(b1, d, dir=1)
+                edge2 = Transform.join(b1, b2)
+                factor = 1
+
+        if hmin2 < 0.9*Pe1[3]:
+            hmin2 = max(hmin2, Pe1[3]/3.0) # limiteur
+            npts = Converter.getNPts(edge2)
+            b1 = Transform.subzone(edge2, (1,1,1), (npts//2+1,1,1))
+            b2 = Transform.subzone(edge2, (npts//2+1,1,1), (-1,1,1))
+            #print(Converter.getNPts(edge2), Converter.getNPts(b1), Converter.getNPts(b2))
+            P4 = Converter.getValue(b1, -1)
+            P5 = Converter.getValue(b1, -2)
+            h = Vector.sub(P4, P5)
+            h = Vector.norm(h)
+            L = Geom.getLength(b2)
+            if L < hmin1+h: h = 0.7*h
+            #print(hmin2, h, L)
+            if h > 1.e-12 and h > 1.e-12 and L > hmin2+h:
+                d = Geom.distrib2(b2, h, hmin2, algo=1)
+                d = Geom.getDistribution(d)
+                b2 = Generator.map(b2, d, dir=1)
+                edge2 = Transform.join(b1, b2)
+                factor = 1
+
+        if factor > 0:
+            #print(f"remeshing edge {c+1}")
+            edge2 = Geom.getCurvilinearAbscissa(edge2)
+            edge2 = occ.meshOneEdge(hook, c+1, -1, -1, -1, -1, edge2)
+            # check edge2 is ok
+            #P0 = Converter.getValue(edge2, 0)
+            #P1 = Converter.getValue(edge2, 1)
+            #h1 = Vector.sub(P0, P1)
+            #h1 = Vector.norm(h1)
+            #P2 = Converter.getValue(edge2, -1)
+            #P3 = Converter.getValue(edge2, -2)
+            #h2 = Vector.sub(P2, P3)
+            #h2 = Vector.norm(h2)
+            #if hmin1 < 0.9*Pe1[1]: print("final1", h1, hmin1)
+            #if hmin2 < 0.9*Pe1[3]: print("final2", h2, hmin2)
+            edges[c] = edge2
+
+    return edges
 
 #=================================================================
 # mesh TRI given CAD faces from discrete edges U + hList
@@ -793,16 +937,19 @@ def meshAllFacesStruct(hook, dedges, faceList=[]):
 # mesh using OCC mesher (anisotropic, only hausd)
 #===============================================
 def meshAllOCC(hook, hausd, angularDeflection=28.):
+    """Mesh edges and faces with OCC."""
     ret = occ.occmesh(hook, hausd, angularDeflection)
     dedges = ret[0]
     dfaces = ret[1]
     return dedges, dfaces
 
 def meshAllEdgesOCC(hook, hausd, angularDeflection=28.):
+    """Mesh edges with OCC."""
     ret = occ.occmesh(hook, hausd, angularDeflection)
     return ret[0]
 
 def meshAllFacesTriOCC(hook, hausd, angularDeflection=28.):
+    """Mesh faces with OCC."""
     ret = occ.occmesh(hook, hausd, angularDeflection)
     return ret[1]
 
@@ -864,6 +1011,8 @@ def getFaceList__(hook, faceList):
                 return out
     return faceList
 
+# internal function to get the edgeList
+# when edgeList is a label name or a list of label names
 def getEdgeList__(hook, edgeList):
     if edgeList is not None:
         if isinstance(edgeList, str):
@@ -875,6 +1024,11 @@ def getEdgeList__(hook, edgeList):
                 for f in edgeList: out += getEdgeNos(hook, f)
                 return out
     return edgeList
+
+# Return the edge no for a given face
+def getEdgesByFace(hook, noface):
+    edgeNo = occ.getEdgeNoByFace(hook, noface)
+    return edgeNo
 
 # Return the area of specified faces
 def getFaceArea(hook, faceList=None):
@@ -897,6 +1051,23 @@ def getBoundingBox(hook, faceList=None):
     """Return the bounding box of given faces."""
     faceList = getFaceList__(hook, faceList)
     return occ.getBoundingBox(hook, faceList)
+
+# Return the length of edges
+def getEdgeLength(hook, edgeList=None):
+    """Return the length by edges."""
+    edgeList = getEdgeList__(hook, edgeList)
+    return occ.getEdgeLength(hook, edgeList)
+
+# Return the min and max edge length by faces
+def getMinMaxEdgeLength(hook, faceList=None):
+    """Return the min and max edge length by faces."""
+    faceList = getFaceList__(hook, faceList)
+    return occ.getMinMaxEdgeLength(hook, faceList)
+
+# Check if face overlaps
+def checkFaceOverlap(hook, face1, face2, tol=1.e-12):
+    """Check if two faces overlap."""
+    return occ.checkFaceOverlap(hook, face1, face2, tol)
 
 #=============================================================================
 # CAD modeling

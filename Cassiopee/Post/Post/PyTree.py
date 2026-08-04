@@ -1472,13 +1472,11 @@ def _addBCDataSet2BCData__(z, varList, indices, BCField):
             bcf[v] = i
         if any(bcfv is not None for bcfv in bcf):
             indsp = inds[1].ravel(order='K')
-            if zn not in indices: indices[zn] = indsp
-            else: indices[zn] = numpy.concatenate((indices[zn], indsp))
+            indices.setdefault(zn, []).append(indsp)
             for v, bcfv in enumerate(bcf):
                 if bcfv is None: continue  # variable skipped
                 BCFieldv = BCField[v]
-                if zn not in BCFieldv: BCFieldv[zn] = bcfv[1].ravel(order='K')
-                else: BCFieldv[zn] = numpy.concatenate((BCFieldv[zn], bcfv[1].ravel(order='K')))
+                BCFieldv.setdefault(zn, []).append(bcfv[1].ravel(order='K'))
     return None
 
 def _addBCMatchData2BCData__(z, varList, bcMatchDict, indices, BCField):
@@ -1501,14 +1499,12 @@ def _addBCMatchData2BCData__(z, varList, bcMatchDict, indices, BCField):
             else: fldp[i] = numpy.concatenate((fldp[i], fgcv), axis=1)
 
     if any(fldpv is not None for fldpv in fldp):
-        indp = indFace.ravel(order='K')
-        if zn not in indices: indices[zn] = indp
-        else: indices[zn] = numpy.concatenate((indices[zn], indp))
+        indsp = indFace.ravel(order='K')
+        indices.setdefault(zn, []).append(indsp)
         for v, fldpv in enumerate(fldp):
             if fldpv is None: continue  # variable skipped
             BCFieldv = BCField[v]
-            if zn not in BCFieldv: BCFieldv[zn] = fldpv.ravel(order='K')
-            else: BCFieldv[zn] = numpy.concatenate((BCFieldv[zn], fldpv.ravel(order='K'))) #, axis=1)
+            BCFieldv.setdefault(zn, []).append(fldpv.ravel(order='K'))
     return None
 
 def computeGrad(t, var):
@@ -1634,6 +1630,15 @@ def _computeGrad2(t, var, ghostCells=False, withCellN=True, withTNC=False,
         # Compute field on BCMatchTNC and add it to indices and BCField
         _addBCMatchData2BCData__(z, varList, allMatchTNC, indices, BCField)
 
+        # Concatenate list of numpy arrays once
+        if zn in indices:
+            if len(indices[zn]) == 1: indices[zn] = indices[zn][0]
+            else: indices[zn] = numpy.concatenate(indices[zn], axis=0)
+            for BCFieldv in BCField:
+                if zn in BCFieldv:
+                    if len(BCFieldv[zn]) == 1: BCFieldv[zn] = BCFieldv[zn][0]
+                    else: BCFieldv[zn] = numpy.concatenate(BCFieldv[zn], axis=0)
+
         coords = C.getFields(Internal.__GridCoordinates__, z, api=3)[0]
         inds = indices.get(zn, None)
         bcf = BCField[0].get(zn, None)
@@ -1756,6 +1761,15 @@ def _computeDiv2(t, var, ghostCells=False, withTNC=False, rmVar=False,
 
         # Compute field on BCMatchTNC and add it to indices and BCField
         _addBCMatchData2BCData__(z, varList, allMatchTNC, indices, BCField)
+
+        # Concatenate list of numpy arrays once
+        if zn in indices:
+            if len(indices[zn]) == 1: indices[zn] = indices[zn][0]
+            else: indices[zn] = numpy.concatenate(indices[zn], axis=0)
+            for BCFieldv in BCField:
+                if zn in BCFieldv:
+                    if len(BCFieldv[zn]) == 1: BCFieldv[zn] = BCFieldv[zn][0]
+                    else: BCFieldv[zn] = numpy.concatenate(BCFieldv[zn], axis=0)
 
         coords = C.getFields(Internal.__GridCoordinates__, z, api=3)[0]
         BCFieldX = BCField[0::3]; BCFieldY = BCField[1::3]; BCFieldZ = BCField[2::3]

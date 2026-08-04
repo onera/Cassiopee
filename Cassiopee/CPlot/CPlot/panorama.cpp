@@ -39,9 +39,9 @@ void interp(E_Int ind,
   E_Int ind3 = i1+j1p1*(ni1+1);
   E_Int ind4 = i1p1+j1p1*(ni1+1);
   E_Float ax = px*ni1-i1;
-  E_Float bx = 1.-ax;
+  E_Float bx = 1.0-ax;
   E_Float ay = py*nj1-j1;
-  E_Float by = 1.-ay;
+  E_Float by = 1.0-ay;
   //printf("%g %g // %g %d\n", ax, ay, py, nj1);
   final1[ind] = bx*by*im1[ind1]+ax*by*im1[ind2]+bx*ay*im1[ind3]+ax*ay*im1[ind4];
   final2[ind] = bx*by*im2[ind1]+ax*by*im2[ind2]+bx*ay*im2[ind3]+ax*ay*im2[ind4];
@@ -110,12 +110,14 @@ void interp2(E_Int ind,
   //final[3*ind+2] = bx*by*im[3*ind1+2]+ax*by*im[3*ind2+2]+bx*ay*im[3*ind3+2]+ax*ay*im[3*ind4+2];
 }
 
+//==================================================================
 // perform the stitching (identical to panorama.frag but on the cpu)
 // it doesnt have the texture size limit
 // si type360=0 -> 360 deg
 // si type360=1 -> 180 deg
 // shift: eye shift
 // fov2: fov enlargement
+//==================================================================
 PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
 {
   // Get the 4 arrays of cube images (left, right, bottom, top, back, front)
@@ -246,7 +248,7 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
   E_Float* final4 = final->begin(7);
   E_Float tinf, tsup;
 
-  if (type360 == 0) { tinf = -M_PI; tsup = 2*M_PI; } // 360
+  if (type360 == 0) { tinf = -M_PI; tsup = 2.0*M_PI; } // 360
   else  { tinf = -M_PI/2.; tsup = M_PI; } // 180
 
   // fov of each image

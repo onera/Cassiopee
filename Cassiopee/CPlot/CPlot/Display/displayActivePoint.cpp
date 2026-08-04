@@ -359,16 +359,14 @@ void Data::displayActivePoint()
         E_Int ind1, ind2;
         double dx, dy, dz, h;
         bool is1D = false;
-        if (eltType == 1) is1D = true;
+        if (eltType == 1) is1D = true; // BAR
         if (ne >= net || ne < 0) is1D = false; // force
   
         if (is1D)
         {
-          h = 0.;
-          ind1 = connect[ne];
-          if (ne+1 < net) ind2 = connect[ne+1];
-          else if (ne-1 >= 0) ind2 = connect[ne-1];
-          else ind2 = ind1;
+          h = 0.0;
+          ind1 = connect[ne]-1;
+          ind2 = connect[ne+net]-1;
           dx = z->x[ind2] - z->x[ind1];
           h += dx*dx;
           dy = z->y[ind2] - z->y[ind1];

@@ -22,10 +22,6 @@
 
 #define TETLIBRARY
 
-#include <setjmp.h>
-extern int __Error__;
-extern jmp_buf __env__;
-
 // Uncomment the following line to disable assert macros. These macros were
 //   inserted in the code where I hoped to catch bugs. They may slow down the
 //   speed of TetGen.
@@ -2241,52 +2237,6 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 void tetrahedralize(char *switches, tetgenio *in, tetgenio *out,
                     tetgenio *addin = NULL, tetgenio *bgmin = NULL);
 #endif // #ifdef TETLIBRARY
-
-///////////////////////////////////////////////////////////////////////////////
-//                                                                           //
-// terminatetetgen()    Terminate TetGen with a given exit code.             //
-//                                                                           //
-///////////////////////////////////////////////////////////////////////////////
-
-inline void terminatetetgen(tetgenmesh *m, int x)
-{
-  // Release the allocated memory.
-  if (m) {
-    m->freememory();
-  }
-#ifdef TETLIBRARY
-  //throw x;
-  __Error__ = x;
-  longjmp(__env__, 1);
-#else
-  switch (x) {
-  case 1: // Out of memory.
-    printf("Error:  Out of memory.\n"); 
-    break;
-  case 2: // Encounter an internal error.
-    printf("Please report this bug to Hang.Si@wias-berlin.de. Include\n");
-    printf("  the message above, your input data set, and the exact\n");
-    printf("  command line you used to run this program, thank you.\n");
-    break;
-  case 3:
-    printf("A self-intersection was detected. Program stopped.\n");
-    printf("Hint: use -d option to detect all self-intersections.\n"); 
-    break;
-  case 4:
-    printf("A very small input feature size was detected. Program stopped.\n");
-    printf("Hint: use -T option to set a smaller tolerance.\n");
-    break;
-  case 5:
-    printf("Two very close input facets were detected. Program stopped.\n");
-    printf("Hint: use -Y option to avoid adding Steiner points in boundary.\n");
-    break;
-  case 10: 
-    printf("An input error was detected. Program stopped.\n"); 
-    break;
-  } // switch (x)
-  exit(x);
-#endif // #ifdef TETLIBRARY
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 //                                                                           //

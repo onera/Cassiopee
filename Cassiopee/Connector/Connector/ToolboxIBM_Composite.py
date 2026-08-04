@@ -8,9 +8,10 @@ try:
     import Transform.PyTree as T
     import Converter.Internal as Internal
     import Post.PyTree as P
-    from .ToolboxIBM import *
+    import Generator.IBM as G_IBM
+    import Connector.IBM as X_IBM
 except:
-    raise ImportError("Connector.ToolboxIBM requires Converter, Generator, Transform, Dist2Walls and Post modules.")
+    raise ImportError("Connector.ToolboxIBM_Composite requires Converter, Generator, Transform, Dist2Walls and Post modules.")
 
 varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
 TOLDIST = 1.e-14
@@ -41,9 +42,9 @@ def generateCompositeIBMMesh(tb, vmin, snears, dfar, dfarloc=0., DEPTH=2, NP=0, 
         base = tb[2][nob]
         if base[3] == 'CGNSBase_t':
             basename = base[0]
-            res = generateIBMMesh_legacy(base, vmin, snears, dfarloc, DEPTH=DEPTH, NP=NP, tbox=None, snearsf=None,
-                                         check=check, merged=merged, symmetry=symmetry, sizeMax=sizeMax, externalBCType='BCDummy', to=None,
-                                         composite=1, mergeByParents=False)
+            res = G_IBM.generateIBMMesh_legacy(base, vmin, snears, dfarloc, DEPTH=DEPTH, NP=NP, tbox=None, snearsf=None,
+                                               check=check, merged=merged, symmetry=symmetry, sizeMax=sizeMax, externalBCType='BCDummy', to=None,
+                                               composite=1, mergeByParents=False)
 
             res = Internal.getZones(res)
             t[2][nob][2]=res
@@ -75,9 +76,9 @@ def generateCompositeIBMMesh(tb, vmin, snears, dfar, dfarloc=0., DEPTH=2, NP=0, 
             blankingBoxL = P.exteriorFaces(blankingBoxL)
             tblank[2][nob][2]=[blankingBoxL]
 
-    tcart = generateIBMMesh_legacy(tov, vmin, snearsExt, dfar, DEPTH=DEPTH, NP=NP, tbox=tbox,
-                                   snearsf=snearsf, check=check, merged=1, sizeMax=sizeMax,
-                                   symmetry=symmetry, externalBCType='BCFarfield', to=None, mergeByParents=True)
+    tcart = G_IBM.generateIBMMesh_legacy(tov, vmin, snearsExt, dfar, DEPTH=DEPTH, NP=NP, tbox=tbox,
+                                         snearsf=snearsf, check=check, merged=1, sizeMax=sizeMax,
+                                         symmetry=symmetry, externalBCType='BCFarfield', to=None, mergeByParents=True)
     tcart[2][1][0] = 'OffBody'
     C._rmBCOfType(t,'BCDummy') # near body grids external borders must be BCOverlap
     t = C.fillEmptyBCWith(t,'ov_ext','BCOverlap',dim=dimPb)
@@ -106,7 +107,7 @@ def prepareCompositeIBMData(t,tb, DEPTH=2, loc='centers', frontType=1):
             tloc = C.newPyTree([basename]); tloc[2][1]=t[2][nob]
             tbloc = C.newPyTree([basename]); tbloc[2][1]=tb[2][nob]
             # prepro IBM + interpolation entre blocs internes
-            tloc,tcloc=prepareIBMData_legacy(tloc,tbloc,DEPTH=DEPTH, loc=loc, frontType=frontType, interp='composite')
+            tloc,tcloc=X_IBM.prepareIBMData_legacy(tloc,tbloc,DEPTH=DEPTH, loc=loc, frontType=frontType, interp='composite')
             C._cpVars(tloc,'centers:cellN',tcloc,'cellN')
             tc[2][nob][2]+=Internal.getZones(tcloc)
             Internal._rmNodesFromType(t[2][nob],"Zone_t")
@@ -370,7 +371,7 @@ def prepareMotionChimeraData(t,tc,tblank,noBaseOff, tBB=None,DEPTH=2,loc='center
         elif translation: tblankM = T.translate(tblank,(tx,ty,tz))
 
         C._initVars(tloc,"{centers:cellN}={centers:cellNInit}")
-        tloc = blankByIBCBodies(tloc,tblankM,'centers',dim=dimPb,gridType='composite')
+        tloc = X_IBM.blankByIBCBodies(tloc,tblankM,'centers',dim=dimPb,gridType='composite')
         tloc = X.setHoleInterpolatedPoints(tloc,depth=DEPTH,loc='centers')
         for zloc in Internal.getZones(tloc):
             zname=zloc[0]

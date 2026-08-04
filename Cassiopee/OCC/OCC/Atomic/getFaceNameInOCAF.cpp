@@ -123,7 +123,6 @@ PyObject* K_OCC::getFaceNameInOCAF(PyObject* self, PyObject* args)
           Handle(TopoDS_TShape) tface2 = face2.TShape();
           if (tface1 == tface2) printf("found tface\n");
 
-
           Handle(Geom_Surface) surface1 = BRep_Tool::Surface(face1);
           Handle(Geom_Surface) surface2 = BRep_Tool::Surface(face2);
           //if (surface1->IsEqual(surface2)) printf("found geom\n");
@@ -270,14 +269,20 @@ PyObject* K_OCC::getFaceNameInOCAF2(PyObject* self, PyObject* args)
       const char* name = asciiStr.ToCString(); // component name
       // clean for non utf8 chars
       E_Int size = strlen(name);
-      char* nname = new char [size+1];
+      char* nname = new char [K_FUNC::E_max(size, 128)+1];
       E_Int c = 0;
       for (E_Int j = 0; j < size; j++)
       {
         unsigned int t = (unsigned int)name[j];
-        if (t >= 31 && t <= 128) { nname[c] = name[j]; c++; }
+        if (t >= 32 && t <= 126 && t != 47) { nname[c] = name[j]; c++; }
       }
       nname[c] = '\0';
+      // label name corrections
+      if (c >= 12)
+      {
+        if (K_STRING::cmp(nname, 12, "Open CASCADE") == 0) sprintf(nname, "Label%03d", i);
+      }
+      if (c == 0) { sprintf(nname, "Label%03d", i); }
       PyObject* pystring = PyUnicode_FromString(nname);
       delete [] nname;
       PyList_Append(out, pystring); Py_DECREF(pystring);
@@ -345,17 +350,22 @@ PyObject* K_OCC::getEdgeNameInOCAF2(PyObject* self, PyObject* args)
       const char* name = asciiStr.ToCString(); // component name
       // clean for non utf8 chars
       E_Int size = strlen(name);
-      char* nname = new char [size+1];
+      char* nname = new char [K_FUNC::E_max(size, 128)+1];
       E_Int c = 0;
       for (E_Int j = 0; j < size; j++)
       {
         unsigned int t = (unsigned int)name[j];
-        if (t >= 31 && t <= 128) { nname[c] = name[j]; c++; }
+        if (t >= 32 && t <= 126 && t != 47) { nname[c] = name[j]; c++; }
       }
       nname[c] = '\0';
+      // label name corrections
+      if (c >= 12)
+      {
+        if (K_STRING::cmp(nname, 12, "Open CASCADE") == 0) sprintf(nname, "Label%03d", i); 
+      }
+      if (c == 0) { sprintf(nname, "Label%03d", i); }
       PyObject* pystring = PyUnicode_FromString(nname);
       delete [] nname;
-
       PyList_Append(out, pystring); Py_DECREF(pystring);
       PyList_Append(out, plist); Py_DECREF(plist);
 

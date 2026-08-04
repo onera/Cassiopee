@@ -42,9 +42,8 @@
 #include "TopExp.hxx"
 #include "GeomLProp_SLProps.hxx"
 #include "BRepLProp_SLProps.hxx"
-#include <Precision.hxx>
-
-#include <TopLoc_Location.hxx>
+#include "Precision.hxx"
+#include "TopLoc_Location.hxx"
 
 // ultimate (best) functions
 

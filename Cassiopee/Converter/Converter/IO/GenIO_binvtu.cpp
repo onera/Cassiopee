@@ -321,9 +321,8 @@ void readPointsVTU(
   if (strcmp(format, "ascii") == 0)
   {
     formatted = true;
-    size_t ierr = 0;
     for (E_Int i = 0; i < npts; i++)
-      ierr = fscanf(ptrFile, "%lf %lf %lf", &coords[3*i], &coords[3*i+1], &coords[3*i+2]);
+      fscanf(ptrFile, "%lf %lf %lf", &coords[3*i], &coords[3*i+1], &coords[3*i+2]);
     // skip until </DataArray>
     while (readLine(ptrFile, buf, bufsize) == 0)
       if (strstr(buf, "</DataArray>") != NULL) break;
@@ -1167,7 +1166,7 @@ E_Int K_IO::GenIO::binvtuwrite(
   posx = K_ARRAY::isCoordinateXPresent(varString);
   posy = K_ARRAY::isCoordinateYPresent(varString);
   posz = K_ARRAY::isCoordinateZPresent(varString);
-  if (posx == -1 || posy == -1)
+  if (posx == -1 || posy == -1 || posz == -1)
   {
     printf("Warning: binvtuwrite: zones do not have coordinates. Not written.\n");
     return 1;

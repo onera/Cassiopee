@@ -8,7 +8,8 @@ import Dist2Walls.PyTree as DTW
 import Transform.PyTree as T
 import Initiator.PyTree as I
 import Converter.Internal as Internal
-import Connector.ToolboxIBM as IBM
+import Connector.IBM as X_IBM
+import Post.IBM as P_IBM
 import KCore.test as test
 
 N = 41
@@ -39,6 +40,6 @@ DTW._distance2Walls(t, tb, type='ortho', loc='centers')
 # Gradient de distance localise en centres => normales
 t = P.computeGrad(t, 'centers:TurbulentDistance')
 I._initConst(t, MInf=0.2, loc='centers')
-t,tc=IBM.prepareIBMData_legacy(t, tb, DEPTH=2, frontType=1)
-z = IBM.extractIBMWallFields(tc, tb=tb, famZones=[famNames[0]])
+t,tc=X_IBM.prepareIBMData_legacy(t, tb, DEPTH=2, frontType=1)
+z = P_IBM.extractIBMWallFields(tc, tb=tb, famZones=[famNames[0]])
 test.testT(z,1)
