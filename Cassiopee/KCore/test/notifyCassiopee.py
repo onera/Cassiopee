@@ -12,6 +12,7 @@
 #        python notifyCassiopee.py --valid --prod=<prod_name> --full
 import os
 import sys
+import re
 from glob import glob
 from time import strptime, strftime
 
@@ -414,7 +415,7 @@ def checkValidStatus(sessionSuffix=""):
         messageText += '\n\nIf the prod. you wish to use is marked as FAILED, '\
             'please contact the maintainers:\nchristophe.benoit@onera.fr, '\
             'vincent.casseau@onera.fr\nor list remaining issues with:\n'\
-            'notifyCassiopee --valid --prod=your_prod_name --full'
+            'notifyCassiopee --valid --prod=your_prod_name --full\n'
 
     return messageSubject, messageText
 
@@ -514,8 +515,8 @@ def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
 
     baseStateMsg = ""
     tlog, tlog2 = getTimeFromLog(logFiles[1])
-    messageSubject = "[validCassiopee - {}] {} - State: {}".format(prod, tlog,
-                                                                   baseState)
+    sessionSuffixMod = sessionSuffix if sessionSuffix else "Cassiopee"
+    messageSubject = f"[V&V {sessionSuffixMod} - {prod}] {tlog} - State: {baseState}"
     messageText = header + compStr + baseStateMsg
 
     if showTestLogs:
@@ -578,35 +579,61 @@ if __name__ == '__main__':
     elif scriptArgs.checkout:
         messageSubject, messageText = checkCheckoutStatus(sendEmail=scriptArgs.email)
     elif scriptArgs.valid:
-        if scriptArgs.prod:
-            findRef = False if scriptArgs.logs == "latest" else True
-            scriptArgs.logs = findLogs(scriptArgs.prod, findRef=findRef,
-                                       sessionSuffix=scriptArgs.sessionSuffix)
-            if not(
-                isinstance(scriptArgs.logs, list) and
-                len(scriptArgs.logs) == 2
-            ):
-                raise Exception("Two session logs were not found for "
-                                "prod. {}".format(scriptArgs.prod))
-            mode = "compare"
-        elif scriptArgs.logs:
-            scriptArgs.logs = scriptArgs.logs.split(' ')
-            if len(scriptArgs.logs) != 2:
-                raise Exception("Two session logs must be provided using the "
-                                "flag -l or --logs")
-            mode = "compare"
+        sessionSuffixes=scriptArgs.sessionSuffix.split(' ')
+        messageSubject = []
+        messageText = []
+        exitStatus = 0
+        for sessionSuffix in sessionSuffixes:
+            if scriptArgs.prod:
+                findRef = False if scriptArgs.logs == "latest" else True
+                scriptArgs.logs = findLogs(scriptArgs.prod, findRef=findRef,
+                                           sessionSuffix=sessionSuffix)
+                if not(
+                    isinstance(scriptArgs.logs, list) and
+                    len(scriptArgs.logs) == 2
+                ):
+                    raise Exception("Two session logs were not found for "
+                                    "prod. {}".format(scriptArgs.prod))
+                mode = "compare"
+            elif scriptArgs.logs:
+                scriptArgs.logs = scriptArgs.logs.split(' ')
+                if len(scriptArgs.logs) != 2:
+                    raise Exception("Two session logs must be provided using the "
+                                    "flag -l or --logs")
+                mode = "compare"
 
-        if mode == "overview":
-            messageSubject, messageText = checkValidStatus(sessionSuffix=scriptArgs.sessionSuffix)
+            if mode == "overview":
+                subject, text = checkValidStatus(sessionSuffix=sessionSuffix)
+                messageSubject.append(subject)
+                messageText.append(text)
+            else:
+                subject, text, exitCode = compareSessionLogs(
+                    logFiles=scriptArgs.logs,
+                    showExecTimeDiffs=scriptArgs.email,
+                    showTestLogs=scriptArgs.full,
+                    update=scriptArgs.update,
+                    sessionSuffix=sessionSuffix
+                )
+                messageSubject.append(subject)
+                messageText.append(text)
+                if exitStatus == 1: pass
+                else: exitStatus = max(exitStatus, exitCode)
+
+        if len(messageSubject) == 1: messageSubject = messageSubject[0]
         else:
-            messageSubject, messageText, exitStatus = compareSessionLogs(
-                logFiles=scriptArgs.logs,
-                showExecTimeDiffs=scriptArgs.email,
-                showTestLogs=scriptArgs.full,
-                update=scriptArgs.update,
-                sessionSuffix=scriptArgs.sessionSuffix
-            )
-
+            mods = [s.split("V&V ")[1].split(']')[0].split(' -')[0] for s in messageSubject]
+            statuses = [s.split("State: ")[1] for s in messageSubject]
+            if "FAILED" in statuses: status = "FAILED"
+            elif "MEMLEAK" in statuses: status = "MEMLEAK"
+            else: status = "OK"
+            messageSubject = messageSubject[0].split(' ')
+            messageSubject[1] = ', '.join(mods)
+            messageSubject[-1] = status
+            if len(messageSubject) == 10: messageSubject[4:7] = ""
+            elif len(messageSubject) == 4: messageSubject[1] += ']'
+            messageSubject = ' '.join(messageSubject)
+        messageText = f"\n\n{83*'#'}\n\n\n".join(messageText)
+    
     if scriptArgs.email:
         notify(recipients=recipients,
                messageSubject=messageSubject,

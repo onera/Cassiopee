@@ -393,7 +393,11 @@ def setPaths():
             parentDir = os.path.join(parentDir, PREFS["CFDBaseRelPath"])
             try: mods = [entry.name for entry in os.scandir(parentDir) if entry.is_dir()]
             except: mods = []
-            for mod in mods: MODULESDIR[loc][mod] = os.path.join(parentDir, mod)
+            for mod in mods:
+                if loc == 'GLOBAL' and mod not in MODULESDIR['LOCAL']:
+                    # Skip modules which aren't found locally
+                    continue
+                MODULESDIR[loc][mod] = os.path.join(parentDir, mod)
 
     global MODULESDIR, VALIDDIR
     MODULESDIR = {'LOCAL': {}, 'GLOBAL': {}}
