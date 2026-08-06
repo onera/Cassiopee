@@ -633,7 +633,7 @@ if __name__ == '__main__':
             elif len(messageSubject) == 4: messageSubject[1] += ']'
             messageSubject = ' '.join(messageSubject)
         messageText = f"\n\n{83*'#'}\n\n\n".join(messageText)
-    
+
     if scriptArgs.email:
         notify(recipients=recipients,
                messageSubject=messageSubject,
