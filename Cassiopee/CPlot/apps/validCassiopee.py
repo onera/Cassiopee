@@ -364,9 +364,10 @@ def setPaths():
         if loc not in ['LOCAL', 'GLOBAL']: loc = 'LOCAL'
         if PREFS["validType"] == "regression":
             paths = list(args)[1:]
+            print(f'Info: getting {loc.lower()} module tests in:')
             for path in paths:
                 if path is None: continue
-                print(f'Info: getting {loc.lower()} module tests in: {path}.')
+                print(f'  - {path}')
                 try: mods = [entry.name for entry in os.scandir(path) if entry.is_dir()]
                 except: mods = []
                 for mod in mods:
@@ -381,7 +382,7 @@ def setPaths():
                             a = os.access(os.path.join(pathMod, mod, 'test'), os.F_OK) # PModules git
                             if a: MODULESDIR[loc][mod] = pathMod
 
-            print(f'Info: getting {loc.lower()} module names in: {cassiopeeIncDir}.')
+            print(f'  - {cassiopeeIncDir}')
             try: mods = [entry.name for entry in os.scandir(cassiopeeIncDir) if entry.is_dir()]
             except: mods = []
             for mod in mods:
@@ -393,11 +394,14 @@ def setPaths():
             parentDir = os.path.join(parentDir, PREFS["CFDBaseRelPath"])
             try: mods = [entry.name for entry in os.scandir(parentDir) if entry.is_dir()]
             except: mods = []
+            print(f'Info: getting {loc.lower()} validation tests in:')
             for mod in mods:
                 if loc == 'GLOBAL' and mod not in MODULESDIR['LOCAL']:
                     # Skip modules which aren't found locally
                     continue
-                MODULESDIR[loc][mod] = os.path.join(parentDir, mod)
+                path = os.path.join(parentDir, mod)
+                print(f'  - {path}')
+                MODULESDIR[loc][mod] = path
 
     global MODULESDIR, VALIDDIR
     MODULESDIR = {'LOCAL': {}, 'GLOBAL': {}}
@@ -471,6 +475,9 @@ def getCFDBaseTests(module):
     path = MODULESDIR[BASE4COMPARE][module]
     try: reps = [entry.name for entry in os.scandir(path) if entry.is_dir()]
     except: reps = []
+    if BASE4COMPARE == "GLOBAL":
+        lpath = MODULESDIR["LOCAL"][module]
+        reps = [r for r in reps if os.path.isdir(os.path.join(lpath, r))]
     tests = []
     for r in reps:
         if (
