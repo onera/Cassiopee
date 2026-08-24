@@ -1,7 +1,7 @@
 # - prepareIBMData_legacy (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
-import Connector.ToolboxIBM as IBM
+import Connector.IBM as X_IBM
 import Post.PyTree as P
 import Geom.PyTree as D
 import Dist2Walls.PyTree as DTW
@@ -13,7 +13,7 @@ t = C.newPyTree(['Base', a])
 tb = C.newPyTree(['Base', body])
 C._addState(tb, 'EquationDimension', 3)
 C._addState(tb, 'GoverningEquations', 'NSTurbulent')
-t,tc=IBM.prepareIBMData_legacy(t, tb, DEPTH=2, frontType=0)
+t,tc=X_IBM.prepareIBMData_legacy(t, tb, DEPTH=2, frontType=0)
 test.testT(tc,1)
 # CAS 2D
 N = 21
@@ -24,5 +24,5 @@ tb = C.newPyTree(['Base', body])
 C._addState(tb, 'EquationDimension', 2)
 C._addState(tb, 'GoverningEquations', 'NSTurbulent')
 DEPTH = 2; dimPb = 2; model = 'NSTurbulent'
-t,tc=IBM.prepareIBMData_legacy(t, tb, DEPTH=2, frontType=0)
+t,tc=X_IBM.prepareIBMData_legacy(t, tb, DEPTH=2, frontType=0)
 test.testT(tc,2)

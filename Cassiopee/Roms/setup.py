@@ -49,7 +49,7 @@ setup(
     description="Roms module.",
     author="ONERA",
     url="https://onera.github.io/Cassiopee/",
-    packages=['Roms', 'Roms.DB', 'Roms.LA', 'Roms.Models', 'Roms.Optim'],
+    packages=['Roms', 'Roms.DB', 'Roms.LA', 'Roms.Models', 'Roms.Optim', 'Roms.Parts'],
     package_dir={"":"."},
     ext_modules=listExtensions
 )

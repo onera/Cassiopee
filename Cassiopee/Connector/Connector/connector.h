@@ -799,7 +799,6 @@ namespace K_CONNECTOR
   /*---------------------------------------------------*/
   PyObject* getIBMPtsBasic(PyObject* self, PyObject* args);
   PyObject* getIBMPtsWithFront(PyObject* self, PyObject* args);
-  PyObject* getIBMPtsWithTwoFronts(PyObject* self, PyObject* args);
   PyObject* getIBMPtsWithoutFront(PyObject* self, PyObject* args);
   PyObject* optimizeOverlap(PyObject* self, PyObject* args);
   PyObject* maximizeBlankedCells( PyObject* self, PyObject* args );
@@ -877,7 +876,6 @@ namespace K_CONNECTOR
   PyObject* _updateNatureForIBM(PyObject* self, PyObject* args);//on a zone, in place
   PyObject* indiceToCoord2(PyObject* self, PyObject* args);//on a zone, in place
   PyObject* correctCoeffList(PyObject* self, PyObject* args);//on a zone, in place
-  PyObject* _blankClosestTargetCells(PyObject* self, PyObject* args);
   PyObject* _modCellN1(PyObject* self, PyObject* args);
   PyObject* _modCellN2(PyObject* self, PyObject* args);
   PyObject* ___setInterpTransfersLBM(PyObject* self, PyObject* args);

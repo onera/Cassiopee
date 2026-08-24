@@ -4,8 +4,9 @@ import Generator.PyTree as G
 import Transform.PyTree as T
 import Converter.Internal as Internal
 import Connector.PyTree as X
-import Connector.ToolboxIBM as TIBM
 import Dist2Walls.PyTree as DTW
+import Generator.IBM as G_IBM
+import Connector.IBM as X_IBM
 import Distributor2.PyTree as D2
 import Initiator.PyTree as I
 import Converter.Mpi as Cmpi
@@ -487,14 +488,14 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
             n = Internal.getNodeFromName2(z, 'dfar')
             if n is not None: dfars[c] = Internal.getValue(n)*1.
 
-        o = TIBM.buildOctree(tbo, snearFactor=1., dfars=dfars,
-                             dimPb=dimPb, vmin=vmin,
-                             expand=expand, dfarDir=dfarDir)
+        o = G_IBM.buildOctree(tbo, snearFactor=1., dfars=dfars,
+                              dimPb=dimPb, vmin=vmin,
+                              expand=expand, dfarDir=dfarDir)
 
         # build parent octree 3 levels higher
         # returns a list of 4 octants of the parent octree in 2D and 8 in 3D
-        parento = TIBM.buildParentOctrees__(o, tbo, snearFactor=4., dfars=dfars,
-                                            dimPb=dimPb, vmin=vmin)
+        parento = G_IBM.buildParentOctrees__(o, tbo, snearFactor=4., dfars=dfars,
+                                             dimPb=dimPb, vmin=vmin)
     test.printMem(">>> Octree unstruct [end]")
 
     # Split octree
@@ -508,7 +509,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
 
     # fill vmin + merge in parallel
     test.printMem(">>> Octree struct [start]")
-    res = TIBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000)
+    res = G_IBM.octree2StructLoc__(p, vmin=vmin, ext=-1, optimized=0, parento=parento, sizeMax=1000000)
     del p
     if parento is not None:
         for po in parento: del po
@@ -537,8 +538,8 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     coords = None; zones = None
     test.printMem(">>> extended cart grids (after rmXZones) [end]")
 
-    TIBM._addBCOverlaps(t, bbox=bb)
-    TIBM._addExternalBCs(t, bbox=bb, dimPb=dimPb)
+    G_IBM._addBCOverlaps(t, bbox=bb)
+    G_IBM._addExternalBCs(t, bbox=bb, dimPb=dimPb)
     dz = 0.01
     if dimPb == 2:
         T._addkplane(t)
@@ -612,12 +613,12 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
 
     # Blanking IBC
     C._initVars(t, 'centers:cellNIBC', 1.)
-    t  = TIBM.blankByIBCBodies(t, tbibm, 'centers', dimPb, cellNName='cellNIBC')
+    t  = X_IBM.blankByIBCBodies(t, tbibm, 'centers', dimPb, cellNName='cellNIBC')
     if tbblank is None:
-        t  = TIBM.blankByIBCBodies(t, tbchim, 'centers', dimPb, cellNName='cellNChim')
+        t  = X_IBM.blankByIBCBodies(t, tbchim, 'centers', dimPb, cellNName='cellNChim')
     else:
-        t = TIBM.blankByIBCBodies(t, tbblank, 'centers', dimPb, cellNName='cellNChim')
-    t2 = TIBM.blankByIBCBodies(t2, tbibm, 'centers', dimPb, cellNName='cellNChim')
+        t = X_IBM.blankByIBCBodies(t, tbblank, 'centers', dimPb, cellNName='cellNChim')
+    t2 = X_IBM.blankByIBCBodies(t2, tbibm, 'centers', dimPb, cellNName='cellNChim')
     test.printMem(">>> Blanking [end]")
 
     # 2-Blank between overset curvilinear grids
@@ -628,11 +629,11 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
             if t2[2][nob][3]=='CGNSBase_t':
                 baseName = Internal.getName(t2[2][nob])
                 if baseName != bodyBaseName:
-                    t2[2][nob] = TIBM.blankByIBCBodies(t2[2][nob], bodyBase, 'centers', dimPb, cellNName='cellNChim')
+                    t2[2][nob] = X_IBM.blankByIBCBodies(t2[2][nob], bodyBase, 'centers', dimPb, cellNName='cellNChim')
     test.printMem(">>> Blanking between curvilinear grids [end]")
 
     # Signe la distance en fonction de cellNIBC et cellNChim
-    TIBM._signDistance(t)
+    X_IBM._signDistance(t)
 
     # Points interpoles autour des points masques
     X._setHoleInterpolatedPoints(t,depth=DEPTH,dir=1,loc='centers',cellNName='cellNChim',addGC=False)
@@ -644,7 +645,7 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
         X._setHoleInterpolatedPoints(t,depth=2,dir=0,loc='centers',cellNName='cellNIBC',addGC=False)
     else:
         X._setHoleInterpolatedPoints(t,depth=3,dir=0,loc='centers',cellNName='cellNIBC',addGC=False)
-    TIBM._removeBlankedGrids(t, loc='centers')
+    X_IBM._removeBlankedGrids(t, loc='centers')
     test.printMem(">>> Blanking [end]")
 
     print('Nb of Cartesian grids=%d.'%len(Internal.getZones(t)))
@@ -828,8 +829,8 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     P._computeGrad2(tp_cart, 'centers:TurbulentDistance', withCellN=False)
 
     test.printMem(">>> Building IBM front [start]")
-    front = TIBM.getIBMFront(tpc_cart, 'cellNFront', dim=dimPb, frontType=frontType)
-    front = TIBM.gatherFront(front)
+    front = X_IBM.getIBMFront(tpc_cart, 'cellNFront', dim=dimPb, frontType=frontType)
+    front = X_IBM.gatherFront(front)
 
     if check and rank == 0: C.convertPyTree2File(front, 'front.cgns')
 
@@ -842,8 +843,8 @@ def prepare(t_case, t_out, tc_out, tblank=None, to=None,
     if nbZonesIBC == 0:
         res = [{},{},{}]
     else:
-        res = TIBM.getAllIBMPoints(zonesRIBC, loc='centers',tb=tbibm, tfront=front, frontType=frontType,
-                                   cellNName='cellNIBC', depth=2, IBCType=IBCType)
+        res = X_IBM.getAllIBMPoints(zonesRIBC, loc='centers',tb=tbibm, tfront=front, frontType=frontType,
+                                    cellNName='cellNIBC', depth=2, IBCType=IBCType)
 
     front = None
     # cleaning

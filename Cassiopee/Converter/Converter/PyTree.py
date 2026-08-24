@@ -885,6 +885,23 @@ def _deleteSolverNodes__(a):
     Internal._rmNodesByType(a, 'ZoneSubRegion_t') # Sonics
     return None
 
+# -- deleteEmptyBases
+def deleteEmptyBases(t):
+    """Delete bases that do not contain a single zone."""
+    tp = Internal.copyRef(t)
+    _deleteEmptyBases(tp)
+    return tp
+
+def _deleteEmptyBases(t):
+    emptyBaseNames = []
+    bases = Internal.getBases(t)
+    for b in bases:
+        zones = Internal.getZones(b)
+        if not zones: emptyBaseNames.append(b[0])
+    for name in emptyBaseNames:
+        Internal._rmNodesByNameAndType(t, name, "CGNSBase_t")
+    return None
+
 # -- deleteEmptyZones
 # Supprime les zones ayant un nombre de noeuds ou d'elements
 # nul (non structure) ou un ni, nj, nk de 0 (structure)

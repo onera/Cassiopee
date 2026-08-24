@@ -72,7 +72,7 @@ def exportEdges(edges):
 class Scalar( sympy.core.symbol.Symbol ):
     """Define a parametric scalar."""
 
-    def __new__(cls, name=None, value=0., **assumptions):
+    def __new__(cls, name=None, value=0., part=None, **assumptions):
         if name is None: name = getName("scalar")
         obj = sympy.core.symbol.Symbol.__new__(cls, name, **assumptions)
         return obj
@@ -80,7 +80,7 @@ class Scalar( sympy.core.symbol.Symbol ):
     # Create new scalar parameter
     # IN: name: parameter name (optional, auto-generated if None)
     # IN: value: initial value of parameter (default: 0.)
-    def __init__(self, name=None, value=0.):
+    def __init__(self, name=None, value=0., part=None):
         # scalar name is symbol name
         self.name = super().name
         # symbol sympy: self by derivation
@@ -89,7 +89,7 @@ class Scalar( sympy.core.symbol.Symbol ):
         # range
         self.range = None
         # register
-        DRIVER.registerScalar(self)
+        if part is not None: part.registerScalar(self)
 
     # Return instantiated value
     # OUT: current value of scalar parameter
@@ -137,13 +137,14 @@ class Vec2:
     # Create a vector of dim2
     # IN: name: parameter name (optional, auto-generated if None)
     # IN: value: initial value of parameter as tuple (default: (0.0,0.0))
-    def __init__(self, name=None, value=(0.0,0.0)):
+    def __init__(self, name=None, value=(0.0,0.0), part=None):
         # name
         if name is not None: self.name = name
         else: self.name = getName("vec2")
         # parameters
         self.x = Scalar("x", value[0])
         self.y = Scalar("y", value[1])
+        if part is not None: part.registerVec2(self)
 
     # Return value
     # OUT: tuple (x, y) of current values
@@ -188,16 +189,18 @@ class Point:
     # Create a parametric point
     # IN: name: parameter name (optional, auto-generated if None)
     # IN: value: initial value of parameter as tuple (x,y,z) (default: (0.0,0.0,0.0))
-    def __init__(self, name=None, value=(0.0,0.0,0.0)):
+    def __init__(self, name=None, value=(0.0,0.0,0.0), part=None):
         # name
         if name is not None: self.name = name
         else: self.name = getName("point")
         # parameters
-        self.x = Scalar(self.name+".x", value[0])
-        self.y = Scalar(self.name+".y", value[1])
-        self.z = Scalar(self.name+".z", value[2])
+        self.x = Scalar(self.name+".x", value[0], part)
+        self.y = Scalar(self.name+".y", value[1], part)
+        self.z = Scalar(self.name+".z", value[2], part)
         # register
-        DRIVER.registerPoint(self)
+        if part is not None:
+            self.part = part
+            part.registerPoint(self)
 
     # Return value
     # OUT: tuple (x, y, z) of current values
@@ -248,10 +251,10 @@ class Point:
     # OUT: new Point object shifted from self
     def ShiftPoint(self, name=None, vector=(0.,0.,0.)):
         """Create new point shifted from self of a given vector."""
-        P = Point(name)
-        Eq(P.x, self.x + vector[0])
-        Eq(P.y, self.y + vector[1])
-        Eq(P.z, self.z + vector[2])
+        P = Point(name, part=self.part)
+        Eq(P.x, self.x + vector[0], part=self.part)
+        Eq(P.y, self.y + vector[1], part=self.part)
+        Eq(P.z, self.z + vector[2], part=self.part)
         return P
 
     # Create new point that is the symmetric of self considering a plane
@@ -261,19 +264,19 @@ class Point:
     # OUT: new Point object that is the symmetric of self
     def SymPoint(self, name=None, plane='xz', center=(0,0,0)):
         """Create new point that is the symetric of self considering a plane."""
-        P = Point(name)
+        P = Point(name, part=self.part)
         if plane == 'yz':
-            Eq(P.x, 2*center[0]-self.x)
-            Eq(P.y, +self.y)
-            Eq(P.z, +self.z)
+            Eq(P.x, 2*center[0]-self.x, part=self.part)
+            Eq(P.y, +self.y, part=self.part)
+            Eq(P.z, +self.z, part=self.part)
         elif plane == 'xz':
-            Eq(P.x, +self.x)
-            Eq(P.y, 2*center[1]-self.y)
-            Eq(P.z, +self.z)
+            Eq(P.x, +self.x, part=self.part)
+            Eq(P.y, 2*center[1]-self.y, part=self.part)
+            Eq(P.z, +self.z, part=self.part)
         elif plane == 'xy':
-            Eq(P.x, +self.x)
-            Eq(P.y, +self.y)
-            Eq(P.z, 2*center[2]-self.z)
+            Eq(P.x, +self.x, part=self.part)
+            Eq(P.y, +self.y, part=self.part)
+            Eq(P.z, 2*center[2]-self.z, part=self.part)
         return P
 
 Vec3 = Point # alias
@@ -287,7 +290,7 @@ class Grid:
     # IN: Xo: origin coordinates (x0, y0, z0) (default: (0.0,0.0,0.0))
     # IN: Xf: final coordinates (xf, yf, zf) (default: (0.0,0.0,0.0))
     # IN: N: number of points in each direction (ni, nj, nk) (default: (2,2,2))
-    def __init__(self, name=None, Xo=(0.0,0.0,0.0), Xf=(0.0,0.0,0.0), N=(2,2,2)):
+    def __init__(self, name=None, Xo=(0.0,0.0,0.0), Xf=(0.0,0.0,0.0), N=(2,2,2), part=None):
         # name
         if name is not None: self.name = name
         else: self.name = getName("grid")
@@ -302,9 +305,9 @@ class Grid:
         self.dy = Xf[1]-Xo[1]
         self.dz = Xf[2]-Xo[2]
         # parameters
-        self.P = [[[Point("%s.P.%d.%d.%d"%(self.name, i,j,k), (self.xo+i*self.dx, self.yo+j*self.dy, self.zo+k*self.dz)) for k in range(self.nk)] for j in range(self.nj)] for i in range(self.ni)]
+        self.P = [[[Point("%s.P.%d.%d.%d"%(self.name, i,j,k), (self.xo+i*self.dx, self.yo+j*self.dy, self.zo+k*self.dz), part=part) for k in range(self.nk)] for j in range(self.nj)] for i in range(self.ni)]
         # register
-        DRIVER.registerGrid(self)
+        if part is not None: part.registerGrid(self)
 
     # Return grid point value at index
     # IN: T: tuple of indices (i, j, k)
@@ -318,6 +321,7 @@ class Grid:
     # IN: shift: number of blank characters left to print (default: 0)
     def print(self, shift=0):
         """Display information."""
+        print(" "*shift, "Grid:", self.name)
         for k in range(self.nk):
             for j in range(self.nj):
                 for i in range(self.ni):
@@ -345,7 +349,7 @@ class Entity:
     # IN: listP: list of parameters (Scalars, Points, Vec2, Grids, or numeric values)
     # IN: type: entity type ('line', 'polyline', 'spline1', 'spline2', 'spline3', 'circle', 'arc', 'superellipse', 'naca4')
     # IN: mesh: optional reference mesh for spline3 type
-    def __init__(self, name=None, listP=[], type=None, mesh=None):
+    def __init__(self, name=None, listP=[], type=None, mesh=None, part=None):
         # name
         if name is not None: self.name = name
         else:
@@ -361,15 +365,15 @@ class Entity:
             if isinstance(P, Scalar):
                 self.P.append(P)
             elif isinstance(P, float):
-                self.P.append(Scalar(name+'.P%d'%c, P))
+                self.P.append(Scalar(name+'.P%d'%c, P, part=part))
             elif isinstance(P, int):
-                self.P.append(Scalar(name+'.P%d'%c, P))
+                self.P.append(Scalar(name+'.P%d'%c, P, part=part))
             elif isinstance(P, tuple) and len(P) == 3:
-                self.P.append(Point(name+'.P%d'%c, P))
+                self.P.append(Point(name+'.P%d'%c, P, part=part))
             elif isinstance(P, Point):
                 self.P.append(P)
             elif isinstance(P, tuple) and len(P) == 2:
-                self.P.append(Vec2(name+'.P%d'%c, P))
+                self.P.append(Vec2(name+'.P%d'%c, P, part=part))
             elif isinstance(P, Vec2):
                 self.P.append(P)
             elif isinstance(P, Grid):
@@ -377,12 +381,10 @@ class Entity:
             else:
                 raise(ValueError, "Wrong argument.")
             c += 1
-
         # hook on cad
         self.hook = None
-
         # register
-        DRIVER.registerEdge(self)
+        if part is not None: part.registerEdge(self)
 
     # Destructor: free CAD hook
     def __del__(self):
@@ -455,7 +457,7 @@ class Entity:
     def print(self, shift=0):
         """Display informations."""
         for c, P in enumerate(self.P):
-            print(" "*shift, P.name)
+            print(" "*shift, "P:", P.name)
             P.print(shift+4)
 
     # Export CAD to file
@@ -464,7 +466,7 @@ class Entity:
     def writeCAD(self, fileName, format="fmt_step"):
         """Write CAD to file."""
         if self.hook is None:
-            raise ValueError("writeCAD: hook is not instantiated yet.")
+            raise ValueError(f"writeCAD: hook is not instantiated yet for {self.name}.")
         OCC.writeCAD(self.hook, fileName, format)
 
     # Check parameters validity
@@ -478,49 +480,49 @@ class Entity:
 
 #============================================================
 # line from two parametric points
-def Line(name=None, P1=(0.,0.,0.), P2=(0.,0.,0.)):
+def Line(name=None, P1=(0.,0.,0.), P2=(0.,0.,0.), part=None):
     """Define a parametric line."""
-    return Entity(name, [P1, P2], type="line")
+    return Entity(name, [P1, P2], type="line", part=part)
 
 # polyline from list of parametric points
-def Polyline(name=None, Points=[]):
+def Polyline(name=None, Points=[], part=None):
     """Define a parametric polyline."""
-    return Entity(name, Points, type="polyline")
+    return Entity(name, Points, type="polyline", part=part)
 
 # spline from parametric control points
-def Spline1(name=None, CPs=[]):
+def Spline1(name=None, CPs=[], part=None):
     """Define a parametric spline from control points."""
-    return Entity(name, CPs, type="spline1")
+    return Entity(name, CPs, type="spline1", part=part)
 
 # spline from parametric approximated points
-def Spline2(name=None, Ps=[]):
+def Spline2(name=None, Ps=[], part=None):
     """Define parametric spline from approcmiated points."""
-    return Entity(name, Ps, type="spline2")
+    return Entity(name, Ps, type="spline2", part=part)
 
 # spline from parametric grid
-def Spline3(name=None, PGrid=None, mesh=None):
+def Spline3(name=None, PGrid=None, mesh=None, part=None):
     """Define parametric spline from grid."""
-    return Entity(name, [PGrid], mesh=mesh, type="spline3")
+    return Entity(name, [PGrid], mesh=mesh, type="spline3", part=part)
 
 # circle from parametric center and radius
-def Circle(name=None, C=(0.,0.,0.), R=1.):
+def Circle(name=None, C=(0.,0.,0.), R=1., part=None):
     """Define parametric circle."""
-    return Entity(name, [C, R], type="circle")
+    return Entity(name, [C, R], type="circle", part=part)
 
 # superellipse from parametric center and R1, R2
-def SuperEllipse(name=None, C=(0.,0.,0.), R1=1., R2=1., N=4, samples=36):
+def SuperEllipse(name=None, C=(0.,0.,0.), R1=1., R2=1., N=4, samples=36, part=None):
     """Define parametric super ellipse."""
-    return Entity(name, [C, R1, R2, N, samples], type="superellipse")
+    return Entity(name, [C, R1, R2, N, samples], type="superellipse", part=part)
 
 # arc from 3 parametric points
-def Arc(name=None, P1=(0.,0.,0.), P2=(0.,0.,0.), P3=(0.,0.,0.)):
+def Arc(name=None, P1=(0.,0.,0.), P2=(0.,0.,0.), P3=(0.,0.,0.), part=None):
     """"Define parametric arc."""
-    return Entity(name, [P1, P2, P3], type="arc")
+    return Entity(name, [P1, P2, P3], type="arc", part=part)
 
 # naca from parametric 4 digits
-def Naca(name=None, M=0., P=0., e=12.):
+def Naca(name=None, M=0., P=0., e=12., part=None):
     """Define parametric NACA profile."""
-    return Entity(name, [M, P, e], type="naca4")
+    return Entity(name, [M, P, e], type="naca4", part=part)
 
 #============================================================
 class Sketch():
@@ -530,7 +532,7 @@ class Sketch():
     # IN: name: sketch name (optional, auto-generated if None)
     # IN: listEntities: list of Entity objects to include in the sketch
     # IN: h: meshing parameters tuple (hmin, hmax, hausd) (optional)
-    def __init__(self, name=None, listEntities=[], h=None):
+    def __init__(self, name=None, listEntities=[], h=None, part=None):
         # name
         if name is not None: self.name = name
         else: self.name = getName("sketch")
@@ -542,20 +544,20 @@ class Sketch():
         self.hook = None
         # global parameters (always added)
         self.P = []
-        P = Vec3('%s.position'%self.name, (0.,0.,0.))
+        P = Vec3('%s.position'%self.name, (0.,0.,0.), part=part)
         self.P.append(P)
         self.position = P
-        P = Point('%s.rotCenter'%self.name, (0.,0.,0.))
+        P = Point('%s.rotCenter'%self.name, (0.,0.,0.), part=part)
         self.P.append(P)
         self.rotCenter = P
-        P = Vec3('%s.rotAxis'%self.name, (0.,0.,1.))
+        P = Vec3('%s.rotAxis'%self.name, (0.,0.,1.), part=part)
         self.P.append(P)
         self.rotAxis = P
-        P = Scalar('%s.rotAngle'%self.name, 0.)
+        P = Scalar('%s.rotAngle'%self.name, 0., part=part)
         self.P.append(P)
         self.rotAngle = P
         # register
-        DRIVER.registerSketch(self)
+        if part is not None: part.registerSketch(self)
         # meshing: (hmin,hmax,hausd)
         self.h = None
         if h is not None: self.h = h
@@ -600,7 +602,7 @@ class Sketch():
     def print(self, shift=0):
         """Print informations."""
         for e in self.entities:
-            print(" "*shift, e.name)
+            print(" "*shift, "Entity:", e.name)
             e.print(shift+4)
         for e in [self.position, self.rotCenter, self.rotAxis, self.rotAngle]:
             print(" "*shift, e.name)
@@ -719,7 +721,7 @@ class Surface():
     # IN: data: dictionary of additional parameters (e.g., center, axis, angle, continuity, close)
     # IN: h: meshing parameters tuple (hmin, hmax, hausd) (optional)
     # IN: type: surface type ('loft', 'loftSet', 'revolve', 'merge', 'fill', 'mergeEdges', 'union', 'inter', 'sub', 'sphere')
-    def __init__(self, name=None, listSketches=[], listSketches2=[], listSurfaces=[], listSurfaces2=[], data={}, h=None, type="loft"):
+    def __init__(self, name=None, listSketches=[], listSketches2=[], listSurfaces=[], listSurfaces2=[], data={}, h=None, type="loft", part=None):
         # name
         if name is not None: self.name = name
         else: self.name = getName("surface")
@@ -742,19 +744,19 @@ class Surface():
                 self.data[n] = P
                 self.P.append(P)
             elif isinstance(P, float):
-                self.data[n] = Scalar(name+'.P%d'%c, P)
+                self.data[n] = Scalar(name+'.P%d'%c, P, part=part)
                 self.P.append(self.data[n])
             elif isinstance(P, int):
-                self.data[n] = Scalar(name+'.P%d'%c, P)
+                self.data[n] = Scalar(name+'.P%d'%c, P, part=part)
                 self.P.append(self.data[n])
             elif isinstance(P, tuple) and len(P) == 3:
-                self.data[n] = Point(name+'.P%d'%c, P)
+                self.data[n] = Point(name+'.P%d'%c, P, part=part)
                 self.P.append(self.data[n])
             elif isinstance(P, Point):
                 self.data[n] = P
                 self.P.append(P)
             elif isinstance(P, tuple) and len(P) == 2:
-                self.data[n] = Vec2(name+'.P%d'%c, P)
+                self.data[n] = Vec2(name+'.P%d'%c, P, part=part)
                 self.P.append(self.data[n])
             elif isinstance(P, Vec2):
                 self.data[n] = P
@@ -771,17 +773,17 @@ class Surface():
         P = Vec3('%s.position'%self.name, (0,0,0))
         self.P.append(P)
         self.position = P
-        P = Point('%s.rotCenter'%self.name, (0,0,0))
+        P = Point('%s.rotCenter'%self.name, (0,0,0), part=part)
         self.P.append(P)
         self.rotCenter = P
-        P = Vec3('%s.rotAxis'%self.name, (0,0,1))
+        P = Vec3('%s.rotAxis'%self.name, (0,0,1), part=part)
         self.P.append(P)
         self.rotAxis = P
-        P = Scalar('%s.rotAngle'%self.name, 0.)
+        P = Scalar('%s.rotAngle'%self.name, 0., part=part)
         self.P.append(P)
         self.rotAngle = P
         # register
-        DRIVER.registerSurface(self)
+        if part is not None: part.registerSurface(self)
         # meshing: (hmin,hmax,hausd). supersedes sketch settings.
         self.h = None
         if h is not None: self.h = h
@@ -917,10 +919,10 @@ class Surface():
     def print(self, shift=0):
         """Print surface information."""
         for e in self.sketches:
-            print(" "*shift, e.name)
+            print(" "*shift, "Sketch:", e.name)
             e.print(shift+4)
         for e in self.P:
-            print(" "*shift, e.name)
+            print(" "*shift, "P:", e.name)
             e.print(shift+4)
 
     # Export CAD to file
@@ -1171,72 +1173,72 @@ class Surface():
 
         return self.RefMesh
 
-def Loft(name="loft", listSketches=[], listGuides=[], close=True, h=None):
+def Loft(name="loft", listSketches=[], listGuides=[], close=True, h=None, part=None):
     """Create a loft surface from sketches."""
     return Surface(name=name, listSketches=listSketches, listSketches2=listGuides,
-                   type="loft", data={'close':close}, h=h)
+                   type="loft", data={'close':close}, h=h, part=part)
 
-def LoftSet(name="loftset", listSketches=[], listGuides=[], close=True, h=None):
+def LoftSet(name="loftset", listSketches=[], listGuides=[], close=True, h=None, part=None):
     """Create a set of loft surfaces from sketches."""
     return Surface(name=name, listSketches=listSketches, listSketches2=listGuides,
-                   type="loft", data={'close':close}, h=h)
+                   type="loft", data={'close':close}, h=h, part=part)
 
-def Revolve(name='revolve', sketch=None, center=(0,0,0), axis=(0,0,1), angle=360., h=None):
+def Revolve(name='revolve', sketch=None, center=(0,0,0), axis=(0,0,1), angle=360., h=None, part=None):
     """Create a revolution surface from a sketch."""
     return Surface(name=name, listSketches=[sketch],
                    data={'center':center, 'axis':axis, 'angle':angle},
-                   type="revolve", h=h)
+                   type="revolve", h=h, part=part)
 
-def Merge(name="compound", listSurfaces=[], h=None):
+def Merge(name="compound", listSurfaces=[], h=None, part=None):
     """Create a compound surface from a list of surfaces."""
     return Surface(name=name, listSurfaces=listSurfaces,
-                   type="merge", h=h)
+                   type="merge", h=h, part=part)
 
-def MergeEdges(name="mergeEdges", listSketches=[], h=None):
+def MergeEdges(name="mergeEdges", listSketches=[], h=None, part=None):
     """Merge edges. Not a surface."""
-    return Surface(name=name, listSketches=listSketches, type="mergeEdges", h=h)
+    return Surface(name=name, listSketches=listSketches, type="mergeEdges", h=h, part=part)
 
-def Fill(name="fill", sketch=None, continuity=0, h=None):
+def Fill(name="fill", sketch=None, continuity=0, h=None, part=None):
     """Create a surface that fill a sketch."""
     return Surface(name=name, listSketches=[sketch],
                    data={'continuity':continuity},
-                   type="fill", h=h)
+                   type="fill", h=h, part=part)
 
-def Union(name="union", listSurfaces1=[], listSurfaces2=[], h=None):
+def Union(name="union", listSurfaces1=[], listSurfaces2=[], h=None, part=None):
     """Boolean union."""
     return Surface(name=name, listSurfaces=listSurfaces1,
                    listSurfaces2=listSurfaces2,
-                   type="union", h=h)
+                   type="union", h=h, part=part)
 
-def Sub(name="sub", listSurfaces1=[], listSurfaces2=[], h=None):
+def Sub(name="sub", listSurfaces1=[], listSurfaces2=[], h=None, part=None):
     """Boolean difference."""
     return Surface(name=name, listSurfaces=listSurfaces1,
                    listSurfaces2=listSurfaces2,
-                   type="sub", h=h)
+                   type="sub", h=h, part=part)
 
-def Inter(name="inter", listSurfaces1=[], listSurfaces2=[], h=None):
+def Inter(name="inter", listSurfaces1=[], listSurfaces2=[], h=None, part=None):
     """Boolean intersection."""
     return Surface(name=name, listSurfaces=listSurfaces1,
                    listSurfaces2=listSurfaces2,
-                   type="inter", h=h)
+                   type="inter", h=h, part=part)
 
-def FillLinear(name="linearFill", listPoints=[], continuity=0, h=None):
+def FillLinear(name="linearFill", listPoints=[], continuity=0, h=None, part=None):
     """Fill a surface by lines between points."""
     lines = []
     ls = len(listPoints)
     for c in range(ls):
         if c < ls-1:
-            l = Line(None, listPoints[c], listPoints[c+1])
+            l = Line(None, listPoints[c], listPoints[c+1], part=part)
         else:
-            l = Line(None, listPoints[ls-1], listPoints[0])
+            l = Line(None, listPoints[ls-1], listPoints[0], part=part)
         lines.append(l)
-    sketch1 = Sketch(None, lines)
-    surface1 = Fill(name, sketch1, continuity, h)
+    sketch1 = Sketch(None, lines, part=part)
+    surface1 = Fill(name, sketch1, continuity, h, part=part)
     return surface1
 
-def Sphere(name="sphere", C=(0.,0.,0.), R=1., h=None):
+def Sphere(name="sphere", C=(0.,0.,0.), R=1., h=None, part=None):
     """Create a sphere of center C and radius R."""
-    surface1 = Surface(name=name, data={'center': C, 'radius': R}, type="sphere", h=h)
+    surface1 = Surface(name=name, data={'center': C, 'radius': R}, type="sphere", h=h, part=part)
     return surface1
 
 #============================================================
@@ -1455,10 +1457,10 @@ class Eq:
     # IN: expr1: left side of the equation (sympy expression or Scalar)
     # IN: expr2: right side of the equation (optional, defaults to None)
     # in expressions, you can use standard math functions (e.g. D.sympy.cos, D.sympy.exp, ...)
-    def __init__(self, expr1, expr2=None):
+    def __init__(self, expr1, expr2=None, part=None):
         # references to the sympy equation
         self.s = sympy.Eq(expr1, expr2)
-        DRIVER.registerEquation(self)
+        if part is not None: part.registerEquation(self)
 
     # Analyse equation to return vars and symbols
     # OUT: tuple (vars: list of variable names, out: formatted expression string)
@@ -1485,10 +1487,10 @@ class Lt:
     # Create a less-than constraint inequation
     # IN: expr1: left side of the inequality (sympy expression or Scalar)
     # IN: expr2: right side of the inequality (optional, defaults to None)
-    def __init__(self, expr1, expr2=None):
+    def __init__(self, expr1, expr2=None, part=None):
         # references to the sympy inequality
         self.s = sympy.Lt(expr1, expr2)
-        DRIVER.registerInequation(self)
+        if part is not None: part.registerInequation(self)
 
 #============================================================
 class Le:
@@ -1497,10 +1499,10 @@ class Le:
     # Create a less-than-or-equal constraint inequation
     # IN: expr1: left side of the inequality (sympy expression or Scalar)
     # IN: expr2: right side of the inequality (optional, defaults to None)
-    def __init__(self, expr1, expr2=None):
+    def __init__(self, expr1, expr2=None, part=None):
         # references to the sympy inequality
         self.s = sympy.Le(expr1, expr2)
-        DRIVER.registerInequation(self)
+        if part is not None: part.registerInequation(self)
 
 #============================================================
 class Gt:
@@ -1509,10 +1511,10 @@ class Gt:
     # Create a greater-than constraint inequation
     # IN: expr1: left side of the inequality (sympy expression or Scalar)
     # IN: expr2: right side of the inequality (optional, defaults to None)
-    def __init__(self, expr1, expr2=None):
+    def __init__(self, expr1, expr2=None, part=None):
         # references to the sympy inequality
         self.s = sympy.Gt(expr1, expr2)
-        DRIVER.registerInequation(self)
+        if part is not None: part.registerInequation(self)
 
 #============================================================
 class Ge:
@@ -1521,10 +1523,10 @@ class Ge:
     # Create a greater-than-or-equal constraint inequation
     # IN: expr1: left side of the inequality (sympy expression or Scalar)
     # IN: expr2: right side of the inequality (optional, defaults to None)
-    def __init__(self, expr1, expr2=None):
+    def __init__(self, expr1, expr2=None, part=None):
         # references to the sympy inequality
         self.s = sympy.Ge(expr1, expr2)
-        DRIVER.registerInequation(self)
+        if part is not None: part.registerInequation(self)
 
 #============================================================
 class Ne:
@@ -1533,17 +1535,21 @@ class Ne:
     # Create a not-equal constraint inequation
     # IN: expr1: left side of the inequality (sympy expression or Scalar)
     # IN: expr2: right side of the inequality (optional, defaults to None)
-    def __init__(self, expr1, expr2=None):
+    def __init__(self, expr1, expr2=None, part=None):
         # references to the sympy inequality
         self.s = sympy.Ne(expr1, expr2)
-        DRIVER.registerInequation(self)
+        if part is not None: part.registerInequation(self)
 
 #============================================================
-class Driver:
-    """Driver is parametric model."""
-    def __init__(self):
-        # all parameters
+class Part:
+    """Part is parametric model."""
+    def __init__(self, name=None):
+        # part name
+        if name is not None: self.name = name
+        else: self.name = getName("part")
+        # all parameters of this part
         self.scalars = {} # id -> scalar
+        self.vec2 = {} # vec2
         self.points = {} # points
         self.grids = {} # grids
         # db
@@ -1558,6 +1564,10 @@ class Driver:
         # all inequations
         self.inequationCount = 0
         self.inequations = {} # inequations
+        # global position of part and assembly type
+        self.position = None
+        self.rotation = None
+        self.assembly = None
         # updated by solve
         self.solution = None # solution of system in sympy symbols
         self.params = None # all model params in sympy symbols
@@ -1573,12 +1583,165 @@ class Driver:
         self.mean = None
         self.Phi = None # POD vectors
         self.ak = None # POD coefficients of each mesh in doe
+        # register part in Driver
+        DRIVER.registerPart(self)
+
+    def Scalar(self, name=None, value=0.):
+        s = Scalar(name, value, self)
+        return s
+
+    def Vec2(self, name=None, value=(0.0,0.0)):
+        s = Vec2(name, value)
+        return s
+
+    def Point(self, name=None, value=(0.0,0.0,0.0)):
+        s = Point(name, value, self)
+        return s
+
+    def Grid(self, name=None, Xo=(0.0,0.0,0.0), Xf=(0.0,0.0,0.0), N=(2,2,2)):
+        s = Grid(name, Xo, Xf, N, self)
+        return s
+
+    def Entity(self, name=None, listP=[], type=None, mesh=None):
+        s = Entity(name, listP, type, mesh, self)
+        return s
+
+    def Line(self, name=None, P1=(0.,0.,0.), P2=(0.,0.,0.)):
+        s = Entity(name, [P1, P2], type="line", part=self)
+        return s
+
+    def Polyline(self, name=None, Points=[]):
+        s = Entity(name, Points, type="polyline", part=self)
+        return s
+
+    def Spline1(self, name=None, CPs=[]):
+        s = Entity(name, CPs, type="spline1", part=self)
+        return s
+
+    def Spline2(self, name=None, Ps=[]):
+        s = Entity(name, Ps, type="spline2", part=self)
+        return s
+
+    def Spline3(self, name=None, PGrid=None, mesh=None):
+        s = Entity(name, [PGrid], mesh=mesh, type="spline3", part=self)
+        return s
+
+    def Circle(self, name=None, C=(0.,0.,0.), R=1.):
+        s = Entity(name, [C, R], type="circle", part=self)
+        return s
+
+    def SuperEllipse(self, name=None, C=(0.,0.,0.), R1=1., R2=1., N=4, samples=36):
+        s = Entity(name, [C, R1, R2, N, samples], type="superellipse", part=self)
+        return s
+
+    def Arc(self, name=None, P1=(0.,0.,0.), P2=(0.,0.,0.), P3=(0.,0.,0.)):
+        s = Entity(name, [P1, P2, P3], type="arc", part=self)
+        return s
+
+    def Naca(self, name=None, M=0., P=0., e=12.):
+        s = Entity(name, [M, P, e], type="naca4", part=self)
+        return s
+
+    def Sketch(self, name=None, listEntities=[], h=None):
+        s = Sketch(name, listEntities, h, self)
+        return s
+
+    def Surface(self, name=None, listSketches=[], listSketches2=[], listSurfaces=[], listSurfaces2=[], data={}, h=None, type="loft"):
+        s = Surface(name, listSketches, listSketches2, listSurfaces, listSurfaces2, data, h, type, self)
+        return s
+
+    def Loft(self, name="loft", listSketches=[], listGuides=[], close=True, h=None):
+        s = Surface(name=name, listSketches=listSketches, listSketches2=listGuides,
+                    type="loft", data={'close':close}, h=h, part=self)
+        return s
+
+    def LoftSet(self, name="loftset", listSketches=[], listGuides=[], close=True, h=None):
+        s = Surface(name=name, listSketches=listSketches, listSketches2=listGuides,
+                    type="loft", data={'close':close}, h=h, part=self)
+        return s
+
+    def Revolve(self, name='revolve', sketch=None, center=(0,0,0), axis=(0,0,1), angle=360., h=None):
+        s = Surface(name=name, listSketches=[sketch],
+                    data={'center':center, 'axis':axis, 'angle':angle},
+                    type="revolve", h=h, part=self)
+        return s
+
+    def Merge(self, name="compound", listSurfaces=[], h=None):
+        s = Surface(name=name, listSurfaces=listSurfaces,
+                    type="merge", h=h, part=self)
+        return s
+
+    def MergeEdges(self, name="mergeEdges", listSketches=[], h=None):
+        s = Surface(name=name, listSketches=listSketches, type="mergeEdges", h=h, part=self)
+        return s
+
+    def Fill(self, name="fill", sketch=None, continuity=0, h=None):
+        s = Surface(name=name, listSketches=[sketch],
+                    data={'continuity':continuity},
+                    type="fill", h=h, part=self)
+        return s
+
+    def Union(self, name="union", listSurfaces1=[], listSurfaces2=[], h=None):
+        s = Surface(name=name, listSurfaces=listSurfaces1,
+                    listSurfaces2=listSurfaces2,
+                    type="union", h=h, part=self)
+        return s
+
+    def Sub(self, name="sub", listSurfaces1=[], listSurfaces2=[], h=None):
+        s = Surface(name=name, listSurfaces=listSurfaces1,
+                    listSurfaces2=listSurfaces2,
+                    type="sub", h=h, part=self)
+        return s
+
+    def Inter(self, name="inter", listSurfaces1=[], listSurfaces2=[], h=None):
+        s = Surface(name=name, listSurfaces=listSurfaces1,
+                    listSurfaces2=listSurfaces2,
+                    type="inter", h=h, part=self)
+        return s
+
+    def FillLinear(self, name="linearFill", listPoints=[], continuity=0, h=None):
+        s = FillLinear(name, listPoints, continuity, h, part=self)
+        return s
+
+    def Sphere(self, name="sphere", C=(0.,0.,0.), R=1., h=None):
+        s = Surface(name=name, data={'center': C, 'radius': R}, type="sphere", h=h, part=self)
+        return s
+
+    def Eq(self, expr1, expr2=None):
+        s = Eq(expr1, expr2, self)
+        return s
+
+    def Lt(self, expr1, expr2=None):
+        s = Lt(expr1, expr2, self)
+        return s
+
+    def Le(self, expr1, expr2=None):
+        s = Lt(expr1, expr2, self)
+        return s
+
+    def Gt(self, expr1, expr2=None):
+        s = Gt(expr1, expr2, self)
+        return s
+
+    def Ge(self, expr1, expr2=None):
+        s = Ge(expr1, expr2, self)
+        return s
+
+    def Ne(self, expr1, expr2=None):
+        s = Ne(expr1, expr2, self)
+        return s
 
     # Register parametric scalar
     # IN: s: Scalar object to register
     def registerScalar(self, s):
         """Register parametric scalar."""
         self.scalars[s.name] = s # name -> scalar
+
+    # Register parametric vec2
+    # IN: s: vec2 object to register
+    def registerVec2(self, s):
+        """Register parametric vec2."""
+        self.vec2[s.name] = s # name -> vec2
 
     # Register parametric point
     # IN: p: Point object to register
@@ -1637,14 +1800,26 @@ class Driver:
                 scalar.range = [-999.99, 999.99] # adjustable range
 
     # Print registered entities
-    def print(self):
+    def print(self, shift=0):
         """Print registered entities."""
-        for k in self.scalars: print(k)
-        for k in self.points: print(k)
-        for k in self.edges: print(k)
-        for k in self.sketches: print(k)
-        for k in self.surfaces: print(k)
-        for k in self.equations: print(k)
+        for k in self.scalars:
+            print(" "*shift, "Scalar:", k)
+            self.scalars[k].print(shift+4)
+        for k in self.points:
+            print(" "*shift, "Point:", k)
+            self.points[k].print(shift+4)
+        for k in self.edges:
+            print(" "*shift, "Edge:", k)
+            self.edges[k].print(shift+4)
+        for k in self.sketches:
+            print(" "*shift, "Sketch:", k)
+            self.sketches[k].print(shift+4)
+        for k in self.surfaces:
+            print(" "*shift, "Surf:", k)
+            self.surfaces[k].print(shift+4)
+        for k in self.equations:
+            print(" "*shift, "Eq:", k)
+            #self.equations[k].print(shift+4)
 
     # Update all entities from parameters
     def update(self):
@@ -1887,20 +2062,18 @@ class Driver:
         # return True if valid in range and inequation constraints
         return valid
 
-    # Display an interactive GUI for given entity
-    # IN: entity: Entity/Sketch/Surface object to visualize
-    def plot(self, entity):
-        """Trigger the GUI enabling interactive manipulation and visualization."""
-        import CPlot.Tk as CTK
-        (win, menu, file, tools) = CTK.minimal("Driver", mode=1)
-        module = __import__("tkDriver")
-        CTK.TKMODULES["tkDriver"] = module
-        tools.add_command(label="tkDriver", command=module.showApp)
-        module.setDriver(self, entity)
-        module.createApp(win)
-        module.showApp()
-        win.deiconify(); win.focus_set()
-        win.mainloop()
+    # Write CAD for part
+    def writeCAD(self, fileName, format="fmt_step"):
+        """Write part."""
+        hook = OCC.createEmptyCAD(fileName, format)
+        for f in self.sketches:
+            fh = self.sketches[f]
+            if fh.hook is not None: hook = OCC.mergeCAD([hook, fh.hook])
+        for f in self.surfaces:
+            fh = self.surfaces[f]
+            if fh.hook is not None: hook = OCC.mergeCAD([hook, fh.hook])
+        OCC.writeCAD(hook, fileName, format)
+        OCC.freeHook(hook)
 
     # Finite difference of free parameters on discrete mesh
     # Compute derivatives dX/dmu on entity
@@ -2443,6 +2616,104 @@ class Driver:
         # Multiply to get back A
         Fr = Phi @ Sigma @ Vt
         return Fr
+
+#============================================================
+class Driver:
+    """Driver keeps parts."""
+    def __init__(self):
+        # all parts
+        self.parts = {}
+
+    # create a new part
+    def Part(self, name, type="new"):
+        """Create a new part of given type."""
+        if type == "new":
+            self.parts[name] = Part(name)
+        else:
+            mod = __import__("Roms.Parts."+type, fromlist=[type])
+            self.parts[name] = mod.createPart(name)
+
+        return self.parts[name]
+
+    # Register a part in driver
+    def registerPart(self, part):
+        """Register a part in driver."""
+        self.parts[part.name] = part
+
+    # Update all parts
+    def update(self):
+        """Update all parts."""
+        for k in self.parts: self.parts[k].update()
+
+    # Print registered parts
+    def print(self, shift=0):
+        """Print registered part names."""
+        for k in self.parts:
+            print(" "*shift, "Part:", self.parts[k].name)
+            self.parts[k].print(shift+4)
+
+    # WriteCAD
+    def writeCAD(self, fileName, format="fmt_step"):
+        """Write all parts."""
+        hook = OCC.createEmptyCAD(fileName, format)
+        for k in self.parts:
+            part = self.parts[k]
+            for f in part.sketches:
+                fh = part.sketches[f]
+                if fh.hook is not None: hook = OCC.mergeCAD([hook, fh.hook])
+            for f in part.surfaces:
+                fh = part.surfaces[f]
+                if fh.hook is not None: hook = OCC.mergeCAD([hook, fh.hook])
+        OCC.writeCAD(hook, fileName, format)
+        OCC.freeHook(hook)
+
+    # Display an interactive GUI for given entity
+    # IN: entity: Entity/Sketch/Surface object to visualize
+    def plot(self, part=None, entity=None):
+        """Trigger the GUI enabling interactive manipulation and visualization."""
+        import CPlot.Tk as CTK
+        (win, menu, file, tools) = CTK.minimal("Driver", mode=1)
+        module = __import__("tkDriver")
+        CTK.TKMODULES["tkDriver"] = module
+        tools.add_command(label="tkDriver", command=module.showApp)
+        if part is None:
+            k = list(self.parts.keys())
+            if len(k) == 0: raise ValueError("plot: driver has no part.")
+            part = self.parts[k[0]]
+        if entity is None:
+            k = list(part.sketches.keys())
+            if len(k) == 0:
+                k = list(part.surfaces.keys())
+                if len(k) == 0:
+                    raise ValueError("plot: part has no sketch and no surface.")
+                else: entity = part.surfaces[k[0]]
+            else:
+                entity = part.sketches[k[0]]
+        module.setDriver(self, part, entity)
+        module.createApp(win)
+        module.showApp()
+        win.deiconify(); win.focus_set()
+        win.mainloop()
+
+    # merge parts in one part, put all scalar, ... entities in one
+    def mergeParts(self):
+        """Merge parts in one part."""
+        return None
+
+    # activate a part (a supprimer)
+    def activatePart(self, name):
+        """Activate a part."""
+        global PART
+        if name in self.parts:
+            PART = self.parts[name]
+        else:
+            self.parts = Part(name)
+
+    # save part
+    def savePart(self, name):
+        """Save as part."""
+        return None
+
 
 #============================================================
 # Global

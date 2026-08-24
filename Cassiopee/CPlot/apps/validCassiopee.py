@@ -23,7 +23,7 @@ regDiff = re.compile('DIFF')
 regFailed = re.compile('FAILED')
 regError = re.compile(
     "|".join([
-        'Error', 'Erreur', 'Aborted', 'Abandon', 'Segmentation',
+        r'\bError\b', 'Erreur', 'Aborted', 'Abandon', 'Segmentation',
         'ERROR: AddressSanitizer', 'getFromArray', 'incoherency',
         'Your MPI job will now abort.',
         'Attempting to use an MPI routine before initializing MPICH'
@@ -70,7 +70,7 @@ THREAD = None
 # Le process lance sinon None
 PROCESS = None
 # True if the GUI is used (interactive) or False (command line execution)
-INTERACTIVE = len(sys.argv) == 1
+INTERACTIVE = False
 # Use Address Sanitizer (ASan) and Leak Sanitizer (LSan) in DEBUG mode only
 USE_ASAN = [False, False]
 
@@ -80,8 +80,15 @@ STOP = 0
 # WIDGETS dict
 WIDGETS = {}
 
+# Session filename and whether to save it
+SESSION_NAME = "session"
+SAVE_SESSION_LOG = True
+
 # Sort test strings
-SORT_CATEGORIES = ['Name', 'CPU time', 'Ref. CPU time', 'Date', 'Coverage', 'Tag', 'Status', 'CPU time relDiff.']
+SORT_CATEGORIES = [
+    'Name', 'CPU time', 'Ref. CPU time', 'Date', 'Coverage', 'Tag', 'Status',
+    'CPU time relDiff.'
+]
 SORT_BY = 'Name'
 REV_SORT = False
 
@@ -275,14 +282,17 @@ def checkOutput(cmd, path='.', env=None, stderr=None):
                                    stderr=subprocess.PIPE, cwd=path,
                                    env=env, preexec_fn=ossid)
 
-        # max accepted time is between 2 to 6 minutes
+        # Max accepted time is between 2 to 6 minutes for unit tests and 1 hour
+        # for validation tests
         nthreads = float(Threads.get())
-        timeout = (100. + 120.*Dist.DEBUG)*(1. + 4.8/nthreads)
+        if PREFS["validType"] == "regression":
+            timeout = (100. + 120.*Dist.DEBUG)*(1. + 4.8/nthreads)
+        else: timeout = 3600.
         stdout, stderr = PROCESS.communicate(None, timeout=timeout)
 
         if PROCESS.wait() != 0:
             stderr += b'\nError: process FAILED (Segmentation Fault or floating point exception).'
-        PROCESS = None # fini!
+        PROCESS = None # done!
         return stdout+stderr
     else:
         raise ValueError(f"validCassiopee: checkOutput: mode {mode} not supported")
@@ -353,15 +363,15 @@ def setPaths():
         loc = kwargs.get('loc', 'LOCAL')
         if loc not in ['LOCAL', 'GLOBAL']: loc = 'LOCAL'
         if PREFS["validType"] == "regression":
-            notTested = ['Upmost', 'FastP']
             paths = list(args)[1:]
+            print(f'Info: getting {loc.lower()} module tests in:')
             for path in paths:
                 if path is None: continue
-                print('Info: getting {} module tests in: {}.'.format(loc.lower(), path))
+                print(f'  - {path}')
                 try: mods = [entry.name for entry in os.scandir(path) if entry.is_dir()]
                 except: mods = []
                 for mod in mods:
-                    if mod not in notTested and mod not in MODULESDIR[loc]:
+                    if mod not in MODULESDIR[loc]:
                         if loc == 'GLOBAL' and mod not in MODULESDIR['LOCAL']:
                             # Skip modules which aren't found locally - would hang
                             continue
@@ -372,7 +382,7 @@ def setPaths():
                             a = os.access(os.path.join(pathMod, mod, 'test'), os.F_OK) # PModules git
                             if a: MODULESDIR[loc][mod] = pathMod
 
-            print(f'Info: getting {loc.lower()} module names in: {cassiopeeIncDir}.')
+            print(f'  - {cassiopeeIncDir}')
             try: mods = [entry.name for entry in os.scandir(cassiopeeIncDir) if entry.is_dir()]
             except: mods = []
             for mod in mods:
@@ -384,7 +394,14 @@ def setPaths():
             parentDir = os.path.join(parentDir, PREFS["CFDBaseRelPath"])
             try: mods = [entry.name for entry in os.scandir(parentDir) if entry.is_dir()]
             except: mods = []
-            for mod in mods: MODULESDIR[loc][mod] = os.path.join(parentDir, mod)
+            print(f'Info: getting {loc.lower()} validation tests in:')
+            for mod in mods:
+                if loc == 'GLOBAL' and mod not in MODULESDIR['LOCAL']:
+                    # Skip modules which aren't found locally
+                    continue
+                path = os.path.join(parentDir, mod)
+                print(f'  - {path}')
+                MODULESDIR[loc][mod] = path
 
     global MODULESDIR, VALIDDIR
     MODULESDIR = {'LOCAL': {}, 'GLOBAL': {}}
@@ -458,17 +475,15 @@ def getCFDBaseTests(module):
     path = MODULESDIR[BASE4COMPARE][module]
     try: reps = [entry.name for entry in os.scandir(path) if entry.is_dir()]
     except: reps = []
+    if BASE4COMPARE == "GLOBAL":
+        lpath = MODULESDIR["LOCAL"][module]
+        reps = [r for r in reps if os.path.isdir(os.path.join(lpath, r))]
     tests = []
     for r in reps:
-        if not os.access(os.path.join(path, r, ".validignore"), os.F_OK):
-            tests.append(r)
-        """if r == 'NACA': tests.append(r) # MB 2D Euler
-        elif r == 'NACA_IBC': tests.append(r) # IBC 2D Euler
-        elif r == 'DAUPHIN': tests.append(r) # MB 3D Euler
-        elif r == 'FLATPLATE': tests.append(r) # MB 3D SA
-        elif r == 'RAE2822': tests.append(r) # MB 2D SA
-        elif r == 'RAE2822_IBC': tests.append(r) # IBC 2D SA
-        elif r == 'CUBE_IBC': tests.append(r) # IBC 3D SA"""
+        if (
+            os.access(os.path.join(path, r, f"{r}.py"), os.F_OK)
+            and not os.access(os.path.join(path, r, ".validignore"), os.F_OK)
+        ): tests.append(r)
     return sorted(tests)
 
 #==============================================================================
@@ -502,7 +517,7 @@ def writeFinal(filename, gitInfo="", logTxt=None, append=False):
         if logTxt is not None: f.write(logTxt+'\n')
 
 #==============================================================================
-# Read un fichier star
+# Read a star file
 #==============================================================================
 def readStar(fileStar):
     star = ' '
@@ -513,122 +528,50 @@ def readStar(fileStar):
     return star
 
 #==============================================================================
+# Read the first line of a test case: if 'kpython -n . -t .' is found, use that
+# as the number of procs and threads
+#==============================================================================
+def getCPUAndThreadFromUsageLine(fileName, ncpus=2):
+    nsysThreads = KCore.kcore.getOmpMaxThreads()
+    nsysThreads = int(Threads.get())
+    nthreads = nsysThreads
+    with open(fileName, "r") as f: firstLine = f.readline().strip()
+    if "Usage: kpython" in firstLine:
+        try:
+            ncpus = int(firstLine.split("-n")[1].split()[0])
+            ncpus = min(max(ncpus, 1), nsysThreads)
+        except (IndexError, ValueError): pass
+        try: nthreads = int(firstLine.split("-t")[1].split()[0])
+        except (IndexError, ValueError): pass
+    nmaxThreads = nsysThreads//ncpus
+    nthreads = max(min(nthreads, nmaxThreads), 1)
+    return str(ncpus), str(nthreads)
+
+#==============================================================================
 # Lance un seul test unitaire ou un cas de la base de validation
 #==============================================================================
 def runSingleTest(no, module, test, update=False):
-    if PREFS["validType"] == "validation":
-        return runSingleCFDTest(no, module, test, update)
-    return runSingleUnitaryTest(no, module, test, update)
-
-#==============================================================================
-# extrait le temps CPU d'un chaine output (utile sur windows)
-# retourne le temps CPU comme une chaine
-# moyenne si plusieurs repetitions d'un meme cas unitaire
-#==============================================================================
-def extractCPUTimeWindows(output1, output2):
-    CPUtime = 'Unknown'
-    try:
-        split1 = output1.split(':')
-        h1 = int(split1[0])
-        m1 = int(split1[1])
-        s1 = split1[2]; s1 = s1.split(',')
-        ms1 = int(s1[1])
-        s1 = int(s1[0])
-        t1 = h1*3600. + m1*60. + s1 + 0.01*ms1
-        split2 = output2.split(':')
-        h2 = int(split2[0])
-        m2 = int(split2[1])
-        s2 = split2[2]; s2 = s2.split(',')
-        ms2 = int(s2[1])
-        s2 = int(s2[0])
-        t2 = h2*3600. + m2*60. + s2 + 0.01*ms2
-        tf = (t2-t1)
-        hf = int(tf/3600.)
-        tf = tf - 3600*hf
-        mf = int(tf/60.)
-        tf = tf - 60*mf
-        sf = int(tf*100)/100.
-        if hf > 0: CPUtime = '%dh%dm%gs'%(hf,mf,sf)
-        else: CPUtime = '%dm%gs'%(mf,sf)
-    except: pass
-    return CPUtime
-
-#=============================================================================
-# Extrait le temps CPU d'une sortie time -p (unix)
-#=============================================================================
-def extractCPUTimeUnix(output):
-    CPUtime = 'Unknown'
-    try:
-        i1 = output.find('real')
-        if i1 == -1: # external time command
-            i1 = output.find('elapsed')
-            output = output[:i1+7].strip().replace(',', '.')
-            output = re.split('\n| ', output)
-            output = [s for s in output if s.endswith('elapsed')][0]
-            output = re.sub('[a-z]', "", output)
-        else: # shell built-in time command (shell keyword)
-            output = output[i1+4:].strip()
-            output = output.replace(',', '.').replace('s', '')
-            output = re.sub('[h,m]', ':', output)
-            output = re.split('\n|\t| ', output)[0]
-        output = output.split(':')
-        output = output[::-1]
-        dt = [1., 60., 3600.]
-        tf = 0.
-        for i in range(len(output)):
-            tf += dt[i]*float(output[i])
-        hf = tf//3600
-        tf = tf%3600
-        output = [int(hf), int(tf//60), float(tf%60)]
-        if hf > 0.: CPUtime = '{:d}h{:d}m{:.2f}'.format(*output)
-        elif output[1] > 0.: CPUtime = '{:d}m{:.2f}'.format(*output[1:])
-        else: CPUtime = '0m{:.2f}'.format(output[-1])
-        CPUtime = CPUtime.rstrip('0').rstrip('.') + 's'
-    except: pass
-    return CPUtime
-
-#=============================================================================
-# Format the CPU time
-#=============================================================================
-def formatCPUTime(cpuTime):
-    hf = cpuTime//3600
-    tf = cpuTime%3600
-    output = [int(hf), int(tf//60), float(tf%60)]
-    if hf > 0.: cpuTimeStr = '{:d}h{:d}m{:.2f}'.format(*output)
-    elif output[1] > 0.: cpuTimeStr = '{:d}m{:.2f}'.format(*output[1:])
-    else: cpuTimeStr = '0m{:.2f}'.format(output[-1])
-    cpuTimeStr = cpuTimeStr.rstrip('0').rstrip('.') + 's'
-    return cpuTimeStr
-
-#==============================================================================
-# Lance un seul test unitaire de module
-#==============================================================================
-def runSingleUnitaryTest(no, module, test, update=False):
     global TESTS
-    testr = os.path.splitext(test)
-    modulesDir = MODULESDIR[BASE4COMPARE][module]
-    path = os.path.join(modulesDir, module, 'test')
-    testName = os.path.join(module, test)
-
-    seq = expTest1.search(test) # seq (True) ou distribue (False)
-    nthreads = KCore.kcore.getOmpMaxThreads()
-    nthreads = int(Threads.get())
     env = os.environ.copy()
-
+    modulesDir = MODULESDIR[BASE4COMPARE][module]
     if mySystem == 'mingw' or mySystem == 'windows':
-        path = path.replace('/', '\\')
-    if not seq:
-        # Read the first line of the test. If 'kpython -n...' is found, use that
-        # number of procs
-        ncpus = 2
-        with open(os.path.join(path, test), "r") as f:
-            firstLine = f.readline().strip()
-        if "Usage: kpython -n" in firstLine:
-            try: ncpus = int(firstLine.split("kpython -n")[1].split()[0])
-            except (IndexError, ValueError): pass
-        nthreads = nthreads//ncpus
-        ncpus = str(ncpus)
-    nthreads = str(nthreads)
+        modulesDir = modulesDir.replace('/', '\\')
+
+    testName = module+'/'+test
+    testr = os.path.splitext(test)
+    if PREFS["validType"] == "validation":
+        path = os.path.join(modulesDir, testr[0])
+        test = f"{testr[0]}.py"
+        ncpus, nthreads = getCPUAndThreadFromUsageLine(os.path.join(path, test), 1)
+        seq = True if ncpus == 1 else False
+    else:
+        path = os.path.join(modulesDir, module, 'test')
+        seq = expTest1.search(test)  # seq (True) ou distribue (False)
+        if seq:
+            nthreads = KCore.kcore.getOmpMaxThreads()
+            nthreads = str(Threads.get())
+        else:
+            ncpus, nthreads = getCPUAndThreadFromUsageLine(os.path.join(path, test), 2)
 
     env["OMP_NUM_THREADS"] = nthreads
     if mySystem == 'mingw' or mySystem == 'windows':
@@ -692,123 +635,21 @@ def runSingleUnitaryTest(no, module, test, update=False):
         success = 1; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
 
     # update le fichier .time (si non present)
-    fileTime = os.path.join(
-        MODULESDIR['LOCAL'][module], module, 'test', DATA,
-        testr[0] + ".time"
-    )
-    if not os.access(fileTime, os.F_OK):
-        writeTime(fileTime, CPUtime, coverage)
-
-    if update or (testName not in TESTMETA) or (not TESTMETA[testName]['ref']):  # Update test metadata
-        updateTestMetadata(module, test, CPUtime)
-
-    # Recupere le tag local
-    tag = TESTMETA[testName]['tag']
-
-    # update status
-    if success == 0: status = 'OK'
-    elif success == 2: status = 'MEMLEAK'
-    elif success == 3: status = 'TIMEOUT'
-    else: status = 'FAILED'
-    s = buildString(module, test, CPUtime, coverage, status, tag)
-    regTest = re.compile(' '+test+' ')
-    regModule = re.compile(module+' ')
-    for c, tt in enumerate(TESTS):
-        if regModule.search(tt) is not None:
-            if regTest.search(tt) is not None: TESTS[c] = s; break
-    Listbox.delete(no, no)
-    Listbox.insert(no, s)
-    Listbox.update()
-    CPUtime = string2Time(CPUtime)
-    return CPUtime
-
-#==============================================================================
-# Lance un seul test de la base CFD
-# test = nom du repertoire du cas CFD
-#==============================================================================
-def runSingleCFDTest(no, module, test, update=False):
-    global TESTS
-    path = os.path.join(MODULESDIR[BASE4COMPARE][module], test)
-    testName = os.path.join(module, test)
-    print(f'Info: Running CFD test {testName}.')
-
-    seq = True
-    # force mpi test pour certains cas
-    if test == 'RAE2822_IBC': seq = False
-
-    if not seq:
-        try: import mpi4py
-        except: seq = True
-
-    nthreads = KCore.kcore.getOmpMaxThreads()
-    nthreads = int(Threads.get())
-    env = os.environ.copy()
-
-    if mySystem == 'mingw' or mySystem == 'windows':
-        path = path.replace('/', '\\')
-    if not seq:
-        # Read the first line of the test. If 'kpython -n...' is found, use that
-        # number of procs
-        ncpus = 2
-        with open(os.path.join(path, test), "r") as f:
-            firstLine = f.readline().strip()
-        if "Usage: kpython -n" in firstLine:
-            try: ncpus = int(firstLine.split("kpython -n")[1].split()[0])
-            except (IndexError, ValueError): pass
-        nthreads = nthreads//ncpus
-        ncpus = str(ncpus)
-    nthreads = str(nthreads)
-
-    env["OMP_NUM_THREADS"] = nthreads
-    if seq:
-        cmd = ["./valid", "check"]
+    if PREFS["validType"] == "validation":
+        fileTime = os.path.join(
+            MODULESDIR['LOCAL'][module], testr[0], DATA,
+            testr[0] + ".time"
+        )
     else:
-        cmd = ["./valid", "check", "0", "0", "0", ncpus, nthreads]
-    try:
-        t0 = time.perf_counter()
-        output = checkOutput(cmd, path=path, env=env, stderr=subprocess.STDOUT)
-        t1 = time.perf_counter()
-        output = output.decode()
-        print(output)
-
-        # Format the CPU time
-        CPUtime = formatCPUTime(t1-t0)
-        print(f"Elapsed CPU time: {CPUtime}")
-
-        # Recupere success/failed
-        success = 0
-        if regLeakError.search(output) is not None: success = 2 # always check first
-        if regDiff.search(output) is not None: success = 1
-        if regFailed.search(output) is not None: success = 1
-        if regError.search(output) is not None: success = 1
-
-        # Recupere le coverage
-        coverage = '100%'
-
-    except subprocess.TimeoutExpired:
-        # killed here because timeout of communicate doesnt kill child processes
-        if mySystem == 'mingw' or mySystem == 'windows':
-            subprocess.call(['taskkill', '/F', '/T', '/PID', str(PROCESS.pid)])
-        else: # unix
-            # try soft, then hard
-            os.killpg(os.getpgid(PROCESS.pid), signal.SIGTERM)
-            os.kill(PROCESS.pid, signal.SIGTERM)
-            os.killpg(os.getpgid(PROCESS.pid), signal.SIGKILL)
-            os.kill(PROCESS.pid, signal.SIGKILL)
-        print('\nError: process TIMED OUT (killed).')
-        success = 3; CPUtime = 'Unknown'; coverage='0%'
-
-    except Exception as e:
-        print(e)
-        success = 1; CPUtime = 'Unknown'; coverage='0%' # Core dump/error
-
-    # update le fichier .time (si non present)
-    fileTime = os.path.join(path, DATA, test + ".time")
+        fileTime = os.path.join(
+            MODULESDIR['LOCAL'][module], module, 'test', DATA,
+            testr[0] + ".time"
+        )
     if not os.access(fileTime, os.F_OK):
         writeTime(fileTime, CPUtime, coverage)
 
     if update or (testName not in TESTMETA) or (not TESTMETA[testName]['ref']):  # Update test metadata
-        updateTestMetadata(module, test, CPUtime)
+        updateTestMetadata(*testName.split("/"), CPUtime)
 
     # Recupere le tag local
     tag = TESTMETA[testName]['tag']
@@ -818,8 +659,8 @@ def runSingleCFDTest(no, module, test, update=False):
     elif success == 2: status = 'MEMLEAK'
     elif success == 3: status = 'TIMEOUT'
     else: status = 'FAILED'
-    s = buildString(module, test, CPUtime, coverage, status, tag)
-    regTest = re.compile(' '+test+' ')
+    s = buildString(*testName.split("/"), CPUtime, coverage, status, tag)
+    regTest = re.compile(f" {testName.split('/')[1]} ")
     regModule = re.compile(module+' ')
     for c, tt in enumerate(TESTS):
         if regModule.search(tt) is not None:
@@ -829,6 +670,19 @@ def runSingleCFDTest(no, module, test, update=False):
     Listbox.update()
     CPUtime = string2Time(CPUtime)
     return CPUtime
+
+#=============================================================================
+# Format the CPU time
+#=============================================================================
+def formatCPUTime(cpuTime):
+    hf = cpuTime//3600
+    tf = cpuTime%3600
+    output = [int(hf), int(tf//60), float(tf%60)]
+    if hf > 0.: cpuTimeStr = '{:d}h{:d}m{:.2f}'.format(*output)
+    elif output[1] > 0.: cpuTimeStr = '{:d}m{:.2f}'.format(*output[1:])
+    else: cpuTimeStr = '0m{:.2f}'.format(output[-1])
+    cpuTimeStr = cpuTimeStr.rstrip('0').rstrip('.') + 's'
+    return cpuTimeStr
 
 #==============================================================================
 # Recupere le nbre de tests selectionnes et le temps total correspondant
@@ -865,10 +719,9 @@ def runTests(update=False):
             modulesDir = MODULESDIR[BASE4COMPARE][module]
             if PREFS["validType"] == "validation":
                 pathl = os.path.join(modulesDir, test)
-                testref = 'post.ref*'
             else:
                 pathl = os.path.join(modulesDir, module, 'test')
-                testref = os.path.splitext(test)[0] + '.ref*'
+            testref = os.path.splitext(test)[0] + '.ref*'
             rmFile(pathl, testref)
         current += 1; displayProgress(current, total, remaining, elapsed)
         remaining -= string2Time(splits[3])
@@ -923,8 +776,8 @@ def fillTestMetadata():
             modulesDirCmp = MODULESDIR[BASE4COMPARE][module]
             modulesDirLoc = MODULESDIR['LOCAL'][module]
             if PREFS["validType"] == "validation":
-                fileTime = os.path.join(modulesDirCmp, test, DATA, test+'.time')
-                fileStar = os.path.join(modulesDirLoc, test, DATA, test+'.star')
+                fileTime = os.path.join(modulesDirCmp, test, DATA, testr[0]+'.time')
+                fileStar = os.path.join(modulesDirLoc, test, DATA, testr[0]+'.star')
             else:
                 testr = os.path.splitext(test)
                 fileTime = os.path.join(modulesDirCmp, module, 'test', DATA, testr[0]+'.time')
@@ -1044,7 +897,7 @@ def buildTestList(sessionName=None, modules=[]):
         # Read sessionLog and combine with lastSession. Priority given to
         # data from current session
         ncolumns = 8
-        logname = os.path.join(VALIDDIR['LOCAL'], "session.log")
+        logname = os.path.join(VALIDDIR['LOCAL'], f"{SESSION_NAME}.log")
         if os.path.getsize(logname) > 0:
             with open(logname, "r") as g:
                 sessionLog = [line.rstrip().split(':') for line in g.readlines()]
@@ -1300,7 +1153,7 @@ def viewTest(event=None):
         modulesDir = MODULESDIR[BASE4COMPARE][module]
         if PREFS["validType"] == "validation":
             pathl = os.path.join(modulesDir, test)
-            testFile = 'compute.py'
+            testFile = f"{test}.py"
         else:
             pathl = os.path.join(modulesDir, module, 'test')
             testFile = test
@@ -1444,6 +1297,7 @@ def showFaster():
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
     return True
+
 def showFasterP():
     Listbox.delete(0, 'end')
     for s in TESTS:
@@ -1474,6 +1328,7 @@ def showSlower():
     Scrollbar.config(command=Listbox.yview)
     Filter.set(''); TextFilter.update()
     return True
+
 def showSlowerP():
     Listbox.delete(0, 'end')
     for s in TESTS:
@@ -1580,7 +1435,7 @@ def export2Text():
 #==============================================================================
 def createEmptySessionLog():
     # Create an empty session log
-    with open(os.path.join(VALIDDIR['LOCAL'], "session.log"), "w") as f:
+    with open(os.path.join(VALIDDIR['LOCAL'], f"{SESSION_NAME}.log"), "w") as f:
         f.write("")
 
 def writeSessionLog():
@@ -1595,9 +1450,12 @@ def writeSessionLog():
     for t in TESTS: messageText += t+'\n'
 
     # Write time stamp dans ValidData/base.time et
-    # log dans ValidData/session.log
+    # log dans ValidData/SESSION_NAME.log
     writeFinal(os.path.join(VALIDDIR['LOCAL'], 'base.time'), gitInfo=gitInfo)
-    writeFinal(os.path.join(VALIDDIR['LOCAL'], 'session.log'), logTxt=messageText)
+    writeFinal(
+        os.path.join(VALIDDIR['LOCAL'], f'{SESSION_NAME}.log'),
+        logTxt=messageText
+    )
 
 #==============================================================================
 # Notify "Commit ready"
@@ -1623,15 +1481,15 @@ def notifyValidOK():
         sys.exit()
 
 #==============================================================================
-def Quit(event=None, sessionName="session"):
+def Quit(event=None):
     import os
     import shutil
-    logname = os.path.join(VALIDDIR['LOCAL'], "session.log")
+    logname = os.path.join(VALIDDIR['LOCAL'], f"{SESSION_NAME}.log")
     # The session log is copied if it is not empty and if we have write
     # permissions
-    if os.access(VALIDDIR['LOCAL'], os.W_OK) and (not os.path.getsize(logname) == 0):
+    if (SAVE_SESSION_LOG and os.access(VALIDDIR['LOCAL'], os.W_OK) and os.path.getsize(logname) != 0):
         now = time.strftime("%y%m%d_%H%M%S", time.localtime())
-        dst = os.path.join(VALIDDIR['LOCAL'], f"{sessionName}-{now}.log")
+        dst = os.path.join(VALIDDIR['LOCAL'], f"{SESSION_NAME}-{now}.log")
         print("Saving session to: {}".format(dst))
         shutil.copyfile(logname, dst)
     # Write test metadata
@@ -1801,7 +1659,7 @@ def parseArgs():
         def _throwError():
             raise argparse.ArgumentTypeError("Number of remaining logs must be "
                                              "a positive integer")
-            sys.exit()
+            sys.exit(1)
         try: n = int(n)
         except: _throwError()
         if n > 0: return n
@@ -1812,29 +1670,32 @@ def parseArgs():
     parser.add_argument("-f", "--filters", type=str, default='',
                         help="Single-quoted test filters")
     parser.add_argument("-gdb", "--global-database", action="store_true",
-                        dest="global_db",
+                        dest="globalDB",
                         help="Switch to global database. Default: local database")
     parser.add_argument("-l", "--load-session", dest='loadSession',
                         action="store_true",
                         help="Load last session. Default: False")
     parser.add_argument("--leak-sanitizer", action="store_true",
-                        dest="leak_sanitizer",
+                        dest="leakSanitizer",
                         help="Leak Sanitizer to detect memory leaks."
                              "Available in DEBUG mode only")
     parser.add_argument("--memory-sanitizer", action="store_true",
-                        dest="memory_sanitizer",
+                        dest="memorySanitizer",
                         help="Address Sanitizer to detect memory access errors."
                              "Available in DEBUG mode only")
+    parser.add_argument("--no-log", dest="saveSessionLog", action="store_false",
+                        default=True, help="Do not save the session log")
     parser.add_argument("-p", "--purge", default=50, type=_checkInt,
                         help="Purge session logs down to the last X. Default: 50")
     parser.add_argument("-r", "--run", action="store_true",
-                        help="Run selected tests")
-    parser.add_argument("-s", "--session-name", type=str, default='session',
+                        help="Run selected tests without any graphical interface")
+    parser.add_argument("-s", "--session-name", type=str, default=SESSION_NAME,
                         dest="sessionName",
-                        help="Name of the session file. Default: session")
-    parser.add_argument("-vt", "--valid-type", type=str, default='regression',
+                        help=f"Name of the session file. Default: {SESSION_NAME}")
+    parser.add_argument("-vt", "--valid-type", default="",
+                        choices=("regression", "validation", ""),
                         dest="validType",
-                        help="Type of validation: regression or validation")
+                        help="Validation mode. Default: unset")
     parser.add_argument("--update", action="store_true",
                         help="Update local database")
 
@@ -1842,8 +1703,8 @@ def parseArgs():
     return parser.parse_args()
 
 # Purge session logs by date down to the last n most recent
-def purgeSessionLogs(n, sessionName="session"):
-    lognames = sorted(glob.glob(os.path.join(VALIDDIR['LOCAL'], '{}-*.log'.format(sessionName))))
+def purgeSessionLogs(n):
+    lognames = sorted(glob.glob(os.path.join(VALIDDIR['LOCAL'], f'{SESSION_NAME}-*.log')))
     if len(lognames) > n:
         for log in lognames[:-n]: os.remove(log)
     return None
@@ -1854,12 +1715,12 @@ def purgeSessionLogs(n, sessionName="session"):
 def toggleASAN():
     global USE_ASAN
     USE_ASAN[0] = not USE_ASAN[0]
-    updateASANLabel(4)
+    updateASANLabel(5)
 
 def toggleLSAN():
     global USE_ASAN
     USE_ASAN[1] = not USE_ASAN[1]
-    updateASANLabel(5)
+    updateASANLabel(6)
     updateASANOptions()
 
 def updateASANOptions():
@@ -1877,7 +1738,7 @@ def updateASANOptions():
 
 def updateASANLabel(entry_index):
     if not INTERACTIVE: return
-    if getDBInfo(): entry_index += 2
+    if getDBInfo(): entry_index += 1
     label = toolsTab.entrycget(entry_index, "label")
     if label[0].startswith('E'): label = 'Dis' + label[2:]
     else: label = 'En' + label[3:]
@@ -1950,8 +1811,15 @@ if __name__ == '__main__':
     checkEnvironment()
     # Get name of the ValidData folder
     DATA = Dist.getDataFolderName()
-    # Set MODULESDIR and VALIDDIR paths, both locally and globally
-    setPaths()
+    # Load user settings
+    loadPrefFile()
+    # Parse arguments
+    vcargs = parseArgs()
+    if vcargs.validType: PREFS["validType"] = vcargs.validType
+
+    SESSION_NAME = vcargs.sessionName
+    SAVE_SESSION_LOG = vcargs.saveSessionLog
+    INTERACTIVE = not vcargs.run
 
     if INTERACTIVE:
         # --- Use GUI ---
@@ -1959,8 +1827,9 @@ if __name__ == '__main__':
         import CPlot.Tk as CTK
         import tkinter.font as Font
         from functools import partial
-        # Load user settings
-        loadPrefFile()
+
+        # Set MODULESDIR and VALIDDIR paths, both locally and globally
+        setPaths()
 
         # Main window
         Master = TK.Tk()
@@ -1987,7 +1856,7 @@ if __name__ == '__main__':
         viewTab = TK.Menu(menu, tearoff=0)
         menu.add_cascade(label='View', menu=viewTab)
 
-        loadSessionWithArgs = partial(buildTestList, "session")
+        loadSessionWithArgs = partial(buildTestList, SESSION_NAME)
         fileTab.add_command(label='Load last session', command=loadSessionWithArgs)
         fileTab.add_command(label='Purge session', command=buildTestList)
         fileTab.add_command(label='Export to text file', command=export2Text)
@@ -2044,6 +1913,7 @@ if __name__ == '__main__':
             toolsTab.add_command(label='Switch to global data base ' + dbInfo,
                                  command=toggleDB)
         if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
+            toolsTab.add_separator()
             toolsTab.add_command(label='Enable Address Sanitizer (ASan)',
                                  command=toggleASAN)
             toolsTab.add_command(label='Enable Leak Sanitizer (LSan)',
@@ -2124,15 +1994,22 @@ if __name__ == '__main__':
         CTK.infoBulle(parent=UpdateButton,
                       text='Update tests (replace data base files).')
         CTK.infoBulle(parent=TextThreads, text='Number of threads.')
-        if isDBAdmin(): setupLocal()  # Local valid for the DB admin 'cassiope'
+
+        sessionName = vcargs.sessionName if vcargs.loadSession else None
+        if isDBAdmin(): setupLocal(sessionName=sessionName)  # Local valid for the DB admin 'cassiope'
         else:
-            ierr = setupGlobal()  # Comparison is made against the global valid
-            if ierr == 1: setupLocal()  # Global valid does not exist, default back to local
+            ierr = setupGlobal(sessionName=sessionName)  # Comparison is made against the global valid
+            if ierr == 1: setupLocal(sessionName=sessionName)  # Global valid does not exist, default back to local
+        if vcargs.filters:
+            Filter.set(vcargs.filters)
+            filterTestList()
+        if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
+            if vcargs.memorySanitizer: USE_ASAN[0] = True
+            if vcargs.leakSanitizer: USE_ASAN[1] = True
+            updateASANOptions()
         TK.mainloop()
     else:
-        # --- Command line execution ---
-        vcargs = parseArgs()
-
+        # --- Command line execution (headless) ---
         generalFontFixed = 1
         Listbox = NoDisplayListbox()
         Scrollbar = NoDisplayScrollbar()
@@ -2147,23 +2024,23 @@ if __name__ == '__main__':
         TextThreads = NoDisplayEntry()
         getThreads()
 
+        # Set MODULESDIR and VALIDDIR paths, both locally and globally
+        setPaths()
+
         sessionName = vcargs.sessionName if vcargs.loadSession else None
-        if vcargs.validType in ["regression", "validation"]:
-            PREFS["validType"] = vcargs.validType
         if (os.access('/stck/cassiope/git/Cassiopee/', os.R_OK) and
-                vcargs.global_db and not (vcargs.update or isDBAdmin())):
+                vcargs.globalDB and not (vcargs.update or isDBAdmin())):
             ierr = setupGlobal(sessionName=sessionName)
             if ierr == 1: setupLocal()  # Global valid does not exist, default back to local
         else: setupLocal(sessionName=sessionName)
-        purgeSessionLogs(n=vcargs.purge, sessionName=vcargs.sessionName)
+        purgeSessionLogs(n=vcargs.purge)
         if vcargs.filters:
             Filter.set(vcargs.filters)
             filterTestList()
-        if vcargs.run:
-            if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
-                if vcargs.memory_sanitizer: USE_ASAN[0] = True
-                if vcargs.leak_sanitizer: USE_ASAN[1] = True
-                updateASANOptions()
-            selectAll()
-            runTests(update=vcargs.update)
-            Quit(sessionName=vcargs.sessionName)
+        if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
+            if vcargs.memorySanitizer: USE_ASAN[0] = True
+            if vcargs.leakSanitizer: USE_ASAN[1] = True
+            updateASANOptions()
+        selectAll()
+        runTests(update=vcargs.update)
+        Quit()
