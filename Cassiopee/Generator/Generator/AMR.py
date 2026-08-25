@@ -673,19 +673,25 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
     while snearloc > lengthBGMin/8: # security so that levelSkel is not too big - at least
         snearloc /= 2.
         levelSkel -= 1
-
-    tolYdirection = 1.2
+    tolYdirection = 1.1
     if extrude: # Deltax_i needs to the same in each direction - check how many large Dx fit in the y-direction
         multipleYdirection = (lengthBG[1]*tolYdirection)//snearloc
-        if multipleYdirection < 1: multipleYdirection = 1
-        while snearloc > multipleYdirection*lengthBG[1]*tolYdirection: # security so that levelSkel is not too big
-            snearloc  /= 2.; levelSkel -= 1
 
-        if multipleYdirection*snearloc > lengthBG[1]:
-            translateTmp = multipleYdirection*snearloc-lengthBG[1]
-            cartbgExtent[1] -= translateTmp/2
-            cartbgExtent[4] += translateTmp/2
-            lengthBG[1] = cartbgExtent[4]-cartbgExtent[1]
+        # security so that levelSkel is not too big
+        if multipleYdirection < 1:
+            multipleYdirection = 1
+            while snearloc > multipleYdirection*lengthBG[1]*tolYdirection:
+                snearloc  /= 2.; levelSkel -= 1
+
+        # to get as close as possible to the target extruded length
+        while lengthBG[1]-multipleYdirection*snearloc > lengthBG[1]*0.05:
+            snearloc  /= 2.; levelSkel -= 1
+            multipleYdirection = (lengthBG[1]*tolYdirection)//snearloc
+
+        translateTmp = multipleYdirection*snearloc-lengthBG[1]
+        cartbgExtent[1]-=translateTmp/2
+        cartbgExtent[4]+=translateTmp/2
+        lengthBG[1] = cartbgExtent[4]-cartbgExtent[1]
 
     for i in range(dim): nCellsCartesian[i] = int(lengthBG[i]/snearloc)
 
