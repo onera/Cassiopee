@@ -1361,7 +1361,7 @@ def checkBodyIntersection__(tb):
             if G.bboxIntersection(zi, zj) > 0: return True
     return False
 
-def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False, opt=False, nboxes=0, blankCellsAlgo='xray'):
+def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False, opt=False, nboxes=0, blankCellsAlgo='xray', isNGON=False):
     from mpi4py import MPI # for MPI_Init
     import Generator.Mpi as Gmpi
 
@@ -1505,10 +1505,11 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
     XC.AdaptMesh_Exit(hookAM)
 
     # BCs
-    zone_nonconformal_inter = createPseudoBCQuadNQuadInter__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
-    zone_nonconformal_intra = createPseudoBCQuadNQuadIntra__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
-    zone_nonconformal = T.join(zone_nonconformal_inter, zone_nonconformal_intra)
-    _createBCNearMatch__(cart_hexa, zone_nonconformal)
+    if not isNGON:
+        zone_nonconformal_inter = createPseudoBCQuadNQuadInter__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
+        zone_nonconformal_intra = createPseudoBCQuadNQuadIntra__(o, owners, levels, halo_levels, neighbours, cranges, dimPb=dim)
+        zone_nonconformal = T.join(zone_nonconformal_inter, zone_nonconformal_intra)
+        _createBCNearMatch__(cart_hexa, zone_nonconformal)
     _createBCStandard__(cart_hexa, o)
     del o
 
@@ -1522,7 +1523,7 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
 #==================================================================
 def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=10, dim=3, check=False,
                     opt=False, loadBalancing=False, octreeMode=0, localDir='./', tbox=None, vminsTbox=3,
-                    blankCellsAlgo='xray', tIn=None, **kwargs):
+                    blankCellsAlgo='xray', tIn=None, isNGON=False, **kwargs):
     import copy
 
     # debug parameters
@@ -1829,7 +1830,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     # only a part is returned per processor
     # only tb --> for blanking & tagging inside the geometry
     Cmpi.barrier()
-    o = adaptMesh__(pathSkeleton, hmin, tb_noSym, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, nboxes=nboxes, blankCellsAlgo=blankCellsAlgo)
+    o = adaptMesh__(pathSkeleton, hmin, tb_noSym, toffset=toffset, dim=dim, loadBalancing=loadBalancing, opt=opt, nboxes=nboxes, blankCellsAlgo=blankCellsAlgo, isNGON=isNGON)
     Cmpi.trace('AMR Mesh Generation...end', master=True)
 
     return o # requirement for X_AMR (one zone per base, one base per proc)
