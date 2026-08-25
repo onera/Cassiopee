@@ -135,8 +135,12 @@ def interpolationDonorPoints(fsmesh, clac, discParaDict, discSelectionParaDict, 
         fsmeshDonorPnt.ExportMeshTECPLOT(Filename='pointMesh_AugState.dat', FileFormat='ASCII', PrefixDatasetName=True) or FSError.PrintAndExit()
     nodeDonorPoints = fsmeshDonorPnt.GetUnstructDataset("DonorPoints").GetValues()
     nodeWallPoints  = fsmeshDonorPnt.GetUnstructDataset("WallPoints").GetValues()
-    augStateData    = fsmeshDonorPnt.GetUnstructDataset("CODAAugState").GetValues()
-    augStateNames   = fsmeshDonorPnt.GetUnstructDataset("CODAAugState").GetNames()
+    #Check to see if they changed the names of the variables again.
+    #datasets = set(str(d) for d in fsmeshDonorPnt.GetUnstructDatasetNames())
+    #print(datasets,flush=True)
+    #exit()
+    augStateData    = fsmeshDonorPnt.GetUnstructDataset("CODAAugmentedStateGradientFree").GetValues()
+    augStateNames   = fsmeshDonorPnt.GetUnstructDataset("CODAAugmentedStateGradientFree").GetNames()
 
     nodeDonorPoints = Cmpi.allgather(numpy.array(nodeDonorPoints.Buffer(), copy=True))
     nodeWallPoints  = Cmpi.allgather(numpy.array(nodeWallPoints.Buffer() , copy=True))
