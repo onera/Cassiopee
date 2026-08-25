@@ -1165,6 +1165,12 @@ def _computeTurbulentDistanceForDG__(t, tb, IBM_parameters):
     return None
 
 ## IMPORTANT NOTE:: this is a template of a python wrapper. Not to be used. It is a placeholder and is very likely to change in subsequent version.
+def mallocTrim():
+    from ctypes import CDLL
+    libc = CDLL("libc.so.6")
+    libc.malloc_trim(0)
+    return None
+
 def prepareAMRIBM(tb, vmins, dim, IBM_parameters, levelMax=0, toffset=None, check=False, opt=False, octreeMode=1,
                   snears=0.01, dfars=10, loadBalancing=False, OutputAMRMesh=False,
                   localDir='./', fileName=None, tbox=None, vminsTbox=None, tbv2=None, forceAlignment=False,
@@ -1172,6 +1178,8 @@ def prepareAMRIBM(tb, vmins, dim, IBM_parameters, levelMax=0, toffset=None, chec
     """Generate AMR IBM mesh and prepare AMR IBM data for CODA simulation. 
     Usage: prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset, check, opt, octreeMode,
                          snears, dfars, loadBalancing, OutputAMRMesh, localDir, fileName, tbox, vminsTbox, tbv2, forceAlignment)"""
+
+    import gc
 
     ## =========================
     ## ==== Mesh Generation ====
@@ -1201,6 +1209,13 @@ def prepareAMRIBM(tb, vmins, dim, IBM_parameters, levelMax=0, toffset=None, chec
     Ncells = C.getNCells(t_AMR)
     Ncells = Cmpi.allreduce(Ncells, op=Cmpi.SUM)
     if Cmpi.master: print("[MESH GEN.] Number of Cells::%ge06"%(Ncells/1e06), flush=True)
+
+    ### Clear memory
+    Cmpi.trace("AMR Memory clean & memory check...start", master=True)
+    gc.collect()
+    mallocTrim()
+    Cmpi.trace("AMR Memory clean & memory check...end", master=True)
+    Cmpi.barrier()
 
     ## ==================
     ## ==== IBM Prep ====
