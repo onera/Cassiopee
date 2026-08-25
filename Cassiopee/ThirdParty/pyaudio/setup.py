@@ -10,17 +10,18 @@ from distutils.core import setup, Extension
 # Numpy
 #=============================================================================
 # Compiler settings must be set in config.py
-from distutils.core import setup, Extension
-import os, sys
 
 # Write KCore installation path to installPath.py
 import KCore.Dist as Dist
 Dist.writeSetupCfg()
-from KCore.config import *
+
+additionalLibPaths = Dist.getAdditionalLibPaths()
+additionalIncludePaths = Dist.getAdditionalIncludePaths()
+additionalLibs = Dist.getAdditionalLibs()
 
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
-(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkKCore()
+(kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 prod = os.getenv("ELSAPROD")
 if prod is None: prod = 'xx'
@@ -28,7 +29,7 @@ if prod is None: prod = 'xx'
 # Setting libraries path =====================================================
 libraryDirs = ["build/"+prod, kcoreLibDir, "../portaudio/lib"]
 libraries = ['portaudio']
-(ok, libs, paths) = Dist.checkCppLibs([], additionalLibPaths)
+(ok, libs, paths) = Dist.checkCppLibs()
 libraryDirs += paths; libraries += libs
 
 # suppress --static

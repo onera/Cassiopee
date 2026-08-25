@@ -279,6 +279,9 @@ def checkObject_(objet, refObjet, reference):
     elif isinstance(refObjet, list): # liste
         for i, ai in enumerate(refObjet):
             if not checkObject_(objet[i], ai, reference): return False
+    elif isinstance(refObjet, tuple): # tuple
+        for i, ai in enumerate(refObjet):
+            if not checkObject_(objet[i], ai, reference): return False
     elif refObjet != objet: # autre objet
         print("DIFF: object differs from "+reference+'.')
         return False

@@ -14,39 +14,23 @@ installDict = {
         'Cppcompiler': 'gcc',
         'CppAdditionalOptions': [
             '-D__SHADERS__',
-            '-isystem /d/juvigny/msys64/mingw64/include/python3.8',
-            '-isystem /d/juvigny/msys64/mingw64/lib/python3.8/site-packages/numpy/core/include/numpy/'
+            '-isystem /d/juvigny/msys64/ucrt6464/include/python3.8',
+            '-isystem /d/juvigny/msys64/ucrt6464/lib/python3.8/site-packages/numpy/core/include/numpy/'
         ],
         'f77AdditionalOptions': [],
         'useOMP': True,
         'static': False,
         'additionalIncludePaths': [
-            'd:/juvigny/msys64/mingw64/include',
-            'd:/juvigny/msys64/mingw64/include/OpenBLAS'
+            'd:/juvigny/msys64/ucrt6464/include',
+            'd:/juvigny/msys64/ucrt64/include/OpenBLAS'
         ],
         'additionalLibs': ['gfortran', 'gomp', 'pthread', 'openblas', 'psapi'],
         'additionalLibPaths': [
-            'd:/juvigny/msys64/mingw64/lib',
-            'd:/juvigny/msys64/mingw64/bin'
+            'd:/juvigny/msys64/ucrt64/lib',
+            'd:/juvigny/msys64/ucrt64/bin'
         ],
         'useCuda': True,
         'NvccAdditionalOptions': ['-arch=sm_60']
-    },
-
-    'Aryen': {
-        'description': 'Windows win64+msys2 (CB-Home)',
-        'f77compiler': 'gfortran',
-        'f90compiler': 'gfortran',
-        'Cppcompiler': 'gcc',
-        'CppAdditionalOptions': ['-Wno-attributes', '-DSIMD=AVX2'],
-        'f77AdditionalOptions': [],
-        'useOMP': True,
-        'static': False,
-        'additionalIncludePaths': ['c:/msys64/mingw64/include'],
-        'additionalLibs': ['gomp', 'gfortran'],
-        'additionalLibPaths': ['c:/msys64/mingw64/lib'],
-        'useCuda': False,
-        'NvccAdditionalOptions': []
     },
 
     'win64': {
@@ -75,11 +59,11 @@ installDict = {
         'useOMP': True,
         'static': False,
         'additionalIncludePaths': [
-            'c:/Users/benoit/msys64/mingw64/include',
-            'c:/Users/benoit/msys64/mingw64/include/openblas'
+            'c:/Users/benoit/msys64/ucrt64/include',
+            'c:/Users/benoit/msys64/ucrt64/include/openblas'
         ],
         'additionalLibs': ['gomp', 'gfortran'],
-        'additionalLibPaths': ['c:/Users/benoit/msys64/mingw64/lib'],
+        'additionalLibPaths': ['c:/Users/benoit/msys64/ucrt64/lib'],
         'useCuda': False,
         'NvccAdditionalOptions': []
     },
