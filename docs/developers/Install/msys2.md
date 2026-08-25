@@ -7,22 +7,22 @@ and install it.
 ## Install dependencies
 In an msys2 mingw64 terminal:
 ```shell
-pacman -S mingw64/mingw-w64-x86_64-gcc
-pacman -S mingw64/mingw-w64-x86_64-gcc-fortran
-pacman -S mingw64/mingw-w64-x86_64-python
-pacman -S mingw64/mingw-w64-x86_64-python-numpy
-pacman -S mingw64/mingw-w64-x86_64-scons
-pacman -S mingw64/mingw-w64-x86_64-python-pip
-pacman -S mingw64/mingw-w64-x86_64-python-pip-tools
-pacman -S mingw64/mingw-w64-x86_64-hdf5
-pacman -S mingw64/mingw-w64-x86_64-opencascade
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-gcc
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-gcc-fortran
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-python
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-python-numpy
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-scons
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-python-pip
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-python-pip-tools
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-hdf5
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-opencascade
 ```
 
 For parallel:
 First install Microsoft mpi redistribution. Then:
 ```shell
-pacman -S mingw64/mingw-w64-x86_64-msmpi
-pacman -S mingw-w64-x86_64-python-mpi4py
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-msmpi
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-python-mpi4py
 ```
 
 <!-- For optional tigl:

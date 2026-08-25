@@ -41,6 +41,7 @@ Dist.writeSetupCfg()
 # Test if libmpi exists ======================================================
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi()
 (mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py()
+if not mpi: mpi4py = False
 
 # Compilation des fortrans ====================================================
 prod = os.getenv("ELSAPROD") or 'xx'
