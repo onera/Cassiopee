@@ -21,7 +21,7 @@
 #include <math.h>
 
 #ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
+#define M_PI 3.14159265358979323846
 #endif
 
 // interpolation when using images
@@ -249,7 +249,7 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
   E_Float tinf, tsup;
 
   if (type360 == 0) { tinf = -M_PI; tsup = 2.0*M_PI; } // 360
-  else  { tinf = -M_PI/2.; tsup = M_PI; } // 180
+  else  { tinf = -M_PI/2.0; tsup = M_PI; } // 180
 
   // fov of each image
   //E_Float fov = 90.;
@@ -270,7 +270,7 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
       ty = (1.*jj) / njl1;
 
       theta = tinf + tx * tsup; // between -pi and pi
-      phi = -M_PI/2. + ty * M_PI; // between pi/2 and -pi/2
+      phi = -M_PI/2.0 + ty * M_PI; // between pi/2 and -pi/2
 
       x = cos(phi) * sin(theta);
       y = sin(phi);
@@ -321,7 +321,7 @@ PyObject* K_CPLOT::panorama(PyObject* self, PyObject* args)
       }
       else 
       {
-        if (z < 0.0) 
+        if (z < 0.0)
         {
           scale = -1.0 / z;
           px = (-x*scale + 1.0) / 2.0;

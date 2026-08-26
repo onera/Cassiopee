@@ -443,9 +443,9 @@ void UnstructZone::compNorm()
       float* surfx = surfp;
       float* surfy = surfx + np;
       float* surfz = surfy + np;
-      for (E_Int i = 0; i < np; i++) surfx[i] = 0.;
-      for (E_Int i = 0; i < np; i++) surfy[i] = 0.;
-      for (E_Int i = 0; i < np; i++) surfz[i] = 0.;
+      for (E_Int l = 0; l < np; i++) surfx[l] = 0.;
+      for (E_Int l = 0; l < np; i++) surfy[l] = 0.;
+      for (E_Int l = 0; l < np; i++) surfz[l] = 0.;
 
       for (i = 0; i < nelts2D; i++)
       {
