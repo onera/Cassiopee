@@ -112,7 +112,7 @@ def run(t=None):
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         fileName = os.path.split(CTK.FILE)
         CPlot.setWindowTitle(fileName[1], fileName[0])
-    
+
     # - Verifie l'arbre -
     errors = []
     if CTK.t != []:
