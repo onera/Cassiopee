@@ -63,7 +63,6 @@ PyObject* K_CONVERTER::iSend(PyObject* self, PyObject* args)
     E_Int rank;
     if (!PYPARSETUPLE_(args, O_ II_ O_, &datas, &oppNode, &rank, &mpi4pyCom)) return NULL;
 
-
     // Recuperation du communicateur
 #if defined _MPI4PY
     void* pt_comm = (void*)&(((PyMPICommObject*)mpi4pyCom)->ob_mpi);

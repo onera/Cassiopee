@@ -36,7 +36,7 @@ using namespace K_SEARCH;
   dx0 = xw[indw]-pt[0]; dy0 = yw[indw]-pt[1]; dz0 = zw[indw]-pt[2];     \
   dist2 = dx0*dx0+dy0*dy0+dz0*dz0;                                      \
   distmaxloc = K_FUNC::E_max(distmaxloc, dist2);                        \
-  ptrIndices[noi]=indw; noi++;                                          \
+  ptrIndices[noi] = indw; noi++;                                        \
 
 // ============================================================================
 /* Computes the deformation vector for the 4/6 borders of a mesh             */

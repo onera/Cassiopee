@@ -13,7 +13,7 @@ class Model:
         # model file
         self.fileName = name+'.mod'
         # pytree link
-        self.db = None # link to db
+        self.db = None # optional link to db
         self.dbDirName = None # db dir name
         self.ref = None # link to ref name in db
         self.parameters = None # parameter names
