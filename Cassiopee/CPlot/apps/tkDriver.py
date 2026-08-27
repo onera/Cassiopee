@@ -121,10 +121,10 @@ def setPartName(event=None):
     freeParams = PART.freeParams
     WIDGETS['ParameterName']['values'] = freeParams
     # change entity
-    if len(entities) > 0: 
+    if len(entities) > 0:
         VARS[2].set(entities[0])
     # change param
-    if len(freeParams) > 0: 
+    if len(freeParams) > 0:
         VARS[0].set(freeParams[0])
     setEntityName()
     setParameterValue()

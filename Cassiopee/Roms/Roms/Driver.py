@@ -940,7 +940,7 @@ class Surface():
     # OUT: list of meshed face arrays
     def mesh(self, close=True, method=1):
         """Mesh surface."""
-        if self.h is None: 
+        if self.h is None:
             #raise ValueError("mesh: h settings are undefined.")
             (hmin,hmax,hausd) = OCC.occ.analyseEdges(self.hook)
             self.h = (hmin, 2*hmax, 0.1*hausd)
