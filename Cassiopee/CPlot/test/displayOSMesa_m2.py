@@ -19,7 +19,7 @@ else: a = D.sphere((0,1.,0), 0.82, N=200)
 CPlot.display360(a, mode=0, stereo=0, offscreen=7, exportResolution='1024x512', export=LOCAL+'/out.png')
 CPlot.finalizeExport(7)
 if Cmpi.rank == 0: test.testF(LOCAL+'/out.png', 1)
-    
+
 # 360 WS
 CPlot.display360(a, mode=0, stereo=2, offscreen=7, exportResolution='1024x512', export=LOCAL+'/out3.png')
 CPlot.finalizeExport(7)
