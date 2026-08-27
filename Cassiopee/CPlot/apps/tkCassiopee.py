@@ -112,7 +112,7 @@ def run(t=None):
         (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
         fileName = os.path.split(CTK.FILE)
         CPlot.setWindowTitle(fileName[1], fileName[0])
-
+    
     # - Verifie l'arbre -
     errors = []
     if CTK.t != []:
@@ -178,8 +178,7 @@ def run(t=None):
     except: pass
 
     # - Personal apps  -
-    tools.add_command(label='Add a personal app',
-                      command=addPersonalApp)
+    tools.add_command(label='Add a personal app', command=addPersonalApp)
 
     if 'module' in CTK.PREFS:
         mod = CTK.PREFS['module']

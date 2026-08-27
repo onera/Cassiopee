@@ -792,8 +792,8 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
         //for (size_t i = 0; i < ring2.size(); i++) printf("%d ", ring2[i]);
         //printf("\n");
         //printf("closed2=%d\n", closed2);
-        E_Int n1 = ring1.size();
-        E_Int n2 = ring2.size();
+        //E_Int n1 = ring1.size();
+        //E_Int n2 = ring2.size();
 
         // check
         //if (ring1[0] != p2) printf("PB1\n");

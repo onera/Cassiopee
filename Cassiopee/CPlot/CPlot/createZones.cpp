@@ -104,7 +104,6 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
       }
     }
     // Complete all zones
-    //printf("nall %d %d\n", nall, referenceNfield);
     if (nall > referenceNfield && mustComplete == 1)
     {
       // reallocate (previous zones)
@@ -178,8 +177,8 @@ StructZone* Data::createStructZone(FldArrayF* structF, char* varString,
             Zone* zp = _zones[nz];
             zp->f[nall] = new E_Float[zp->npts];
             if (K_STRING::cmp(vars[p], "cellN") == 0)
-            { for (int i = 0; i < zp->npts; i++) zp->f[nall][i] = 1.; }
-            else { for (int i = 0; i < zp->npts; i++) zp->f[nall][i] = 0.; }
+            { for (E_Int i = 0; i < zp->npts; i++) zp->f[nall][i] = 1.; }
+            else { for (E_Int i = 0; i < zp->npts; i++) zp->f[nall][i] = 0.; }
             strcpy(zp->varnames[nall], vars[p]);
           }
           z.f[nall] = new E_Float[z.npts];
@@ -332,7 +331,6 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
   vector<char*> vars;
   K_ARRAY::extractVars(varString, vars);
   E_Int varsSize = vars.size();
-
   // Allocation of var fields
   reallocNFieldArrays(z.nfield);
   z.f = new double* [z.nfield];
@@ -342,7 +340,7 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     z.varnames[n] = new char [MAXSTRINGLENGTH];
   z.minf = new double [z.nfield];
   z.maxf = new double [z.nfield];
-
+  
   if (referenceNfield != -1)
   {
     E_Int nall = 0;
@@ -547,7 +545,7 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     else if (K_STRING::cmp(eltTypes[i], "NGON") == 0)
     {
       z.ne = cn->getNElts();
-      z.nec.push_back(z.ne);
+      z.nec.push_back(z.ne); // is it good
       z.eltType.push_back(10);
       z.eltSize.push_back(1);
       z.dim = 3;
@@ -568,7 +566,7 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     z.dim = 2;
   }
 # endif
-
+  
   for (size_t i = 0; i < eltTypes.size(); i++) delete [] eltTypes[i];
   
   // copie par acces universel
@@ -630,8 +628,7 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
     }
     z.ne = neTot;
   }
-
-
+  
   z.posFaces = NULL;
 
   if (z.eltType[0] == 10) // NGONS
@@ -685,8 +682,9 @@ UnstructZone* Data::createUnstrZone(FldArrayF* unstrF, char* varString,
       c += l+1;
     }
   }
-
+  
   z.compNorm();
+
   z.blank = 0;
   z.active = 1;
   z.selected = 0;

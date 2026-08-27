@@ -53,7 +53,7 @@ static void* threadFunc(void* v)
 PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
 {
   #include "display1.h"
-    
+
   // Construction de la chaine de toutes les variables
   E_Int referenceNfield;
   char** referenceVarNames;
@@ -81,6 +81,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
   E_Int vectorField3 = getScalarField(vectorFieldObject3);
   d->enforceGivenData(dim, mode, scalarField, vectorField1, vectorField2,
                       vectorField3, displayBB, displayInfo, displayIsoLegend);
+
   d->initCam();
   d->loadPlugins();
   d->loadPrefs();
@@ -90,7 +91,7 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
   d->enforceGivenData2(xcam, ycam, zcam,
                        xeye, yeye, zeye,
                        dirx, diry, dirz, viewAngle,
-                       meshStyle, solidStyle, scalarStyle, 
+                       meshStyle, solidStyle, scalarStyle,
                        vectorStyle, vectorScale, vectorDensity, vectorNormalize, vectorShowSurface,
                        vectorShape, vectorProjection, 
                        colormap, colormapC1, colormapC2, colormapC3, colormapC,
@@ -143,7 +144,6 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
     if (d->ptrState->exportWidth == -1) d->ptrState->exportWidth = 1920;
     if (d->ptrState->exportHeight == -1) d->ptrState->exportHeight = 1080;
     d->_view.w = d->ptrState->exportWidth; d->_view.h = d->ptrState->exportHeight;
-    //printf("%d %d\n", d->ptrState->exportWidth, d->ptrState->exportHeight);
     
     //printf("Creating OS context..."); fflush(stdout);
     OSMesaContext* ctx = new OSMesaContext();
@@ -183,7 +183,6 @@ PyObject* K_CPLOT::displayNew(PyObject* self, PyObject* args)
       
       for (E_Int i = 0; i < 3*nslits; i++)
       {
-        //printf("%d / %d\n", i, 3*nslits);
         d->ptrState->odsSlit = i;
         PyObject* v = PyList_GetItem(posCamList, 3*i); 
         d->_view.xcam = PyFloat_AsDouble(v);

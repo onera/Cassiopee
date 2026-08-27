@@ -25,9 +25,8 @@ void Dcel::reconstruct(Smesh &Mf, int color) const
 
     std::vector<E_Int> faces_to_keep;
     
-    E_Int nif = 0;
-
-    for (size_t fid = 0; fid < F.size(); fid++) {
+    for (size_t fid = 0; fid < F.size(); fid++) 
+    {
         Face *f = F[fid];
         E_Int ofid = f->oids[color];
         if (ofid == -1) continue;
@@ -36,7 +35,6 @@ void Dcel::reconstruct(Smesh &Mf, int color) const
 
         faces_to_keep.push_back(fid);
 
-        nif++;
     }
 
     //write_ngon("keep.im", faces_to_keep);
