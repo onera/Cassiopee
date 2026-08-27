@@ -74,17 +74,17 @@
                                   nil, njl, nkl, cnl, eltTypel);
     if (resl == 1)
     {
-        structVarString.push_back(varStringl);
-        structF.push_back(fl);
-        nit.push_back(nil); njt.push_back(njl), nkt.push_back(nkl);
-        objs.push_back(o);
+      structVarString.push_back(varStringl);
+      structF.push_back(fl);
+      nit.push_back(nil); njt.push_back(njl), nkt.push_back(nkl);
+      objs.push_back(o);
     }
     else if (resl == 2)
     {
-        unstrVarString.push_back(varStringl);
-        unstrF.push_back(fl);
-        eltType.push_back(eltTypel); cnt.push_back(cnl);
-        obju.push_back(o);
+      unstrVarString.push_back(varStringl);
+      unstrF.push_back(fl);
+      eltType.push_back(eltTypel); cnt.push_back(cnl);
+      obju.push_back(o);
     }
     else printf("Warning: display: array " SF_D_ " is invalid. Discarded.\n", i);
   }
