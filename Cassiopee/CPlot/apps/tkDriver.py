@@ -288,7 +288,8 @@ def createApp(win):
 
     # - slider -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
-                  command=setParameterValueWithScale, borderwidth=1, value=scaleValue)
+                  borderwidth=1, value=scaleValue)
+    B.bind("<ButtonRelease-1>", setParameterValueWithScale)
     WIDGETS['valueSlider'] = B
     B.grid(row=4, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Parameter value.')

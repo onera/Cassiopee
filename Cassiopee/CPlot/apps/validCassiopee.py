@@ -295,7 +295,7 @@ def checkOutput(cmd, path='.', env=None, stderr=None):
         PROCESS = None # done!
         return stdout+stderr
     else:
-        raise ValueError(f"validCassiopee: checkOutput: mode {mode} not supported")
+        raise ValueError(f"validCassiopee: checkOutput: mode {mode} not supported.")
 
 # retourne une chaine justifiee en fonction de la font et
 # d'une taille voulue
@@ -1658,7 +1658,7 @@ def parseArgs():
     def _checkInt(n):
         def _throwError():
             raise argparse.ArgumentTypeError("Number of remaining logs must be "
-                                             "a positive integer")
+                                             "a positive integer.")
             sys.exit(1)
         try: n = int(n)
         except: _throwError()

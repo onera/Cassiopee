@@ -1295,7 +1295,8 @@ def createApp(win):
     B.bind('<Return>', setDensityVector)
     WIDGETS['vectorDensityEnter'] = B
     B = TTK.Scale(Vector, from_=0., to=1.E5, orient=TK.HORIZONTAL,
-                  command=densityVector, showvalue=1, borderwidth=1, value=0.)
+                  showvalue=1, borderwidth=1, value=0.)
+    B.bind("<ButtonRelease-1>", densityVector)
     WIDGETS['vectorDensity'] = B
 
     # - Vector field settings -
