@@ -35,6 +35,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def allgatherZones(a, coord=True, variables=[]): return a
         def allgatherTree(a): return a
         def allgatherDict(a): return a
+        def allgatherDict2(a): return a
         def allgatherNext(a): return [a]
         def send(a, dest=0, tag=0): return None
         def isend(a, dest=0, tag=0): return None
@@ -91,6 +92,7 @@ else: # try import (may fail - core or hang)
         def allgatherZones(a, coord=True, variables=[]): return a
         def allgatherTree(a): return a
         def allgatherDict(a): return a
+        def allgatherDict2(a): return a
         def allgatherNext(a): return [a]
         def send(a, dest=0, tag=0): return None
         def isend(a, dest=0, tag=0): return None
