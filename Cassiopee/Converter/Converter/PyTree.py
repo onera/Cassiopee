@@ -3640,6 +3640,7 @@ def _convertArray2NGon(t, recoverBC=True, api=1, method="geometric"):
             if gbcs[c] != [] and len(gbcs[c][0]) > 0:
                 if indices is None: _recoverBCs(z, gbcs[c])
                 else: _recoverBCs(z, gbcs[c], indices=indices[c])
+
             # Delete BC Element connectivities
             bcConnects = Internal.getElementBoundaryNodes(z)
             for n in bcConnects: Internal._rmNode(z, n)
@@ -4457,31 +4458,35 @@ def getNMRatio__(win, winopp, trirac):
 # Identifie des subzones comme BC Faces
 # IN: liste de geometries de BC, liste de leur nom, liste de leur type
 # OUT: a modifie avec des BCs ajoutees en BCFaces
-def recoverBCs(a, BCInfo, tol=1.e-11, removeBC=True):
+# OUT: if missingBCInfo is an empty list, return missing BCInfo data for later
+# reidentification in the same format as BCInfo
+def recoverBCs(a, BCInfo, tol=1.e-11, removeBC=True, missingBCInfo=None):
     """Recover given BCs on a tree.
-    Usage: recoverBCs(a, (BCs, BCNames, BCTypes), tol, removeBC)"""
+    Usage: recoverBCs(a, (BCs, BCNames, BCTypes), tol, removeBC, missingBCInfo=None)"""
     tp = Internal.copyRef(a)
-    _recoverBCs(tp, BCInfo, tol, removeBC)
+    _recoverBCs(tp, BCInfo, tol, removeBC, missingBCInfo)
     return tp
 
-def _recoverBCs(t, BCInfo, tol=1.e-11, removeBC=True, indices=None):
+def _recoverBCs(t, BCInfo, tol=1.e-11, removeBC=True, indices=None, missingBCInfo=None):
     method = "geometric" if indices is None else "topologic"
     if method == "geometric":
-        _recoverBCsGeometric(t, BCInfo, tol, removeBC)
+        _recoverBCsGeometric(t, BCInfo, tol, removeBC, missingBCInfo)
     else:
-        _recoverBCsTopologic(t, BCInfo, removeBC, indices)
+        _recoverBCsTopologic(t, BCInfo, removeBC, indices, missingBCInfo=None)
 
-def _recoverBCsGeometric(t, BCInfo, tol=1.e-11, removeBC=True):
+def _recoverBCsGeometric(t, BCInfo, tol=1.e-11, removeBC=True, missingBCInfo=None):
     try: import Post.PyTree as P
     except: raise ImportError("_recoverBCsGeometric: requires Post module.")
+    try: import Transform.PyTree as T
+    except: raise ImportError("_recoverBCsGeometric: requires Transform module.")
     if removeBC: _deleteZoneBC__(t)
     else:
-        try: import Transform.PyTree as T
-        except: raise ImportError("_recoverBCsGeometric: requires Transform module.")
         try: import Generator.PyTree as G
         except: raise ImportError("_recoverBCsGeometric: requires Generator module.")
     zones = Internal.getZones(t)
     BCs, BCNames, BCTypes = BCInfo
+    storeMissing = isinstance(missingBCInfo, list) and not missingBCInfo
+    if storeMissing: missingBCInfo.extend([[], [], []])
 
     for z in zones:
         dim = Internal.getZoneDim(z)
@@ -4534,8 +4539,21 @@ def _recoverBCsGeometric(t, BCInfo, tol=1.e-11, removeBC=True):
                 if Internal.getZoneType(b) == 1: b = convertArray2Hexa(b)
                 if not removeBC and G.bboxIntersection(zf, b) != 1: continue
                 ids = identifyElements(hook, b, tol)
-                # Cree les BCs
+                # Check if some faces were not found
                 validIds = ids > -1
+                invalidIds = numpy.nonzero(~validIds)[0]
+                if invalidIds.size > 0:
+                    print(
+                        "Warning: _recoverBCsGeometric: face indices "
+                        f"{invalidIds} were not found in BC {b[0]}"
+                    )
+                    if storeMissing:
+                        invalidIds = invalidIds.astype(Internal.E_NpyInt)
+                        zu = T.subzone(b, invalidIds, type='elements')
+                        missingBCInfo[0].append(zu)
+                        missingBCInfo[1].append(BCNames[c])
+                        missingBCInfo[2].append(BCTypes[c])
+                # Create BCs
                 ids = ids[validIds]
                 sizebc = ids.size
                 if sizebc == 0: continue
@@ -4567,7 +4585,7 @@ def _recoverBCsGeometric(t, BCInfo, tol=1.e-11, removeBC=True):
         freeHook(hook)
     return None
 
-def _recoverBCsTopologic(t, BCInfo, removeBC=True, indices=None):
+def _recoverBCsTopologic(t, BCInfo, removeBC=True, indices=None, missingBCInfo=None):
     if removeBC: _deleteZoneBC__(t)
     else:
         raise NotImplementedError("_recoverBCsTopologic: assignement of new BC "
@@ -4576,6 +4594,11 @@ def _recoverBCsTopologic(t, BCInfo, removeBC=True, indices=None):
 
     zones = Internal.getZones(t)
     BCs, BCNames, BCTypes = BCInfo
+    storeMissing = isinstance(missingBCInfo, list) and not missingBCInfo
+    if storeMissing:
+        try: import Transform.PyTree as T
+        except: raise ImportError("_recoverBCsTopologic: requires Transform module.")
+        missingBCInfo.extend([[], [], []])
 
     for z in zones:
         dim = Internal.getZoneDim(z)
@@ -4607,9 +4630,13 @@ def _recoverBCsTopologic(t, BCInfo, removeBC=True, indices=None):
                     bcEC = Internal.getNodeFromName2(bcElt, "ElementConnectivity")
                     pointList = bcEC[1] - 1
                     #print("pointList", pointList)
-                pointList = indices[pointList] + 1
+                if indices is None:
+                    pointList += 1
+                else:  # vertex reindexing
+                    pointList = indices[pointList] + 1
                 pointList = numpy.unique(pointList)
                 pointList = pointList.reshape(1, pointList.size, order='F')
+                validIds = []
                 # print("pointList", pointList)
                 if dim[3] == 'NGON':
                     faceList = converter.adaptBCVertexPL2FacePL(array, pointList)
@@ -4621,20 +4648,27 @@ def _recoverBCsTopologic(t, BCInfo, removeBC=True, indices=None):
                             array, array2,
                             indices, faceList
                         )
-                        nmissing = numpy.sum(fmap == -1)
-                        if nmissing:
-                            raise ValueError(
-                                "_recoverBCsTopologic: topologic identication of "
-                                f"{nmissing} boundary faces failed."
+                        # Check if some faces were not found
+                        validIds = fmap > -1
+                        invalidIds = numpy.nonzero(~validIds)[0]
+                        if invalidIds.size > 0:
+                            print(
+                                "Warning:_recoverBCsTopologic: face indices "
+                                f"{invalidIds} were not found in BC {z[0]}"
                             )
-                        orderedFaceList = faceList[fmap]
+                            if storeMissing:
+                                invalidIds = invalidIds.astype(Internal.E_NpyInt)
+                                zu = T.subzone(z, invalidIds, type='elements')
+                                missingBCInfo[0].append(zu)
+                                missingBCInfo[1].append(BCNames[c])
+                                missingBCInfo[2].append(BCTypes[c])
+                        orderedFaceList = faceList[fmap[validIds]]
                     # print("faceList[fmap]", orderedFaceList)
                     _addBC2Zone(z, BCNames[c], BCTypes[c], faceList=orderedFaceList)
                 else:  # BE/ME
                     _addBC2Zone(z, BCNames[c], BCTypes[c], pointList=pointList)
 
-                # Recover BCDataSets
-                # TODO:
+                # Recover BCDataSets, TODO:
                 # - do not delete faceCenter BCDatasets
                 # - will also preserve non-Neumann datasets
                 # - at last, no need to pass a zone using selectConnectivity, just an array
@@ -4656,7 +4690,8 @@ def _recoverBCsTopologic(t, BCInfo, removeBC=True, indices=None):
                                 # No need to map val0 since face ordering
                                 # in PointList using fmap is consistent with
                                 # the BC storage order
-                                Internal._createUniqueChild(d, node[0], 'DataArray_t', value=val0)
+                                val1 = val0[validIds]
+                                Internal._createUniqueChild(d, node[0], 'DataArray_t', value=val1)
 
     return None
 
