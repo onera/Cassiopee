@@ -26,7 +26,8 @@ __all__ = ['convertCAD2Arrays',
            'getEdgeLength', 'getMinMaxEdgeLength', 'getFaceArea',
            'getFaceVolume', 'getFaceMassCenter', 'getBoundingBox',
            'checkFaceOverlap',
-           '_translate', '_rotate', '_scale', '_fixShape', '_sewing', '_reverse',
+           '_translate', '_rotate', '_scale', 
+           '_fixShape', '_sewing', '_reverse', '_mergeEdges',
            '_splitFaces', '_mergeFaces', '_trimFaces', '_untrimFaces',
            '_removeFaces', '_removeEdges', '_extractFaces',
            '_fillHole', '_addFillet', '_offset', 'mergeCAD', '_mergeCAD',
@@ -1383,6 +1384,13 @@ def _mergeFaces(hook, faceList=None):
     """Merge some faces."""
     faceList = getFaceList__(hook, faceList)
     occ.mergeFaces(hook, faceList)
+    return None
+
+# merge edges if possible
+def _mergeEdges(hook, edgeList=None):
+    """Merge some edges."""
+    edgeList = getEdgeList__(hook, edgeList)
+    occ.mergeEdges(hook, edgeList)
     return None
 
 # merge all hooks in one

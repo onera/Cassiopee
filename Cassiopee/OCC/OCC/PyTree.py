@@ -21,7 +21,8 @@ from OCC import readCAD, writeCAD, createEmptyCAD, freeHook, \
     getEdgeLength, getMinMaxEdgeLength, \
     getFaceArea, getFaceVolume, getFaceMassCenter, getBoundingBox, \
     checkFaceOverlap, \
-    _translate, _rotate, _scale, _fixShape, _sewing, _reverse, _splitFaces, \
+    _translate, _rotate, _scale, _fixShape, \
+    _sewing, _reverse, _mergeEdges, _splitFaces, \
     _mergeFaces, _trimFaces, _removeFaces, _removeEdges, \
     _extractFaces, _fillHole, \
     _addFillet, _offset, mergeCAD, _splitEdge, \

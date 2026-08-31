@@ -31,6 +31,7 @@
 #include "StdFail_NotDone.hxx"
 #include "BRepFill_Filling.hxx"
 #include "ShapeUpgrade_ShapeDivideContinuity.hxx"
+#include "BRepBuilderAPI_Sewing.hxx"
 
 //=====================================================================
 // Fill hole in CAD
@@ -45,8 +46,11 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
   GETPACKET;
   GETSHAPE;
   GETMAPEDGES;
+  GETMAPSURFACES;
 
   E_Int nEdges = edges.Extent();
+  E_Int* tag = new E_Int [nEdges];
+  for (E_Int i = 0; i < nEdges; i++) tag[i] = 0;
 
   // get edges and make a wire
   BRepBuilderAPI_MakeWire wireMaker;
@@ -54,6 +58,7 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
   {
     PyObject* noEdgeO = PyList_GetItem(listEdges, no);
     E_Int noEdge = PyInt_AsLong(noEdgeO);
+    tag[noEdge-1] = 1;
     if (noEdge < 0 && noEdge >= -nEdges)
     {
       const TopoDS_Edge& E = TopoDS::Edge(edges(-noEdge));
@@ -177,10 +182,17 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
   TopoDS_Shape* newshp = NULL;
 
   TopoDS_Compound shc;
-  BRep_Builder aBuilder;
-  aBuilder.MakeCompound(shc);
-  aBuilder.Add(shc, *shape);
-  aBuilder.Add(shc, F); // How can I check face orientation?
+  BRep_Builder builder;
+  builder.MakeCompound(shc);
+  for (E_Int i = 0; i < edges.Extent(); i++)
+  {
+    if (tag[i] == 0) builder.Add(shc, edges(i+1));
+  }
+  for (E_Int i = 0; i < surfaces.Extent(); i++)
+  {
+    builder.Add(shc, surfaces(i+1));
+  }
+  builder.Add(shc, F); // This add also the wire the face is built on
   
   // a posteriori continuity improvement - no success for now (unnecessary?)
   if (continuity > 0)
@@ -194,11 +206,19 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
     newshp = new TopoDS_Shape(sh);
   }
   else
+  {
+    //BRepBuilderAPI_Sewing sewer;
+    //sewer.Add(shc);
+    //sewer.Perform();
+    //newshp = new TopoDS_Shape(sewer.SewedShape());
     newshp = new TopoDS_Shape(shc);
+  }
 
   // export
   delete shape;
   SETSHAPE(newshp);
+
+  delete [] tag;
 
   printf("INFO: after fillHole: Nb edges=%d\n", se->Extent());
   printf("INFO: after fillHole: Nb faces=%d\n", sf->Extent());

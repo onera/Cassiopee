@@ -25,8 +25,50 @@
 #include "BRep_Builder.hxx"
 #include "TopoDS.hxx"
 #include "TopExp.hxx"
-#include <TopoDS_Shape.hxx>
-#include <BRepBuilderAPI_MakeWire.hxx>
+#include "TopoDS_Shape.hxx"
+#include "BRepBuilderAPI_MakeWire.hxx"
+#include "BRepTools_ReShape.hxx"
+
+#include "BRepTools_WireExplorer.hxx"
+#include "GeomConvert_CompCurveToBSplineCurve.hxx"
+#include "Geom_TrimmedCurve.hxx"
+#include "Geom_BSplineCurve.hxx"
+#include "BRepBuilderAPI_MakeEdge.hxx"
+
+// fuse a wire in a single edge
+TopoDS_Edge wireToSingleEdge(const TopoDS_Wire& wire)
+{
+  GeomConvert_CompCurveToBSplineCurve curveConverter;
+    
+  // Iterate through edges in topological order along the wire
+  BRepTools_WireExplorer explorer(wire);
+  for (; explorer.More(); explorer.Next())
+  {
+    const TopoDS_Edge& currentEdge = explorer.Current();
+    Standard_Real first, last;
+    Handle(Geom_Curve) curve = BRep_Tool::Curve(currentEdge, first, last);
+        
+    if (!curve.IsNull())
+    {
+      // Truncate curve to edge bounds if necessary
+      Handle(Geom_TrimmedCurve) trimmedCurve = new Geom_TrimmedCurve(curve, first, last);
+            
+      // Add curve segment (false = do not reverse parameterization unless needed)
+      curveConverter.Add(trimmedCurve, Precision::Confusion());
+    }
+  }
+    
+  // Get the combined B-spline curve
+  Handle(Geom_BSplineCurve) mergedCurve = curveConverter.BSplineCurve();
+    
+  if (mergedCurve.IsNull()) 
+  {
+    return TopoDS_Edge(); // Return null edge on failure
+  }
+    
+  // Build and return the new single edge
+  return BRepBuilderAPI_MakeEdge(mergedCurve);
+}
 
 // ============================================================================
 /* Merge a list of edges in a single edge */
@@ -70,17 +112,22 @@ PyObject* K_OCC::mergeEdges(PyObject* self, PyObject* args)
 
     PyObject* noEdgeO = PyList_GetItem(listEdges, 0);
     E_Int noEdge = PyInt_AsLong(noEdgeO);
-    TopoDS_Edge E = TopoDS::Edge(surfaces(noEdge));
+    printf("no edge=%d\n", noEdge); fflush(stdout);
+    TopoDS_Edge E = TopoDS::Edge(edges(noEdge));
     TopoDS_Wire W = BRepBuilderAPI_MakeWire(E);
     
-    for (E_Int no = 0; no < nedges; no++)
+    for (E_Int no = 1; no < nedges; no++)
     {
       noEdgeO = PyList_GetItem(listEdges, no);
       noEdge = PyInt_AsLong(noEdgeO);
-      E = TopoDS::Edge(surfaces(noEdge));
+      printf("no edge=%d\n", noEdge); fflush(stdout);
+      E = TopoDS::Edge(edges(noEdge));
       W = BRepBuilderAPI_MakeWire(W, E);
     }
 
+    printf("Getting wire\n"); fflush(stdout);
+
+    /*
     BRep_Builder builder;
     TopoDS_Compound compound;
     builder.MakeCompound(compound);
@@ -107,9 +154,38 @@ PyObject* K_OCC::mergeEdges(PyObject* self, PyObject* args)
       TopoDS_Face F = TopoDS::Face(surfaces(i));
       builder.Add(compound, F);
     }
-
     delete [] tag;
+    */
 
+    BRepTools_ReShape reshaper;
+    noEdgeO = PyList_GetItem(listEdges, 0);
+    noEdge = PyInt_AsLong(noEdgeO);
+    E = TopoDS::Edge(edges(noEdge));
+    TopoDS_Edge WE = wireToSingleEdge(W);
+    reshaper.Replace(E, WE);
+    printf("replaced edge 0 with merged wire\n"); fflush(stdout);
+
+    for (E_Int no = 1; no < nedges; no++)
+    {
+      noEdgeO = PyList_GetItem(listEdges, no);
+      noEdge = PyInt_AsLong(noEdgeO);
+      E = TopoDS::Edge(edges(noEdge));
+      reshaper.Remove(E);
+    }
+    printf("removed edge\n"); fflush(stdout);
+
+    /*
+    BRep_Builder builder;
+    TopoDS_Compound compound;
+    builder.MakeCompound(compound);
+    for (E_Int i = 1; i <= surfaces.Extent(); i++)
+    {
+      TopoDS_Face F = TopoDS::Face(surfaces(i));
+      //reshaper.Apply(F);
+      builder.Add(compound, F);
+    }*/
+
+    TopoDS_Shape compound = reshaper.Apply(*shape);
     newshp = new TopoDS_Shape(compound);
   }
 

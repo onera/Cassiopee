@@ -934,7 +934,7 @@ namespace DELAUNAY
     X_edges.clear();
     
     E_Int err = __get_xedge_on_shell(N0, N1, pos, connect, neighbors, ancestors, S, n, tolerance);
-    if (err || S==IDX_NONE) return err;
+    if (err || S == IDX_NONE) return err;
     
     X_edges.push_back(int_pair_type(S,n));
     pipe.insert(S);
@@ -944,7 +944,7 @@ namespace DELAUNAY
       count = 0;
       nopp = element_type::getOppLocalNodeId(S, n, connect, neighbors);
       nstart = (nopp+1)%element_type::NB_NODES;
-        
+
       S = neighbors(n, S);
       pS = connect.col(S);
         
@@ -967,9 +967,9 @@ namespace DELAUNAY
         }
       }
 
-      if (done && (count != 0))  // Error : we must have Nj = N1 at i = 0 when reaching the end of pipe.
-      {err = 2; break;}
-      if (!done && (count != 1)) // Error : one node is on the edge N0N1.
+      if (done && (count != 0))  // Error: we must have Nj = N1 at i = 0 when reaching the end of pipe.
+      { err = 2; break; }
+      if (!done && (count != 1)) // Error: one node is on the edge N0-N1.
       {
         err = NODE_IN_EDGE_ERROR;
         break;
@@ -981,13 +981,15 @@ namespace DELAUNAY
     return err;
   }
   
-  inline E_Int sign2D(const E_Float*P0, const E_Float*P1, const E_Float*P)
+  // Return sign of P0P1 ^ P0P.z in 2D
+  inline E_Int sign2D(const E_Float* P0, const E_Float* P1, const E_Float* P)
   {
     E_Float perpdot = (P0[1]-P1[1])*(P[0]-P0[0]) + (P1[0]-P0[0])*(P[1]-P0[1]);
     //return (perpdot < -EPSILON) ? -1 : (perpdot > EPSILON) ? 1 : 0;
     return (perpdot < 0.) ? -1 : (perpdot > 0.) ? 1 : 0;
   }
   
+  // Return P0P1.P0P
   inline E_Float proj(const E_Float* P0, const E_Float* P1, const E_Float* P)
   {
     return (P1[0]-P0[0])*(P[0]-P0[0]) + (P1[1]-P0[1])*(P[1]-P0[1]);
