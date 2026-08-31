@@ -97,23 +97,23 @@ PyObject* K_CONVERTER::normalize(PyObject* self, PyObject* args)
 
 #pragma omp parallel default(shared)
   {
-#pragma omp for nowait
+    #pragma omp for
     for (E_Int i = 0; i < npts; i++) fpt0[i] = 0.;
 
     for (E_Int v = 0; v < n; v++)
     {
       E_Float* ft = f->begin(pos[v]);
-#pragma omp for nowait
+      #pragma omp for
       for (E_Int i = 0; i < npts; i++) fpt0[i] += ft[i]*ft[i];
     }
-#pragma omp for nowait
+    #pragma omp for
     for (E_Int i = 0; i < npts; i++)
       fpt0[i] = 1./K_FUNC::E_max(sqrt(fpt0[i]), 1.e-12);
 
     for (E_Int v  = n-1; v >= 0; v--)
     {
       E_Float* ft = f->begin(pos[v]);
-#pragma omp for
+      #pragma omp for
       for (E_Int i = 0; i < npts; i++)
       {
         ft[i] = ft[i] * fpt0[i];

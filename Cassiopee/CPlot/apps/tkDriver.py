@@ -16,7 +16,7 @@ ENTITY = None
 MODE = 0 # 0: mesh, 1: dxdmu
 
 #==============================================================================
-# set driver and current entity
+# set driver, current part and current entity
 def setDriver(driver, part, entity):
     global DRIVER, PART, ENTITY
     DRIVER = driver
@@ -33,7 +33,7 @@ def getParamFromPart():
     return params
 
 #==============================================================================
-# get the entities as set in part
+# get the entities of part
 def getEntitiesFromPart():
     entities = []
     #for f in PART.edges:
@@ -45,6 +45,7 @@ def getEntitiesFromPart():
     return entities
 
 #==============================================================================
+# get the parts of driver
 def getPartsFromDriver():
     parts = []
     for k in DRIVER.parts:
@@ -52,6 +53,7 @@ def getPartsFromDriver():
     return parts
 
 #==============================================================================
+# set valueSlider from params
 def setParameterName(event=None):
     # set parameter value
     paramName = VARS[0].get()
@@ -68,6 +70,7 @@ def setParameterName(event=None):
     return None
 
 #==============================================================================
+# set valueSlider from widget value
 def setParameterValue(event=None):
     paramName = VARS[0].get()
     r = PART.scalars[paramName].range
@@ -93,6 +96,7 @@ def setParameterValueWithScale(event=None):
     return None
 
 #==============================================================================
+# set ENTITY from VARS[2]
 def setEntityName(event=None):
     global ENTITY
     name = VARS[2].get()
@@ -116,6 +120,14 @@ def setPartName(event=None):
     # change the list of possible params since they depend on part
     freeParams = PART.freeParams
     WIDGETS['ParameterName']['values'] = freeParams
+    # change entity
+    if len(entities) > 0:
+        VARS[2].set(entities[0])
+    # change param
+    if len(freeParams) > 0:
+        VARS[0].set(freeParams[0])
+    setEntityName()
+    setParameterValue()
     update()
 
 #==============================================================================
@@ -276,7 +288,8 @@ def createApp(win):
 
     # - slider -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
-                  command=setParameterValueWithScale, borderwidth=1, value=scaleValue)
+                  borderwidth=1, value=scaleValue)
+    B.bind("<ButtonRelease-1>", setParameterValueWithScale)
     WIDGETS['valueSlider'] = B
     B.grid(row=4, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, text='Parameter value.')

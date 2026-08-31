@@ -170,12 +170,12 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
     assert(ret == 1);
     readWord(ptrFile, type);
 
-    if (strcmp(type, "fixedGradient") == 0) {
+    if (strcmp(type, "fixedGradient") == 0) 
+    {
       puts(type);
-      E_Int ret = readGivenKeyword(ptrFile, "gradient");
-      ret &= readGivenKeyword(ptrFile, "uniform");
-      //assert(ret == 1);
-
+      readGivenKeyword(ptrFile, "gradient");
+      readGivenKeyword(ptrFile, "uniform");
+      
       char buf[256];
       readWord(ptrFile, buf);
       char *endptr;
@@ -186,7 +186,8 @@ E_Int K_IO::GenIO::readScalarField(char *file, FldArrayF& f, E_Int idx,
       assert(gradVal != 0.0 && buf != endptr);
 
       // valb = valb + gradient * delta
-      for (E_Int j = 0; j < bcsize; j++) {
+      for (E_Int j = 0; j < bcsize; j++) 
+      {
         E_Int face = bcfaces[j]-1;
         E_Int own = owner[face]-1;
         bcf[j] = fld[own] + delta[face-nifaces] * gradVal;
@@ -450,13 +451,12 @@ E_Int K_IO::GenIO::readVectorField(char *file, FldArrayF& f, E_Int idx,
     }
     
     else if (strcmp(type, "fixedValue")              == 0 ||
-             strcmp(type, "uniformNormalFixedValue") == 0) {
+             strcmp(type, "uniformNormalFixedValue") == 0) 
+    {
       puts(type);
-      E_Int ret = readGivenKeyword(ptrFile, "UNIFORM");
-      assert(ret == 1);
-      ret &= readGivenKeyword(ptrFile, "(");
-      assert(ret == 1);
-
+      readGivenKeyword(ptrFile, "UNIFORM");
+      readGivenKeyword(ptrFile, "(");
+      
       char buf[256];
       
       readWord(ptrFile, buf);
@@ -469,7 +469,8 @@ E_Int K_IO::GenIO::readVectorField(char *file, FldArrayF& f, E_Int idx,
       E_Float valz = strtod(buf, NULL);
       printf("Info: foamread: uniform (" SF_F3_ ").\n", valx, valy, valz);
 
-      for (E_Int j = 0; j < bcsize; j++) {
+      for (E_Int j = 0; j < bcsize; j++) 
+      {
         bcfx[j] = valx;
         bcfy[j] = valy;
         bcfz[j] = valz;

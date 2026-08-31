@@ -14,14 +14,14 @@ installDict = {
         'Cppcompiler': 'gcc',
         'CppAdditionalOptions': [
             '-D__SHADERS__',
-            '-isystem /d/juvigny/msys64/ucrt6464/include/python3.8',
-            '-isystem /d/juvigny/msys64/ucrt6464/lib/python3.8/site-packages/numpy/core/include/numpy/'
+            '-isystem /d/juvigny/msys64/ucrt64/include/python3.8',
+            '-isystem /d/juvigny/msys64/ucrt64/lib/python3.8/site-packages/numpy/core/include/numpy/'
         ],
         'f77AdditionalOptions': [],
         'useOMP': True,
         'static': False,
         'additionalIncludePaths': [
-            'd:/juvigny/msys64/ucrt6464/include',
+            'd:/juvigny/msys64/ucrt64/include',
             'd:/juvigny/msys64/ucrt64/include/OpenBLAS'
         ],
         'additionalLibs': ['gfortran', 'gomp', 'pthread', 'openblas', 'psapi'],

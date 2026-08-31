@@ -154,11 +154,11 @@ K_SEARCH::KdTree<CoordArrayType>::__insert
 
   _tree(0, _tree_sz++) = *it; // Set N as the parent, increase tree size by one.
 
-   if (begin != it)
-     _tree(1,cols) = __insert (begin, it, depth+1);
+  if (begin != it)
+    _tree(1,cols) = __insert (begin, it, depth+1);
 
-   if (++it != end)
-     _tree(2,cols) = __insert (it, end, depth+1);
+  if (++it != end)
+    _tree(2,cols) = __insert (it, end, depth+1);
 
    return cols;
 }
@@ -184,12 +184,12 @@ K_SEARCH::KdTree<CoordArrayType>::__insert_omp
 
   #pragma omp task
   {
-    __insert_omp (begin, it, dn);
+    __insert_omp(begin, it, dn);
   }
 
   //#pragma omp task : save a thread by using the current thread
   {
-    __insert_omp (itn, end, dn);
+    __insert_omp(itn, end, dn);
   }
 
   #pragma omp taskwait
@@ -210,10 +210,10 @@ K_SEARCH::KdTree<CoordArrayType>::__set_tree
   _tree(0, _tree_sz++) = *it; // Set N as the parent, increase tree size by one.
 
    if (begin != it)
-     _tree(1,cols) = __set_tree (begin, it);
+    _tree(1,cols) = __set_tree (begin, it);
 
    if (++it != end)
-     _tree(2,cols) = __set_tree (it, end);
+    _tree(2,cols) = __set_tree (it, end);
 
    return cols;
 }
@@ -770,7 +770,7 @@ void K_SEARCH::KdTree<CoordArrayType>::__seek_closest
     E_Float D = pt[ax] - _posAcc.getVal(*Ni, ax);
     size_type left  = *(Ni+1);
     size_type right = *(Ni+2);
-    size_type nextAxis = ax+1 == _dim ? 0 : ax+1;
+    size_type nextAxis = (ax+1 == _dim ? 0 : ax+1);
 
     if (D*D >= d2)
     {

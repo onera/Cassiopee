@@ -1,79 +1,83 @@
-# parametric wedge
+# Wedge part
 import Roms.Driver as D
 
-#==============
-# parameters
-#==============
+def createPart(name):
 
-# forward length
-Lf = D.Scalar('Lf', 2.)
-Lf.range = [0.1, 3.]
+    T1 = D.Part(name)
 
-# backward length
-Lb = D.Scalar('Lb', 0.1)
-Lb.range = [0.1, 1.]
+    #==============
+    # parameters
+    #==============
 
-# top height
-Ht = D.Scalar('Ht', 0.1)
-Ht.range = [0.1, 1.]
+    # forward length
+    Lf = T1.Scalar('Lf', 2.)
+    Lf.range = [0.1, 3.]
 
-# bottom height
-Hb = D.Scalar('Hb', 0.1)
-Hb.range = [0.1, 1.]
+    # backward length
+    Lb = T1.Scalar('Lb', 0.1)
+    Lb.range = [0.1, 1.]
 
-# side length
-Ls = D.Scalar('Ls', 1.)
-Ls.range = [0.1, 2.]
+    # top height
+    Ht = T1.Scalar('Ht', 0.1)
+    Ht.range = [0.1, 1.]
 
-#=======================
-# create points
-#=======================
+    # bottom height
+    Hb = T1.Scalar('Hb', 0.1)
+    Hb.range = [0.1, 1.]
 
-# forward point
-P0 = D.Point('P0')
-D.Eq(P0.x, -Lf)
+    # side length
+    Ls = T1.Scalar('Ls', 1.)
+    Ls.range = [0.1, 2.]
 
-P1 = D.Point('P1')
-D.Eq(P1.y, -Ls)
+    #=======================
+    # create points
+    #=======================
 
-P2 = D.Point('P2')
-D.Eq(P2.y, +Ls)
+    # forward point
+    P0 = T1.Point('P0')
+    T1.Eq(P0.x, -Lf)
 
-P3 = D.Point('P3')
-D.Eq(P3.z, Ht)
+    P1 = T1.Point('P1')
+    T1.Eq(P1.y, -Ls)
 
-P4 = D.Point('P4')
-D.Eq(P4.z, -Hb)
+    P2 = T1.Point('P2')
+    T1.Eq(P2.y, +Ls)
 
-P5 = D.Point('P5')
-D.Eq(P5.x, +Lb)
+    P3 = T1.Point('P3')
+    T1.Eq(P3.z, Ht)
 
-#=================
-# create entities
-#=================
+    P4 = T1.Point('P4')
+    T1.Eq(P4.z, -Hb)
 
-surface1 = D.FillLinear('surface1', [P0,P3,P1])
-surface2 = D.FillLinear('surface2', [P0,P3,P2])
-surface3 = D.FillLinear('surface3', [P0,P4,P1])
-surface4 = D.FillLinear('surface4', [P0,P4,P2])
+    P5 = T1.Point('P5')
+    T1.Eq(P5.x, +Lb)
 
-surface5 = D.FillLinear('surface5', [P5,P3,P1])
-surface6 = D.FillLinear('surface6', [P5,P3,P2])
-surface7 = D.FillLinear('surface7', [P5,P4,P1])
-surface8 = D.FillLinear('surface8', [P5,P4,P2])
+    #=================
+    # create entities
+    #=================
 
-surface = D.Merge('surface', [surface1,surface2,surface3,surface4,surface5,surface6,surface7, surface8], h=(0.1,0.1,0.01))
+    surface1 = T1.FillLinear('surface1', [P0,P3,P1])
+    surface2 = T1.FillLinear('surface2', [P0,P3,P2])
+    surface3 = T1.FillLinear('surface3', [P0,P4,P1])
+    surface4 = T1.FillLinear('surface4', [P0,P4,P2])
 
-#=======================
-# solve and instantiate
-#=======================
-solution, freevars = D.DRIVER.solve()
+    surface5 = T1.FillLinear('surface5', [P5,P3,P1])
+    surface6 = T1.FillLinear('surface6', [P5,P3,P2])
+    surface7 = T1.FillLinear('surface7', [P5,P4,P1])
+    surface8 = T1.FillLinear('surface8', [P5,P4,P2])
 
-D.DRIVER.instantiate({'Lf': 2,
-                      'Lb': 0.1,
-                      'Ht': 0.1,
-                      'Hb': 0.1,
-                      'Ls': 1.})
+    surface = T1.Merge('surface', [surface1,surface2,surface3,surface4,surface5,surface6,surface7, surface8], h=(0.1,0.1,0.01))
 
-surface.writeCAD('out.step')
-D.DRIVER.plot(surface)
+    #=======================
+    # solve and instantiate
+    #=======================
+    T1.solve()
+
+    # example of instance
+    #T1.instantiate({'Lf': 2,
+    #                'Lb': 0.1,
+    #                'Ht': 0.1,
+    #                'Hb': 0.1,
+    #                'Ls': 1.})
+
+    return T1

@@ -780,7 +780,6 @@ E_Int K_CONNECT::build_parent_elements_ngon(
 
       if (iref == -1)
       {
-        break;
         return 1;
       }
 

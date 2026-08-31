@@ -1111,7 +1111,7 @@ def display360__(t, posCam, posEye, dirCam, offscreen, exportRez, kwargs):
     v3 = Vector.mul(n, vz) # third view vector
 
     lkwargs = kwargs.copy()
-    fov = 90.
+    fov = 90.0
 
     exportRoot = kwargs.get('export', 'export.png')
     exportRoot = os.path.dirname(exportRoot)

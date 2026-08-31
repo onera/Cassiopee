@@ -275,7 +275,7 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
 
     for (E_Int i = 0; i < screenSize; i++)
     {
-      double z_n = 2.*double(depth[i])-1.0;
+      double z_n = 2.0*double(depth[i])-1.0;
       double z_e = 2.0*zNear*zFar/(zFar+zNear-z_n*(zFar-zNear));
       depth[i] = float(z_e);
     }
@@ -383,7 +383,7 @@ char* Data::export2Image(E_Int exportWidth, E_Int exportHeight)
     double zFar  = _view.farD;
     for (E_Int i = 0; i < screenSize; i++)
     {
-      double z_n = 2.*double(depth[i])-1.0;
+      double z_n = 2.0*double(depth[i])-1.0;
       double z_e = 2.0*zNear*zFar/(zFar+zNear-z_n*(zFar-zNear));
       depth[i] = float(z_e);
     }

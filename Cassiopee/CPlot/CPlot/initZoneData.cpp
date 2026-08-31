@@ -199,6 +199,7 @@ E_Int Data::initZoneData(
     // Essai de retrouver les reglages dans la previous zonesp
     // Pour les zones inactives en previous, elles ne doivent pas
     // avoir ete modifiees
+    
     for (E_Int j = 0; j < numberOfUnstructZonesp; j++)
     {
       UnstructZone& zp = *(uzonesp[j]);

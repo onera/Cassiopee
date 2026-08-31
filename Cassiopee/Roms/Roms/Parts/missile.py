@@ -1,70 +1,74 @@
 # parametric missile
 import Roms.Driver as D
 
-#===================
-# Create parameters
-#===================
-radius1 = D.Scalar('radius1', 10.)
-radius1.range = [5., 15., 1.]
+def createPart(name):
 
-radius2 = D.Scalar('radius2', 5.)
-radius2.range = [0.1, 8., 1.]
+    T1 = D.Part(name)
 
-# length back
-length1 = D.Scalar('length1', 100.)
-D.Eq(length1, 100.)
+    #===================
+    # Create parameters
+    #===================
+    radius1 = T1.Scalar('radius1', 10.)
+    radius1.range = [5., 15., 1.]
 
-# length middle
-length2 = D.Scalar('length2', 20.)
-D.Eq(length2, 20.)
+    radius2 = T1.Scalar('radius2', 5.)
+    radius2.range = [0.1, 8., 1.]
 
-# length forward
-length3 = D.Scalar('length3', 10.)
-D.Eq(length3, 10.)
+    # length back
+    length1 = T1.Scalar('length1', 100.)
+    T1.Eq(length1, 100.)
 
-#=================
-# Create points
-#=================
-P1 = D.Point('P1')
-D.Eq(P1.y, radius1)
+    # length middle
+    length2 = T1.Scalar('length2', 20.)
+    T1.Eq(length2, 20.)
 
-P2 = D.Point('P2')
-D.Eq(P2.y, radius1)
-D.Eq(P2.x, -length1)
+    # length forward
+    length3 = T1.Scalar('length3', 10.)
+    T1.Eq(length3, 10.)
 
-P3 = D.Point('P3')
-D.Eq(P3.y, radius2)
-D.Eq(P3.x, -length1-length2)
+    #=================
+    # Create points
+    #=================
+    P1 = T1.Point('P1')
+    T1.Eq(P1.y, radius1)
 
-P4 = D.Point('P4')
-D.Eq(P4.x, -length1-length2-length3)
-D.Eq(P4.y, P3.y/20.)
+    P2 = T1.Point('P2')
+    T1.Eq(P2.y, radius1)
+    T1.Eq(P2.x, -length1)
 
-P5 = D.Point('P5')
-D.Eq(P5.x, -length1-length2-length3)
+    P3 = T1.Point('P3')
+    T1.Eq(P3.y, radius2)
+    T1.Eq(P3.x, -length1-length2)
 
-line1 = D.Line('line1', P1, P2)
-line2 = D.Line('line2', P2, P3)
-spline1 = D.Spline1('spline1', [P3,P4,P5])
+    P4 = T1.Point('P4')
+    T1.Eq(P4.x, -length1-length2-length3)
+    T1.Eq(P4.y, P3.y/20.)
 
-# sketch1
-sketch1 = D.Sketch('sketch1', [line1, line2, spline1])
+    P5 = T1.Point('P5')
+    T1.Eq(P5.x, -length1-length2-length3)
 
-# surface1 - body
-surface1 = D.Revolve('surface1', sketch1, center=(0,0,0), axis=(1,0,0), angle=360.)
+    line1 = T1.Line('line1', P1, P2)
+    line2 = T1.Line('line2', P2, P3)
+    spline1 = T1.Spline1('spline1', [P3,P4,P5])
 
-# body closure
-circle1 = D.Circle('circle1', (0,0,0), radius1)
-sketch2 = D.Sketch('sketch2', [circle1])
-surface2 = D.Fill('surface2', sketch2)
+    # sketch1
+    sketch1 = T1.Sketch('sketch1', [line1, line2, spline1])
 
-surface3 = D.Merge('surface3', [surface1, surface2])
+    # surface1 - body
+    surface1 = T1.Revolve('surface1', sketch1, center=(0,0,0), axis=(1,0,0), angle=360.)
 
-#=======================
-# solve and instantiate
-#=======================
-solution, freevars = D.DRIVER.solve()
+    # body closure
+    circle1 = T1.Circle('circle1', (0,0,0), radius1)
+    sketch2 = T1.Sketch('sketch2', [circle1])
+    surface2 = T1.Fill('surface2', sketch2)
 
-D.DRIVER.instantiate({'radius1': 10., 'radius2': 4.})
+    surface3 = T1.Merge('surface3', [surface1, surface2])
 
-surface3.writeCAD('out.step')
+    #=======================
+    # solve and instantiate
+    #=======================
+    T1.solve()
+
+    #T1.instantiate({'radius1': 10., 'radius2': 4.})
+
+    return T1

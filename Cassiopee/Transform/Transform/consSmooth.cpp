@@ -792,14 +792,14 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
         //for (size_t i = 0; i < ring2.size(); i++) printf("%d ", ring2[i]);
         //printf("\n");
         //printf("closed2=%d\n", closed2);
-        E_Int n1 = ring1.size();
-        E_Int n2 = ring2.size();
+        //E_Int n1 = ring1.size();
+        //E_Int n2 = ring2.size();
 
         // check
-        if (ring1[0] != p2) printf("PB1\n");
-        if (ring2[0] != p1) printf("PB1\n");
-        if (ring1[1] != ring2[n2-1]) printf("PB1\n");
-        if (ring1[n1-1] != ring2[1]) printf("PB1\n");
+        //if (ring1[0] != p2) printf("PB1\n");
+        //if (ring2[0] != p1) printf("PB1\n");
+        //if (ring1[1] != ring2[n2-1]) printf("PB1\n");
+        //if (ring1[n1-1] != ring2[1]) printf("PB1\n");
           
         if (!closed1 || !closed2) 
         {
@@ -825,9 +825,9 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
         E_Float vz = z[ring2[nNbrs2-1]] - z[ring2[1]];
 
         // check
-        if (vx != x[ring1[1]] - x[ring1[n1-1]]) printf("PB2\n");
-        if (vy != y[ring1[1]] - y[ring1[n1-1]]) printf("PB2\n");
-        if (vz != z[ring1[1]] - z[ring1[n1-1]]) printf("PB2\n");
+        //if (vx != x[ring1[1]] - x[ring1[n1-1]]) printf("PB2\n");
+        //if (vy != y[ring1[1]] - y[ring1[n1-1]]) printf("PB2\n");
+        //if (vz != z[ring1[1]] - z[ring1[n1-1]]) printf("PB2\n");
 
         E_Float sum1x = 0.0, sum1y = 0.0, sum1z = 0.0;
         for (E_Int s = 1; s < nNbrs1; s++)

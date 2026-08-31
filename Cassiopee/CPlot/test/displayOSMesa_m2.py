@@ -12,8 +12,8 @@ if not osmesa:
 
 LOCAL = test.getLocal()
 
-if Cmpi.rank == 0: a = D.sphere((0,0,0), 1, N=200)
-else: a = D.sphere((0,1,0), 0.8, N=200)
+if Cmpi.rank == 0: a = D.sphere((0,0,0), 1., N=200)
+else: a = D.sphere((0,1.,0), 0.82, N=200)
 
 # 360 export
 CPlot.display360(a, mode=0, stereo=0, offscreen=7, exportResolution='1024x512', export=LOCAL+'/out.png')

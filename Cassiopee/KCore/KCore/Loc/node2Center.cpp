@@ -575,7 +575,6 @@ E_Int K_LOC::node2centerStruct(FldArrayF& FNode,
       case 3:
         printf("Warning: node2center: this cellN type is not implemented yet.\n");
         return 0;
-        break;
         
       default:
         printf("Warning: node2center: unknown cellnaturefield format.\n");

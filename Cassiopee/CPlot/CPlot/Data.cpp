@@ -958,7 +958,7 @@ void Data::enforceGivenData2(float xcam, float ycam, float zcam,
     }
     if (cmax > 1.5)
     {
-      for (E_Int i = 0; i <size; i++)
+      for (E_Int i = 0; i < size; i++)
       {
         r[i] = r[i]/255.;
         g[i] = g[i]/255.;

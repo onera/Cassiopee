@@ -3,62 +3,59 @@ import Roms.Driver as D
 import Geom
 import Generator
 import Transform
-import Converter
 
-#======================
-# Create parameters
-#======================
-rootChord = D.Scalar('rootChord', 1.)
+def createPart(name):
 
-tipChord = D.Scalar('tipChord', 1.)
+    T1 = D.Part(name)
 
-tipPosx = D.Scalar('tipPosx', 0.)
-tipPosx.range = [0., 2.]
+    #======================
+    # Create parameters
+    #======================
+    rootChord = T1.Scalar('rootChord', 1.)
 
-tipPosz = D.Scalar('tipPosz', 2.)
-tipPosz.range = [1.,3.]
+    tipChord = T1.Scalar('tipChord', 1.)
 
-#=================
-# create entities
-#=================
+    tipPosx = T1.Scalar('tipPosx', 0.)
+    tipPosx.range = [0., 2.]
 
-# Sketch1
-airfoil = Geom.profile("NACA/NACA64-206")
+    tipPosz = T1.Scalar('tipPosz', 2.)
+    tipPosz.range = [1.,3.]
 
-bbox = Generator.bbox(airfoil)
-grid1 = D.Grid('grid1', bbox[0:3], bbox[3:], N=(2,2,1))
-spline1 = D.Spline3('spline1', grid1, mesh=airfoil)
-sketch1 = D.Sketch('sketch1', [spline1])
+    #=================
+    # create entities
+    #=================
 
-# Sketch2
-airfoil = Geom.profile("NACA/NACA64-206")
-airfoil = Transform.scale(airfoil, 0.5)
-bbox = Generator.bbox(airfoil)
-grid2 = D.Grid('grid2', bbox[0:3], bbox[3:], N=(2,2,1))
-spline2 = D.Spline3('spline2', grid2, mesh=airfoil)
-sketch2 = D.Sketch('sketch2', [spline2])
-sketch2.position.setv(0.,0.,2.)
-D.Eq(sketch2.position.x, tipPosx)
-D.Eq(sketch2.position.z, tipPosz)
+    # Sketch1
+    airfoil = Geom.profile("NACA/NACA64-206")
 
-# surface
-#surface1 = D.MergeEdges('surface1', listSketches=[sketch1, sketch2])
-surface1 = D.Loft('surface1', listSketches=[sketch1, sketch2], h=(1.e-5,0.1,1.e-1))
+    bbox = Generator.bbox(airfoil)
+    grid1 = T1.Grid('grid1', bbox[0:3], bbox[3:], N=(2,2,1))
+    spline1 = T1.Spline3('spline1', grid1, mesh=airfoil)
+    sketch1 = T1.Sketch('sketch1', [spline1])
 
-#=======================
-# solve and instantiate
-#======================
+    # Sketch2
+    airfoil = Geom.profile("NACA/NACA64-206")
+    airfoil = Transform.scale(airfoil, 0.5)
+    bbox = Generator.bbox(airfoil)
+    grid2 = T1.Grid('grid2', bbox[0:3], bbox[3:], N=(2,2,1))
+    spline2 = T1.Spline3('spline2', grid2, mesh=airfoil)
+    sketch2 = T1.Sketch('sketch2', [spline2])
+    sketch2.position.setv(0.,0.,2.)
+    T1.Eq(sketch2.position.x, tipPosx)
+    T1.Eq(sketch2.position.z, tipPosz)
 
-# solve
-D.DRIVER.solve()
+    # surface
+    #surface1 = T1.MergeEdges('surface1', listSketches=[sketch1, sketch2])
+    surface1 = T1.Loft('surface1', listSketches=[sketch1, sketch2], h=(1.e-5,0.1,1.e-1))
 
-# instantiate
-D.DRIVER.instantiate({'tipPosx': 0., 'tipPosz': 2.})
+    #=======================
+    # solve and instantiate
+    #======================
 
-# export CAD and mesh
-surface1.writeCAD('out.step')
+    # solve
+    T1.solve()
 
-m = surface1.mesh(method=0)
-Converter.convertArrays2File(m, 'out.plt')
+    # instantiate
+    #T1.instantiate({'tipPosx': 0., 'tipPosz': 2.})
 
-D.DRIVER.plot(surface1)
+    return T1
