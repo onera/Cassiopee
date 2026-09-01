@@ -38,9 +38,6 @@ zones = Internal.getZones(t)
 Xmpi._connectMatchNGon(zones[0])
 
 Xmpi._setHoleInterpolatedPoints(t, cellNName=cellNName)
-Cmpi.convertPyTree2File(t, "out1.cgns")
+#Cmpi.convertPyTree2File(t, "out1.cgns")
 
-#if Cmpi.master: test.testT(t, 1)
-
-#import os
-#if Cmpi.master: os.remove('out.cgns')
+if Cmpi.master: test.testT(t, 1)

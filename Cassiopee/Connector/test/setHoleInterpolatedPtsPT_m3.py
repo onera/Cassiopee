@@ -8,7 +8,8 @@ import Converter.Filter as Filter
 import KCore.test as test
 
 LOCAL = test.getLocal()
-cellNName = "cellNA"
+rank = Cmpi.rank
+cellNName = "cellN_shock"
 
 def sphere(x,y,z):
     if x*x+y*y+z*z < 0.48**2: return 0.
@@ -37,7 +38,8 @@ t = h.loadFromProc()
 zones = Internal.getZones(t)
 Xmpi._connectMatchNGon(zones[0])
 
-Xmpi._setHoleInterpolatedPoints(t, cellNName=cellNName)
-#Cmpi.convertPyTree2File(t, "out1.cgns")
+depth = 2
+Xmpi._setHoleInterpolatedPoints(t, depth, cellNName)
+#Cmpi.convertPyTree2File(t, 'out1.cgns')
 
-if Cmpi.master: test.testT(t, 1)
+test.testT(t, 1)

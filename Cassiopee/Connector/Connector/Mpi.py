@@ -310,11 +310,34 @@ def exchangeBCMatchData(t, varList):
 # NGON, centered cellN, only depth=1 (BCField)
 # BCMatch must be set in t
 #==============================================================================
-def _setHoleInterpolatedPoints(t, cellNName="cellN"):
+def _setHoleInterpolatedPoints(t, depth=1, cellNName="cellN"):
     """Set cellN=2. around cellN=0."""
     if Cmpi.size == 1:
-        return X._setHoleInterpolatedPoints(t, depth=1, cellNName=cellNName, loc='centers')
+        return X._setHoleInterpolatedPoints(t, depth=depth, cellNName=cellNName, loc='centers')
 
+    if depth == 1:
+        _setHoleInterpolatedPoints__(t, cellNName=cellNName)
+    else: # loop
+        if depth > 0:
+            C._initVars(t, "{{{var}}}={{{tag}}}".format(var='centers:dummy', tag=f'centers:{cellNName}'))
+        else:
+            C._initVars(t, "{{{var}}}=1.-{{{tag}}}".format(var='centers:dummy', tag=f'centers:{cellNName}'))
+
+        for d in range(abs(depth)):
+            _setHoleInterpolatedPoints__(t, cellNName='dummy')
+            C._initVars(t, "{{{var}}}=({{{var}}}==1.)".format(var='centers:dummy'))
+
+        #C._initVars(t, "{tag}=1.-{{{var}}}".format(var='centers:dummy', tag=f'centers:{cellNName}'))
+        if depth > 0:
+            C._initVars(t, "{tag}=2.*{{{tag}}}-{{{var}}}".format(var='centers:dummy', tag=f'centers:{cellNName}'))
+        else:
+            C._initVars(t, "{tag}=2.-{{{tag}}}-2.*{{{var}}}".format(var='centers:dummy', tag=f'centers:{cellNName}'))
+
+        C._rmVars(t, ['centers:dummy'])
+    return None
+
+# internal function - depth=1
+def _setHoleInterpolatedPoints__(t, cellNName):
     indices, BCField = exchangeBCMatchData(t, [cellNName])
     for z in Internal.getZones(t):
         zn = z[0]
