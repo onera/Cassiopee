@@ -1512,11 +1512,19 @@ PyObject* K_CONNECTOR::getOversetHolesInterpCellCenters(PyObject* self, PyObject
       K_FLD::FldArrayI cFE;
       K_CONNECT::connectNG2FE(*cn, cFE);
       E_Int indF, indE;
+      E_Float val;
       for (E_Int i = 0; i < binds->getSize(); i++)
       {
-        indF = bindsp[i];
+        indF = bindsp[i]-1;
         indE = cFE(indF, 1)-1;
-        if (K_FUNC::fEqualZero(bfp[i]) && K_FUNC::fEqualZero(cellNp[indE] - 1.)) cellNp[indE] = 2;
+        if (indE != -1) val = cellNp[indE];
+        else
+        { indE = cFE(indF, 2)-1; val = cellNp[indE]; }
+        // because of 1./2. in bcfield
+        if (K_FUNC::fEqualZero(bfp[i] - 0.5) && K_FUNC::fEqualZero(val - 1.)) 
+        {
+          cellNp[indE] = 2.;
+        }
       }
     }
 

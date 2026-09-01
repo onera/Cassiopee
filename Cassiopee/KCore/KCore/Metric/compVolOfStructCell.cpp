@@ -33,7 +33,7 @@ void K_METRIC::compVolOfStructCell2D(
   E_Float& area
 )
 {
-  E_Int nic = K_FUNC::E_max(E_Int(1.), ni - 1);
+  E_Int nic = K_FUNC::E_max(1, ni - 1);
 
   if (indcell > -1)
   {

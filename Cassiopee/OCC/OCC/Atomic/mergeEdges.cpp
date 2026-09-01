@@ -112,7 +112,6 @@ PyObject* K_OCC::mergeEdges(PyObject* self, PyObject* args)
 
     PyObject* noEdgeO = PyList_GetItem(listEdges, 0);
     E_Int noEdge = PyInt_AsLong(noEdgeO);
-    printf("no edge=%d\n", noEdge); fflush(stdout);
     TopoDS_Edge E = TopoDS::Edge(edges(noEdge));
     TopoDS_Wire W = BRepBuilderAPI_MakeWire(E);
     
@@ -120,12 +119,9 @@ PyObject* K_OCC::mergeEdges(PyObject* self, PyObject* args)
     {
       noEdgeO = PyList_GetItem(listEdges, no);
       noEdge = PyInt_AsLong(noEdgeO);
-      printf("no edge=%d\n", noEdge); fflush(stdout);
       E = TopoDS::Edge(edges(noEdge));
       W = BRepBuilderAPI_MakeWire(W, E);
     }
-
-    printf("Getting wire\n"); fflush(stdout);
 
     /*
     BRep_Builder builder;
@@ -163,8 +159,7 @@ PyObject* K_OCC::mergeEdges(PyObject* self, PyObject* args)
     E = TopoDS::Edge(edges(noEdge));
     TopoDS_Edge WE = wireToSingleEdge(W);
     reshaper.Replace(E, WE);
-    printf("replaced edge 0 with merged wire\n"); fflush(stdout);
-
+    
     for (E_Int no = 1; no < nedges; no++)
     {
       noEdgeO = PyList_GetItem(listEdges, no);
@@ -172,8 +167,7 @@ PyObject* K_OCC::mergeEdges(PyObject* self, PyObject* args)
       E = TopoDS::Edge(edges(noEdge));
       reshaper.Remove(E);
     }
-    printf("removed edge\n"); fflush(stdout);
-
+    
     /*
     BRep_Builder builder;
     TopoDS_Compound compound;
