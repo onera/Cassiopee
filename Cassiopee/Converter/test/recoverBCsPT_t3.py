@@ -11,7 +11,7 @@ sz1 = G.cartHexa((0,0,0),(1,1,0),(5,5,1))
 sz2 = G.cartHexa((0,0,4),(1,1,1),(5,5,1))
 C._addBC2Zone(a, 'wall1', 'BCWall', subzone=sz1)
 C._addBC2Zone(a, 'wall2', 'BCWall', subzone=sz2)
-C.convertPyTree2File(a, "out.cgns")
+#C.convertPyTree2File(a, "out.cgns")
 t = Internal.copyTree(a)
 
 # --- Geometric recoverBCs ---
