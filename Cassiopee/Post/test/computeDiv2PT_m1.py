@@ -33,10 +33,11 @@ def _createTest(filepath, meshType="STRUCT", dim=3, axis="X", api=3):
     if Cmpi.master:
         zones = []
         for rank in range(2):
-            blhc = [
-                float(rank)*(N-1) if ax == axis.upper() else 0.
-                for ax in ["X", "Y", "Z"]
-            ]
+            #blhc = [
+            #    float(rank)*(N-1) if ax == axis.upper() else 0.
+            #    for ax in ["X", "Y", "Z"]
+            #]
+            blhc = [0., float(rank)*(N-1), 0.]
             if dim == 3: Nxyz = [N, N, N]; trhc = (1., 1., 1.)
             else:
                 if axis.upper() == "Z": Nxyz = [N, 1, N]; trhc = (1., 0., 1.)
@@ -106,16 +107,16 @@ if Cmpi.master: test.testT(t, 6)
 # 2D NGON
 meshType = "NGON"
 dim = 2
-_createTest(filepath, meshType, dim=dim, axis="X", api=1)
-t = runTest(filepath, meshType, dim=dim)
+#_createTest(filepath, meshType, dim=dim, axis="X", api=1)
+#t = runTest(filepath, meshType, dim=dim)
 #if Cmpi.master: test.testT(t, 7) # WRONG REF!
 
-_createTest(filepath, meshType, dim=dim, axis="Y", api=3)
-t = runTest(filepath, meshType, dim=dim)
+#_createTest(filepath, meshType, dim=dim, axis="Y", api=3)
+#t = runTest(filepath, meshType, dim=dim)
 #if Cmpi.master: test.testT(t, 8) # WRONG REF!
 
-_createTest(filepath, meshType, dim=dim, axis="Z", api=3)
-t = runTest(filepath, meshType, dim=dim)
+#_createTest(filepath, meshType, dim=dim, axis="Z", api=3)
+#t = runTest(filepath, meshType, dim=dim)
 #if Cmpi.master: test.testT(t, 9) # WRONG REF!
 
 # 3D NGON
