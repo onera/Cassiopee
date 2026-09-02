@@ -25,164 +25,151 @@
 
 using namespace K_FUNC;
 using namespace K_FLD;
-using namespace std;
 
 //=============================================================================
 // IN: (xt, yt, zt): pointeurs sur les coordonnees du maillage
 // IN: cnp: pointeur sur la connectivite NGon
-// IN: cFE: optionnel. Si present, on oriente les surfaces a l'exterieur de ig
+// IN: cFE: optionnel. Si present, on oriente les surfaces a l'exterieur de indg
 // OUT: sxp, syp, szp, snp: surface orientee calculee pour les faces et 
 // norme associee (deja alloue)
 // Return 0 (OK), 1 (Failed)
 //=============================================================================
 E_Int K_METRIC::compNGonFacesSurf(
   const E_Float* xt, const E_Float* yt, const E_Float* zt,
-  FldArrayI& cn,
-  E_Float* sxp, E_Float* syp, E_Float* szp, E_Float* snp,
-  FldArrayI* cFE)
+  FldArrayI& cn, E_Float* sxp, E_Float* syp, E_Float* szp, E_Float* snp,
+  FldArrayI* cFE
+)
 {
-  // Donnees liees a la connectivite - Acces non universel sur le ptrs
   E_Int* ngon = cn.getNGon();
   E_Int* indPG = cn.getIndPG();
-  // Donnees liees a la connectivite
-  E_Int nfaces = cn.getNFaces(); // nombre total de faces
-  E_Int nelts = cn.getNElts();
-  E_Int ierr = 0; // error index
+  E_Int nfaces = cn.getNFaces();
+  E_Int dim = cn.getDim();
 
-  vector< vector<E_Int> > cnEV;
+  if (dim < 2) return 1;  // only 2D and 3D cases are supported
   
-  if (cFE != NULL)
-  {
-    cnEV.resize(nelts);
-    K_CONNECT::connectNG2EV(cn, cnEV);
-  }
-  
-#pragma omp parallel
+  #pragma omp parallel
   {
     E_Float xbf, ybf, zbf; // coordonnees du barycentre d'une face
     E_Float surfnx, surfny, surfnz; // normale a la surface d un triangle 
     E_Float l1x, l1y, l1z, l2x, l2y, l2z; // delta de coordonnees de noeuds
     E_Float inv;
-    E_Int nvertices, ind1, ind2, ind, dim;
+    E_Int nv, ind1, ind2, ind, kp;
 
     // parcours des faces
-#pragma omp for
-    for (E_Int fa = 0; fa < nfaces; fa++)
+    if (dim == 2)
     {
-      // Acces universel face fa
-      E_Int* face = cn.getFace(fa, nvertices, ngon, indPG);
-      dim = K_FUNC::E_min(nvertices,3);
-    
-      if (dim == 1)
+      #pragma omp for
+      for (E_Int f = 0; f < nfaces; f++)
       {
-        ierr = 1;
-      }
-      else if (dim == 2) // surface = longueur
-      {
+        E_Int* face = cn.getFace(f, nv, ngon, indPG);
         ind1 = face[0]-1; ind2 = face[1]-1;
-        l1x = xt[ind2]-xt[ind1];
-        l1y = yt[ind2]-yt[ind1];
-        l1z = zt[ind2]-zt[ind1];
-        sxp[fa] = l1x;
-        syp[fa] = l1y;
-        szp[fa] = l1z;
-        snp[fa] = sqrt(l1x*l1x+l1y*l1y+l1z*l1z);
+        l1x = xt[ind2] - xt[ind1];
+        l1y = yt[ind2] - yt[ind1];
+        l1z = zt[ind2] - zt[ind1];
+        sxp[f] = -l1y;
+        syp[f] = l1x;
+        szp[f] = 0;
+        snp[f] = std::sqrt(l1x*l1x+l1y*l1y+l1z*l1z);
       }
-      else // 3D: surface d'un NGON 2D
+    }
+    else  // 3D: surface d'un NGON 2D
+    {
+      #pragma omp for
+      for (E_Int f = 0; f < nfaces; f++)
       {
-        sxp[fa] = 0.; syp[fa] = 0.; szp[fa] = 0.; snp[fa] = 0.;
-        xbf = 0.; ybf = 0.; zbf = 0.;
+        E_Int* face = cn.getFace(f, nv, ngon, indPG);
+
         // calcul du barycentre de la face
-        for (E_Int nv = 0; nv < nvertices; nv++)
+        xbf = 0.; ybf = 0.; zbf = 0.;
+        for (E_Int k = 0; k < nv; k++)
         {
-          ind = face[nv]-1;
+          ind = face[k]-1;
           xbf += xt[ind]; ybf += yt[ind]; zbf += zt[ind];
         }
-        inv = 1./nvertices;
-        xbf = xbf*inv; ybf = ybf*inv; zbf = zbf*inv;
+        inv = 1./nv;
+        xbf *= inv; ybf *= inv; zbf *= inv;
       
         // parcours des noeuds de la face
-        for (E_Int nv = 0; nv < nvertices-1; nv++)
+        sxp[f] = 0.; syp[f] = 0.; szp[f] = 0.; snp[f] = 0.;
+        for (E_Int k = 0; k < nv; k++)
         {
-          ind1 = face[nv]-1; ind2 = face[nv+1]-1;
-          //printf("face %d : %d %d\n", fa,ind1,ind2);
-          // calcul de la normale au triangle (nv, nv+1, bf)
-          l1x = xt[ind2]-xt[ind1]; l1y = yt[ind2]-yt[ind1]; l1z = zt[ind2]-zt[ind1];
-          l2x = xt[ind2]-xbf; l2y = yt[ind2]-ybf; l2z = zt[ind2]-zbf;
-          surfnx = l1y*l2z-l1z*l2y;
-          surfny = l1z*l2x-l1x*l2z;
-          surfnz = l1x*l2y-l1y*l2x;
-          sxp[fa] += surfnx; syp[fa] += surfny; szp[fa] += surfnz;
+          if (k == nv-1) kp = 0;
+          else kp = k+1;
+          ind1 = face[k]-1; ind2 = face[kp]-1;
+          // calcul de la normale au triangle (k, k+1, bf)
+          l1x = xt[ind2] - xt[ind1];
+          l1y = yt[ind2] - yt[ind1];
+          l1z = zt[ind2] - zt[ind1];
+          l2x = xt[ind2] - xbf; l2y = yt[ind2] - ybf; l2z = zt[ind2] - zbf;
+          surfnx = l1y*l2z - l1z*l2y;
+          surfny = l1z*l2x - l1x*l2z;
+          surfnz = l1x*l2y - l1y*l2x;
+          sxp[f] += surfnx; syp[f] += surfny; szp[f] += surfnz;
         }
-        // le dernier et le premier pour boucler
-        ind1 = face[nvertices-1]-1; ind2 = face[0]-1;
-        //printf("facef %d : %d %d\n", fa,ind1,ind2);
-        l1x = xt[ind2]-xt[ind1]; l1y = yt[ind2]-yt[ind1]; l1z = zt[ind2]-zt[ind1];
-        l2x = xt[ind2]-xbf; l2y = yt[ind2]-ybf; l2z = zt[ind2]-zbf;
-        surfnx = l1y*l2z-l1z*l2y;
-        surfny = l1z*l2x-l1x*l2z;
-        surfnz = l1x*l2y-l1y*l2x;
-        sxp[fa] += surfnx; syp[fa] += surfny; szp[fa] += surfnz;
-        sxp[fa] = 0.5*sxp[fa]; syp[fa] = 0.5*syp[fa]; szp[fa] = 0.5*szp[fa];
-        // norme
-        snp[fa] = sqrt(sxp[fa]*sxp[fa]+syp[fa]*syp[fa]+szp[fa]*szp[fa]);
+        sxp[f] *= 0.5; syp[f] *= 0.5; szp[f] *= 0.5;
+        // norm
+        snp[f] = sqrt(sxp[f]*sxp[f] + syp[f]*syp[f] + szp[f]*szp[f]);
       }
-    } 
-    if (cFE != NULL)
+    }
+  }
+
+  // si cFE est present, on oriente les normales a l'exterieur de indg
+  if (dim == 3 && cFE != NULL)
+  {
+    E_Int nelts = cn.getNElts();
+    std::vector<std::vector<E_Int> > cnEV(nelts);
+    K_CONNECT::connectNG2EV(cn, cnEV);
+
+    E_Int* cFE1 = cFE->begin(1);
+    E_Int* cFE2 = cFE->begin(2);
+
+    #pragma omp parallel
     {
-      E_Int nbNodes;
-      E_Int* cFE1 = cFE->begin(1);
-      E_Int* cFE2 = cFE->begin(2);
-      // si cFE est present, on oriente les normales a l'exterieur de ig
-      
-#pragma omp for
-      for (E_Int fa = 0; fa < nfaces; fa++)
+      E_Int ind, indg, indd, nbNodes, nv;
+      E_Float xbe, ybe, zbe, sign, inv, scal;
+      E_Float xbf, ybf, zbf;  // coordonnees du barycentre d'une face
+
+      #pragma omp for
+      for (E_Int f = 0; f < nfaces; f++)
       {
-        // Acces universel face fa
-        E_Int* face = cn.getFace(fa, nvertices, ngon, indPG);
-        E_Float xbe, ybe, zbe;
-        dim = K_FUNC::E_min(nvertices,3);
-        
-        if (dim != 1 && dim != 2) // 3D
+        // elements gauche et droit de la face
+        indg = cFE1[f];
+        indd = cFE2[f];
+        if (indg > 0) { ind = indg-1; sign = -1.; }
+        else { ind = indd-1; sign = +1.; }
+
+        // calcul du barycentre de l element
+        const std::vector<E_Int>& vertices = cnEV[ind];
+        nbNodes = vertices.size();
+        xbe = 0.; ybe = 0.; zbe = 0.;
+        for (E_Int k = 0; k < nbNodes; k++)
         {
-          // elements gauche et droit de la face
-          E_Int ig = cFE1[fa];
-          E_Int id = cFE2[fa];
-          if ((ig == 0) && (id == 0)){continue;}	      
-          E_Int icell; E_Float isign;
-          if (ig != 0) { icell = ig-1; isign = -1.; }
-          else { icell = id-1; isign = +1.; }
-          // Barycenter of cell
-          const vector<E_Int>& vertices = cnEV[icell];
-          nbNodes = vertices.size();
-          xbe = 0.; ybe = 0.; zbe = 0.;
-          for (E_Int n = 0; n < nbNodes; n++)
-          {
-            ind = vertices[n]-1;
-            xbe += xt[ind]; ybe += yt[ind]; zbe += zt[ind];
-          }
-          inv = 1./nbNodes;
-          xbe = xbe*inv; ybe = ybe*inv; zbe = zbe*inv;
-          xbf = 0.; ybf = 0.; zbf = 0.;
-          // calcul du barycentre de la face
-          for (E_Int nv = 0; nv < nvertices; nv++)
-          {
-            ind = face[nv]-1;
-            xbf += xt[ind]; ybf += yt[ind]; zbf += zt[ind];
-          }
-          inv = 1./nvertices;
-          xbf = xbf*inv; ybf = ybf*inv; zbf = zbf*inv;
-          // Orientation de la face suivant le produit scalaire xbf-xbe
-          E_Float scal = (xbe-xbf)*sxp[fa]+(ybe-ybf)*syp[fa]+(zbe-zbf)*szp[fa];
-          if (scal*isign < 0) 
-          { sxp[fa] = -sxp[fa]; syp[fa] = -syp[fa]; szp[fa] = -szp[fa]; }
-          //printf("face %d (%f %f %f) -> %d %d\n", fa, xbf,ybf,zbf,ig,id);
-          //printf("sxyz %f %f %f\n", sxp[fa],syp[fa],szp[fa]);
-          //printf("snorm %f\n", snp[fa]);
+          ind = vertices[k]-1;
+          xbe += xt[ind]; ybe += yt[ind]; zbe += zt[ind];
+        }
+        inv = 1./nbNodes;
+        xbe *= inv; ybe *= inv; zbe *= inv;
+
+        // calcul du barycentre de la face
+        xbf = 0.; ybf = 0.; zbf = 0.;
+        E_Int* face = cn.getFace(f, nv, ngon, indPG);
+        for (E_Int k = 0; k < nv; k++)
+        {
+          ind = face[k]-1;
+          xbf += xt[ind]; ybf += yt[ind]; zbf += zt[ind];
+        }
+        inv = 1./nv;
+        xbf *= inv; ybf *= inv; zbf *= inv;
+
+        // Orientation de la face suivant le produit scalaire xbf-xbe
+        scal = (xbe-xbf)*sxp[f] + (ybe-ybf)*syp[f] + (zbe-zbf)*szp[f];
+        if (scal*sign < 0) 
+        {
+          sxp[f] = -sxp[f]; syp[f] = -syp[f]; szp[f] = -szp[f];
         }
       }
     }
   }
-  
-  return ierr;
+
+  return 0;
 }
