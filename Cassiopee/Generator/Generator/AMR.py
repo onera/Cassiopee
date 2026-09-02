@@ -305,7 +305,8 @@ def _autoRemeshGeom__(tb):
         fixedConstraints = P.exteriorFaces(z)
         fixedConstraints = T.splitConnexity(fixedConstraints)
         z = G.mmgs(z, hausd=hausd, hmax=hmax, fixedConstraints=fixedConstraints)
-        baseLocal[2] = z
+        baseLocal[2] = [z]
+    return None
 
 def generateListOfOffsets__(tb, snears, offsetValues=[], dim=3, opt=False, nboxes=0, tbv2=None, blankCellsAlgo='xray'):
     import Geom.IBM as D_IBM
