@@ -170,7 +170,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             XRAYDIM1 = int(L1/hminGlobal) + 10;
             XRAYDIM1 = max(1500, min(15000, XRAYDIM1)) #x3
             bodies = [Internal.getBases(tb2_pre)]; nbodies = len(Internal.getBases(tb2_pre))
-            BM = numpy.ones((1, nbodies), dtype=numpy.int32)
+            BM = numpy.ones((1, nbodies), dtype=Internal.E_NpyInt)
             zbcTemp = C.newPyTree(["BASE", Internal.getZones(zbc)])
             zbcTemp = X.blankCells(zbcTemp, bodies, BM, blankingType='center_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1)
             maxBlankVal = C.getMaxValue(zbcTemp, 'centers:cellN')
