@@ -105,15 +105,15 @@ meshType = "NGON"
 dim = 2
 _createTest(filepath, meshType, dim=dim, axis="X", api=1)
 t = runTest(filepath, meshType, dim=dim)
-#if Cmpi.master: test.testT(t, 7) # WRONG REF!
+if Cmpi.master: test.testT(t, 7)
 
 _createTest(filepath, meshType, dim=dim, axis="Y", api=3)
 t = runTest(filepath, meshType, dim=dim)
-#if Cmpi.master: test.testT(t, 8) # WRONG REF!
+if Cmpi.master: test.testT(t, 8)
 
 _createTest(filepath, meshType, dim=dim, axis="Z", api=3)
 t = runTest(filepath, meshType, dim=dim)
-#if Cmpi.master: test.testT(t, 9) # WRONG REF!
+if Cmpi.master: test.testT(t, 9)
 
 # 3D NGON
 meshType = "NGON"
