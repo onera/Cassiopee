@@ -61,8 +61,8 @@ def runTest(filepath, meshType="STRUCT", dim=3):
         t = h.loadFromProc()
         t = Xmpi.connectMatch(t, dim=dim)
         Pmpi._computeGrad2(t, var='centers:Density')
-    Cmpi.convertPyTree2File(t, filepath)
-    #if Cmpi.master: os.remove(filepath)
+    #Cmpi.convertPyTree2File(t, filepath)
+    if Cmpi.master: os.remove(filepath)
     Cmpi.barrier()
     return t
 
@@ -106,7 +106,6 @@ dim = 2
 _createTest(filepath, meshType, dim=dim, axis="X", api=1)
 t = runTest(filepath, meshType, dim=dim)
 #if Cmpi.master: test.testT(t, 7) # WRONG REF!
-exit()
 
 _createTest(filepath, meshType, dim=dim, axis="Y", api=3)
 t = runTest(filepath, meshType, dim=dim)
