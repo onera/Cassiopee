@@ -1762,7 +1762,7 @@ def _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
         else: # passage ghost cells
             cellN = C.getField(varcelln, z, api=3)[0]
             if cellN != []:
-                Connector._setHoleInterpolatedPoints(cellN,depth=depth, dir=dir, cellNName=cellNName)
+                Connector._setHoleInterpolatedPoints(cellN, depth=depth, dir=dir, cellNName=cellNName)
     return None
 
 def _setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers',

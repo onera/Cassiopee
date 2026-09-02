@@ -6,7 +6,7 @@ import Converter.Internal as Internal
 import Converter.PyTree as C
 import KCore.Vector as Vector
 import numpy
-import XCore.PyTree as X
+import XCore.PyTree as XC
 import Generator.PyTree as G
 
 #==============================================================================
@@ -33,7 +33,7 @@ def computeGradLSQ(t, fldNames):
 
     # exchange fields and cell centers
     allFldNames = fldNames + ['CCx', 'CCy', 'CCz']
-    rfields = X.exchangeFields(t, allFldNames)
+    rfields = XC.exchangeFields(t, allFldNames)
 
     # get comm list
     zgc = Internal.getNodeFromType1(zone, 'ZoneGridConnectivity_t')

@@ -45,7 +45,6 @@ def getFaceOverlap(hook, tol=1.e-12, byOCAFLabels=True):
     bb = {}
     for i in range(nbFaces):
         bb[i] = OCC.getBoundingBox(hook, [i+1])
-
     # check face overlap
     intersectings = []; overlaps = []
     if byOCAFLabels: # by OCAF Label components
@@ -83,9 +82,9 @@ def getFaceOverlap(hook, tol=1.e-12, byOCAFLabels=True):
                         overlaps.append( (i+1,j+1) )
     else: # for all faces in one go
         for i in range(nbFaces):
-            bb1 = bb[i+1]
+            bb1 = bb[i]
             for j in range(i+1, nbFaces):
-                bb2 = bb[j+1]
+                bb2 = bb[j]
                 if bb1[3] < bb2[0] or bb1[0] > bb2[3]: continue
                 if bb1[4] < bb2[1] or bb1[1] > bb2[4]: continue
                 if bb1[5] < bb2[2] or bb1[2] > bb2[5]: continue
@@ -177,7 +176,14 @@ def checkCAD(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
     # check for face overlap
     #=======================
     print("INFO: checking face overlap...", flush=True)
-    overlaps, intersectings = getFaceOverlap(hook, tol=tol, byOCAFLabels=byOCAFLabels)
+    try:
+        overlaps, intersectings = getFaceOverlap(hook, tol=tol, byOCAFLabels=byOCAFLabels)
+    except:
+        if byOCAFLabels:
+            print("Warning: OCAF may be incoherent. byOCAFLabels deactivated.")
+            byOCAFLabels = False
+            overlaps, intersectings = getFaceOverlap(hook, tol=tol, byOCAFLabels=byOCAFLabels)
+
     if len(intersectings) == 0 and len(overlaps) == 0:
         print("INFO: NONE.")
         score += 1
