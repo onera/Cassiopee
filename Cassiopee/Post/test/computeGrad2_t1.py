@@ -56,9 +56,6 @@ mc = C.node2Center(m)
 mc = C.initVars(mc, '{Density}=3*{x}+2*{y}+{z}')
 mc = C.extractVars(mc, ['Density'])
 mc = P.computeGrad2(m, mc)
-import Converter.PyTree as Co
-z = Co.convertArrays2ZoneNode('Zone', [m, mc])
-Co.convertPyTree2File(z, "outx.cgns")
 test.testA([mc], 32)
 
 ni = 10; nj = 1; nk = 30
