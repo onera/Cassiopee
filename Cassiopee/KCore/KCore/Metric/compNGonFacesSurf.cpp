@@ -40,40 +40,119 @@ E_Int K_METRIC::compNGonFacesSurf(
   FldArrayI* cFE
 )
 {
+  E_Int dim = cn.getDim();
+  if (dim < 2) return 1;  // only 2D and 3D cases are supported
+
   E_Int* ngon = cn.getNGon();
   E_Int* indPG = cn.getIndPG();
+  E_Int nelts = cn.getNElts();
   E_Int nfaces = cn.getNFaces();
-  E_Int dim = cn.getDim();
 
-  if (dim < 2) return 1;  // only 2D and 3D cases are supported
-  
-  #pragma omp parallel
+  E_Int* cFE1 = NULL; E_Int* cFE2 = NULL; 
+  if (cFE != NULL) { cFE1 = cFE->begin(1); cFE2 = cFE->begin(2); }
+
+  if (dim == 2)
   {
-    E_Float xbf, ybf, zbf; // coordonnees du barycentre d'une face
-    E_Float surfnx, surfny, surfnz; // normale a la surface d un triangle 
-    E_Float l1x, l1y, l1z, l2x, l2y, l2z; // delta de coordonnees de noeuds
-    E_Float inv;
-    E_Int nv, ind1, ind2, ind, kp;
-
-    // parcours des faces
-    if (dim == 2)
+    if (cFE == NULL)
     {
-      #pragma omp for
-      for (E_Int f = 0; f < nfaces; f++)
+      // It is assumed that the axis is Z
+      #pragma omp parallel
       {
-        E_Int* face = cn.getFace(f, nv, ngon, indPG);
-        ind1 = face[0]-1; ind2 = face[1]-1;
-        l1x = xt[ind2] - xt[ind1];
-        l1y = yt[ind2] - yt[ind1];
-        l1z = zt[ind2] - zt[ind1];
-        sxp[f] = -l1y;
-        syp[f] = l1x;
-        szp[f] = 0;
-        snp[f] = std::sqrt(l1x*l1x+l1y*l1y+l1z*l1z);
+        E_Int nv, ind1, ind2;
+        E_Float l1x, l1y, l1z;
+
+        #pragma omp for
+        for (E_Int f = 0; f < nfaces; f++)
+        {
+          E_Int* face = cn.getFace(f, nv, ngon, indPG);
+          ind1 = face[0]-1; ind2 = face[1]-1;
+          l1x = xt[ind2] - xt[ind1];
+          l1y = yt[ind2] - yt[ind1];
+          l1z = zt[ind2] - zt[ind1];
+
+          sxp[f] = l1y;
+          syp[f] = -l1x;
+          szp[f] = 0.;
+          snp[f] = sqrt(l1x*l1x + l1y*l1y + l1z*l1z);
+        }
       }
     }
-    else  // 3D: surface d'un NGON 2D
+    else
     {
+      std::vector<E_Float> axisx(nelts), axisy(nelts), axisz(nelts);
+      E_Int* nface = cn.getNFace();
+      E_Int* indPH = cn.getIndPH();
+
+      #pragma omp parallel
+      {
+        E_Int nf, fid, nv, ind1, ind2, ind, indg, indd;
+        E_Float e1x, e1y, e1z, l1x, l1y, l1z, cx, cy, cz, nrm;
+        E_Bool edge1;
+
+        // Compute face unit normals using the first two non-colinear edges
+        #pragma omp for
+        for (E_Int i = 0; i < nelts; i++)
+        {
+          E_Int* elt = cn.getElt(i, nf, nface, indPH);
+          e1x = 0., e1y = 0., e1z = 0.;
+          edge1 = false;
+
+          for (E_Int j = 0; j < nf; j++)
+          {
+            fid = elt[j]-1;
+            E_Int* face = cn.getFace(fid, nv, ngon, indPG);
+            ind1 = face[0]-1; ind2 = face[1]-1;
+            l1x = xt[ind2] - xt[ind1];
+            l1y = yt[ind2] - yt[ind1];
+            l1z = zt[ind2] - zt[ind1];
+
+            if (!edge1) { e1x = l1x; e1y = l1y; e1z = l1z; edge1 = true; }
+            else
+            {
+              cx = e1y*l1z - e1z*l1y;
+              cy = e1z*l1x - e1x*l1z;
+              cz = e1x*l1y - e1y*l1x;
+              nrm = sqrt(cx*cx + cy*cy + cz*cz);
+              if (nrm > 1.e-12)
+              {
+                axisx[i] = cx/nrm; axisy[i] = cy/nrm; axisz[i] = cz/nrm;
+                break;
+              }
+            }
+          }
+        }
+
+        #pragma omp for
+        for (E_Int f = 0; f < nfaces; f++)
+        {
+          E_Int* face = cn.getFace(f, nv, ngon, indPG);
+          ind1 = face[0]-1; ind2 = face[1]-1;
+          l1x = xt[ind2] - xt[ind1];
+          l1y = yt[ind2] - yt[ind1];
+          l1z = zt[ind2] - zt[ind1];
+
+          indg = cFE1[f]; indd = cFE2[f];
+          if (indg > 0) ind = indg-1;
+          else ind = indd-1;
+
+          sxp[f] = l1y*axisz[ind] - l1z*axisy[ind];
+          syp[f] = l1z*axisx[ind] - l1x*axisz[ind];
+          szp[f] = l1x*axisy[ind] - l1y*axisx[ind];
+          snp[f] = sqrt(l1x*l1x + l1y*l1y + l1z*l1z);
+        }
+      }
+    }
+  }
+  else  // dim == 3
+  {
+    #pragma omp parallel
+    {
+      E_Float xbf, ybf, zbf; // coordonnees du barycentre d'une face
+      E_Float surfnx, surfny, surfnz; // normale a la surface d un triangle 
+      E_Float l1x, l1y, l1z, l2x, l2y, l2z; // delta de coordonnees de noeuds
+      E_Float inv;
+      E_Int nv, ind1, ind2, ind, kp;
+
       #pragma omp for
       for (E_Int f = 0; f < nfaces; f++)
       {
@@ -114,14 +193,10 @@ E_Int K_METRIC::compNGonFacesSurf(
   }
 
   // si cFE est present, on oriente les normales a l'exterieur de indg
-  if (dim == 3 && cFE != NULL)
+  if (cFE != NULL)
   {
-    E_Int nelts = cn.getNElts();
     std::vector<std::vector<E_Int> > cnEV(nelts);
     K_CONNECT::connectNG2EV(cn, cnEV);
-
-    E_Int* cFE1 = cFE->begin(1);
-    E_Int* cFE2 = cFE->begin(2);
 
     #pragma omp parallel
     {
