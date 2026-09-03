@@ -96,4 +96,3 @@ ber += offset
 Internal._updateElementRange(t)
 test.testT(t, 4)
 #C.convertPyTree2File(t, "out4.cgns")
-
