@@ -81,7 +81,14 @@ namespace
             {
                 // On n'a pas trouvé de domaine adéquat. Le point est sans doute au bord d'un bloc extérieur.
                 // On va perturbé le point initial pour trouvé une cellule :
-                for ( vector3d perturb : std::array<vector3d,6>{ vector3d{1.E-6,0.,0.}, vector3d{-1.E-6,0.,0.},
+                for ( vector3d perturb : std::array<vector3d,18>{
+                                                                 vector3d{1.E-12,0.,0.}, vector3d{-1.E-12,0.,0.},
+                                                                 vector3d{0.,1.E-12,0.}, vector3d{0.,-1.E-12,0.},
+                                                                 vector3d{0.,0.,1.E-12}, vector3d{0.,0.,-1.E-12},
+                                                                 vector3d{1.E-8,0.,0.}, vector3d{-1.E-8,0.,0.},
+                                                                 vector3d{0.,1.E-8,0.}, vector3d{0.,-1.E-8,0.},
+                                                                 vector3d{0.,0.,1.E-8}, vector3d{0.,0.,-1.E-8},
+                                                                 vector3d{1.E-6,0.,0.}, vector3d{-1.E-6,0.,0.},
                                                                  vector3d{0.,1.E-6,0.}, vector3d{0.,-1.E-6,0.},
                                                                  vector3d{0.,0.,1.E-6}, vector3d{0.,0.,-1.E-6}} )
                 {
