@@ -151,6 +151,7 @@ List of functions
     Converter.PyTree.mergeConnectivity
     Converter.PyTree.mergeByEltType
     Converter.PyTree.sliceNGonFaces
+    Converter.PyTree.deleteEmptyBases
     Converter.PyTree.deleteEmptyZones
     Converter.PyTree.addState
     Converter.PyTree.addChimera2Base
@@ -440,7 +441,7 @@ pyTree creation and manipulation
     Add a base named 'baseName' to a pyTree. Third argument specifies the cell 
     dimension (cellDim=3 for volume meshes, cellDim=2 for surface meshes).
 
-    Exists also as in place version (_addBase2PyTree) that modifies a and 
+    Also available as an in-place version (_addBase2PyTree) that modifies a and 
     returns None.
 
     :param a: pyTree
@@ -574,12 +575,31 @@ pyTree creation and manipulation
 
 ---------------------------------------------------------------------------
 
+.. py:function:: Converter.PyTree.deleteEmptyBases(a)
+
+    Delete bases that do not contain a single zone.
+
+    Also available as an in-place version (_deleteEmptyBases) that modifies a and 
+    returns None.
+
+    :param a: Input data 
+    :type a: [pyTree]
+    :rtype: Identical to input
+
+    *Example of use:*
+
+    * `Delete empty bases (pyTree) <Examples/Converter/deleteEmptyBasesPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/deleteEmptyBasesPT.py
+
+---------------------------------------------------------------------------
+
 .. py:function:: Converter.PyTree.deleteEmptyZones(a)
 
     Delete structured zones with a null ni, nj or nk, delete unstructured 
     zones with a null number of nodes or elements.
 
-    Exists also as in place version (_deleteEmptyZones) that modifies a and 
+    Also available as an in-place version (_deleteEmptyZones) that modifies a and 
     returns None.
 
     :param a: Input data 
@@ -598,7 +618,7 @@ pyTree creation and manipulation
 
     Add a FlowEquation or a ReferenceState data.
 
-    Exists also as in place version (_addState) that modifies a and 
+    Also available as an in-place version (_addState) that modifies a and 
     returns None.
 
     :param a: Input data
@@ -614,7 +634,7 @@ pyTree creation and manipulation
 
     Add a full reference state built from Adim. See Initiator documentation.
 
-    Exists also as in place version (_addState) that modifies a and 
+    Also available as an in-place version (_addState) that modifies a and 
     returns None.
 
     :param a: Input data
@@ -650,7 +670,7 @@ pyTree creation and manipulation
     components. '+' means union, '-' means difference, '0' means inactive,
     'N': means neutral.
 
-    Exists also as in place version (_addChimera2Base) that modifies base and 
+    Also available as an in-place version (_addChimera2Base) that modifies base and 
     returns None.
 
 
@@ -673,7 +693,7 @@ pyTree creation and manipulation
 .. py:function:: Converter.PyTree.addBC2Zone(a, bndName, bndType, wrange=[], zoneDonor=[], rangeDonor=[], trirac=[1,2,3], rotationCenter=[], rotationAngle=[], translation=[], faceList=[], elementList=[], elementRange=[], data=None, subzone=None, faceListDonor=None, elementListDonor=None, elementRangeDonor=None, tol=1.e-12, unitAngle=None)
 
     Add a physical boundary condition (BC) or a grid connectivity (GC) to a structured/basic element/NGON zone of a PyTree. Parameter bndName is the 
-    name of the BC or GC. Exists also as in place version (_addBC2Zone) modifying zone and returning None.
+    name of the BC or GC. Also available as an in-place version (_addBC2Zone) modifying zone and returning None.
 
     :param a: zone in which the BC/GC is defined
     :type a: CGNS zone node
@@ -763,7 +783,7 @@ pyTree creation and manipulation
     Fill empty boundary conditions of grids with the 
     given boundary condition. Parameter dim can be 2 or 3.
 
-    Exists also as in place version (_fillEmptyBCWith) that modifies a and 
+    Also available as an in-place version (_fillEmptyBCWith) that modifies a and 
     returns None.
 
     :param a: input data 
@@ -791,7 +811,7 @@ pyTree creation and manipulation
     BC name. In this case, to remove a family named 'myFamily', you
     must set bndType to 'FamilySpecified:myFamily'.
 
-    Exists also as in place version (_rmBCOfType) that modifies a and 
+    Also available as an in-place version (_rmBCOfType) that modifies a and 
     returns None.
 
     :param a: input data 
@@ -816,7 +836,7 @@ pyTree creation and manipulation
     BC name. In this case, to remove a family named 'myFamily', you
     must set bndName to 'FamilySpecified:myFamily'.
 
-    Exists also as in place version (_rmBCOfName) that modifies a and 
+    Also available as an in-place version (_rmBCOfName) that modifies a and 
     returns None.
 
     :param a: input data 
@@ -840,7 +860,7 @@ pyTree creation and manipulation
     a can be tree, zone or list of zones. 
     varName can be single variable name or a list of variable name.
 
-    Exists also as in place version (_rmBCDataVars) that modifies a and 
+    Also available as an in-place version (_rmBCDataVars) that modifies a and 
     returns None.
 
     :param a: input data 
@@ -972,7 +992,7 @@ pyTree creation and manipulation
 
     Recover given BCs onto a NGon tree. BCs are given by a tuple of geometries, names and types has obtained
     by getBCs.
-    Exists also as in place version (_recoverBCs) that modifies t and returns None.
+    Also available as an in-place version (_recoverBCs) that modifies t and returns None.
 
     :param t: input NGon data
     :type t: [pyTree, base, zone, list of zones]
@@ -1038,7 +1058,7 @@ pyTree creation and manipulation
     with a CGNS BC type or with 'UserDefined'.
     This family name can then be referenced in zones or in boundary conditions.
 
-    Exists also as in place version (_addFamily2Base) that modifies a and 
+    Also available as an in-place version (_addFamily2Base) that modifies a and 
     returns None.
 
     :param a: input data 
@@ -1063,7 +1083,7 @@ pyTree creation and manipulation
     If add=True and a family already exists, the family is
     added as a AdditionalFamilyName.
 
-    Exists also as in place version (_tagWithFamily) that modifies a and 
+    Also available as an in-place version (_tagWithFamily) that modifies a and 
     returns None.
 
     :param a: input data 
@@ -1194,7 +1214,7 @@ pyTree creation and manipulation
     a list of numpys in I (one numpy for each zone), 
     loc can be 'nodes' or 'centers'.
 
-    Exists also as in place version (_setPartialFields) that modifies a 
+    Also available as an in-place version (_setPartialFields) that modifies a 
     and returns None.
     
     :param a: input data
@@ -1248,7 +1268,7 @@ pyTree creation and manipulation
     Add missing variables and reorder variables for all zones, such that 
     all zones have the same variables at the end.
 
-    Exists also as in place version (_fillMissingVariables) that modifies a 
+    Also available as an in-place version (_fillMissingVariables) that modifies a 
     and returns None.
 
     :param a: input data
@@ -1268,7 +1288,7 @@ pyTree creation and manipulation
     Copy a variable from zone a1, with name var1, to zone a2, with name var2. 
     The var location must be coherent. a1 and a2 can be identical.
 
-    Exists also as in place version (_cpVars) that modifies a2 
+    Also available as an in-place version (_cpVars) that modifies a2 
     and returns None.
 
     :param a1: input zone 1
@@ -1401,7 +1421,7 @@ Array / PyTree common manipulations
 
     If the function is vectorized (can be interpreted as a numpy formula), set isVectorized to True.
 
-    Exists also as in place version (_initVars) that modifies a and returns None.
+    Also available as an in-place version (_initVars) that modifies a and returns None.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
@@ -1509,7 +1529,7 @@ Array / PyTree common manipulations
 
     Remove variable(s) from a. varNames is a string name or a list of string names.
 
-    Exists also as in place version (_rmVars) that modifies a and returns None.
+    Also available as an in-place version (_rmVars) that modifies a and returns None.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
@@ -1819,7 +1839,7 @@ Array / PyTree common manipulations
     If fillCorner=1, edges and corners are filled 
     according to the grid connectivity (geometrically, the corners and edges can be wrong).
     If fillCorner=0, neighbouring vectors are extrapolated to build edge cells, no filling with flow field.
-    Exists also as in place version (_addGhostCells) that modifies a and returns None.
+    Also available as an in-place version (_addGhostCells) that modifies a and returns None.
 
     :param t: top tree
     :type t: pyTree
@@ -1847,7 +1867,7 @@ Array / PyTree common manipulations
 
     Remove ghost cells to structured grids. See addGhostCells.
 
-    Exists also as in place version (_rmGhostCells) that modifies a and returns None.
+    Also available as an in-place version (_rmGhostCells) that modifies a and returns None.
 
     :param t: top tree
     :type t: pyTree
@@ -1873,7 +1893,7 @@ Array / PyTree common manipulations
 
     For NGON zones, sign the NFACE connectivity with cell external normals.
 
-    Exists also as in place version (_signNGonFaces) that modifies t and returns None.
+    Also available as an in-place version (_signNGonFaces) that modifies t and returns None.
 
     :param t: tree
     :type t: pyTree
@@ -1893,7 +1913,7 @@ Array / PyTree common manipulations
 
     For NGON zones, unsign the NFACE connectivity.
 
-    Exists also as in place version (_unsignNGonFaces) that modifies t and returns None.
+    Also available as an in-place version (_unsignNGonFaces) that modifies t and returns None.
 
     :param t: tree
     :type t: pyTree
@@ -1912,7 +1932,7 @@ Array / PyTree common manipulations
     For NGON zones, construct parent elements array from NFACE connectivity.
     Always checks the validity of input mesh. Raises error if mesh is invalid.
 
-    Exists also as in place version (_makeParentElements) that modifies t and returns None.
+    Also available as an in-place version (_makeParentElements) that modifies t and returns None.
 
     :param t: tree
     :type t: pyTree
@@ -2158,7 +2178,7 @@ Array / PyTree analysis
     The vector component values are modified such that the
     vector (a.sx,a.sy,a.sz) has a unit norm for each point.
 
-    Exists also as in place version (_normalize) that modifies a and returns None.
+    Also available as an in-place version (_normalize) that modifies a and returns None.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
@@ -2184,7 +2204,7 @@ Array / PyTree analysis
     The name of created field is composed from the components names.
     For instance 'sx,sy,sz' will create a 'sMagnitude' field.
 
-    Exists also as in place version (_magnitude) that modifies a and returns None.
+    Also available as an in-place version (_magnitude) that modifies a and returns None.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
@@ -2209,7 +2229,7 @@ Array / PyTree analysis
     Randomize a fied varName. The modified field is bounded by 
     [f-deltaMin,f+deltaMax] where f is the local field value.
 
-    Exists also as in place version (_randomizeVar) that modifies a and returns None.
+    Also available as an in-place version (_randomizeVar) that modifies a and returns None.
 
     :param a: input data
     :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
