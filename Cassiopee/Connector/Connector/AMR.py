@@ -153,6 +153,30 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         zbc = T.join(zbc)
         zbcs.append(zbc)
 
+    #Get largest length of the bases
+    G._getVolumeMap(t)
+    hminGlobal = (C.getMinValue(t,"centers:vol"))**(1/dim)
+    hminGlobal = Cmpi.allreduce(hminGlobal, op=Cmpi.MIN)
+    C._rmVars(t, ["centers:vol"])
+    L1 = 0.0
+    for bodyLocal in Internal.getBases(tb2_pre):
+        bb1 = G.bbox(bodyLocal)
+        L1 = max(L1, bb1[3]-bb1[0])
+        L1 = max(L1, bb1[4]-bb1[1])
+        if dim == 3: L1 = max(L1, bb1[5]-bb1[2])
+
+    for nobc, zbc in enumerate(zbcs):
+        if bcnames[nobc] == "QuadNQuad":
+            XRAYDIM1 = int(L1/hminGlobal) + 10;
+            XRAYDIM1 = max(1500, min(15000, XRAYDIM1)) #x3
+            bodies = [Internal.getBases(tb2_pre)]; nbodies = len(Internal.getBases(tb2_pre))
+            BM = numpy.ones((1, nbodies), dtype=Internal.E_NpyInt)
+            zbcTemp = C.newPyTree(["BASE", Internal.getZones(zbc)])
+            zbcTemp = X.blankCells(zbcTemp, bodies, BM, blankingType='center_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1)
+            maxBlankVal = C.getMaxValue(zbcTemp, 'centers:cellN')
+            if maxBlankVal < 1: bcnames[nobc] = 'QuadNQuad_Empty'
+            del zbcTemp
+            del bodies
     Cmpi.trace("Extract front faces of IBM target points [start] ", master=True, cpu=False)
     frontIP = computeCellNForIBMFronts(t, dim, IBM_parameters, VPM=VPM)
     Cmpi.trace("Extract front faces of IBM target points [end]   ", master=True, cpu=False)
@@ -795,6 +819,7 @@ def _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames):
                 len_ids = Internal.getValue(f)[0][1]
                 ids = ids[ids[:] > -1] - 1
                 ids = ids.tolist()
+                #C.freeHook(hook)
                 if len(ids) > 0:
                     zf = T.subzone(f,ids, type='elements')
                     if bcnames[nobc] != "QuadNQuad":
@@ -858,6 +883,7 @@ def _addIBCDatasets__(t, f, image_pts, wall_pts, ip_pts, IBM_parameters):
                     zf = T.subzone(f,ids, type='elements')
                     G_AMR._addBC2Zone__(z, "IBMWall%d" %nobc, "FamilySpecified:IBMWall", zf)
 
+        #C.freeHook(hook)
         for bc in Internal.getNodesFromType2(z, 'BC_t'):
             famName = Internal.getNodeFromName(bc, 'FamilyName')
             if famName is not None:
@@ -1016,6 +1042,7 @@ def _addIBC2Zone__(t, f, frontIP):
         ids = ids[ids[:] > -1]
         ids = ids.tolist()
         ids = [ids[i]-1 for i in range(len(ids))]
+        #C.freeHook(hook)
         zf = T.subzone(f, ids, type='elements')
         G_AMR._addBC2Zone(z, "IBMWall", "FamilySpecified:IBMWall", zf)
     return None
@@ -1033,6 +1060,7 @@ def computeSurfaceQuadraturePoints__(t, IBM_parameters, frontIP):
     ids = ids[ids[:] > -1]
     ids = ids.tolist()
     ids_IBMWall = [ids[i]-1 for i in range(len(ids))]
+    #C.freeHook(hook)
     zf = T.subzone(f, ids_IBMWall, type='elements')
     G_AMR._addBC2Zone__(zones[0], 'IBMWall0', 'FamilySpecified:IBMWall',zf)
 
@@ -1165,6 +1193,12 @@ def _computeTurbulentDistanceForDG__(t, tb, IBM_parameters):
     return None
 
 ## IMPORTANT NOTE:: this is a template of a python wrapper. Not to be used. It is a placeholder and is very likely to change in subsequent version.
+#def mallocTrim():
+#    from ctypes import CDLL
+#    libc = CDLL("libc.so.6")
+#    libc.malloc_trim(0)
+#    return None
+
 def prepareAMRIBM(tb, vmins, dim, IBM_parameters, levelMax=0, toffset=None, check=False, opt=False, octreeMode=1,
                   snears=0.01, dfars=10, loadBalancing=False, OutputAMRMesh=False,
                   localDir='./', fileName=None, tbox=None, vminsTbox=None, tbv2=None, forceAlignment=False,
@@ -1172,6 +1206,8 @@ def prepareAMRIBM(tb, vmins, dim, IBM_parameters, levelMax=0, toffset=None, chec
     """Generate AMR IBM mesh and prepare AMR IBM data for CODA simulation. 
     Usage: prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset, check, opt, octreeMode,
                          snears, dfars, loadBalancing, OutputAMRMesh, localDir, fileName, tbox, vminsTbox, tbv2, forceAlignment)"""
+
+    import gc
 
     ## =========================
     ## ==== Mesh Generation ====
@@ -1201,6 +1237,13 @@ def prepareAMRIBM(tb, vmins, dim, IBM_parameters, levelMax=0, toffset=None, chec
     Ncells = C.getNCells(t_AMR)
     Ncells = Cmpi.allreduce(Ncells, op=Cmpi.SUM)
     if Cmpi.master: print("[MESH GEN.] Number of Cells::%ge06"%(Ncells/1e06), flush=True)
+
+    ### Clear memory
+    Cmpi.trace("AMR Memory clean & memory check...start", master=True)
+    gc.collect()
+    #mallocTrim()
+    Cmpi.trace("AMR Memory clean & memory check...end", master=True)
+    Cmpi.barrier()
 
     ## ==================
     ## ==== IBM Prep ====

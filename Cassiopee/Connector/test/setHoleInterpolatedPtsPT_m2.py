@@ -29,10 +29,10 @@ if Cmpi.master:
     for i, z in enumerate(zones):
         z[0] = f'zone.{i}'
         Cmpi._setProc(z, i)
-    C.convertPyTree2File(t, 'out.cgns')
+    C.convertPyTree2File(t, LOCAL+'/out.cgns')
 Cmpi.barrier()
 
-h = Filter.Handle('out.cgns')
+h = Filter.Handle(LOCAL+'/out.cgns')
 t = h.loadFromProc()
 zones = Internal.getZones(t)
 Xmpi._connectMatchNGon(zones[0])
