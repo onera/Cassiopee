@@ -11,8 +11,6 @@ sz1 = G.cartHexa((0,0,0),(1,1,0),(5,5,1))
 sz2 = G.cartHexa((0,0,4),(1,1,1),(5,5,1))
 C._addBC2Zone(a, 'wall1', 'BCWall', subzone=sz1)
 C._addBC2Zone(a, 'wall2', 'BCWall', subzone=sz2)
-#C.convertPyTree2File(a, "out.cgns")
-t = Internal.copyTree(a)
 
 # --- Geometric recoverBCs ---
 # original unaltered zone
@@ -22,6 +20,7 @@ missingBCInfo = []
 C._recoverBCsGeometric(t, BCInfo, removeBC=True,
                        missingBCInfo=missingBCInfo)
 test.testO(missingBCInfo, 1)
+test.testT(t, 11)
 
 # zone with modified boundary face connectivity and one corrupted BC
 t = Internal.copyTree(a)
@@ -35,6 +34,7 @@ missingBCInfo = []
 C._recoverBCsGeometric(t, BCInfo, removeBC=True,
                        missingBCInfo=missingBCInfo)
 test.testO(missingBCInfo, 2)
+test.testT(t, 21)
 
 # zone with modified boundary face connectivities and several corrupted BCs
 t = Internal.copyTree(a)
@@ -49,6 +49,7 @@ missingBCInfo = []
 C._recoverBCsGeometric(t, BCInfo, removeBC=True,
                        missingBCInfo=missingBCInfo)
 test.testO(missingBCInfo, 3)
+test.testT(t, 31)
 
 # --- Topologic recoverBCs ---
 """
