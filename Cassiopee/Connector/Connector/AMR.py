@@ -1193,11 +1193,11 @@ def _computeTurbulentDistanceForDG__(t, tb, IBM_parameters):
     return None
 
 ## IMPORTANT NOTE:: this is a template of a python wrapper. Not to be used. It is a placeholder and is very likely to change in subsequent version.
-def mallocTrim():
-    from ctypes import CDLL
-    libc = CDLL("libc.so.6")
-    libc.malloc_trim(0)
-    return None
+#def mallocTrim():
+#    from ctypes import CDLL
+#    libc = CDLL("libc.so.6")
+#    libc.malloc_trim(0)
+#    return None
 
 def prepareAMRIBM(tb, vmins, dim, IBM_parameters, levelMax=0, toffset=None, check=False, opt=False, octreeMode=1,
                   snears=0.01, dfars=10, loadBalancing=False, OutputAMRMesh=False,
@@ -1241,7 +1241,7 @@ def prepareAMRIBM(tb, vmins, dim, IBM_parameters, levelMax=0, toffset=None, chec
     ### Clear memory
     Cmpi.trace("AMR Memory clean & memory check...start", master=True)
     gc.collect()
-    mallocTrim()
+    #mallocTrim()
     Cmpi.trace("AMR Memory clean & memory check...end", master=True)
     Cmpi.barrier()
 

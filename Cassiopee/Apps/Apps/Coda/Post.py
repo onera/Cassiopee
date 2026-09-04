@@ -139,9 +139,15 @@ def interpolationDonorPoints(fsmesh, clac, discParaDict, discSelectionParaDict, 
     #datasets = set(str(d) for d in fsmeshDonorPnt.GetUnstructDatasetNames())
     #print(datasets,flush=True)
     #exit()
-    augStateData    = fsmeshDonorPnt.GetUnstructDataset("CODAAugmentedStateGradientFree").GetValues()
-    augStateNames   = fsmeshDonorPnt.GetUnstructDataset("CODAAugmentedStateGradientFree").GetNames()
-
+    if fsmeshDonorPnt.HasUnstructDataset('CODAAugmentedStateGradientFree'):
+        augStateData = fsmeshDonorPnt.GetUnstructDataset('CODAAugmentedStateGradientFree').GetValues()
+        augStateNames= fsmeshDonorPnt.GetUnstructDataset("CODAAugmentedStateGradientFree").GetNames()
+    elif fsmeshDonorPnt.HasUnstructDataset('CODAAugState'): # legacy name for old meshes
+        augStateData = fsmeshDonorPnt.GetUnstructDataset('CODAAugState').GetValues()
+        augStateNames= fsmeshDonorPnt.GetUnstructDataset("CODAAugState").GetNames()
+    else:
+        raise ValueError('Augmented state dataset is missing')
+        Cmpi.abort(errorcode=1)
     nodeDonorPoints = Cmpi.allgather(numpy.array(nodeDonorPoints.Buffer(), copy=True))
     nodeWallPoints  = Cmpi.allgather(numpy.array(nodeWallPoints.Buffer() , copy=True))
     augStateData    = Cmpi.allgather(numpy.array(augStateData.Buffer()   , copy=True))
