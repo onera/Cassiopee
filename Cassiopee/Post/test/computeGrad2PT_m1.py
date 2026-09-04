@@ -3,14 +3,11 @@ import Converter.PyTree as C
 import Converter.Internal as Internal
 import Converter.Mpi as Cmpi
 import Converter.Filter as Filter
-import Connector.PyTree as X
 import Connector.Mpi as Xmpi
 import Generator.PyTree as G
-import Post.PyTree as P
 import Post.Mpi as Pmpi
 import KCore.test as test
 import os
-import numpy
 
 N = 10
 LOCAL = test.getLocal()
