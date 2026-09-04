@@ -66,4 +66,3 @@ if Cmpi.master: test.testT(t, 3)
 _createTest(filepath, dim=dim, api=3)
 t = runTest(filepath)
 if Cmpi.master: test.testT(t, 4)
-
