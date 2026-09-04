@@ -116,7 +116,7 @@ def checkCAD(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
     bbm = bbm + (bb[4]-bb[1])
     bbm = bbm + (bb[5]-bb[2])
     power = int(numpy.log10(bbm/3))
-    tol = tol*numpy.pow(10., power)
+    tol = tol*numpy.power(10., power)
     print("INFO: adjusting tol: ", tol)
 
     #============================
@@ -202,13 +202,22 @@ def checkCAD(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
 # surface mesh: surface.cgns
 # surface components; component.cgns
 # internal mesh: mesh.cgns
-def checkMesh(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
+def checkMesh(hook, tol=1.e-9, byOCAFLabels=True, repair=False, zipTol=None):
     import Transform.PyTree as T
     import Converter.PyTree as C
     import Generator.PyTree as G
     import Post.PyTree as P
     import Converter.Internal as Internal
     import numpy
+
+    # adjusting tol
+    bb = OCC.getBoundingBox(hook)
+    bbm = bb[3]-bb[0]
+    bbm = bbm + (bb[4]-bb[1])
+    bbm = bbm + (bb[5]-bb[2])
+    power = int(numpy.log10(bbm/3))
+    tol = tol*numpy.power(10., power)
+    print("INFO: adjusting tol: ", tol)
 
     #========
     # meshing
@@ -224,7 +233,8 @@ def checkMesh(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
     # is watertight
     #==============
     print("INFO: check if CAD is watertight...", flush=True)
-    a = OCC.getComponents(t, tol=hmin*1.e-3, byOCAFLabels=byOCAFLabels)
+    if zipTol is None: zipTol = hmin*1.e-3
+    a = OCC.getComponents(t, tol=zipTol, byOCAFLabels=byOCAFLabels)
     C.convertPyTree2File(a, 'components.cgns')
     print("INFO: find %d component(s)."%len(a))
     watertight = numpy.empty((len(a)), dtype=numpy.int32)

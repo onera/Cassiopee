@@ -39,5 +39,4 @@ Xmpi._connectMatchNGon(zones[0])
 
 Xmpi._setHoleInterpolatedPoints(t, cellNName=cellNName)
 #Cmpi.convertPyTree2File(t, "out1.cgns")
-
 if Cmpi.master: test.testT(t, 1)

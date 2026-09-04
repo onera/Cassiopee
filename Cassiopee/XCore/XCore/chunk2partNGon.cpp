@@ -38,7 +38,8 @@
 static
 E_Int get_proc(E_Int element, E_Int *distribution, E_Int nproc)
 {
-  for (E_Int j = 0; j < nproc; j++) {
+  for (E_Int j = 0; j < nproc; j++) 
+  {
     if (element >= distribution[j] && element < distribution[j+1])
       return j;
   }
@@ -47,7 +48,8 @@ E_Int get_proc(E_Int element, E_Int *distribution, E_Int nproc)
   return -1;
 }
 
-struct proc_patch {
+struct proc_patch 
+{
   E_Int proc;
   std::vector<E_Int> faces;
   std::vector<E_Int> neis;
@@ -73,7 +75,8 @@ void paraSort(E_Int *arr, int size, std::vector<E_Int> &plist_out,
   // select regularly spaced samples
   std::vector<E_Int> lsamples(nproc);
   E_Int jump = size/(nproc*nproc);
-  for (E_Int i = 0; i < nproc; i++) {
+  for (E_Int i = 0; i < nproc; i++) 
+  {
     lsamples[i] = arr[i*jump];
   }
 
@@ -85,7 +88,8 @@ void paraSort(E_Int *arr, int size, std::vector<E_Int> &plist_out,
 
   // select nproc-1 pivots
   pivots.resize(nproc+1);
-  for (E_Int i = 1; i < nproc; i++) {
+  for (E_Int i = 1; i < nproc; i++) 
+  {
     pivots[i] = gsamples[i*gsamples.size()/nproc];
   }
   pivots[0] = INTMIN;
@@ -94,11 +98,15 @@ void paraSort(E_Int *arr, int size, std::vector<E_Int> &plist_out,
   std::vector<int> scount(nproc, 0), rcount(nproc);
 
   E_Int j = 0;
-  for (E_Int i = 0; i < size; ) {
-    if (arr[i] < pivots[j+1]) {
+  for (E_Int i = 0; i < size; ) 
+  {
+    if (arr[i] < pivots[j+1]) 
+    {
       scount[j]++;
       i++;
-    } else {
+    } 
+    else 
+    {
       j++;
     }
   }
@@ -123,6 +131,7 @@ void paraSort(E_Int *arr, int size, std::vector<E_Int> &plist_out,
     assert(plist_out[rdist[nproc]-1] < pivots[rank+1]);
 }
 
+// python function
 PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
 {
   PyObject *array;
@@ -711,8 +720,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
                 &NGON[0], &rcount[0], &rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
   
-  if (rank == 0)
-    puts("NGON OK");
+  if (rank == 0) puts("NGON OK");
 
   // request points
   std::unordered_map<E_Int, E_Int> PT; // avoid point repetition
@@ -815,8 +823,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
                 &rxyz[0], &rcount[0], &rdist[0], MPI_DOUBLE,
                 MPI_COMM_WORLD);
 
-  if (rank == 0)
-    puts("Coordinates OK");
+  if (rank == 0) puts("Coordinates OK");
 
   // construct communication patches
   for (E_Int i = 0; i < nproc; i++) 
@@ -851,7 +858,6 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   MPI_Alltoallv(&sdata[0], &scount[0], &sdist[0], XMPI_INT,
                 &rdata[0], &rcount[0], &rdist[0], XMPI_INT,
                 MPI_COMM_WORLD);
-
 
   XFREE(faces_dist);
 
@@ -1116,7 +1122,9 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
           *ptr++ = -(FT[NFACE[j]]+1);
       }
     }
-  } else {
+  } 
+  else 
+  {
     for (E_Int i = 0; i < nncells; i++) 
     {
       E_Int start = nxcells[i];
@@ -1196,7 +1204,8 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     
     std::vector<E_Float> c_sdata(c_sdist[nproc]);
 
-    for (E_Int k = 0; k < csize; k++) {
+    for (E_Int k = 0; k < csize; k++) 
+    {
       PyArrayObject *ca = (PyArrayObject *)PyArray_SimpleNew(1, dims, NPY_DOUBLE);
 
       for (E_Int i = 0; i < nproc; i++)
@@ -1231,9 +1240,12 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
   // 9 must be an array of FlowSolutions chunks
   o = PyList_GetItem(l, 8);
   E_Int psize = PyList_Size(o);
-  if (psize == 0) {
+  if (psize == 0) 
+  {
     PyList_Append(out, PyList_New(0));
-  } else {
+  } 
+  else 
+  {
     E_Float **psols = (E_Float **)XCALLOC(psize, sizeof(E_Float *));
 
     for (E_Int i = 0; i < psize; i++) 
