@@ -227,7 +227,7 @@ def getTestLogs(prodname, testList, sessionSuffix="Cassiopee"):
     # Read the last logValid.dat file and remove tests that are OK
     failedLogDict = purgeSessionLog(
         os.path.join(validDataFolder,
-        f"logValid{sessionSuffix}.dat")
+                     f"logValid{sessionSuffix}.dat")
     )
     # Add logs of cases that were reported as fail by validCassiopee
     for mod, tname in zip(modNames, testNames):
