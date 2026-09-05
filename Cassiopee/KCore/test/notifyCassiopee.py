@@ -180,8 +180,40 @@ def tests2Ignore(prod):
         return IGNORE_TESTS_DBG
     return IGNORE_TESTS_NDBG
 
+# Keep the logs of failed test cases only
+def purgeSessionLog(filename):
+    # Filter test cases that contain at least one of these error patterns
+    regError = re.compile(
+        "|".join([
+            'DIFF', 'FAILED',
+            r'\bError\b', 'Erreur', 'Aborted', 'Abandon', 'Segmentation',
+            'ERROR: AddressSanitizer', 'getFromArray', 'incoherency',
+            'Your MPI job will now abort.',
+            'Attempting to use an MPI routine before initializing MPICH',
+        ]),
+        re.UNICODE
+    )
+    regLeakError = re.compile('ERROR: LeakSanitizer')
+
+    if not os.access(filename, os.R_OK):
+        raise Exception(f"Input log '{filename}' cannot be read.")
+    with open(filename, 'r') as f: log = f.read()
+    # Split log using "Running" as the delimiter
+    testCaseLogs = re.split(r'(?=Running[^\n]*Nprocs=)', log)
+    failedTestLogs = {
+        tlog.split("Running ", maxsplit=1)[1].split(" ")[0].replace(".py", ""): tlog
+        for tlog in testCaseLogs if (
+            "Running " in tlog
+            and any(
+                regexpr.search(tlog) is not None
+                for regexpr in (regLeakError, regError)
+            )
+        )
+    }
+    return failedTestLogs
+
 # Get full test logs for a given list of tests
-def getTestLogs(prodname, testList):
+def getTestLogs(prodname, testList, sessionSuffix="Cassiopee"):
     testLog = ""
     modNames = [test.split('/')[0] for test in testList]
     testNames = [test.split('/')[1] for test in testList]
@@ -190,21 +222,17 @@ def getTestLogs(prodname, testList):
         import KCore.installPath as K
         validDataFolder = os.path.join(K.includePath, "..", f"ValidData_{prodname}")
         if not os.access(validDataFolder, os.R_OK):
-            raise Exception("Session logs can't be retrieved in {}".format(validDataFolder))
+            raise Exception(f"Session logs can't be retrieved in {validDataFolder}")
 
-    # Read the last purged logValidCassiopee.dat file
-    purgedLogs = sorted(glob(os.path.join(validDataFolder, "logValidCassiopee_purged_*.dat")))
-    if not purgedLogs or not os.access(purgedLogs[-1], os.R_OK): return testLog
-    with open(purgedLogs[-1], 'r') as f: log = f.read()
-    # Split log using "Running " as the delimiter
-    failedTests = log.split("Running ")[1:]
-    failedTestNames = [test.split(' ')[0] for test in failedTests]
-    # Add logs of cases that failed
-    for i, name in enumerate(testNames):
-        try:
-            pos = failedTestNames.index(name)
-            testLog += "{}/{}{}\n\n".format(modNames[i], failedTests[pos], 88*'*')
-        except ValueError: pass
+    # Read the last logValid.dat file and remove tests that are OK
+    failedLogDict = purgeSessionLog(
+        os.path.join(validDataFolder,
+        f"logValid{sessionSuffix}.dat")
+    )
+    # Add logs of cases that were reported as fail by validCassiopee
+    for mod, tname in zip(modNames, testNames):
+        log = failedLogDict.get(tname.replace(".py", ""), "")
+        if log: testLog += f"\n--- {mod}/{tname} ---\n{log}\n{100*'#'}\n"
     return testLog
 
 # Stringify test comparison
@@ -520,7 +548,7 @@ def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
     messageText = header + compStr + baseStateMsg
 
     if showTestLogs:
-        testLogs = getTestLogs(prod, failedTests)
+        testLogs = getTestLogs(prod, failedTests, sessionSuffixMod)
         if testLogs:
             messageText += f"\n\nFailed test logs:\n{'-'*16}\n{testLogs}"
 
