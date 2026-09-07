@@ -4560,8 +4560,14 @@ def _recoverBCsGeometric(t, BCInfo, tol=1.e-11, removeBC=True, missingBCInfo=Non
                     id2 = numpy.empty(sizebc, dtype=Internal.E_NpyInt)
                     id2[:] = indicesF[ids[:]-1]
                     _addBC2Zone(z, BCNames[c], BCTypes[c], faceList=id2)
-                else:
-                    _addBC2Zone(z, BCNames[c], BCTypes[c], subzone=b)
+                else:  # BE / ME
+                    if invalidPos.size > 0:
+                        validPos = numpy.nonzero(validIds)[0]
+                        validPos = validPos.astype(Internal.E_NpyInt)
+                        sz = T.subzone(b, validPos, type='elements')
+                        _addBC2Zone(z, BCNames[c], BCTypes[c], subzone=sz)
+                    else:
+                        _addBC2Zone(z, BCNames[c], BCTypes[c], subzone=b)
 
                 # Recover BCDataSets
                 fsc = Internal.getNodeFromName(b, Internal.__FlowSolutionCenters__)
@@ -8145,6 +8151,7 @@ def selectOneConnectivity(z, name=None, number=None, irange=None):
 
 def _selectOneConnectivity(zp, name=None, number=None, irange=None):
     elts = Internal.getNodesFromType1(zp, 'Elements_t')
+    bcs = Internal.getNodesFromType2(zp, 'BC_t')
     if name is not None:
         for e in elts:
             if e[0] != name: Internal._rmNodesByName(zp, e[0])
@@ -8198,6 +8205,7 @@ def _selectOneConnectivity(zp, name=None, number=None, irange=None):
 def selectConnectivity(z, name=None, number=None, irange=None):
     zp = Internal.copyRef(z)
     elts = Internal.getNodesFromType1(zp, 'Elements_t')
+    bcs = Internal.getNodesFromType2(zp, 'BC_t')
     if name is not None:
         for e in elts:
             if e[0] != name: Internal._rmNodesByName(zp, e[0])
