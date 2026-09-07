@@ -1174,7 +1174,7 @@ def checkElementNodes(t):
 # Applies abs(index) for NFaces
 #==============================================================================
 def _correctElementNodes(t):
-    _correctBCElementNodes(t)
+    _correctElementBoundaryNodes(t)
     _cleanBEConnect(t)
     errors = checkElementNodes(t)
     le = len(errors)//3
@@ -1198,7 +1198,7 @@ def _correctElementNodes(t):
 #===============================================================================
 # Corrects boundary connectivity that are at zero (GE[1][1])
 #===============================================================================
-def _correctBCElementNodes(t):
+def _correctElementBoundaryNodes(t):
     #_correctBCPL2ER(t)
 
     zones = Internal.getZones(t)
