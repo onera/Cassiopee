@@ -4659,7 +4659,7 @@ def _recoverBCsTopologic(t, BCInfo, removeBC=True, indices=None, missingBCInfo=N
                         ninvalidPos = invalidPos.size
                         if ninvalidPos > 0:
                             print(
-                                f"Warning:_recoverBCsTopologic: {ninvalidPos} "
+                                f"Warning: _recoverBCsTopologic: {ninvalidPos} "
                                 f"face indices were not found in BC {z[0]}"
                             )
                             if storeMissing:
@@ -7019,13 +7019,14 @@ def isFinite(a, var=None):
                 for n in nodes:
                     if var is None or n[0] == var:
                         array = n[1]
-                        #b = numpy.isfinite(array)
-                        #res = numpy.all(b)
-                        array = array.ravel(order="K")
-                        res = converter.isFinite(array)
-                        if res > 0:
-                            ret = False
-                            print('Warning: NAN or INF value in %s (%s)'%(n[0],z[0]))
+                        if array is not None:
+                            #b = numpy.isfinite(array)
+                            #res = numpy.all(b)
+                            array = array.ravel(order="K")
+                            res = converter.isFinite(array)
+                            if res > 0:
+                                ret = False
+                                print(f'Warning: NAN or INF value in {n[0]} ({z[0]})')
     return ret
 
 def setNANValuesAt(a, var=None, value=0.):
@@ -7050,8 +7051,9 @@ def _setNANValuesAt(a, var=None, value=0.):
                 for n in nodes:
                     if var is None or n[0] == var:
                         array = n[1]
-                        array = array.ravel(order="K")
-                        converter.setNANValuesAt(array, value)
+                        if array is not None:
+                            array = array.ravel(order="K")
+                            converter.setNANValuesAt(array, value)
     return None
 
 #==============================================================================
