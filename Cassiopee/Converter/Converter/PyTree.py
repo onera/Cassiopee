@@ -8184,7 +8184,7 @@ def _selectOneConnectivity(zp, name=None, number=None, irange=None):
                             rbc[1][0][1] = irange[1] - irange[0] + 1
                         else:  # default back to full
                             print ("Warning: selectOneConnectivity: slice "
-                                    f"impossible for {name}.")
+                                   f"impossible for {name}.")
                             rbc[1][0][1] = rbc[1][0][1] - rbc[1][0][0] + 1
                             rbc[1][0][0] = 1
                     else:  # no overlap permitted
