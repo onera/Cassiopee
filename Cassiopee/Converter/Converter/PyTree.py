@@ -4677,7 +4677,7 @@ def _recoverBCsTopologic(t, BCInfo, removeBC=True, indices=None, missingBCInfo=N
                 # Recover BCDataSets, TODO:
                 # - do not delete faceCenter BCDatasets
                 # - will also preserve non-Neumann datasets
-                # - at last, no need to pass a zone using selectConnectivity, just an array
+                # - at last, no need to pass a zone using selectOneConnectivity, just an array
                 if isCustomTuple and b[0] == 'tuple':
                     fsc = Internal.getNodeFromName(b[1][0], Internal.__FlowSolutionCenters__)
                     if fsc is not None:
@@ -5620,14 +5620,14 @@ def getBC__(i, z, T, res, reorder=True, extrapFlow=True, shift=0, method="geomet
                         eltCn = Internal.getNodeFromName1(e, 'ElementConnectivity')
                         if eltCn is None: continue
                         # if Internal.hasBCDataSets(z): TODO optimize in a second pass
-                        zp = selectConnectivity(z, irange=[r[0,0], r[0,1]])
+                        zp = selectOneConnectivity(z, irange=[r[0,0], r[0,1]])
                         _prepRes__(i, z, zp, res, extrapFlow)
                         ## array = getFields('GridCoordinates', zp, api=3)[0]
                         res.append(("tuple", (zp, e)))
                         # else:
                         #     res.append(("VertexList", eltCn[1]))
                         return None
-            zp = selectConnectivity(z, irange=[r[0,0], r[0,1]])
+            zp = selectOneConnectivity(z, irange=[r[0,0], r[0,1]])
             _prepRes__(i, z, zp, res, extrapFlow)
             res.append(zp)
         return None
@@ -8150,118 +8150,95 @@ def selectOneConnectivity(z, name=None, number=None, irange=None):
     return zp
 
 def _selectOneConnectivity(zp, name=None, number=None, irange=None):
-    elts = Internal.getNodesFromType1(zp, 'Elements_t')
-    bcs = Internal.getNodesFromType2(zp, 'BC_t')
-    if name is not None:
-        for e in elts:
-            if e[0] != name: Internal._rmNodesByName(zp, e[0])
-            else:
-                e[1] = numpy.copy(e[1])
-                if e[1][1] == 0: _deleteZoneBC__(zp)
-                else: e[1][1] = 0 # force volumetric
-    elif number is not None:
-        for c, e in enumerate(elts):
-            if c != number: Internal._rmNodesByName(zp, e[0])
-            else:
-                e[1] = numpy.copy(e[1])
-                if e[1][1] == 0: _deleteZoneBC__(zp)
-                else: e[1][1] = 0 # force volumetric
-    elif irange is not None:
-        for e in elts:
-            r = Internal.getNodeFromName1(e, 'ElementRange')
-            if r is not None:
-                r = r[1]
-                if r[0] > irange[0] or r[1] < irange[1]:
-                    Internal._rmNodesByName(zp, e[0])
+    # Helper function for selectOneConnectivity
+    def _processElementNode__(zp, e, bcs, irange=None):
+        r = Internal.getNodeFromName1(e, 'ElementRange')
+        if r is None:
+            Internal._rmNodesByName(zp, e[0])
+            return
+        name, nvpe = Internal.eltNo2EltName(e[1][0])
+        if e[1][1] == 0: _deleteZoneBC__(zp)  # was volumic, delete BCs
+        else:
+            e[1] = numpy.copy(e[1])
+            e[1][1] = 0  # was surfacic, force volumetric
+            # Edit the one matching BC_t ElementRange and delete others
+            for bc in bcs:
+                rbc = Internal.getNodeFromName1(bc, 'ElementRange')
+                if rbc is None:
+                    Internal._rmNodesByName(zp, bc[0])
+                    continue
+                rbc[1] = numpy.copy(rbc[1])
+                if irange is None:  # by name or number
+                    if rbc[1][0][0] == r[1][0] and rbc[1][0][1] == r[1][1]:  # full
+                        rbc[1][0][1] = rbc[1][0][1] - rbc[1][0][0] + 1
+                        rbc[1][0][0] = 1
+                    else:
+                        Internal._rmNodesByName(zp, bc[0])
                 else:
-                    if r[0] == irange[0] and r[1] == irange[1]: # full
-                        e[1] = numpy.copy(e[1])
-                        if e[1][1] == 0: _deleteZoneBC__(zp)
-                        else: e[1][1] = 0 # force volumetric
-                    else: # slice
-                        (name, nnodes) = Internal.eltNo2EltName(e[1][0])
-                        if name != 'NGON' and name != 'NFACE' and name != 'MIXED':
-                            e[1] = numpy.copy(e[1])
-                            if e[1][1] == 0: _deleteZoneBC__(zp)
-                            else: e[1][1] = 0 # force volumetric
-                            r = Internal.getNodeFromName1(e, 'ElementRange')
-                            r[1] = numpy.copy(r[1])
-                            r[1][0] = 1; r[1][1] = irange[1]-irange[0]+1
-                            c = Internal.getNodeFromName1(e, 'ElementConnectivity')
-                            c[1] = c[1][nnodes*(irange[0]-1):nnodes*(irange[1])+1]
-                        else: print ('Warning: selectOneConnectivity: slice impossible.')
-            else: Internal._rmNodesByName(zp, e[0])
+                    if irange[0] == rbc[1][0][0] and rbc[1][0][1] == irange[1]:  # full
+                        rbc[1][0][0] = 1
+                        rbc[1][0][1] = irange[1] - irange[0] + 1
+                    elif rbc[1][0][0] <= irange[0] and irange[1] <= rbc[1][0][1]:  # slice
+                        if nvpe != -1:  # BE / ME only
+                            rbc[1][0][0] = 1
+                            rbc[1][0][1] = irange[1] - irange[0] + 1
+                        else:  # default back to full
+                            print ("Warning: selectOneConnectivity: slice "
+                                    f"impossible for {name}.")
+                            rbc[1][0][1] = rbc[1][0][1] - rbc[1][0][0] + 1
+                            rbc[1][0][0] = 1
+                    else:  # no overlap permitted
+                        Internal._rmNodesByName(zp, bc[0])
 
-    _deleteFlowSolutions__(zp, loc='centers')
-    Internal._updateElementRange(zp)
-    return None
+        # Edit boundary Elements_t ElementRange
+        r[1] = numpy.copy(r[1])
+        if irange is None:  # full, by name or number
+            r[1][1] = r[1][1] - r[1][0] + 1; r[1][0] = 1
+        else:
+            if r[1][0] == irange[0] and irange[1] == r[1][1]:  # full
+                r[1][1] = r[1][1] - r[1][0] + 1; r[1][0] = 1
+            elif r[1][0] <= irange[0] and irange[1] <= r[1][1]:  # slice
+                if nvpe != -1:  # BE / ME only
+                    offset = r[1][0] - 1
+                    c = Internal.getNodeFromName1(e, 'ElementConnectivity')
+                    c[1] = numpy.copy(c[1])
+                    c[1] = c[1][nvpe*(irange[0]-1-offset):nvpe*(irange[1]-offset)]
+                    r[1][0] = 1; r[1][1] = irange[1] - irange[0] + 1
+                else:  # default back to full
+                    print ("Warning: selectOneConnectivity: slice impossible "
+                           f"for {name}.")
+                    r[1][1] = r[1][1] - r[1][0] + 1; r[1][0] = 1
+            else:  # no overlap permitted
+                Internal._rmNodesByName(zp, e[0])
+        return None
 
-# -- selectConnectivity
-# Returns a new zone with only one of its connectivities
-# (passed as volumetric connectivity)
-# IN: name: name of ElementConnectivity to keep
-# or IN: number: number of ElementConnectivity to keep (first=0)
-# or IN: irange=[min,max]
-def selectConnectivity(z, name=None, number=None, irange=None):
-    zp = Internal.copyRef(z)
     elts = Internal.getNodesFromType1(zp, 'Elements_t')
     bcs = Internal.getNodesFromType2(zp, 'BC_t')
     if name is not None:
         for e in elts:
             if e[0] != name: Internal._rmNodesByName(zp, e[0])
-            else:
-                e[1] = numpy.copy(e[1])
-                if e[1][1] == 0: _deleteZoneBC__(zp)
-                else: e[1][1] = 0 # force volumetric
+            else: _processElementNode__(zp, e, bcs)  # full
     elif number is not None:
         for c, e in enumerate(elts):
             if c != number: Internal._rmNodesByName(zp, e[0])
-            else:
-                e[1] = numpy.copy(e[1])
-                if e[1][1] == 0: _deleteZoneBC__(zp)
-                else: e[1][1] = 0 # force volumetric
+            else: _processElementNode__(zp, e, bcs)  # full
     elif irange is not None:
         for e in elts:
             r = Internal.getNodeFromName1(e, 'ElementRange')
-            if r is not None:
-                r = r[1]
-                if r[0] != irange[0] and r[1] != irange[1]:
+            if r is None: Internal._rmNodesByName(zp, e[0])
+            else:
+                if irange[0] < r[1][0] or r[1][1] < irange[1]:
                     Internal._rmNodesByName(zp, e[0])
-                if r[0] == irange[0] and r[1] == irange[1]: # full
-                    e[1] = numpy.copy(e[1])
-                    if e[1][1] == 0: _deleteZoneBC__(zp)
-                    else: e[1][1] = 0 # force volumetric
-                if r[0] == irange[0] and r[1] < irange[1]: # full
-                    (name, nnodes) = Internal.eltNo2EltName(e[1][0])
-                    if name != 'NGON' and name != 'NFACE' and name != 'MIXED':
-                        e[1] = numpy.copy(e[1])
-                        if e[1][1] == 0: _deleteZoneBC__(zp)
-                        else: e[1][1] = 0 # force volumetric
-                        r0 = r[0]; r1 = r[1]
-                        r = Internal.getNodeFromName1(e, 'ElementRange')
-                        r[1] = numpy.copy(r[1]); r[1][0] = 1; r[1][1] = r1-r0+1
-                        c = Internal.getNodeFromName1(e, 'ElementConnectivity')
-                        r = r[1]
-                        c[1] = c[1][nnodes*(r[0]-1):nnodes*(r[1])+1]
-                    else: print('Warning: selectConnectivity: slice impossible.')
-                if r[0] > irange[0] and r[1] == irange[1]: # full
-                    (name, nnodes) = Internal.eltNo2EltName(e[1][0])
-                    if name != 'NGON' and name != 'NFACE' and name != 'MIXED':
-                        e[1] = numpy.copy(e[1])
-                        if e[1][1] == 0: _deleteZoneBC__(zp)
-                        else: e[1][1] = 0 # force volumetric
-                        r0 = r[0]; r1 = r[1]
-                        r = Internal.getNodeFromName1(e, 'ElementRange')
-                        r[1] = numpy.copy(r[1]); r[1][0] = 1; r[1][1] = r1-r0+1
-                        c = Internal.getNodeFromName1(e, 'ElementConnectivity')
-                        r = r[1]
-                        c[1] = c[1][nnodes*(r[0]-1):nnodes*(r[1])+1]
-                    else: print('Warning: selectConnectivity: slice impossible.')
-            else: Internal._rmNodesByName(zp, e[0])
-
+                else: _processElementNode__(zp, e, bcs, irange)  # full or slice
     _deleteFlowSolutions__(zp, loc='centers')
     Internal._updateElementRange(zp)
-    return zp
+    # Check if there are any Elements_t nodes left
+    elts = Internal.getElementNodes(zp)
+    if not elts:  # now a NODE zone
+        _deleteZoneBC__(zp)
+        Internal.newElements(etype='NODE', parent=zp,
+                             erange=numpy.array([1, 0], dtype=Internal.E_NpyInt))
+    return None
 
 #=============================================================================
 # Rm duplicated periodic zones in a according to the node 'TempPeriodicZone'
