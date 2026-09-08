@@ -23,7 +23,7 @@ regDiff = re.compile('DIFF')
 regFailed = re.compile('FAILED')
 regError = re.compile(
     "|".join([
-        r'\bError\b', 'Erreur', 'Aborted', 'Abandon', 'Segmentation',
+        r'\b[A-Z]\w*Error\b', 'Erreur', 'Aborted', 'Abandon', 'Segmentation',
         'ERROR: AddressSanitizer', 'getFromArray', 'incoherency',
         'Your MPI job will now abort.',
         'Attempting to use an MPI routine before initializing MPICH'

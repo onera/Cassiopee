@@ -847,8 +847,7 @@ def _deleteZoneBC__(a, type='None'):
             bcs = Internal.getNodesFromType1(z, 'ZoneBC_t')
             for bc in bcs: Internal._rmNodeByPath(z, bc[0])
             # remove associated Elements_t corresponding to BCs
-            elts = Internal.getElementBoundaryNodes(z)
-            for e in elts: Internal._rmNodeByPath(z, e[0])
+            Internal._rmElementBoundaryNodes(z)
     else: _rmBCOfType(a, type)
     return None
 
@@ -965,7 +964,7 @@ def _upgradeTree(t, uncompress=True, upgradeNGon=True):
     Internal._correctPyTree(t, level=2) # force unique name
     Internal._correctPyTree(t, level=7) # create familyNames
 
-    #Internal._correctBCElementNodes(t) # boundary connectivity
+    #Internal._correctElementBoundaryNodes(t) # boundary connectivity
     #Internal._correctPyTree(t, level=9) # boundary connectivity, addNFace
     #Converter.Check._shiftParentElements(t, shift=-1) # shift -nface in PE
 
@@ -3642,8 +3641,7 @@ def _convertArray2NGon(t, recoverBC=True, api=1, method="geometric"):
                 else: _recoverBCs(z, gbcs[c], indices=indices[c])
 
             # Delete BC Element connectivities
-            bcConnects = Internal.getElementBoundaryNodes(z)
-            for n in bcConnects: Internal._rmNode(z, n)
+            Internal._rmElementBoundaryNodes(z)
     return None
 
 # -- convertPenta2Strand
@@ -4541,15 +4539,16 @@ def _recoverBCsGeometric(t, BCInfo, tol=1.e-11, removeBC=True, missingBCInfo=Non
                 ids = identifyElements(hook, b, tol)
                 # Check if some faces were not found
                 validIds = ids > -1
-                invalidIds = numpy.nonzero(~validIds)[0]
-                if invalidIds.size > 0:
+                invalidPos = numpy.nonzero(~validIds)[0]
+                ninvalidPos = invalidPos.size
+                if ninvalidPos > 0:
                     print(
-                        "Warning: _recoverBCsGeometric: face indices "
-                        f"{invalidIds} were not found in BC {b[0]}"
+                        f"Warning: _recoverBCsGeometric: {ninvalidPos} face "
+                        f"indices were not found in BC {b[0]}"
                     )
                     if storeMissing:
-                        invalidIds = invalidIds.astype(Internal.E_NpyInt)
-                        zu = T.subzone(b, invalidIds, type='elements')
+                        invalidPos = invalidPos.astype(Internal.E_NpyInt)
+                        zu = T.subzone(b, invalidPos, type='elements')
                         missingBCInfo[0].append(zu)
                         missingBCInfo[1].append(BCNames[c])
                         missingBCInfo[2].append(BCTypes[c])
@@ -4561,8 +4560,14 @@ def _recoverBCsGeometric(t, BCInfo, tol=1.e-11, removeBC=True, missingBCInfo=Non
                     id2 = numpy.empty(sizebc, dtype=Internal.E_NpyInt)
                     id2[:] = indicesF[ids[:]-1]
                     _addBC2Zone(z, BCNames[c], BCTypes[c], faceList=id2)
-                else:
-                    _addBC2Zone(z, BCNames[c], BCTypes[c], subzone=b)
+                else:  # BE / ME
+                    if invalidPos.size > 0:
+                        validPos = numpy.nonzero(validIds)[0]
+                        validPos = validPos.astype(Internal.E_NpyInt)
+                        sz = T.subzone(b, validPos, type='elements')
+                        _addBC2Zone(z, BCNames[c], BCTypes[c], subzone=sz)
+                    else:
+                        _addBC2Zone(z, BCNames[c], BCTypes[c], subzone=b)
 
                 # Recover BCDataSets
                 fsc = Internal.getNodeFromName(b, Internal.__FlowSolutionCenters__)
@@ -4650,15 +4655,16 @@ def _recoverBCsTopologic(t, BCInfo, removeBC=True, indices=None, missingBCInfo=N
                         )
                         # Check if some faces were not found
                         validIds = fmap > -1
-                        invalidIds = numpy.nonzero(~validIds)[0]
-                        if invalidIds.size > 0:
+                        invalidPos = numpy.nonzero(~validIds)[0]
+                        ninvalidPos = invalidPos.size
+                        if ninvalidPos > 0:
                             print(
-                                "Warning:_recoverBCsTopologic: face indices "
-                                f"{invalidIds} were not found in BC {z[0]}"
+                                f"Warning:_recoverBCsTopologic: {ninvalidPos} "
+                                f"face indices were not found in BC {z[0]}"
                             )
                             if storeMissing:
-                                invalidIds = invalidIds.astype(Internal.E_NpyInt)
-                                zu = T.subzone(z, invalidIds, type='elements')
+                                invalidPos = invalidPos.astype(Internal.E_NpyInt)
+                                zu = T.subzone(z, invalidPos, type='elements')
                                 missingBCInfo[0].append(zu)
                                 missingBCInfo[1].append(BCNames[c])
                                 missingBCInfo[2].append(BCTypes[c])
@@ -8132,22 +8138,6 @@ def breakConnectivity(t):
     if typen == 1: typen = 2 # une zone renvoie une liste de zones
     return Internal.pyTree2Node(tp, typen)
 
-#==============================================================================
-# renumbers ElementRanges so they are in contiguous order
-# including for BCCs
-#==============================================================================
-def _renumberElementConnectivity(t):
-    zones = Internal.getZones(t)
-    for z in zones:
-        elts = Internal.getNodesFromType1(z, 'Elements_t')
-        c = 1
-        for e in elts:
-            r = Internal.getNodeFromName1(e, 'ElementRange')
-            r[1] = numpy.copy(r[1]); r = r[1]
-            delta = r[1]-r[0]+1
-            r[0] = c; r[1] = c+delta-1; c += delta
-    return None
-
 # -- selectOneConnectivity
 # Returns a new zone with only one of its connectivities
 # (passed as volumetric connectivity)
@@ -8161,16 +8151,21 @@ def selectOneConnectivity(z, name=None, number=None, irange=None):
 
 def _selectOneConnectivity(zp, name=None, number=None, irange=None):
     elts = Internal.getNodesFromType1(zp, 'Elements_t')
+    bcs = Internal.getNodesFromType2(zp, 'BC_t')
     if name is not None:
         for e in elts:
             if e[0] != name: Internal._rmNodesByName(zp, e[0])
-            else: e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
+            else:
+                e[1] = numpy.copy(e[1])
+                if e[1][1] == 0: _deleteZoneBC__(zp)
+                else: e[1][1] = 0 # force volumetric
     elif number is not None:
-        c = 0
-        for e in elts:
+        for c, e in enumerate(elts):
             if c != number: Internal._rmNodesByName(zp, e[0])
-            else: e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
-            c += 1
+            else:
+                e[1] = numpy.copy(e[1])
+                if e[1][1] == 0: _deleteZoneBC__(zp)
+                else: e[1][1] = 0 # force volumetric
     elif irange is not None:
         for e in elts:
             r = Internal.getNodeFromName1(e, 'ElementRange')
@@ -8180,18 +8175,25 @@ def _selectOneConnectivity(zp, name=None, number=None, irange=None):
                     Internal._rmNodesByName(zp, e[0])
                 else:
                     if r[0] == irange[0] and r[1] == irange[1]: # full
-                        e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
+                        e[1] = numpy.copy(e[1])
+                        if e[1][1] == 0: _deleteZoneBC__(zp)
+                        else: e[1][1] = 0 # force volumetric
                     else: # slice
                         (name, nnodes) = Internal.eltNo2EltName(e[1][0])
                         if name != 'NGON' and name != 'NFACE' and name != 'MIXED':
-                            e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
+                            e[1] = numpy.copy(e[1])
+                            if e[1][1] == 0: _deleteZoneBC__(zp)
+                            else: e[1][1] = 0 # force volumetric
                             r = Internal.getNodeFromName1(e, 'ElementRange')
-                            r[1] = numpy.copy(r[1]); r[1][0] = 1; r[1][1] = irange[1]-irange[0]+1
+                            r[1] = numpy.copy(r[1])
+                            r[1][0] = 1; r[1][1] = irange[1]-irange[0]+1
                             c = Internal.getNodeFromName1(e, 'ElementConnectivity')
                             c[1] = c[1][nnodes*(irange[0]-1):nnodes*(irange[1])+1]
                         else: print ('Warning: selectOneConnectivity: slice impossible.')
             else: Internal._rmNodesByName(zp, e[0])
-    _renumberElementConnectivity(zp)
+
+    _deleteFlowSolutions__(zp, loc='centers')
+    Internal._updateElementRange(zp)
     return None
 
 # -- selectConnectivity
@@ -8203,17 +8205,21 @@ def _selectOneConnectivity(zp, name=None, number=None, irange=None):
 def selectConnectivity(z, name=None, number=None, irange=None):
     zp = Internal.copyRef(z)
     elts = Internal.getNodesFromType1(zp, 'Elements_t')
-
+    bcs = Internal.getNodesFromType2(zp, 'BC_t')
     if name is not None:
         for e in elts:
             if e[0] != name: Internal._rmNodesByName(zp, e[0])
-            else: e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
+            else:
+                e[1] = numpy.copy(e[1])
+                if e[1][1] == 0: _deleteZoneBC__(zp)
+                else: e[1][1] = 0 # force volumetric
     elif number is not None:
-        c = 0
-        for e in elts:
+        for c, e in enumerate(elts):
             if c != number: Internal._rmNodesByName(zp, e[0])
-            else: e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
-            c += 1
+            else:
+                e[1] = numpy.copy(e[1])
+                if e[1][1] == 0: _deleteZoneBC__(zp)
+                else: e[1][1] = 0 # force volumetric
     elif irange is not None:
         for e in elts:
             r = Internal.getNodeFromName1(e, 'ElementRange')
@@ -8222,11 +8228,15 @@ def selectConnectivity(z, name=None, number=None, irange=None):
                 if r[0] != irange[0] and r[1] != irange[1]:
                     Internal._rmNodesByName(zp, e[0])
                 if r[0] == irange[0] and r[1] == irange[1]: # full
-                    e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
+                    e[1] = numpy.copy(e[1])
+                    if e[1][1] == 0: _deleteZoneBC__(zp)
+                    else: e[1][1] = 0 # force volumetric
                 if r[0] == irange[0] and r[1] < irange[1]: # full
                     (name, nnodes) = Internal.eltNo2EltName(e[1][0])
                     if name != 'NGON' and name != 'NFACE' and name != 'MIXED':
-                        e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
+                        e[1] = numpy.copy(e[1])
+                        if e[1][1] == 0: _deleteZoneBC__(zp)
+                        else: e[1][1] = 0 # force volumetric
                         r0 = r[0]; r1 = r[1]
                         r = Internal.getNodeFromName1(e, 'ElementRange')
                         r[1] = numpy.copy(r[1]); r[1][0] = 1; r[1][1] = r1-r0+1
@@ -8237,7 +8247,9 @@ def selectConnectivity(z, name=None, number=None, irange=None):
                 if r[0] > irange[0] and r[1] == irange[1]: # full
                     (name, nnodes) = Internal.eltNo2EltName(e[1][0])
                     if name != 'NGON' and name != 'NFACE' and name != 'MIXED':
-                        e[1] = numpy.copy(e[1]); e[1][1] = 0 # force volumetric
+                        e[1] = numpy.copy(e[1])
+                        if e[1][1] == 0: _deleteZoneBC__(zp)
+                        else: e[1][1] = 0 # force volumetric
                         r0 = r[0]; r1 = r[1]
                         r = Internal.getNodeFromName1(e, 'ElementRange')
                         r[1] = numpy.copy(r[1]); r[1][0] = 1; r[1][1] = r1-r0+1
@@ -8246,7 +8258,9 @@ def selectConnectivity(z, name=None, number=None, irange=None):
                         c[1] = c[1][nnodes*(r[0]-1):nnodes*(r[1])+1]
                     else: print('Warning: selectConnectivity: slice impossible.')
             else: Internal._rmNodesByName(zp, e[0])
-    _renumberElementConnectivity(zp)
+
+    _deleteFlowSolutions__(zp, loc='centers')
+    Internal._updateElementRange(zp)
     return zp
 
 #=============================================================================

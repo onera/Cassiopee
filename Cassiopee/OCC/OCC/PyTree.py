@@ -70,7 +70,7 @@ def convertCAD2PyTree(fileName, format=None, h=0., chordal_err=0.,
                                             Internal.__FlowSolutionNodes__,
                                             Internal.__FlowSolutionCenters__)
                 t[2][base3][2].append(z)
-        else: # non structure
+        else: # non-structure
             if i[3] == 'BAR':
                 if not base1:
                     t = C.addBase2PyTree(t, 'Base1', 1); base1 = base; base += 1
@@ -329,7 +329,7 @@ class CAD:
         return self.faces[no-1]
 
 #========================
-#=== nouvelle vision ====
+#=== new vision ===
 #========================
 def _linkCAD2Tree(hook, t):
     """Put hook in CAD/hook for each zone."""
@@ -372,7 +372,7 @@ def getTree(hook, N=11, hmin=-1., hmax=-1., hausd=-1.):
                                     Internal.__GridCoordinates__,
                                     Internal.__FlowSolutionNodes__,
                                     Internal.__FlowSolutionCenters__)
-        # Conserve name, type et no de l'edge dans la CAD
+        # Preserve name, type and edge number in the CAD
         r = Internal.createChild(z, "CAD", "UserDefinedData_t")
         Internal._createChild(r, "name", "DataArray_t", value="edge%03d"%(c+1))
         Internal._createChild(r, "type", "DataArray_t", value="edge")
@@ -423,7 +423,7 @@ def remeshTreeFromEdges(hook, tp):
                                     Internal.__GridCoordinates__,
                                     Internal.__FlowSolutionNodes__,
                                     Internal.__FlowSolutionCenters__)
-        # Conserve name, type et no de l'edge dans la CAD
+        # Preserve name, type and edge number in the CAD
         r = Internal.createChild(z, "CAD", "UserDefinedData_t")
         Internal._createChild(r, "name", "DataArray_t", value="edge%03d"%(c+1))
         Internal._createChild(r, "type", "DataArray_t", value="edge")
@@ -539,7 +539,7 @@ def meshAll(hook, hmin=-1., hmax=-1., hausd=-1., faceList=None, aniso=False, ord
                                     Internal.__GridCoordinates__,
                                     Internal.__FlowSolutionNodes__,
                                     Internal.__FlowSolutionCenters__)
-        # Conserve hook, name, type et no de l'edge dans la CAD
+        # Preserve hook, name, type and edge number in the CAD
         r = Internal.createChild(z, "CAD", "UserDefinedData_t")
         Internal._createChild(r, "name", "DataArray_t", value="edge%03d"%(c+1))
         Internal._createChild(r, "type", "DataArray_t", value="edge")
@@ -765,7 +765,7 @@ def _remeshTree4Qual(hook, t):
         found[no-1] = True
     w = numpy.where(found == False)
     nedges = []
-    for i in w: # toutes les faces failed
+    for i in w: # all failed faces
         edgeno = OCC.getEdgesByFace(hook, i+1)
         for e in edgeno:
             if e not in nedges: nedges.append(e)
@@ -780,8 +780,8 @@ def _remeshTree4Qual(hook, t):
     return None
 
 # modify hsize for faces from hlist
-# IN: faceList: liste d'entiers start 1
-# IN: hList: liste de (hmin,hmax,hausd)
+# IN: faceList: list of integers starting at 1
+# IN: hList: list of (hmin,hmax,hausd)
 def _modifyHSizeForFaces(t, faceList, hList):
     b = Internal.getNodeFromName1(t, 'FACES')
     for c, i in enumerate(faceList):
@@ -1090,7 +1090,7 @@ def _meshDeviation1(hook, t, loc='nodes'):
     #EDGES = Internal.getNodeFromName1(t, 'EDGES')
     #zones = Internal.getZones(EDGES)
     #for z in zones:
-    #    # no de l'edge
+    #    # edge number
     #    try:
     #        no = getNo(z)
     #        edgeList = [no]
@@ -1110,7 +1110,7 @@ def _meshDeviation1(hook, t, loc='nodes'):
             faceList = [no]
         except: faceList = None
         if loc == "centers":
-            # recupere le maillage en centre
+            # retrieve the mesh at centers
             zc = C.node2Center(z)
             _meshDeviation__(z, zc, _projectOnFaces, hook, faceList, no)
         else: # nodes
@@ -1126,7 +1126,7 @@ def _meshDeviation2(hook, t, loc="nodes"):
         else: F = _projectOnFaces
 
         if loc == "centers":
-            # recupere le maillage en centre
+            # retrieve the mesh at centers
             zc = C.node2Center(z)
             _meshDeviation__(z, zc, F, hook, None, no)
         else:
@@ -1236,21 +1236,21 @@ def _setInterpData(t, tc):
                                     ptList=ptList-1, ptListDonor=ptListDonor-1)
     return None
 
-# Retourne l'edge a partir de edgeNo (numero global CAD)
+# Return edge from edgeNo (global CAD number)
 def getEdge(t, pos, edgeNo):
     """Return edge from no."""
     be = Internal.getNodeFromName1(t, 'EDGES')
     ze = be[2][pos[0][edgeNo]]
     return ze
 
-# Retourne les edges a partir d'une liste de edgeNos (numero global CAD)
+# Return edges from a list of edgeNos (global CAD numbers)
 def getEdges(t, pos, edgeNos):
     be = Internal.getNodeFromName1(t, 'EDGES')
     locEdgeNos = [pos[0].get(k) for k in edgeNos]
     ze = [be[2][i] for i in locEdgeNos]
     return ze
 
-# Retourne la face de faceNo (numero global CAD)
+# Return face from faceNo (global CAD number)
 def getFace(t, pos, faceNo):
     """Return face from no."""
     bf = Internal.getNodeFromName1(t, 'FACES')
@@ -1375,9 +1375,9 @@ def _updateConnectivityTree(tc, name, nameDonor, ptList, ptListDonor):
     Internal.createNode('GridLocation', 'GridLocation_t', value='Vertex', parent=zsr)
 
     npts = len(ptList)
-    # indices des points receveur
+    # receiver point indices
     Internal.createNode('PointList', 'IndexArray_t', value=ptListDonor, parent=zsr)
-    # indices des points donneur
+    # donor point indices
     Internal.createNode('PointListDonor', 'IndexArray_t', value=ptList, parent=zsr)
     # coefficient a 1 (injection)
     data = numpy.ones((npts), dtype=numpy.float64)
@@ -1622,7 +1622,7 @@ def getComponents(t, tol=1.e-12, byOCAFLabels=False):
             print(f"INFO: building component {c}...", flush=True)
             zs = compounds[c]
             if zs == []: continue
-            G._zip(zs, tol) # volontairement in place, maybe useless
+            G._zip(zs, tol) # deliberately in place, maybe useless
             b = T.join(zs, tol=tol) # for self closing not done by zip
             #b = T.splitConnexity(b)
             b = T.splitManifold(b)
@@ -1630,7 +1630,7 @@ def getComponents(t, tol=1.e-12, byOCAFLabels=False):
         for c, z in enumerate(a): z[0] = f"component{c}"
     else:
         # join all zones
-        G._zip(zones, tol) # volontairement in place, maybe useless
+        G._zip(zones, tol) # deliberately in place, maybe useless
         a = T.join(zones, tol=tol) # for self closing not done by zip
         #a = T.splitConnexity(a)
         a = T.splitManifold(a)

@@ -500,7 +500,7 @@ def ultimate(hook, hmax, hausd=-1, metric=True):
         # meshing of Face edges (output by wire)
         wires = occ.meshEdgesByFace3(hook, i+1, hmax, hausd)
 
-        # sortie a plat de tous les edges
+        # flat output of all edges
         #plat = []
         #for w in wires: plat += w
         #Converter.convertArrays2File(plat, '%03d_edgeXY.plt'%i)
@@ -542,9 +542,9 @@ def ultimate(hook, hmax, hausd=-1, metric=True):
 #===============================================================================
 # TRI Mesh Face no i of CAD from parametrized edges
 # IN: hook: cad hook
-# IN: i: no de la face
+# IN: i: face number
 # IN: edges structured one per wire
-# IN: hmin/hmax/hausd: par face
+# IN: hmin/hmax/hausd: per face
 # IN: close: if True, close mesh
 # IN: aniso: if True, anisotropic mesher
 #===============================================================================

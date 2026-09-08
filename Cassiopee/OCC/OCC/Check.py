@@ -3,6 +3,7 @@ import OCC.PyTree as OCC
 
 # Return dict of face->edges (topologic)
 def getEdgesByFace(hook):
+    """Return a dictionary mapping face numbers to their edge numbers."""
     out = {}
     nbFaces = OCC.getNbFaces(hook)
     for i in range(nbFaces):
@@ -12,6 +13,7 @@ def getEdgesByFace(hook):
 
 # Return dict of edge->faces (topologic)
 def getFacesByEdge(hook, edgesByFace):
+    """Return a dictionary mapping edge numbers to their face numbers."""
     out = {}
     for i in edgesByFace:
         for j in edgesByFace[i]:
@@ -22,6 +24,7 @@ def getFacesByEdge(hook, edgesByFace):
 
 # Return the list of degenerated edges (geometric)
 def getDegeneratedEdges(hook, tol=1.e-12):
+    """Return a list of degenerated edge numbers with length below tolerance."""
     out = []
     nbEdges = OCC.getNbEdges(hook)
     for i in range(nbEdges):
@@ -31,6 +34,7 @@ def getDegeneratedEdges(hook, tol=1.e-12):
 
 # Return the list of degenerated faces (geometric)
 def getDegeneratedFaces(hook, tol=1.e-12):
+    """Return a list of degenerated face numbers with area below tolerance."""
     out = []
     nbFaces = OCC.getNbFaces(hook)
     for i in range(nbFaces):
@@ -40,6 +44,7 @@ def getDegeneratedFaces(hook, tol=1.e-12):
 
 # Check if faces overlap
 def getFaceOverlap(hook, tol=1.e-12, byOCAFLabels=True):
+    """Check for overlapping faces and return intersecting and overlapping face pairs."""
     nbFaces = OCC.getNbFaces(hook)
     # compute bbox of faces
     bb = {}
@@ -101,6 +106,7 @@ def getFaceOverlap(hook, tol=1.e-12, byOCAFLabels=True):
 
 # Check CAD
 def checkCAD(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
+    """Check CAD quality for degenerated edges/faces, lonely/multiple edges, and face overlaps."""
     import numpy
     score = 0
 
@@ -203,6 +209,7 @@ def checkCAD(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
 # surface components; component.cgns
 # internal mesh: mesh.cgns
 def checkMesh(hook, tol=1.e-9, byOCAFLabels=True, repair=False, zipTol=None):
+    """Check CAD quality through coarse meshing, including watertightness, reorder stability, and mesh quality."""
     import Transform.PyTree as T
     import Converter.PyTree as C
     import Generator.PyTree as G

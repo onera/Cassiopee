@@ -3884,11 +3884,11 @@ def checkSize(t, sizeMax=100000000):
   from . import Check
   return Check.checkSize(t, sizeMax)
 
-# -- correctBCElementNodes
-def _correctBCElementNodes(t):
+# -- correctElementBoundaryNodes
+def _correctElementBoundaryNodes(t):
   """Correct element nodes to tag them as BC."""
   from . import Check
-  return Check._correctBCElementNodes(t)
+  return Check._correctElementBoundaryNodes(t)
 
 # -- correctBaseZonesDim
 def _correctBaseZonesDim(t, splitBases=False):
@@ -4464,6 +4464,11 @@ def getElementBoundaryNodes(z):
     if dimElt < dim: out.append(GE)
   return out
 
+def _rmElementBoundaryNodes(z):
+  bcConnects = getElementBoundaryNodes(z)
+  for n in bcConnects: _rmNode(z, n)
+  return None
+
 # -- Retourne le noeud Element_t NGon si il existe
 def getNGonNode(z):
   GEl = getNodesFromType1(z, 'Elements_t')
@@ -4478,13 +4483,15 @@ def getNFaceNode(z):
     if GE[1][0] == 23: return GE
   return None
 
-# -- Update la numerotation des ElementRanges :
-#     - connectivites volumiques puis connectivites surfaciques
-#     - update les ElementRanges des BCs correspondantes
+# -- Update ElementRange numbering:
+#     - volume connectivities followed by surface connectivities
+#     - update the ElementRanges of the corresponding BCs
+#     - update the number of volume elements of BE/ME meshes in zoneDim
 def _updateElementRange(z):
   _setElementDim(z)
   GEl = getNodesFromType1(z, 'Elements_t')
   BCs = getNodesFromType2(z, 'BC_t')
+  dim = getZoneDim(z)
 
   iGEv = []; iGEs = []
   for i, GE in enumerate(GEl):
@@ -4492,7 +4499,16 @@ def _updateElementRange(z):
     else: iGEs.append(i)
 
   c = 0
-  for i in iGEv + iGEs:
+  for i in iGEv:
+    r = getNodeFromName1(GEl[i], 'ElementRange')
+    r[1] = numpy.copy(r[1]); a = r[1]
+    size = a[1]-a[0]+1
+    a[0] = c+1; c += size; a[1] = c
+  if dim[0] == "Unstructured" and dim[3] != "NGON":
+    z[1] = numpy.copy(z[1])
+    z[1][0][1] = c  # Update the number of volume elements
+
+  for i in iGEs:
     r = getNodeFromName1(GEl[i], 'ElementRange')
     r[1] = numpy.copy(r[1]); a = r[1]
     size = a[1]-a[0]+1
@@ -5071,8 +5087,7 @@ def _fixNGon(t, remove=False, breakBE=True, convertMIXED=True, addNFace=True, ap
           for c in connects:
             if c[1][0] != 22 and c[1][0] != 23:
               _rmNode(z, c)
-          connects = getElementBoundaryNodes(z)
-          for c in connects: _rmNode(z, c)
+          _rmElementBoundaryNodes(z)
         else: # swap
           if NGON != -1 and NGON > BE: # swap BE and NGON
             # swap un BE et NGON
