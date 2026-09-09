@@ -1876,6 +1876,7 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
           {
             nvpf = facets[f].size();
             ic2 = outConnId[nvpf-1];
+            if (nfpc2[ic2] == 0) continue;  // NODE output conn., skip
             indf = loc_toffset[nvpf-1] + extfCmpt[nvpf-1];
             for (E_Int j = 1; j <= nvpf; j++)
             {
