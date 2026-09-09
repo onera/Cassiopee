@@ -860,13 +860,13 @@ def chunk2part(dt):
             bcs.append(plist[1].ravel('k'))
             dataSets = Internal.getNodesFromType1(bc, 'BCDataSet_t')
             dl = []
-            for d in dataSets: 
+            for d in dataSets:
                 data = Internal.getNodeFromType1(d, 'BCData_t') # unique
-                datas = Internal.getNodesFromType1(data, 'DataArray_t') 
+                datas = Internal.getNodesFromType1(data, 'DataArray_t')
                 for da in datas:
                     dl.append(da[1])
             bcDataSets.append(dl)
-            
+
     arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs])
 
     RES = XCore.xcore.chunk2partNGon(arrays)
