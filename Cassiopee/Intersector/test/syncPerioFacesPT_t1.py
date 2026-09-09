@@ -14,7 +14,7 @@ import Converter.Internal as I
 # ----------------------------------------------------------------
 # Maillages
 a = G.cartHexa((0.,0.,0.), (1.,1.,1.), (10,10,10))
-a = C.convertArray2NGon(a)
+a = C.convertArray2NGon(a, api=1)
 
 XOR._reorient(a)
 

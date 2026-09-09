@@ -678,7 +678,7 @@ def exteriorFaces(t, indices=None):
 def _exteriorFaces(t, indices=None):
     C._deleteZoneBC__(t)
     C._deleteFlowSolutions__(t, 'centers')
-    C._TZA1(t, 'nodes', 'nodes', True, Post.exteriorFaces, indices)
+    C._TZA3(t, 'nodes', 'nodes', True, Post.exteriorFaces, indices)
     return None
 
 def exteriorElts(t):

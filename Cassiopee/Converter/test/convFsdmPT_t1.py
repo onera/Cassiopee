@@ -78,11 +78,9 @@ t = C.convertFile2PyTree(LOCAL+'/out.h5')
 test.testT(t, 1)
 
 # passage en NGON
-bcs = C.getBCs(m)
-m = C.breakConnectivity(m)
-m = C.convertArray2NGon(m, recoverBC=0)
-m = T.join(m)
-C._recoverBCs(m, bcs)
+zones = Internal.getZones(m)
+for z in zones:
+    C._convertArray2NGon(z, recoverBC=True, api=3)
 C._signNGonFaces(m)
 Internal._adaptNGon32NGon4(m)
 #C.convertPyTree2File(m, 'mesh.cgns')
