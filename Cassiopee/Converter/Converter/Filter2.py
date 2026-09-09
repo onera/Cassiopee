@@ -389,7 +389,7 @@ def createPeDataspace(distrib):
     but adapted to "ParentElements" arrays ie (N,2) numpy arrays.
     """
     dn_pe    = distrib[1] - distrib[0]
-    DSMMRYPE = [[0              , 0], [1, 1], [dn_pe, 2], [1, 1]]
+    DSMMRYPE = [[0         , 0], [1, 1], [dn_pe, 2], [1, 1]]
     DSFILEPE = [[distrib[0], 0], [1, 1], [dn_pe, 2], [1, 1]]
     DSGLOBPE = [[distrib[2], 2]]
     DSFORMPE = [[1]]
@@ -518,9 +518,9 @@ def loadElementConnectivityFromEso(elmt, zonePath, hdfFilter):
 
     nFace = distribElmt[2]
     #dnFaceIndex = dnElmt + int(distribElmt[1] == nFace)
-    DSMMRYEC = [[0           ], [1], [dnFaceVertex], [1]]
+    DSMMRYEC = [[0            ], [1], [dnFaceVertex], [1]]
     DSFILEEC = [[begFaceVertex], [1], [dnFaceVertex], [1]]
-    DSGLOBEC = [[nFaceVertex ]]
+    DSGLOBEC = [[nFaceVertex  ]]
     DSFORMEC = [[0]]
 
     ecPath = zonePath+"/"+elmt[0]+"/ElementConnectivity"
@@ -539,7 +539,7 @@ def createZoneStdElementsFilter(elmt, zonePath, hdfFilter):
 
     _, elmt_npe = Internal.eltNo2EltName(elmt[1][0]) # nbre de vertex de l'element
 
-    DSMMRYElmt = [[0                       ], [1], [dnElmt*elmt_npe], [1]]
+    DSMMRYElmt = [[0                      ], [1], [dnElmt*elmt_npe], [1]]
     DSFILEElmt = [[distribElmt[0]*elmt_npe], [1], [dnElmt*elmt_npe], [1]]
     DSGLOBElmt = [[distribElmt[2]*elmt_npe]]
     DSFORMElmt = [[0]]
@@ -840,15 +840,15 @@ def chunk2part(dt):
             if f[3] == 'DataArray_t':
                 soln.append(f[1]); solNames.append(f[0])
 
+    # extract bcNames and bcTypes from chunked zone
     zonebc = Internal.getNodeFromType1(z, 'ZoneBC_t')
-    bcs = []
+    bcs = [] # list of numpys of PL
     bcNames = []; bcTypes = {}
-    familyNames = {}
+    bcDataSets = []
     if zonebc is not None:
         BCs = Internal.getNodesFromType1(zonebc, 'BC_t')
         for bc in BCs:
             bcname = bc[0]; bctype = Internal.getValue(bc)
-
             if bctype == 'FamilySpecified':
                 fname = Internal.getNodeFromType1(bc, 'FamilyName_t')
                 fn = Internal.getValue(fname)
@@ -857,8 +857,16 @@ def chunk2part(dt):
                 bcTypes[bcname] = bctype
             bcNames.append(bcname)
             plist = Internal.getNodeFromName1(bc, 'PointList')
-            bcs.append(plist[1][0])
-
+            bcs.append(plist[1].ravel('k'))
+            dataSets = Internal.getNodesFromType1(bc, 'BCDataSet_t')
+            dl = []
+            for d in dataSets: 
+                data = Internal.getNodeFromType1(d, 'BCData_t') # unique
+                datas = Internal.getNodesFromType1(data, 'DataArray_t') 
+                for da in datas:
+                    dl.append(da[1])
+            bcDataSets.append(dl)
+            
     arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs])
 
     RES = XCore.xcore.chunk2partNGon(arrays)
@@ -868,24 +876,28 @@ def chunk2part(dt):
     # create zone
     zo = Internal.createZoneNode('Zone_' + '%d'%Cmpi.rank, mesh)
 
-    # add solutions
+    # add solution in nodes
     for n, name in enumerate(solNames):
         cont = Internal.createUniqueChild(zo, Internal.__FlowSolutionNodes__, 'FlowSolution_t')
         Internal.newDataArray(name, value=sol[n], parent=cont)
 
+    # add solution in centers
     for n, name in enumerate(solcNames):
         cont = Internal.createUniqueChild(zo, Internal.__FlowSolutionCenters__, 'FlowSolution_t')
-        Internal._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter', )
+        Internal._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter')
         Internal.newDataArray(name, value=solc[n], parent=cont)
 
-    for i in range(len(bcs)):
-        if len(bcs[i]) != 0:
+    # add bcs
+    for i, bc in enumerate(bcs):
+        if len(bc) != 0:
             cont = Internal.createUniqueChild(zo, 'ZoneBC', 'ZoneBC_t')
             val = bcTypes[bcNames[i]]
             if val not in BCType_l:
-                Internal.newBC(name=bcNames[i], pointList=bcs[i], family=val, parent=cont)
+                node = Internal.newBC(name=bcNames[i], pointList=bc, family=val, parent=cont)
+                Internal._createUniqueChild(node, 'GridLocation', 'GridLocation_t', value='FaceCenter')
             else:
-                Internal.newBC(name=bcNames[i], pointList=bcs[i], btype=val, parent=cont)
+                node = Internal.newBC(name=bcNames[i], pointList=bc, btype=val, parent=cont)
+                Internal._createUniqueChild(node, 'GridLocation', 'GridLocation_t', value='FaceCenter')
 
     t = C.newPyTree(['Base', zo])
     Cmpi._setProc(t, Cmpi.rank)
@@ -895,7 +907,7 @@ def chunk2part(dt):
 
 #========================================================
 def loadAndSplit(fileName):
-    """Load and split a file containing one NGON."""
+    """Load and split a file containing one NGON zone."""
     dt = loadAsChunks(fileName)
     t, RES = chunk2part(dt)
     return t, RES
