@@ -484,7 +484,7 @@ elif [ "$MAC" = "juno_coda2" ]; then
     export XMODIFIERS="@im=none"
     export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
-    export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
+    export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu850/lib64/libasan.so
     unset $(env | grep SLURM | cut -d'=' -f 1)
     export SLURM_CONF_SERVER=10.33.131.11:6817
     unset OMP_PLACES
@@ -511,7 +511,7 @@ elif [ "$MAC" = "juno_coda" ]; then
     export XMODIFIERS="@im=none"
     export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
     export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
-    export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
+    export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu850/lib64/libasan.so
     unset $(env | grep SLURM | cut -d'=' -f 1)
     export SLURM_CONF_SERVER=10.33.131.11:6817
     unset OMP_PLACES

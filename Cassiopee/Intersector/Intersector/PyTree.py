@@ -1662,7 +1662,7 @@ def _triangulateSpecifiedFaces(t, pgs, improve_qual=1):
     for z in zones:
         m = C.getFields(Internal.__GridCoordinates__, z)[0]
         if m == []: continue
-        m = Converter.convertArray2NGon(m)
+        m = Converter.convertArray2NGon(m, api=1)
         m = XOR.triangulateSpecifiedFaces(m, pgs[i], improve_qual)
         mesh = m[0]
         pg_oids= m[1]
@@ -1748,15 +1748,15 @@ def _triangulateBC(t, bctype):
 
     for z in zones:
 
-        coords = C.getFields(Internal.__GridCoordinates__, z)[0]
+        coords = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
         if coords == []: continue
 
-        coords = Converter.convertArray2NGon(coords)
+        coords = Converter.convertArray2NGon(coords, api=1)
 
         bnds = Internal.getNodesFromType2(z, 'BC_t')
 
         bcpgs = []
-        for bb in bnds :
+        for bb in bnds:
             if Internal.isValue(bb, bctype) == False: continue
             bcpgs.append(bb[2][1][1][0]) # POINTLIST NUMPY
 

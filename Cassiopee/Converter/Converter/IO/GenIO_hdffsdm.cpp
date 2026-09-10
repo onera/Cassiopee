@@ -71,7 +71,7 @@ static herr_t feed_children_names(hid_t id, const char* name,
 E_Int createGridElements(hid_t id, E_Int eltType, const char* name, E_Int istart, PyObject*& GE, E_Int& ncells, 
   int32_t*& bct, E_Int& size, std::map<E_Int, E_Int>& tagmap)
 {
-  // Get ncells from id
+  // Get ncells from node
   hid_t aid = H5Aopen_by_name(id, ".", "NumberOfCells", H5P_DEFAULT, H5P_DEFAULT);
   H5Aread(aid, H5T_NATIVE_INT, &ncells); // care when long
   H5Aclose(aid);
@@ -804,10 +804,17 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       E_Int nvars = 0;
       H5Aread(aid, H5T_NATIVE_INT, &nvars);
       H5Aclose(aid);
-      aid = H5Aopen_by_name(node, ".", "NumberOfCells", H5P_DEFAULT, H5P_DEFAULT);
-      ncells = 0;
-      H5Aread(aid, H5T_NATIVE_INT, &ncells);
-      H5Aclose(aid);
+
+      // ncells may not be always present
+      htri_t exists = H5Aexists(node, "NumberOfCells");
+      if (exists > 0)
+      {
+        aid = H5Aopen_by_name(node, ".", "NumberOfCells", H5P_DEFAULT, H5P_DEFAULT);
+        ncells = 0;
+        H5Aread(aid, H5T_NATIVE_INT, &ncells);
+        H5Aclose(aid);
+      }
+      else ncells = n3dcells; // suppose centers when missing
 
       char nameFSCont[76];
       PyObject* childrenFS = PyList_New(0);
@@ -840,7 +847,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
       tid = H5Tcopy(H5T_NATIVE_DOUBLE); H5Tset_precision(tid, 64);
       hid_t vid = H5Dopen2(node, "Values", H5P_DEFAULT);
 
-      hsize_t start[2]; hsize_t scount[2];
+      hsize_t start[2]; hsize_t scount[2]; E_Int sizel=0;
       char name[35]; char name2[76];
       for (E_Int n = 0; n < nvars; n++)
       {
@@ -849,9 +856,9 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
         hid_t gid2 = H5Gopen(node, name, H5P_DEFAULT);
         aid = H5Aopen_by_name(gid2, ".", "Name", H5P_DEFAULT, H5P_DEFAULT);
         hid_t atype = H5Aget_type(aid);
-        size = H5Tget_size(atype);
+        sizel = H5Tget_size(atype);
         H5Aread(aid, atype, name2);
-        name2[size] = '\0';
+        name2[sizel] = '\0';
         //H5Aread(aid, H5T_C_S1, name2);
         H5Aclose(aid); H5Gclose(gid2);
 
