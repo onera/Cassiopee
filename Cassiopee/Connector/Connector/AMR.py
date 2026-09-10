@@ -811,9 +811,9 @@ def _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames):
         if z is not None:
             nobc = len(zbcs)
             f = Internal.getZones(f_pytree)[0]
+            hook = C.createHook(f,"elementCenters")
             if Cmpi.master: print("Performing the 'identifyElements' function (it can be long.)", flush=True)
             for nobc, zbc in enumerate(zbcs):
-                hook = C.createHook(f,"elementCenters")
                 # Indices of the elements of f corresponding to the elements of zbc
                 ids = C.identifyElements(hook, zbc, tol=__TOL__)
                 len_ids = Internal.getValue(f)[0][1]
@@ -842,7 +842,7 @@ def _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames):
                     node_bc = Internal.getNodeFromName(zone_bc, lastbcname)
                     node_bc[0] = CODABCType
 
-                C.freeHook(hook)
+            C.freeHook(hook)
             z[0] = z[0]+str(Cmpi.rank)
     if meshgen == "AMR" and f is not None: f_pytree[2][1][2] = [f]
     return None
