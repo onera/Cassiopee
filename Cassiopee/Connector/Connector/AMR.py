@@ -139,6 +139,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         print('Final number of cells=%5.4f millions.'%(NCells*1e-6), flush=True)
     C._initVars(t,'{TurbulentDistance}=-1.*({cellN}<1.)*{TurbulentDistance}+({cellN}>0.)*{TurbulentDistance}')
 
+    # Identity the BCTypes & BCNames in t
     zbcs=[]; bctypes=[]; bcnames=[]
     for bc in Internal.getNodesFromType(t, 'BC_t'):
         bctype = Internal.getValue(bc)
@@ -147,13 +148,16 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             bctypes.append(bctype)
             bcnames.append(bcname)
 
+    # Save the boundarys conditions for later use
     for bctype in bctypes:
         zbc = C.extractBCOfType(t, bctype)
         Internal._rmNodesByType(zbc, "FlowSolution_t")
         zbc = T.join(zbc)
         zbcs.append(zbc)
 
-    #Get largest length of the bases
+    # Blanking to check if the QuadNQuad BC is inside the geometry
+    # Needed to avoid wrong BCs
+    # Get largest length of the bases
     G._getVolumeMap(t)
     hminGlobal = (C.getMinValue(t,"centers:vol"))**(1/dim)
     hminGlobal = Cmpi.allreduce(hminGlobal, op=Cmpi.MIN)
@@ -172,11 +176,14 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             bodies = [Internal.getBases(tb2_pre)]; nbodies = len(Internal.getBases(tb2_pre))
             BM = numpy.ones((1, nbodies), dtype=Internal.E_NpyInt)
             zbcTemp = C.newPyTree(["BASE", Internal.getZones(zbc)])
+            # Check if BCs is inside the geometry
             zbcTemp = X.blankCells(zbcTemp, bodies, BM, blankingType='center_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1)
             maxBlankVal = C.getMaxValue(zbcTemp, 'centers:cellN')
+            # If BC is entirely inside the geometry - change it's name
             if maxBlankVal < 1: bcnames[nobc] = 'QuadNQuad_Empty'
             del zbcTemp
             del bodies
+
     Cmpi.trace("Extract front faces of IBM target points [start] ", master=True, cpu=False)
     frontIP = computeCellNForIBMFronts(t, dim, IBM_parameters, VPM=VPM)
     Cmpi.trace("Extract front faces of IBM target points [end]   ", master=True, cpu=False)
@@ -190,6 +197,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     Cmpi.trace(" Removing blanked cells [start]", master=True, cpu=False)
     t = P.selectCells(t, "{cellN}==1.", strict=1)
     Internal._rmNodesFromName(t,"FlowSolution")
+    # What types of elements are there?
     for node in Internal.getNodesFromType(t, "Elements_t"):
         if node[0] != "GridElements":
             Internal._rmNode(t, node)
@@ -219,18 +227,18 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     #Cmpi.abort()
 
     Cmpi.trace(" Recovering Boundary Conditions [start]", master=True, cpu=False)
-    f_pytree = P.exteriorFaces(t)
-    for elt_t in Internal.getNodesFromType(f_pytree, "Elements_t"):
+    t_exteriorFaces = P.exteriorFaces(t)
+    for elt_t in Internal.getNodesFromType(t_exteriorFaces, "Elements_t"):
         if not elt_t[0].startswith("GridElements"):
-            Internal._rmNode(f_pytree, elt_t)
-    _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames)
+            Internal._rmNode(t_exteriorFaces, elt_t)
+    _recoverBoundaryConditions__(t, t_exteriorFaces, zbcs, bctypes, bcnames)
     Cmpi.trace(" Recovering Boundary Conditions [end]  ", master=True, cpu=False)
     #Cmpi.convertPyTree2File(t,'check_t_afterBC.cgns')
 
     Cmpi.trace(" Cleaning frontIP (IBMWall) per processor [start]", master=True, cpu=False)
     if Cmpi.master: print("Performing the 'identifyElements' function (it can be long.)", flush=True)
     startTime = time.perf_counter()
-    f = Internal.getZones(f_pytree)
+    f = Internal.getZones(t_exteriorFaces)
     if f != []:
         f = f[0]
         hook = C.createHook(f,"elementCenters")
@@ -804,14 +812,14 @@ def moveIBMPoints__(ip_pts, imagepts, wallpts, varsn, epsilon, indices_outside_b
 
     return imagepts
 
-def _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames):
+def _recoverBoundaryConditions__(t, t_exteriorFaces, zbcs, bctypes, bcnames):
     meshgen = "AMR"
     f = None
     for z in Internal.getZones(t):
         if z is not None:
             nobc = len(zbcs)
-            f = Internal.getZones(f_pytree)[0]
-            hook = C.createHook(f,"elementCenters")
+            f = Internal.getZones(t_exteriorFaces)[0]
+            hook = C.createHook(f, "elementCenters")
             if Cmpi.master: print("Performing the 'identifyElements' function (it can be long.)", flush=True)
             for nobc, zbc in enumerate(zbcs):
                 # Indices of the elements of f corresponding to the elements of zbc
@@ -821,7 +829,7 @@ def _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames):
                 ids = ids.tolist()
                 #C.freeHook(hook)
                 if len(ids) > 0:
-                    zf = T.subzone(f,ids, type='elements')
+                    zf = T.subzone(f, ids, type='elements')
                     if bcnames[nobc] != "QuadNQuad":
                         G_AMR._addBC2Zone__(z, bctypes[nobc], bctypes[nobc], zf)
                     else:
@@ -844,7 +852,7 @@ def _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames):
 
             C.freeHook(hook)
             z[0] = z[0]+str(Cmpi.rank)
-    if meshgen == "AMR" and f is not None: f_pytree[2][1][2] = [f]
+    if meshgen == "AMR" and f is not None: t_exteriorFaces[2][1][2] = [f]
     return None
 
 def _addIBCDatasets__(t, f, image_pts, wall_pts, ip_pts, IBM_parameters):
