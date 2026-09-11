@@ -148,7 +148,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             bctypes.append(bctype)
             bcnames.append(bcname)
 
-    # Save the boundarys conditions for later use
+    # Save the boundary conditions for later use
     for bctype in bctypes:
         zbc = C.extractBCOfType(t, bctype)
         Internal._rmNodesByType(zbc, "FlowSolution_t")
@@ -179,7 +179,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             # Check if BCs is inside the geometry
             zbcTemp = X.blankCells(zbcTemp, bodies, BM, blankingType='center_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1)
             maxBlankVal = C.getMaxValue(zbcTemp, 'centers:cellN')
-            # If BC is entirely inside the geometry - change it's name
+            # If BC is entirely inside the geometry - change its name
             if maxBlankVal < 1: bcnames[nobc] = 'QuadNQuad_Empty'
             del zbcTemp
             del bodies
