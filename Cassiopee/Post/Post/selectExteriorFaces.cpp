@@ -1857,33 +1857,35 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
     }
 
     // Copy connectivity
-    std::vector<E_Int> extfCmpt(nbuckets, 0);  // number of ext faces found
-    for (E_Int ic = 0; ic < nc; ic++)
+    if (K_STRING::cmp(eltType2, "NODE") != 0)
     {
-      if (nextfpc[ic] == 0) continue;  // no exterior faces in this input conn., skip
-      K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
-      nelts = cm.getSize();
-      K_CONNECT::getEVFacets(facets, eltTypes[ic], false);
-
-      #pragma omp for schedule(static)
-      for (E_Int i = 0; i < nelts; i++)
+      std::vector<E_Int> extfCmpt(nbuckets, 0);  // number of ext faces found
+      for (E_Int ic = 0; ic < nc; ic++)
       {
-        // Loop over each facet of this element
-        for (E_Int f = 0; f < nfpe[ic]; f++)
+        if (nextfpc[ic] == 0) continue;  // no exterior faces in this input conn., skip
+        K_FLD::FldArrayI& cm = *(cn.getConnect(ic));
+        nelts = cm.getSize();
+        K_CONNECT::getEVFacets(facets, eltTypes[ic], false);
+
+        #pragma omp for schedule(static)
+        for (E_Int i = 0; i < nelts; i++)
         {
-          fidx = cumnfpc[ic] + i*nfpe[ic] + f;  // global face index
-          if (faceMask[fidx] == 1)  // exterior face
+          // Loop over each facet of this element
+          for (E_Int f = 0; f < nfpe[ic]; f++)
           {
-            nvpf = facets[f].size();
-            ic2 = outConnId[nvpf-1];
-            if (nfpc2[ic2] == 0) continue;  // NODE output conn., skip
-            indf = loc_toffset[nvpf-1] + extfCmpt[nvpf-1];
-            for (E_Int j = 1; j <= nvpf; j++)
+            fidx = cumnfpc[ic] + i*nfpe[ic] + f;  // global face index
+            if (faceMask[fidx] == 1)  // exterior face
             {
-              indv = cm(i, facets[f][j-1]) - 1;
-              (*cms2[ic2])(indf, j) = vindir[indv];
+              nvpf = facets[f].size();
+              ic2 = outConnId[nvpf-1];
+              indf = loc_toffset[nvpf-1] + extfCmpt[nvpf-1];
+              for (E_Int j = 1; j <= nvpf; j++)
+              {
+                indv = cm(i, facets[f][j-1]) - 1;
+                (*cms2[ic2])(indf, j) = vindir[indv];
+              }
+              extfCmpt[nvpf-1]++;
             }
-            extfCmpt[nvpf-1]++;
           }
         }
       }
