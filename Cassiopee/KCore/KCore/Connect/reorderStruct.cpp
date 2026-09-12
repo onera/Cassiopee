@@ -32,10 +32,16 @@ void K_CONNECT::reorderStructField(
   FldArrayF& f,
   E_Int oi, E_Int oj, E_Int ok)
 {
-  FldArrayF fout(im*jm*km, f.getNfld());
+  E_Int npts = im*jm*km;
+  E_Int nfld = f.getNfld();
+  FldArrayF fout(npts, nfld);
+
   reorderStructField(im, jm, km, 
                      f, fout, oi, oj, ok);
-  f = fout;
+
+  #pragma omp parallel for collapse(2)
+  for (E_Int ind = 0; ind < npts; ind++)
+  for (E_Int n = 1; n <= nfld; n++) f(ind,n) = fout(ind,n);
 }
 //=============================================================================
 void K_CONNECT::reorderStructField(
@@ -43,133 +49,69 @@ void K_CONNECT::reorderStructField(
   FldArrayF& f, FldArrayF& fout, 
   E_Int oi, E_Int oj, E_Int ok)
 {
-  // reordering
-  E_Int delta, epsilon;
   E_Int nfld = f.getNfld();
   E_Int imjm = im*jm;
-  E_Int in=0, jn=0, kn=0;
 
-  switch (oi)
+  // Validate oi, oj, ok
+  if (K_FUNC::E_abs(oi) < 1 || K_FUNC::E_abs(oi) > 3 ||
+      K_FUNC::E_abs(oj) < 1 || K_FUNC::E_abs(oj) > 3 ||
+      K_FUNC::E_abs(ok) < 1 || K_FUNC::E_abs(ok) > 3)
   {
-    case 1:
-      in = im; break;
-    case -1:
-      in = im; break;
-    case 2:
-      jn = im; break;
-    case -2:
-      jn = im; break;
-    case 3:
-      kn = im; break;
-    case -3:
-      kn = im; break;
-    default:
-      printf("Error: reorder: bad value of oi, oj or ok.\n"); 
-      exit(0);
+    printf("Error: reorder: bad value of oi, oj or ok.\n");
+    exit(0);
   }
-  switch (oj)
-  {
-    case 1:
-      in = jm; break;
-    case -1:
-      in = jm; break;
-    case 2:
-      jn = jm; break;
-    case -2:
-      jn = jm; break;
-    case 3:
-      kn = jm; break;
-    case -3:
-      kn = jm; break;
-    default:
-      printf("Error: reorder: bad value of oi, oj or ok.\n"); 
-      exit(0);
-  }
-  switch (ok)
-  {
-    case 1:
-      in = km; break;
-    case -1:
-      in = km; break;
-    case 2:
-      jn = km; break;
-    case -2:
-      jn = km; break;
-    case 3:
-      kn = km; break;
-    case -3:
-      kn = km; break;
-    default:
-      printf("Error: reorder: bad value of oi, oj or ok.\n"); 
-      exit(0);
-  }
-  delta = in; epsilon = in*jn;
-  
-#pragma omp parallel default(shared)
-  {
-    E_Int i, j, k, ind2, alpha=0, beta=0, gamma=0;
 
-#pragma omp for
+  // axisI/axisJ/axisK: which output axis (0=alpha,1=beta,2=gamma)
+  // each input direction maps to
+  E_Int axisI = K_FUNC::E_abs(oi)-1;
+  E_Int axisJ = K_FUNC::E_abs(oj)-1;
+  E_Int axisK = K_FUNC::E_abs(ok)-1;
+
+  // Reject degenerate mappings (two inputs mapping to the same output axis)
+  if (axisI == axisJ || axisJ == axisK || axisI == axisK)
+  {
+    printf("Error: reorder: bad value of oi, oj or ok.\n");
+    exit(0);
+  }
+
+  // signI/signJ/signK: +1 if direction is kept as-is, -1 if reversed
+  E_Int signI = (oi > 0) ? 1 : -1;
+  E_Int signJ = (oj > 0) ? 1 : -1;
+  E_Int signK = (ok > 0) ? 1 : -1;
+
+  // New dimensions: dims[axis] = size of the input dimension mapped to that axis
+  E_Int dims[3];
+  dims[axisI] = im;
+  dims[axisJ] = jm;
+  dims[axisK] = km;
+  E_Int in = dims[0], jn = dims[1], kn = dims[2];
+
+  E_Int delta = in, epsilon = in*jn;
+
+  #pragma omp parallel
+  {
+    E_Int i, j, k, ind2;
+    E_Int coord[3];
+    E_Int vi, vj, vk;
+
+    #pragma omp for
     for (E_Int ind = 0; ind < imjm*km; ind++)
     { 
       k = ind / imjm;
       j = (ind-k*imjm)/im;
       i = ind-j*im-k*imjm;
-      
-      switch (oi)
-      {
-        case 1:
-          alpha = i; break;
-        case -1:
-          alpha = im-i-1; break;
-        case 2:
-          beta = i; break;
-        case -2:
-          beta = im-i-1; break;
-        case 3:
-          gamma = i; break;
-        case -3:
-          gamma = im-i-1; break;
-        default: //erreur deja testee
-          exit(0);
-      }
-      switch (oj)
-      {
-        case 1:
-          alpha = j; break;
-        case -1:
-          alpha = jm-j-1; break;
-        case 2:
-          beta = j; break;
-        case -2:
-          beta = jm-j-1; break;
-        case 3:
-          gamma = j; break;
-        case -3:
-          gamma = jm-j-1; break;
-        default: //erreur deja testee
-          exit(0);
-      }
-      switch (ok)
-      {
-        case 1:
-          alpha = k; break;
-        case -1:
-          alpha = km-k-1; break;
-        case 2:
-          beta = k; break;
-        case -2:
-          beta = km-k-1; break;
-        case 3:
-          gamma = k; break;
-        case -3:
-          gamma = km-k-1; break;
-        default: //erreur deja testee
-          exit(0);
-      }
-      ind2 = alpha+beta*delta+gamma*epsilon;
+
+      vi = (signI > 0) ? i : im-i-1;
+      vj = (signJ > 0) ? j : jm-j-1;
+      vk = (signK > 0) ? k : km-k-1;
+
+      coord[axisI] = vi;
+      coord[axisJ] = vj;
+      coord[axisK] = vk;
+
+      ind2 = coord[0] + coord[1]*delta + coord[2]*epsilon;
       for (E_Int n = 1; n <= nfld; n++) fout(ind2,n) = f(ind,n);
-    }  
+    }
   }
 
   im = in;
