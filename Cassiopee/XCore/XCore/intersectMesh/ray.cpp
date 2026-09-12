@@ -51,7 +51,7 @@ bool Ray::intersect_triangle(const Point &tA, const Point &tB,
     const Point &tC, E_Float &u, E_Float &v, E_Float &w, E_Float &t,
     E_Float &x, E_Float &y, E_Float &z) const
 {
-    const Point O = (Point){o[0], o[1], o[2]};
+    const Point O = Point{o[0], o[1], o[2]};
     const Point A = tA - O;
     const Point B = tB - O;
     const Point C = tC - O;

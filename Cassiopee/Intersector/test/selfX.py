@@ -13,9 +13,7 @@ M2 = C.convertArray2NGon(M2[0])
 M2 = C.conformizeNGon(M2)
 M2 = XOR.closeCells(M2)
 
-tol = -0.5e-3
-
-M = T.join(M1,M2)
+M = T.join(M1, M2)
 M = XOR.selfX(M)
 
-C.convertArrays2File([M], 'out.plt')
+C.convertArrays2File(M, 'out.plt')

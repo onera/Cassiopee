@@ -30,8 +30,13 @@ using namespace K_FUNC;
 /* MMGS
    IN: maillage TRI
    IN: eventuellement metric ou solution
-   IN: 
-   IN: 
+   IN: ridgeAngle: used in detection of ridge
+   IN: hmin: min h step
+   IN: hmax: max hstep
+   IN: hausd: hausd distance
+   IN: hgrad: enforced hgrad
+   IN: anisotropy: if 1, generate anistropic mesh
+   IN: optim: if 1, optmize mesh
    OUT: maillage TRI remaille. */
 // ============================================================================
 PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
@@ -139,13 +144,53 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
 
   E_Int nargs; E_Int argc; char** vals; char** argv;
 
-  if (optim == 1) // optimisation du maillage, pas de settings
+  if (optim == 1) // otptimisation (old)
   {
-    nargs = 0; vals = NULL;
-    argc = 1;
+    nargs = 1; vals = new char* [nargs];
+    vals[0] = new char [20]; sprintf(vals[0], "%g", ridgeAngle);
+    argc = 2*nargs+1;
     argv = new char* [argc];
     argv[0] = new char [20]; strcpy(argv[0], "mmgs_O3");
-    //argv[1] = new char [20]; strcpy(argv[1], "-optim");
+    argv[1] = new char [20]; strcpy(argv[1], "-ar");
+    argv[2] = new char [20]; strcpy(argv[2], vals[0]);
+    // -noinsert, -nomove, -noswap, -nreg, -ar
+  }
+  else if (optim == 2) // optimisation du maillage, insert, move, flip
+  {
+    nargs = 1; vals = new char* [nargs];
+    vals[0] = new char [20]; sprintf(vals[0], "%g", ridgeAngle);
+    argc = 2*nargs+2;
+    argv = new char* [argc];
+    argv[0] = new char [20]; strcpy(argv[0], "mmgs_O3");
+    argv[1] = new char [20]; strcpy(argv[1], "-optim");
+    argv[2] = new char [20]; strcpy(argv[2], "-ar");
+    argv[3] = new char [20]; strcpy(argv[3], vals[0]);
+    // -noinsert, -nomove, -noswap, -nreg, -ar
+  }
+  else if (optim == 3) // optimisation du maillage, move, flip (noinsert)
+  {
+    nargs = 1; vals = new char* [nargs];
+    vals[0] = new char [20]; sprintf(vals[0], "%g", ridgeAngle);
+    argc = 2*nargs+3;
+    argv = new char* [argc];
+    argv[0] = new char [20]; strcpy(argv[0], "mmgs_O3");
+    argv[1] = new char [20]; strcpy(argv[1], "-optim");
+    argv[2] = new char [20]; strcpy(argv[2], "-noinsert");
+    argv[3] = new char [20]; strcpy(argv[3], "-ar");
+    argv[4] = new char [20]; strcpy(argv[4], vals[0]);
+  }
+  else if (optim == 4) // optimisation du maillage, only flip
+  {
+    nargs = 1; vals = new char* [nargs];
+    vals[0] = new char [20]; sprintf(vals[0], "%g", ridgeAngle);
+    argc = 2*nargs+4;
+    argv = new char* [argc];
+    argv[0] = new char [20]; strcpy(argv[0], "mmgs_O3");
+    argv[1] = new char [20]; strcpy(argv[1], "-optim");
+    argv[2] = new char [20]; strcpy(argv[2], "-noinsert");
+    argv[3] = new char [20]; strcpy(argv[3], "-nomove");
+    argv[4] = new char [20]; strcpy(argv[4], "-ar");
+    argv[5] = new char [20]; strcpy(argv[5], vals[0]);
   }
   else if (posf == 0 && 
            posf11 == 0 && posf12 == 0 && posf13 == 0 &&
@@ -174,7 +219,7 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
     argv[9] = new char [20]; strcpy(argv[9], "-hgrad");
     argv[10] = new char [20]; strcpy(argv[10], vals[4]);
     if (anisotropy == 1) { argv[11] = new char [20]; strcpy(argv[11], "-A"); }
-    printf("INFO: hausd=%s hmin=%s hmax=%s hgrad=%s\n", vals[0], vals[2], vals[3], vals[4]);
+    printf("INFO: mmgs: hausd=%s hmin=%s hmax=%s hgrad=%s\n", vals[0], vals[2], vals[3], vals[4]);
   }
   else // metric field, ridgeAngle, hgrad can be set
   {

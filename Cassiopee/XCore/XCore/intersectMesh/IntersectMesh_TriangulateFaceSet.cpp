@@ -19,26 +19,28 @@
 #include "mesh.h"
 
 PyObject *K_XCORE::IntersectMesh_TriangulateFaceSet(PyObject *self,
-    PyObject *args)
+  PyObject *args)
 {
-    PyObject *MESH;
+  PyObject *MESH;
   
-    if (!PYPARSETUPLE_(args, O_, &MESH)) {
-        RAISE("Bad input.");
-        return NULL;
-    }
+  if (!PYPARSETUPLE_(args, O_, &MESH)) 
+  {
+    RAISE("Bad input.");
+    return NULL;
+  }
 
-    if (!PyCapsule_IsValid(MESH, "IntersectMesh")) {
-        RAISE("Bad mesh hook.");
-        return NULL;
-    }
+  if (!PyCapsule_IsValid(MESH, "IntersectMesh")) 
+  {
+    RAISE("Bad mesh hook.");
+    return NULL;
+  }
 
-    IMesh *M = (IMesh *)PyCapsule_GetPointer(MESH, "IntersectMesh");
+  IMesh *M = (IMesh *)PyCapsule_GetPointer(MESH, "IntersectMesh");
 
-    puts("Triangulating master projection faces...");
+  puts("Triangulating master projection faces...");
 
-    M->triangulate_face_set();
+  M->triangulate_face_set();
 
-    Py_INCREF(Py_None);
-    return Py_None;
+  Py_INCREF(Py_None);
+  return Py_None;
 }

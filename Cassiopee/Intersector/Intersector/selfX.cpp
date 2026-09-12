@@ -25,11 +25,8 @@
 # include "Nuga/include/Triangulator.h"
 # include "Nuga/include/SelfX.h"
 
-//#include <iostream>
-
 using namespace std;
 using namespace NUGA;
-
 
 //=============================================================================
 /* Detect any self intersection in a NGON volume mesh */
@@ -45,7 +42,7 @@ PyObject* K_INTERSECTOR::selfX(PyObject* self, PyObject* args)
   char* varString, *eltType;
   // Check array # 1
   E_Int err = check_is_NGON(arr, f, cn, varString, eltType);
-  if (err) return NULL;
+  if (err) return NULL; // already raised
     
   K_FLD::FloatArray& crd = *f;
   K_FLD::IntArray& cnt = *cn;
@@ -61,8 +58,7 @@ PyObject* K_INTERSECTOR::selfX(PyObject* self, PyObject* args)
   
   std::vector<bool> keep(ngi.PHs.size(), false);
   
-  for (size_t i=0; i < xlist.size(); ++i)
-    keep[xlist[i]]=true;
+  for (size_t i=0; i < xlist.size(); ++i) keep[xlist[i]]=true;
   
   ngon_t<cnt_t> ngo;
   std::vector<E_Int> npgids;
@@ -82,5 +78,3 @@ PyObject* K_INTERSECTOR::selfX(PyObject* self, PyObject* args)
   delete f; delete cn;
   return tpl;
 }
-
-//=======================  Intersector/PolyMeshTools/selfX.cpp ====================

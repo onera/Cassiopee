@@ -319,36 +319,34 @@ void concatenate_PH_triangles (E_Int PHi, const ngon_t<cnt_t>& ng, const cnt_t& 
 template <typename TriangulatorType>
 void selfX(const K_FLD::FloatArray& crd, const ngon_t<cnt_t>& ng, std::vector<E_Int>& xlist)
 {
-  
   xlist.clear();
   
   std::vector<E_Int> T3_to_PG, PG_to_T3s;
-  cnt_t cntT3;
-  
-  std::cout << "selfX : Triangulating ..." << std::endl;
+  cnt_t cntT3; 
+  std::cout << "INFO: selfX: triangulating..." << std::endl;
   // Triangulate once all the PGs
   E_Int err = ngon_t<cnt_t>::triangulate_pgs<TriangulatorType>(ng.PGs, crd, cntT3, T3_to_PG, true, true);
   if (err)
   {
-    std::cout << "selX ERROR : triangulation failure." << std::endl;
+    std::cout << "Error: selX: triangulation failure." << std::endl;
     return;
   }
   
   // Inverse indirection
   PG_to_T3s.reserve(ng.PGs.size()+1);
-  int k=-1;
+  int k = -1;
   for (size_t i=0; i < T3_to_PG.size(); ++i)
   {
     if (k != T3_to_PG[i])
     {
-      k=T3_to_PG[i];
+      k = T3_to_PG[i];
       PG_to_T3s.push_back(i);
     }
   }
   PG_to_T3s.push_back(T3_to_PG.size());
   
   // Construct the BbTree on the PHs
-  std::cout << "selfX : Creating BBTree ..." << std::endl;
+  std::cout << "INFO: selfX: creating BBTree..." << std::endl;
   E_Int nb_elts = ng.PHs.size();
   K_SEARCH::BoundingBox<3>* pool = new K_SEARCH::BoundingBox<3>[nb_elts];
   std::vector<K_SEARCH::BoundingBox<3>*> boxes(nb_elts);
@@ -370,11 +368,9 @@ void selfX(const K_FLD::FloatArray& crd, const ngon_t<cnt_t>& ng, std::vector<E_
   {  
     if (i > 10000 && i%10000 == 0)
       std::cout << i << " -th element processed over " << nb_elts << std::endl;
-    //    
     candidates.clear();
     tree.getOverlappingBoxes(boxes[i]->minB, boxes[i]->maxB, candidates);
-    if (candidates.empty())
-      continue;
+    if (candidates.empty()) continue;
     
     E_Int nb_PGis = ng.PHs.stride(i);
     const E_Int* pPGi = ng.PHs.get_facets_ptr(i);
@@ -384,20 +380,19 @@ void selfX(const K_FLD::FloatArray& crd, const ngon_t<cnt_t>& ng, std::vector<E_
     
     bool is_x=false;
     
-    for (size_t j=0; j< candidates.size(); ++j)
+    for (size_t j=0; j < candidates.size(); ++j)
     {
-      E_Int& jj = candidates[j];
+      E_Int jj = candidates[j];
       
       if (!processed_PH_pairs.insert(K_MESH::NO_Edge(i, jj)).second) // if already in
-            continue;
+        continue;
       
       E_Int nb_PGjs = ng.PHs.stride(jj);
       const E_Int* pPGj = ng.PHs.get_facets_ptr(jj);
       
       for (E_Int pgi=0; (pgi<nb_PGis) && !is_x; ++pgi)
       {
-        E_Int PGi = *(pPGi+pgi)-1;
-//        
+        E_Int PGi = *(pPGi+pgi)-1;        
         pgi_T3s.clear();
         concatenate_PG_triangles(PGi, ng, cntT3, PG_to_T3s, pgi_T3s);
                 
@@ -415,8 +410,8 @@ void selfX(const K_FLD::FloatArray& crd, const ngon_t<cnt_t>& ng, std::vector<E_
           {
             for (size_t i2=0; (i2 < pgj_T3s.size()) && !is_x; ++i2)
             {
-              E_Int& I=pgi_T3s[i1];
-              E_Int& J=pgj_T3s[i2];
+              E_Int I = pgi_T3s[i1];
+              E_Int J = pgj_T3s[i2];
           
               const E_Float* P1 = crd.col(cntT3(0,I));
               const E_Float* P2 = crd.col(cntT3(1,I));
@@ -437,7 +432,6 @@ void selfX(const K_FLD::FloatArray& crd, const ngon_t<cnt_t>& ng, std::vector<E_
                 tmp.pushBack(cntT3.col(I), cntT3.col(I)+3);
                 tmp.pushBack(cntT3.col(J), cntT3.col(J)+3);
                 medith::write("xpair.mesh", crd, tmp, "TRI");
-                
               }
 #endif
             }
@@ -445,7 +439,8 @@ void selfX(const K_FLD::FloatArray& crd, const ngon_t<cnt_t>& ng, std::vector<E_
         }
       }
       
-      if (is_x){
+      if (is_x)
+      {
         xlist.push_back(i); xlist.push_back(jj);
         break;
       }
@@ -453,14 +448,13 @@ void selfX(const K_FLD::FloatArray& crd, const ngon_t<cnt_t>& ng, std::vector<E_
     if (is_x) break;
   }
 
-  std::cout << "selfX : DONE." ;
+  std::cout << "INFO: selfX: done." << std::endl;
   if (xlist.empty())
-    std::cout << " No self-intersections found." << std::endl;
+    std::cout << "INFO: selfX: no self-intersections found." << std::endl;
   else
   {
-    std::cout << " WARNING : intersections found between " << xlist[0] << " and " << xlist[1] << std::endl;
+    std::cout << "Warning: selfX: intersections found between " << xlist[0] << " and " << xlist[1] << std::endl;
   }
-    
   delete [] pool;
 }
 

@@ -211,16 +211,19 @@ E_Int K_INTERSECTOR::check_is_of_type(const std::vector<std::string>& types, PyO
 
   //std::cout << "eltType ???????" << eltType << std::endl;
      
-  bool err = (res !=2);
+  bool err = (res != 2);
+  if (err) return 1;
 
-  for (size_t i=0; (i < types.size()) && !err; ++i)
-    err &= (strcmp(eltType, types[i].c_str()) != 0);
-
+  err = 1;
+  for (size_t i=0; (i < types.size()); ++i)
+  { if (strcmp(eltType, types[i].c_str()) == 0) err = 0; }
+  
   if (err)
   {
     std::stringstream o;
-    o << "input error : " << eltType << " is an invalid array, must be a ";
-    for (size_t i=0; i < types.size()-1; ++i){
+    o << "Error: " << eltType << " is an invalid array, must be a ";
+    for (size_t i=0; i < types.size()-1; ++i)
+    {
       o << types[i];
       if (i < types.size()-2) o << ", ";
     }
@@ -238,7 +241,7 @@ E_Int K_INTERSECTOR::check_is_of_type(const std::vector<std::string>& types, PyO
 
   if ((posx == -1) || (posy == -1) || (posz == -1))
   {
-    PyErr_SetString(PyExc_TypeError, "input error : can't find coordinates in array.");//fixme  conformUnstr
+    PyErr_SetString(PyExc_TypeError, "Error: can't find coordinates in array.");//fixme  conformUnstr
     //delete f1; delete cn1;
     //f1 = nullptr; cn1 = nullptr;
     return 1;
@@ -252,7 +255,6 @@ E_Int K_INTERSECTOR::get_of_type
 {
   E_Int ni, nj, nk;
   E_Int res = K_ARRAY::getFromArray(arr, varString, f1, ni, nj, nk, cn1, eltType);
-
   //std::cout << "eltType =" << eltType << std::endl;
      
   bool err = (res != 2);
@@ -267,7 +269,7 @@ E_Int K_INTERSECTOR::get_of_type
   if (err)
   {
     std::stringstream o;
-    o << "input error : invalid array, must be a ";
+    o << "Error: invalid array, must be a ";
     for (size_t i=0; i < types.size()-1; ++i){
       o << types[i];
       if (i < types.size() - 2) o << ", ";
@@ -288,7 +290,7 @@ E_Int K_INTERSECTOR::get_of_type
 
   if ((pos[0] == -1) || (pos[1] == -1) || (pos[2] == -1))
   {
-    PyErr_SetString(PyExc_TypeError, "input error : can't find coordinates in array.");//fixme  conformUnstr
+    PyErr_SetString(PyExc_TypeError, "Error: can't find coordinates in array.");//fixme  conformUnstr
     //delete f1; delete cn1;
     //f1 = nullptr; cn1 = nullptr;
     return 1;
@@ -351,14 +353,13 @@ E_Int K_INTERSECTOR::check_is_BASICF(PyObject* arr, K_FLD::FloatArray*& f1, K_FL
   return check_is_of_type(types, arr, f1, cn1, varString, eltType);
 }
 
-
 K_INTERSECTOR::eType K_INTERSECTOR::check_has_NGON_BASIC_ELEMENT(const K_FLD::IntArray & cnt)
 {
   using ngon_type = ngon_t<K_FLD::IntArray>;
   ngon_type ng(cnt); //fixme: temporary hack
   E_Int s1(0), s2(0), s3(0), s4(0);  
-  //E_Int err = 0;
-  for (E_Int i = 0; (i < ng.PHs.size()); ++i){
+  for (E_Int i = 0; (i < ng.PHs.size()); ++i)
+  {
     if (K_MESH::Hexahedron::is_of_type(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i)) ) ++s1;
     else if (K_MESH::Tetrahedron::is_of_type(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i)) ) ++s2;
     else if (K_MESH::Pyramid::is_of_type(ng.PGs, ng.PHs.get_facets_ptr(i), ng.PHs.stride(i)) ) ++s3;
