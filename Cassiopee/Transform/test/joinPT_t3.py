@@ -1,10 +1,11 @@
-# join avec les coordonnees et champs desordonnes
+# - join (pyTree) -
 import Converter.PyTree as C
 import Transform.PyTree as T
 import Geom.PyTree as D
 import Converter.Internal as Internal
 import KCore.test as test
 
+# Join avec les coordonnees et champs desordonnes
 a = D.sphere6((0.,0.,0.),1.,N=10)
 C._initVars(a,'Fx=1.')
 C._initVars(a,'Fy=2.')
