@@ -81,4 +81,3 @@ C._initVars(a, 'F', 1.); C._initVars(b, 'F', 2.)
 C._initVars(a, 'centers:G', 1.); C._initVars(b, 'centers:G', 2.)
 a = T.join(a, b); t = C.newPyTree(["Base", a])
 #test.testT(t, 8)
-
