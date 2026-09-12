@@ -873,7 +873,7 @@ PyObject* K_TRANSFORM::joinBothUnstructured(
     {
       FldArrayI& cm1 = *(cn1.getConnect(ic));
       nelts[ic] += cm1.getSize();
-      neltstot += nelts[ic];
+      neltstot += cm1.getSize();
     }
 
     for (E_Int ic2 = 0; ic2 < nc2; ic2++)
@@ -883,7 +883,7 @@ PyObject* K_TRANSFORM::joinBothUnstructured(
       {
         FldArrayI& cm2 = *(cn2.getConnect(ic2));
         nelts[ic] += cm2.getSize();
-        neltstot += nelts[ic];
+        neltstot += cm2.getSize();
         indir2[ic2] = ic;
       }
     }
@@ -957,23 +957,27 @@ PyObject* K_TRANSFORM::joinBothUnstructured(
   for (size_t ic = 0; ic < eltTypes2.size(); ic++) delete [] eltTypes2[ic];
 
   PyObject* l = PyList_New(0);
+  PyObject* tplc = NULL;
+  char eltTypec[K_ARRAY::VARSTRINGLENGTH];
+  K_ARRAY::starVarString(eltType, eltTypec);
+
   // Clean connectivity
   if (posx > 0 && posy > 0 && posz > 0)
   {
-    K_CONNECT::cleanConnectivity(posx, posy, posz, tol, eltType, *f, *cn);
-    PyObject* tpln2 = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
-    PyList_Append(l, tpln2); Py_DECREF(tpln2);
+    PyObject* tpln2 = K_CONNECT::V_cleanConnectivity(varString, *f, *cn, eltType, tol);
+    FldArrayF* fout; FldArrayI* cnout;
+    K_ARRAY::getFromArray3(tpln2, fout, cnout);
+    tplc = K_ARRAY::buildArray3(*fc, varStringc, *cnout, eltTypec, api);
+    PyList_Append(l, tpln2); PyList_Append(l, tplc);
+    RELEASESHAREDU(tpln2, fout, cnout); Py_DECREF(tpln2);
   }
   else
   {
-    PyList_Append(l, tpln); Py_DECREF(tpln);
+    tplc = K_ARRAY::buildArray3(*fc, varStringc, *cn, eltTypec, api);
+    PyList_Append(l, tpln); PyList_Append(l, tplc);
   }
-
-  char eltTypec[K_ARRAY::VARSTRINGLENGTH];
-  K_ARRAY::starVarString(eltType, eltTypec);
-  PyObject* tplc = K_ARRAY::buildArray3(*fc, varStringc, *cn, eltTypec, api);
-  PyList_Append(l, tplc); Py_DECREF(tplc); delete fc;
   RELEASESHAREDU(tpln, f, cn);
+  Py_DECREF(tpln); Py_DECREF(tplc); delete fc;
   return l;
 }
 //=============================================================================
@@ -1006,6 +1010,7 @@ PyObject* K_TRANSFORM::joinBothNGON(FldArrayF& f1, FldArrayF& fc1,
 
   E_Int api = f1.getApi();
   E_Int ngonType = cn1.getNGonType();
+  E_Int shift = 1; if (ngonType == 3) shift = 0;
   PyObject* tpln = K_ARRAY::buildArray3(nfld, varString, npts, nelts,
                                         nfaces, "NGON", sizeFN, sizeEF,
                                         ngonType, false, api);
@@ -1082,7 +1087,7 @@ PyObject* K_TRANSFORM::joinBothNGON(FldArrayF& f1, FldArrayF& fc1,
 
   // Correction for number of vertices per face and number of faces per element
   // for the second connectivity
-  if (api != 3)
+  if (shift == 1)
   {
     E_Int ind = 0;
     for (E_Int i = 0; i < nfaces2; i++)
@@ -1098,18 +1103,23 @@ PyObject* K_TRANSFORM::joinBothNGON(FldArrayF& f1, FldArrayF& fc1,
     }
   }
 
-  //Py_DECREF(tpln); // to fix
-  // TODO VINCENT: connectivity not cleaned in the original code
-  // if (posx > 0 && posy > 0 && posz > 0)
-  // {
-  //   K_CONNECT::cleanConnectivityNGon(posx, posy, posz, tol, *f, *cn);
-  //   tpln = K_ARRAY::buildArray3(*f, varString, *cn, "NGON");
-  // }
-
   PyObject* l = PyList_New(0);
-  PyList_Append(l, tpln); Py_DECREF(tpln);
-  PyObject* tplc = K_ARRAY::buildArray3(*fc, varStringc, *cn, "NGON*", api);
-  PyList_Append(l, tplc); Py_DECREF(tplc); delete fc;
+  PyObject* tplc = NULL;
+  if (posx > 0 && posy > 0 && posz > 0)
+  {
+    PyObject* tpln2 = K_CONNECT::V_cleanConnectivity(varString, *f, *cn, "NGON", tol);
+    FldArrayF* fout; FldArrayI* cnout;
+    K_ARRAY::getFromArray3(tpln2, fout, cnout);
+    tplc = K_ARRAY::buildArray3(*fc, varStringc, *cnout, "NGON*", api);
+    PyList_Append(l, tpln2); PyList_Append(l, tplc);
+    RELEASESHAREDU(tpln2, fout, cnout); Py_DECREF(tpln2);
+  }
+  else
+  {
+    tplc = K_ARRAY::buildArray3(*fc, varStringc, *cn, "NGON*", api);
+    PyList_Append(l, tpln); PyList_Append(l, tplc);
+  }
   RELEASESHAREDU(tpln, f, cn);
+  Py_DECREF(tpln); Py_DECREF(tplc); delete fc;
   return l;
 }
