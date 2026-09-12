@@ -400,15 +400,9 @@ def checkTree__(nodePath, node1, node2):
         childNamesSet2 = set(childNames2)
         diffSet12 = childNamesSet1 - childNamesSet2
         diffSet21 = childNamesSet2 - childNamesSet1
-        print('DIFF: longueur des fils differente pour le noeud: %s.'%nodePathl)
-        # if len(diffSet12) > 0:
-        #     print('  - Noms des noeuds de courant qui ne sont pas dans '\
-        #           'ref:\n{}.'.format(', '.join(f'{i}' for i in diffSet12)))
-        # if len(diffSet21) > 0:
-        #     print('  - Noms des noeuds de ref qui ne sont pas dans '\
-        #           'courant:\n{}.'.format(', '.join(f'{i}' for i in diffSet21)))
         if len(diffSet12) == 0 and len(diffSet21) == 0:
             from collections import Counter
+            print('DIFF: longueur des fils differente pour le noeud: %s.'%nodePathl)
             if len(childNamesSet1) != len(childNames1):
                 doublons = set(i for i, count in Counter(childNames1).items() if count > 1)
                 print('  - Noeuds doublons detectes dans courant: {}.'.format(
