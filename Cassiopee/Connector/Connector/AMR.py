@@ -139,6 +139,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         print('Final number of cells=%5.4f millions.'%(NCells*1e-6), flush=True)
     C._initVars(t,'{TurbulentDistance}=-1.*({cellN}<1.)*{TurbulentDistance}+({cellN}>0.)*{TurbulentDistance}')
 
+    # Identity the BCTypes & BCNames in t
     zbcs=[]; bctypes=[]; bcnames=[]
     for bc in Internal.getNodesFromType(t, 'BC_t'):
         bctype = Internal.getValue(bc)
@@ -147,13 +148,16 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             bctypes.append(bctype)
             bcnames.append(bcname)
 
+    # Save the boundary conditions for later use
     for bctype in bctypes:
         zbc = C.extractBCOfType(t, bctype)
         Internal._rmNodesByType(zbc, "FlowSolution_t")
         zbc = T.join(zbc)
         zbcs.append(zbc)
 
-    #Get largest length of the bases
+    # Blanking to check if the QuadNQuad BC is inside the geometry
+    # Needed to avoid wrong BCs
+    # Get largest length of the bases
     G._getVolumeMap(t)
     hminGlobal = (C.getMinValue(t,"centers:vol"))**(1/dim)
     hminGlobal = Cmpi.allreduce(hminGlobal, op=Cmpi.MIN)
@@ -172,11 +176,14 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             bodies = [Internal.getBases(tb2_pre)]; nbodies = len(Internal.getBases(tb2_pre))
             BM = numpy.ones((1, nbodies), dtype=Internal.E_NpyInt)
             zbcTemp = C.newPyTree(["BASE", Internal.getZones(zbc)])
+            # Check if BCs is inside the geometry
             zbcTemp = X.blankCells(zbcTemp, bodies, BM, blankingType='center_in', dim=dim, XRaydim1=XRAYDIM1, XRaydim2=XRAYDIM1)
             maxBlankVal = C.getMaxValue(zbcTemp, 'centers:cellN')
+            # If BC is entirely inside the geometry - change its name
             if maxBlankVal < 1: bcnames[nobc] = 'QuadNQuad_Empty'
             del zbcTemp
             del bodies
+
     Cmpi.trace("Extract front faces of IBM target points [start] ", master=True, cpu=False)
     frontIP = computeCellNForIBMFronts(t, dim, IBM_parameters, VPM=VPM)
     Cmpi.trace("Extract front faces of IBM target points [end]   ", master=True, cpu=False)
@@ -189,10 +196,11 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
 
     Cmpi.trace(" Removing blanked cells [start]", master=True, cpu=False)
     t = P.selectCells(t, "{cellN}==1.", strict=1)
-    Internal._rmNodesFromName(t,"FlowSolution")
+    # Make sure that the only node of type Elements_t is 'GridElements'
     for node in Internal.getNodesFromType(t, "Elements_t"):
         if node[0] != "GridElements":
             Internal._rmNode(t, node)
+    Internal._rmNodesFromName(t,"FlowSolution")
     Internal._rmNodesFromType(t, "Family_t")
     Cmpi.trace(" Removing blanked cells [end]  ", master=True, cpu=False)
 
@@ -219,18 +227,19 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     #Cmpi.abort()
 
     Cmpi.trace(" Recovering Boundary Conditions [start]", master=True, cpu=False)
-    f_pytree = P.exteriorFaces(t)
-    for elt_t in Internal.getNodesFromType(f_pytree, "Elements_t"):
+    t_exteriorFaces = P.exteriorFaces(t)
+    for elt_t in Internal.getNodesFromType(t_exteriorFaces, "Elements_t"):
         if not elt_t[0].startswith("GridElements"):
-            Internal._rmNode(f_pytree, elt_t)
-    _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames)
+            Internal._rmNode(t_exteriorFaces, elt_t)
+    _recoverBoundaryConditions__(t, t_exteriorFaces, zbcs, bctypes, bcnames)
     Cmpi.trace(" Recovering Boundary Conditions [end]  ", master=True, cpu=False)
     #Cmpi.convertPyTree2File(t,'check_t_afterBC.cgns')
+    # t_exteriorFaces - is not only the exteriorFaces of the integration front on which CODA applies the IBCs
 
     Cmpi.trace(" Cleaning frontIP (IBMWall) per processor [start]", master=True, cpu=False)
     if Cmpi.master: print("Performing the 'identifyElements' function (it can be long.)", flush=True)
     startTime = time.perf_counter()
-    f = Internal.getZones(f_pytree)
+    f = Internal.getZones(t_exteriorFaces)
     if f != []:
         f = f[0]
         hook = C.createHook(f,"elementCenters")
@@ -243,9 +252,11 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             frontIP = T.subzone(f, ids_IBMWall, type='elements')
             dimfrontIP = numpy.sum(Internal.getValue(frontIP)[0])
         else:
+            # Needed for MPI all gather
             frontIP = Internal.newZone(name="frontIP%d"%Cmpi.rank, zsize=[[0,0]], ztype="Unstructured")
             dimfrontIP = 0
     else:
+        # Needed for MPI all gather
         frontIP = Internal.newZone(name="frontIP%d"%Cmpi.rank, zsize=[[0,0]], ztype="Unstructured")
         dimfrontIP = 0
     outputTime(startTime,functionName='identifyElementsPrt2')
@@ -804,47 +815,57 @@ def moveIBMPoints__(ip_pts, imagepts, wallpts, varsn, epsilon, indices_outside_b
 
     return imagepts
 
-def _recoverBoundaryConditions__(t, f_pytree, zbcs, bctypes, bcnames):
+def _recoverBoundaryConditions__(t, t_exteriorFaces, zbcs, bctypes, bcnames):
     meshgen = "AMR"
     f = None
     for z in Internal.getZones(t):
         if z is not None:
             nobc = len(zbcs)
-            f = Internal.getZones(f_pytree)[0]
+            f = Internal.getZones(t_exteriorFaces)[0]
             if Cmpi.master: print("Performing the 'identifyElements' function (it can be long.)", flush=True)
             for nobc, zbc in enumerate(zbcs):
-                hook = C.createHook(f,"elementCenters")
+                hook = C.createHook(f, "elementCenters")
                 # Indices of the elements of f corresponding to the elements of zbc
+                # Note: zbc is before selectCells (mesh generated with G_AMR)
+                #       f (hook) is after selectCells
+                #       Check which elements in f correspond to the zbc
                 ids = C.identifyElements(hook, zbc, tol=__TOL__)
                 len_ids = Internal.getValue(f)[0][1]
-                ids = ids[ids[:] > -1] - 1
+                ids = ids[ids[:] > -1] - 1 # consider the positive numbers only & index starts at 0
                 ids = ids.tolist()
                 #C.freeHook(hook)
                 if len(ids) > 0:
-                    zf = T.subzone(f,ids, type='elements')
+                    # subzone of elements that are in zbc & f
+                    # zf: elements of that BC that have to be conserved
+                    zf = T.subzone(f, ids, type='elements')
                     if bcnames[nobc] != "QuadNQuad":
                         G_AMR._addBC2Zone__(z, bctypes[nobc], bctypes[nobc], zf)
                     else:
                         G_AMR._addBC2Zone__(z, "QuadNQuad", "FamilySpecified:QuadNQuad", zf)
+                    # ids_all: all (match & unmatched) ids for that BC
+                    # ids_new: consider the ids of the unmatched elements for that BC
                     ids_all = list(range(len_ids))
                     ids_new = list(set(ids_all)-set(ids))
                     if len(ids_new) > 0:
-                        f = T.subzone(f,ids_new, type='elements')
+                        f = T.subzone(f, ids_new, type='elements')
                 elif len(ids) == 0 and bcnames[nobc] == "QuadNQuad":
                     elts = Internal.getNodesFromType1(z, "Elements_t")
                     maxElt = Internal.getNodeFromName(elts[-1], "ElementRange")[1][1]
                     CODABCType = "QuadNQuad"
                     Internal.newElements(name=CODABCType, etype=7, econnectivity=numpy.empty(0),
                                          erange=[maxElt+1, maxElt], eboundary=1, parent=z)
-                    C._addBC2Zone(z,CODABCType,"FamilySpecified:"+CODABCType, elementRange=[maxElt+1,maxElt])
+                    C._addBC2Zone(z, CODABCType, "FamilySpecified:"+CODABCType, elementRange=[maxElt+1,maxElt])
                     zone_bc = Internal.getNodeFromType1(z, 'ZoneBC_t')
                     lastbcname = C.getLastBCName(CODABCType)
                     node_bc = Internal.getNodeFromName(zone_bc, lastbcname)
                     node_bc[0] = CODABCType
-
                 C.freeHook(hook)
+
             z[0] = z[0]+str(Cmpi.rank)
-    if meshgen == "AMR" and f is not None: f_pytree[2][1][2] = [f]
+    # t_exteriorFaces - should only contain the integration front BC condition
+    #                   CODA needs this as it applies the IBC on this front.
+    #                   This is the unmatched BC that will become the IBC
+    if meshgen == "AMR" and f is not None: t_exteriorFaces[2][1][2] = [f]
     return None
 
 def _addIBCDatasets__(t, f, image_pts, wall_pts, ip_pts, IBM_parameters):
