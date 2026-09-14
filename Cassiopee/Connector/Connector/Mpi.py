@@ -318,22 +318,24 @@ def _setHoleInterpolatedPoints(t, depth=1, cellNName="cellN"):
     if depth == 1:
         _setHoleInterpolatedPoints__(t, cellNName=cellNName)
     else: # loop
+        dummyCellNWoLoc = "_dummy"  # internal
+        dummyCellN = "centers:" + dummyCellNWoLoc
         if depth > 0:
-            C._initVars(t, "{{{var}}}={{{tag}}}".format(var='centers:dummy', tag=f'centers:{cellNName}'))
+            C._initVars(t, "{{{var}}}={{{tag}}}".format(var=dummyCellN, tag=f'centers:{cellNName}'))
         else:
-            C._initVars(t, "{{{var}}}=1.-{{{tag}}}".format(var='centers:dummy', tag=f'centers:{cellNName}'))
+            C._initVars(t, "{{{var}}}=1.-{{{tag}}}".format(var=dummyCellN, tag=f'centers:{cellNName}'))
 
         for d in range(abs(depth)):
-            _setHoleInterpolatedPoints__(t, cellNName='dummy')
-            C._initVars(t, "{{{var}}}=({{{var}}}==1.)".format(var='centers:dummy'))
+            _setHoleInterpolatedPoints__(t, cellNName=dummyCellNWoLoc)
+            C._initVars(t, "{{{var}}}=({{{var}}}==1.)".format(var=dummyCellN))
 
-        #C._initVars(t, "{tag}=1.-{{{var}}}".format(var='centers:dummy', tag=f'centers:{cellNName}'))
+        #C._initVars(t, "{tag}=1.-{{{var}}}".format(var=dummyCellN, tag=f'centers:{cellNName}'))
         if depth > 0:
-            C._initVars(t, "{tag}=2.*{{{tag}}}-{{{var}}}".format(var='centers:dummy', tag=f'centers:{cellNName}'))
+            C._initVars(t, "{tag}=2.*{{{tag}}}-{{{var}}}".format(var=dummyCellN, tag=f'centers:{cellNName}'))
         else:
-            C._initVars(t, "{tag}=2.-{{{tag}}}-2.*{{{var}}}".format(var='centers:dummy', tag=f'centers:{cellNName}'))
+            C._initVars(t, "{tag}=2.-{{{tag}}}-2.*{{{var}}}".format(var=dummyCellN, tag=f'centers:{cellNName}'))
 
-        C._rmVars(t, ['centers:dummy'])
+        C._rmVars(t, [dummyCellN])
     return None
 
 # internal function - depth=1
