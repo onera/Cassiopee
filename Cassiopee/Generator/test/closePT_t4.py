@@ -6,6 +6,7 @@ import KCore.test as test
 
 # BE NODE
 a = G.cartHexa((0,0,0), (1,1,1), (5, 5, 5))
+a = C.convertArray2Node(a)
 G._close(a)
 test.testT(a, 1)
 
@@ -29,4 +30,4 @@ a = C.convertArray2Node(a)
 b = C.convertArray2Node(b)
 a = T.join(a, b)
 G._close(a)
-test.testT(a, 2)
+test.testT(a, 3)

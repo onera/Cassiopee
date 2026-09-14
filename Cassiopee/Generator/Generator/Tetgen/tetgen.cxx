@@ -19412,9 +19412,6 @@ int tetgenmesh::addsteiner4recoversegment(face* misseg, int splitsegflag)
     sesymself(*misseg);
   }
 
-
-
-
   if (steinerpt == NULL) {
     // Split the segment at its midpoint.
     makepoint(&steinerpt, FREESEGVERTEX);
@@ -19436,7 +19433,9 @@ int tetgenmesh::addsteiner4recoversegment(face* misseg, int splitsegflag)
     ivf.validflag = 1;
     ivf.respectbdflag = 1;
     ivf.assignmeshsize = b->metric; 
-    if (!insertpoint(steinerpt, &searchtet, &splitsh, misseg, &ivf)) {
+    if (!insertpoint(steinerpt, &searchtet, &splitsh, misseg, &ivf)) 
+    {
+      // CB: must raise here
       assert(0);
     }
   } // if (endi > 0)

@@ -141,6 +141,7 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
     strcpy(newEltType, "NODE");
     tpl = K_ARRAY::buildArray3(nfld, unstructVarString[0], npts, 0,
                                newEltType, false, api);
+    cn2 = new FldArrayI();
     res2 = 1; K_ARRAY::getFromArray3(tpl, f2);
   }
   else
@@ -329,11 +330,13 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
       true, true, true, false, true, false
     );
     RELEASESHAREDB(res2, tpl, f2, cn2); Py_DECREF(tpl);
+    if (res2 == 1) delete cn2;
     return tpl2;
   }
   else
   {
     RELEASESHAREDB(res2, tpl, f2, cn2);
+    if (res2 == 1) delete cn2;
     return tpl;
   }
 }
