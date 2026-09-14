@@ -804,6 +804,7 @@ PyObject* K_TRANSFORM::joinNGON(FldArrayF& f1, FldArrayI& cn1,
 
   E_Int api = f1.getApi();
   E_Int ngonType = cn1.getNGonType();
+  E_Int shift = 1; if (ngonType == 3) shift = 0;
   PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts,
                                        nfaces, "NGON", sizeFN, sizeEF,
                                        ngonType, false, api);
@@ -863,7 +864,7 @@ PyObject* K_TRANSFORM::joinNGON(FldArrayF& f1, FldArrayI& cn1,
 
   // Correction for number of vertices per face and number of faces per element
   // for the second connectivity
-  if (api != 3)
+  if (shift == 1)
   {
     E_Int ind = 0;
     for (E_Int i = 0; i < nfaces2; i++)
