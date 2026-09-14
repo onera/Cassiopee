@@ -592,10 +592,12 @@ def selectCells3(t, tagName):
         c = 0
         for z in b[2]:
             if z[3] == 'Zone_t':
-                centers = Internal.getNodeFromName(z, Internal.__FlowSolutionCenters__)
-                if centers is not None:
-                    taga = Internal.getNodeFromName(centers, name)
-                    if taga is not None:
+                fsc = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
+                if fsc is not None:
+                    taga = Internal.getNodeFromName1(fsc, name)
+                    if taga is None:
+                        raise NameError(f"Tag name {tagName} not found in {b[0]}/{z[0]}.")
+                    else:
                         ret = post.selectCells3(taga[1], 1)
                         ret = T.subzone(z, ret, type='elements')
                         b[2][c] = ret
