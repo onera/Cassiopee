@@ -170,12 +170,12 @@ PyObject* K_TRANSFORM::joinBoth(PyObject* self, PyObject* args)
     }
     else // if (resprod==16)
     {
-      if ( strcmp(eltType1, "NGON") == 0 && strcmp(eltType2, "NGON") == 0 )
+      if ( K_STRING::cmp(eltType1, "NGON") == 0 && K_STRING::cmp(eltType2, "NGON") == 0 )
       {
         l = joinBothNGON(*f1, *fc1, *cn1, *f2, *fc2, *cn2,
                          posx1, posy1, posz1, varString, varStringc, tol);
       }
-      else if ( strcmp(eltType1, "NGON") != 0 && strcmp(eltType2, "NGON") != 0 )
+      else if ( K_STRING::cmp(eltType1, "NGON") != 0 && K_STRING::cmp(eltType2, "NGON") != 0 )
       {
         l = joinBothUnstructured(*f1, *fc1, *cn1, *f2, *fc2, *cn2,
                                  posx1, posy1, posz1, eltType1, eltType2,
