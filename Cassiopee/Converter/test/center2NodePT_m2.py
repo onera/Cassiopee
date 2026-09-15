@@ -34,6 +34,3 @@ t = Cmpi.center2Node(t, var=['centers:Density', 'centers:Density2'])
 Internal._rmNodesByName(t, Internal.__FlowSolutionCenters__)
 
 if Cmpi.master: test.testT(t, 1)
-Cmpi.barrier()
-
-Cmpi.convertPyTree2File(t, ('t.cgns'))
