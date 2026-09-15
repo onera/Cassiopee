@@ -515,7 +515,7 @@ PyObject* K_ARRAY::buildArray3(E_Int nfld,
         { 
           FldArrayI& cm = *(cn.getConnect(ic));
           FldArrayI& cm2 = *(cn2->getConnect(ic));
-          #pragma omp for collapse(2) nowait
+          #pragma omp for nowait
           for (E_Int i = 0; i < cm.getSize(); i++)
             for (E_Int j = 1; j <= cm.getNfld(); j++)
               cm2(i,j) = cm(i,j);
@@ -590,6 +590,25 @@ PyObject* K_ARRAY::buildArray3(FldArrayF& f, const char* varString,
     RELEASESHAREDU(tpl, f2, cn2);
     return tpl;
   }
+  else if (K_STRING::cmp(eltType, "NODE") == 0)
+  {
+    PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, 0,
+                                         eltType, false, api); 
+    FldArrayF* f2;
+    K_ARRAY::getFromArray3(tpl, f2);  
+    #pragma omp parallel
+    {
+      for (E_Int n = 1; n <= nfld; n++)
+      {
+        E_Float* fp = f.begin(n);
+        E_Float* f2p = f2->begin(n);
+        #pragma omp for
+        for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
+      }
+    }
+    RELEASESHAREDS(tpl, f2);
+    return tpl;
+  }
   else // BE/ME
   {
     E_Int nc = cn.getNConnect();
@@ -624,10 +643,10 @@ PyObject* K_ARRAY::buildArray3(FldArrayF& f, const char* varString,
       { 
         FldArrayI& cm = *(cn.getConnect(ic));
         FldArrayI& cm2 = *(cn2->getConnect(ic));
-        #pragma omp for collapse(2) nowait
+        #pragma omp for nowait
         for (E_Int i = 0; i < cm.getSize(); i++)
-        for (E_Int j = 1; j <= cm.getNfld(); j++)
-          cm2(i,j) = cm(i,j);
+          for (E_Int j = 1; j <= cm.getNfld(); j++)
+            cm2(i,j) = cm(i,j);
       }
     }
     RELEASESHAREDU(tpl, f2, cn2);
@@ -651,7 +670,7 @@ PyObject* K_ARRAY::buildArray3(FldArrayF& f, const char* varString,
     {
       E_Float* fp = f.begin(n);
       E_Float* f2p = f2->begin(n);
-      #pragma omp for nowait
+      #pragma omp for
       for (E_Int i = 0; i < npts; i++) f2p[i] = fp[i];
     }
   }
