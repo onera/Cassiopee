@@ -408,7 +408,7 @@ PyObject* K_POST::selectExteriorEltsNGon(FldArrayF& f, FldArrayI& cn,
     {
       // construction de la connectivite Elts/Faces des elts externes
       nface2Temp[sizeEF2] = nf;
-      if (hasCnOffsets) indPH2Temp[nExtElts+1] = indPH2Temp[nExtElts] + nf;
+      if (hasCnOffsets) indPH2Temp[nExtElts+1] = indPH2Temp[nExtElts] + nf + shift;
       for (E_Int f = 0; f < nf; f++)
       {
         indface = elt[f] - 1;
@@ -444,7 +444,7 @@ PyObject* K_POST::selectExteriorEltsNGon(FldArrayF& f, FldArrayI& cn,
     indface2 = origIndicesOfExtFaces[f];  // starts at 0
     E_Int* face = cn.getFace(indface2, nv, ngon, indPG);
     ngon2Temp[sizeFN2] = nv;
-    if (hasCnOffsets) indPG2Temp[f+1] = indPG2Temp[f] + nv;
+    if (hasCnOffsets) indPG2Temp[f+1] = indPG2Temp[f] + nv + shift;
     for (E_Int p = 0; p < nv; p++)
     {
       indnode = face[p] - 1;
