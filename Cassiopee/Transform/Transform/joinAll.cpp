@@ -136,7 +136,7 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
                                ngonType, false, api);
     K_ARRAY::getFromArray3(tpl, f2, cn2);
   }
-  else if (dim == 0)  // NODE
+  else if (dimRef == 0)  // NODE
   {
     strcpy(newEltType, "NODE");
     tpl = K_ARRAY::buildArray3(nfld, unstructVarString[0], npts, 0,
@@ -484,7 +484,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
                                 ngonType, false, api);
     K_ARRAY::getFromArray3(tpln, f2, cn2);
   }
-  else if (dim == 0)
+  else if (dimRef == 0)
   {
     strcpy(newEltType, "NODE");
     tpln = K_ARRAY::buildArray3(nfld, unstructVarString[0], npts, 0,
