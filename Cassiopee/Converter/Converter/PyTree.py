@@ -6746,19 +6746,32 @@ def _patchArrayForCenter2NodeNK1__(fields, a):
 # Convert a zone defining centers to nodes or convert a field in a
 # base/tree/zone located at centers to nodes
 # if useGhost: first addGhostCells before center2Node
-def center2Node(t, var=None, cellNType=0, useGhost=True):
+def center2Node(t, var=None, cellNType=0, useGhost=True, indices=None, BCField=None):
     """Converts array defined at centers to an array defined at nodes.
     Usage: center2Node(t, var, cellNType)"""
 
-# Preparation for topTree
-#     istoptree = Internal.isTopTree(t)
-#     if not istoptree and topTree != []:
-#       zones = C.getConnectedZones(t, topTree=topTree)
-#       tp = C.newPyTree(['Base'])
-#       zonest = Internal.getZones(t)
-#       tp[2][1][2] += zonest; tp[2][1][2] += zones
-#       tp = C.center2Node(tp, Internal.__FlowSolutionCenters__)
-#       zone = tp[2][1][2][0]
+    # Preparation for topTree
+    #     istoptree = Internal.isTopTree(t)
+    #     if not istoptree and topTree != []:
+    #       zones = C.getConnectedZones(t, topTree=topTree)
+    #       tp = C.newPyTree(['Base'])
+    #       zonest = Internal.getZones(t)
+    #       tp[2][1][2] += zonest; tp[2][1][2] += zones
+    #       tp = C.center2Node(tp, Internal.__FlowSolutionCenters__)
+    #       zone = tp[2][1][2][0]
+
+    # BCField treatment for NGON arrays
+    # inter-zone communication only (Xmpi.exchangeBCMatchData())
+    # one zone per proc
+    if indices is not None:
+        zn = Internal.getZones(t)[0][0] # get unique zone name
+        # Concatenate list of numpy arrays once
+        if len(indices[zn]) == 1: indices[zn] = indices[zn][0]
+        else: indices[zn] = numpy.concatenate(indices[zn], axis=0)
+        for BCFieldv in BCField: # BCField is a list of dicts
+            if len(BCFieldv[zn]) == 1: BCFieldv[zn] = BCFieldv[zn][0]
+            else: BCFieldv[zn] = numpy.concatenate(BCFieldv[zn], axis=0)
+        indices = indices[zn]
 
     ghost = Internal.getNodeFromName(t, 'ZoneRind')
     if var is None: # all grid
@@ -6822,7 +6835,14 @@ def center2Node(t, var=None, cellNType=0, useGhost=True):
         if ghost is None and useGhost:
             a = Internal.addGhostCells(t, t, 1, adaptBCs=0, modified=vars)
         else: a = Internal.copyRef(t)
-        for v in vars: _center2Node__(a, v, cellNType)
+        for i, v in enumerate(vars):
+            if indices is not None: # NGON
+                # get the local BCField dict for the current var
+                # zn is the name of the unique NGON zone
+                BCFieldLoc = BCField[i][zn]
+            else: # default
+                BCFieldLoc = None
+            _center2Node__(a, v, cellNType, indices=indices, BCField=BCFieldLoc)
         # if there are center vars in the list, add equivalent node vars because
         # they have been created by center2Node
         ghost2 = Internal.getNodeFromName(a, 'ZoneRind')
@@ -6841,11 +6861,11 @@ def center2Node__(a, var, cellNType):
     _center2Node__(a, var, cellNType)
     return a
 
-def _center2Node__(a, var, cellNType):
+def _center2Node__(a, var, cellNType, indices=None, BCField=None):
     fieldc = getField(var, a, api=3)
     fieldn = []
     for i in fieldc:
-        if i != []: i = Converter.center2Node(i, cellNType)
+        if i != []: i = Converter.center2Node(i, cellNType, indices, BCField)
         fieldn.append(i)
     _patchArrayForCenter2NodeNK1__(fieldn, a)
     setFields(fieldn, a, 'nodes', writeDim=False)

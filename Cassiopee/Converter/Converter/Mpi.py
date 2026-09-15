@@ -133,6 +133,13 @@ TRACESTATE = { 'prevFullTime': None, 'method': 0, 'fileName': 'stdout', 'mem': T
 #==============================================================================
 def center2Node(t, var=None, cellNType=0, graph=None):
     """Convert zone/fields defined at centers to nodes."""
+
+    # get BCMatch // data for NGON arrays
+    import Connector.Mpi as Xmpi
+    if isinstance(var, list): varList = [v.split(':')[-1] for v in var]
+    else: varList = [var.split(':')[-1]]
+    indices, BCField = Xmpi.exchangeBCMatchData(t, varList)
+    
     allstructured = 1
     for z in Internal.getZones(t):
         type = Internal.getZoneType(z)
@@ -141,7 +148,10 @@ def center2Node(t, var=None, cellNType=0, graph=None):
     if allstructured == size: # all zones are structured
         return center2Node1__(t, var, cellNType) # to be changed to 2
     else: # mixed or unstructured
-        return center2Node1__(t, var, cellNType, graph)
+        if indices == {}:
+            return center2Node1__(t, var, cellNType, graph) # use addXZones (default)
+        else:
+            return C.center2Node(t, var, cellNType, indices=indices, BCField=BCField) # use BCMatch data (NGON)
 
 # generic, use addXZones
 def center2Node1__(t, var=None, cellNType=0, graph=None):
