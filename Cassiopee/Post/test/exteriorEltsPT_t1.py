@@ -57,23 +57,26 @@ _addVars(a)
 b = P.exteriorElts(a)
 test.testT(b, 4)
 
-
-"""
-# NGon - 2D
+# NGon - 2D (api 1)
 a = G.cartNGon((0,0,0), (1,1,1), (4,4,1), api=1)
 _addVars(a)
 b = P.exteriorElts(a)
-C.convertPyTree2File(b, "out.cgns")
 test.testT(b, 10)
 
-# NGon - 3D
+# NGon - 3D (api 1)
 a = G.cartNGon((0,0,0), (1,1,1), (10,10,10), api=1)
 _addVars(a)
 b = P.exteriorElts(a)
 test.testT(b, 11)
 
-a = G.cartNGon((0,0,0), (1,1,1), (10,10,10), api=3)
+# NGon - 2D (api 3)
+a = G.cartNGon((0,0,0), (1,1,1), (4,4,1), api=3)
 _addVars(a)
 b = P.exteriorElts(a)
 test.testT(b, 12)
-"""
+
+# NGon - 3D (api 3)
+a = G.cartNGon((0,0,0), (1,1,1), (10,10,10), api=3)
+_addVars(a)
+b = P.exteriorElts(a)
+test.testT(b, 13)

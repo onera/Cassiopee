@@ -29,9 +29,10 @@ t = C.newPyTree(['Base1',3,a])
 t = C.center2Node(t, 'cellN')
 test.testT(t, 2)
 
-# center2Node: modifie une variable (NGon) - check
-#a = G.cartNGon((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-#a = C.initVars(a, 'centers:Density', F, ['CoordinateX','CoordinateY'])
-#a = C.center2Node(a, 'centers:Density')
-#a = C.rmVars(a, 'centers:Density')
-#C.convertPyTree2File(a, 'out.cgns')
+# center2Node: modifie une variable (NGon)
+ni = 11; nj = 11; nk = 2
+a = G.cartNGon((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
+a = C.initVars(a, 'centers:Density', F, ['centers:CoordinateX','centers:CoordinateY'])
+a = C.center2Node(a, 'centers:Density')
+a = C.rmVars(a, 'centers:Density')
+test.testT(a, 3)
