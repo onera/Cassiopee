@@ -296,9 +296,9 @@ def join(t, t2=None, tol=1.e-10):
         allBCInfos += C.extractBCInfo(t2)
     Internal._orderFlowSolution(nodes, loc='both')
 
-    fieldn = C.getAllFields(nodes, 'nodes', api=1)
+    fieldn = C.getAllFields(nodes, 'nodes', api=3)
     fieldc = []
-    for f in C.getAllFields(nodes, 'centers', api=1):
+    for f in C.getAllFields(nodes, 'centers', api=3):
         if f != []: fieldc.append(f)
     res = Transform.join(fieldn, arrayc=fieldc, tol=tol)
     if not isinstance(res[0], list): # join sans les centres

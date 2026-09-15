@@ -6657,9 +6657,8 @@ def node2Center(t, var='', accurate=0):
                     f = fieldc[0]
                     if f != []: f[3] = f[3].replace('*', '')
                     try: import Transform
-                    except: pass
-                    else:
-                        z = TZA1(z, 'nodes', 'nodes', True, Transform.dual, 0)
+                    except ImportError: pass
+                    else: z = TZA1(z, 'nodes', 'nodes', True, Transform.dual, 0)
                 else:
                     z = TZA1(z, 'nodes', 'nodes', True, Converter.node2Center, accurate)
                 setFields(fieldc, z, 'nodes', writeDim=False)
