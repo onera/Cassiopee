@@ -300,7 +300,7 @@ def checkMesh(hook, t=None, tol=1.e-9, byOCAFLabels=True, repair=False, zipTol=N
     #m2 = T.join(zones)
     #m2 = C.convertArray2NGon(m2)
     #XOR.selfX(m2)
-        
+
     #================
     # quality by face
     #================
