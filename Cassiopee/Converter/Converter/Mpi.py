@@ -139,7 +139,7 @@ def center2Node(t, var=None, cellNType=0, graph=None):
     if isinstance(var, list): varList = [v.split(':')[-1] for v in var]
     else: varList = [var.split(':')[-1]]
     indices, BCField = Xmpi.exchangeBCMatchData(t, varList)
-    
+
     allstructured = 1
     for z in Internal.getZones(t):
         type = Internal.getZoneType(z)
