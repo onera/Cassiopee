@@ -5,11 +5,11 @@ import Geom.PyTree as D
 import Converter.Internal as Internal
 import KCore.test as test
 
-a = D.sphere6((0.,0.,0.),1.,N=10)
-C._initVars(a,'Fx=1.')
-C._initVars(a,'Fy=2.')
-C._initVars(a,'Fz=3.')
-C._initVars(a[1],'toto=0.')
+a = D.sphere6((0.,0.,0.), 1., N=10)
+C._initVars(a, 'Fx=1.')
+C._initVars(a, 'Fy=2.')
+C._initVars(a, 'Fz=3.')
+C._initVars(a[1], 'toto=0.')
 
 noz = 0
 for z in Internal.getZones(a):
@@ -28,4 +28,4 @@ for z in Internal.getZones(a):
     z[2].append(GC)
     noz += 1
 res = T.join(a[0:2])
-test.testT(res,1)
+test.testT(res, 1)

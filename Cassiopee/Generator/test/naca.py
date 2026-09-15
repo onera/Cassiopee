@@ -17,7 +17,7 @@ msh = T.join(msh, msh2)
 msh2 = D.line((20.,0.,0.),(1.,0.,0.), 5001); l3 = D.getLength(msh2)
 msh = T.join(msh2, msh)
 
-C.convertArrays2File([msh], 'naca.plt')
+C.convertArrays2File(msh, 'naca.plt')
 
 # distribution
 Ni = 200; Nj = 100
@@ -41,4 +41,4 @@ msh = T.reorder(msh, (1,2,3))
 
 msh = G.hyper2D(msh, distrib, "C")
 
-C.convertArrays2File([msh], 'out.plt')
+C.convertArrays2File(msh, 'out.plt')

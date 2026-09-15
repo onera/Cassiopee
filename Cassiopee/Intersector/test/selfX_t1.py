@@ -17,4 +17,4 @@ M2 = XOR.closeCells(M2)
 M = T.join(M1, M2)
 M = XOR.selfX(M)
 
-test.testA([M], 1)
+test.testA(M, 1)

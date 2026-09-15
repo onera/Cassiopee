@@ -208,7 +208,7 @@ def checkCAD(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
 # surface mesh: surface.cgns
 # surface components; component.cgns
 # internal mesh: mesh.cgns
-def checkMesh(hook, tol=1.e-9, byOCAFLabels=True, repair=False, zipTol=None):
+def checkMesh(hook, t=None, tol=1.e-9, byOCAFLabels=True, repair=False, zipTol=None):
     """Check CAD quality through coarse meshing, including watertightness, reorder stability, and mesh quality."""
     import Transform.PyTree as T
     import Converter.PyTree as C
@@ -229,12 +229,13 @@ def checkMesh(hook, tol=1.e-9, byOCAFLabels=True, repair=False, zipTol=None):
     #========
     # meshing
     #========
-    print("INFO: meshing...", flush=True)
-    (hmin,hmax,hausd) = OCC.occ.analyseEdges(hook)
-    #t = OCC.meshAll(hook, hmin=hmax, hmax=hmax, hausd=hausd) # constant hmax
-    t = OCC.meshAll(hook, hmin=hmin, hmax=hmax*2., hausd=hausd*0.1) # variable h
-    #t = OCC.meshAllOCC(hook, hausd=hausd*0.1, angularDeflection=10.)
-    C.convertPyTree2File(t, 'surface.cgns')
+    if t is None:
+        print("INFO: meshing...", flush=True)
+        (hmin,hmax,hausd) = OCC.occ.analyseEdges(hook)
+        #t = OCC.meshAll(hook, hmin=hmax, hmax=hmax, hausd=hausd) # constant hmax
+        t = OCC.meshAll(hook, hmin=hmin, hmax=hmax*2., hausd=hausd*0.1) # variable h
+        #t = OCC.meshAllOCC(hook, hausd=hausd*0.1, angularDeflection=10.)
+        C.convertPyTree2File(t, 'surface.cgns')
 
     #==============
     # is watertight
@@ -290,6 +291,16 @@ def checkMesh(hook, tol=1.e-9, byOCAFLabels=True, repair=False, zipTol=None):
             orderStable[c] = False
         else: orderStable[c] = True
 
+    #===================
+    # self intersections
+    #===================
+    import Intersector.PyTree as XOR
+    FACES = Internal.getNodesFromName1(t, 'FACES')
+    zones = Internal.getZones(FACES)
+    #m2 = T.join(zones)
+    #m2 = C.convertArray2NGon(m2)
+    #XOR.selfX(m2)
+        
     #================
     # quality by face
     #================
@@ -335,3 +346,5 @@ def checkMesh(hook, tol=1.e-9, byOCAFLabels=True, repair=False, zipTol=None):
             print(")")
     if len(out) > 0:
         C.convertPyTree2File(out, 'mesh.cgns')
+
+    return t

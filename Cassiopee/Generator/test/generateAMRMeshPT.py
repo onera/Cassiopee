@@ -8,7 +8,7 @@ import Generator.AMR as G_AMR
 a = D.naca(12.)
 dimPb = 2
 D_IBM._setSnear(a, 0.05)
-D_IBM._setIBCType(a,"Musker")
+D_IBM._setIBCType(a, "Musker")
 D_IBM._setDfar(a, 20.)
 
 tb = C.newPyTree(["BODY",a])

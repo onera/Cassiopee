@@ -12,4 +12,4 @@ a = C.addVars(a, 'F')
 
 # Triangulation avec respect du contour
 tri = G.constrainedDelaunay(a)
-test.testA([tri], 1)
+test.testA(tri, 1)

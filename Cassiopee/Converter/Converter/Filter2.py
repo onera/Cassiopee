@@ -867,7 +867,9 @@ def chunk2part(dt):
                     dl.append(da[1])
             bcDataSets.append(dl)
 
-    arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs])
+    # bcs is a list of PL
+    # bcdataset is a list of list of arrays
+    arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs,bcDataSets])
 
     RES = XCore.xcore.chunk2partNGon(arrays)
     (mesh, commData, solc, sol, bcs, cells, faces, points) = RES

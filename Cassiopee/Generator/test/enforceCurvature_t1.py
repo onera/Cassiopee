@@ -20,4 +20,4 @@ p1 = l2/l; p2 = (l2+l1)/l
 h = (p2-p1)/(Ni-1)
 distrib = G.cart((p1,0,0), (h, 0.25/Nj,1), (Ni,Nj,1))
 distrib = G.enforceCurvature(distrib, res, 0.6)
-test.testA([distrib], 1)
+test.testA(distrib, 1)

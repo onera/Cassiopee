@@ -9,4 +9,4 @@ A = C.convertArray2Tetra(A); a = T.join(A)
 # Triangulation respecting given contour
 tri = G.constrainedDelaunay(a)
 res = G.checkDelaunay(a, tri)
-test.testA([res])
+test.testA(res, 1)

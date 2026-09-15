@@ -20,5 +20,5 @@ for i, z in enumerate(Internal.getZones(a)):
     D_IBM._setSnear(z, 0.002*(i+1))
 tb = C.newPyTree(["BODY",a])
 t = G_AMR.generateAMRMesh(tb, vmins=[[5,5]], dim=dimPb, octreeMode=1, check=False, localDir=LOCAL)
-test.testT(t,1)
+test.testT(t, 1)
 #C.convertPyTree2File(t,'check_t1_2D.cgns')

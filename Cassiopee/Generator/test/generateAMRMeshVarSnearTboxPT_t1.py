@@ -21,7 +21,6 @@ for i, z in enumerate(Internal.getZones(a)):
     D_IBM._setSnear(z, snear*(i+1))
 tb = C.newPyTree(["BODY",a])
 
-
 # Tboxs
 l1 = D.line((1.55,-0.20, 0.0), (2.30,-0.20, 0.0), 200)
 l2 = D.line((2.30,-0.20, 0.0), (2.30, 0.85, 0.0), 200)
@@ -33,9 +32,9 @@ D_IBM._setSnear(a, snear*8)
 b  = T.translate(a, (0.,-1.30,0.))
 D_IBM._setSnear(b, snear*16)
 tbox = C.newPyTree(["BODY1",a, 'COPY1', b])
-D_IBM._setDfar(tbox,10)
-D_IBM._setIBCType(tbox,"None")
+D_IBM._setDfar(tbox, 10)
+D_IBM._setIBCType(tbox, "None")
 
 t = G_AMR.generateAMRMesh(tb, vmins=[[5,5]], dim=dimPb, octreeMode=1, tbox=tbox, check=False, localDir=LOCAL)
-test.testT(t,1)
+test.testT(t, 1)
 #C.convertPyTree2File(t,'check_t1_2D.cgns')

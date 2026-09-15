@@ -31,20 +31,20 @@ b = C.addVars([b, cellno[0]])
 b = T.subzone(b, (1,1,2), (b[2],b[3],2))
 f = G.snapFront(b, [s])
 
-test.testA([f], 1)
+test.testA(f, 1)
 
 # Adapte le front de la grille a la surface avec optimisation du front
 f = G.snapFront(b, [s], optimized=1)
 
-test.testA([f], 11)
+test.testA(f, 11)
 
 # Grille non structuree
 b = C.convertArray2Hexa(b)
 f = G.snapFront(b, [s])
-test.testA([f], 2)
+test.testA(f, 2)
 # Adapte le front de la grille a la surface avec optimisation du front
 f = G.snapFront(b, [s], optimized=1)
-test.testA([f], 21)
+test.testA(f, 21)
 
 s = D.polyline([(0.02,0,0),(1,1,0),(2,1,0),(0.02,0,0)])
 s1 = T.addkplane(s)
@@ -59,7 +59,6 @@ for c in contours:
 
 lc = C.convertArray2Tetra(lc)
 s2 = T.join(lc)
-s2 = G.close(s2)
 # Grille cartesienne (reguliere)
 h = 0.02
 ni = 200; nj = 200; nk = 2
@@ -73,4 +72,4 @@ b = C.addVars([b, cellno[0]])
 # Adapte le front de la grille a la surface
 b = T.subzone(b, (1,1,1), (b[2],b[3],1))
 f = G.snapFront(b, [s], optimized=2)
-test.testA([f], 3)
+test.testA(f, 3)
