@@ -4561,6 +4561,7 @@ def _recoverBCsGeometric(t, BCInfo, tol=1.e-11, removeBC=True, missingBCInfo=Non
                     id2[:] = indicesF[ids[:]-1]
                     _addBC2Zone(z, BCNames[c], BCTypes[c], faceList=id2)
                 else:  # BE / ME
+                    b[0] = BCNames[c]
                     if invalidPos.size > 0:
                         validPos = numpy.nonzero(validIds)[0]
                         validPos = validPos.astype(Internal.E_NpyInt)
