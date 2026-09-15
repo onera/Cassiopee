@@ -27,19 +27,8 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
 {
   PyObject* array;
   E_Int type;
-  PyObject* BCFields; // optional indR+fields on BCs
-  if (!PYPARSETUPLE_(args, O_ I_ O_, &array, &type, &BCFields)) return NULL;
-
-  // Check BCFields
-  if (BCFields != Py_None)
-  {
-    if (PyList_Check(BCFields) == false) 
-    {
-      PyErr_SetString(PyExc_TypeError, 
-                       "center2Node: BCFields must be a list of indR+fields.");
-      return NULL;
-    }
-  }
+  PyObject* indices; PyObject* field;
+  if (!PYPARSETUPLE_(args, O_ I_ OO_, &array, &type, &indices, &field)) return NULL;
 
   E_Int ni, nj, nk;
   FldArrayI* cnc; FldArrayF* fc;
@@ -103,16 +92,6 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
     ret = K_LOC::center2nodeStruct(*fc, ni, nj, nk, posCellN, mod, 
                                    posx, posy, posz, *fn2, nin, njn, nkn,
                                    type);
-    // Boundary corrections
-    if (BCFields != Py_None)
-    {
-      //PyObject* indR = PyList_GetItem(BCFields, 0);
-      //PyObject* fields = PyList_GetItem(BCFields, 1);
-      //E_Int res = K_ARRAY::getFromArray3(fields, varString, fc, 
-      //                                   ni, nj, nk, cnc, eltType);
-      //center2NodeStructBorder(fn2, nin, njn, nkn);
-      //RELEASESHAREDB(res, fields);
-    }
 
     RELEASESHAREDS(tpl, fn2);
     RELEASESHAREDS(array, fc);
@@ -185,6 +164,66 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
       FldArrayF* fn2;
       K_ARRAY::getFromArray3(tpl, fn2);
       ret = K_LOC::center2nodeNGon(*fc, *cnc, cEV, *fn2, posCellN, mod, type);
+      
+      // BCMatch correction for inter-grid communication
+      FldArrayI* inds=NULL; FldArrayF* bfield=NULL;
+      if (indices != Py_None && field != Py_None)
+      {
+        K_NUMPY::getFromNumpyArray(indices, inds);
+        K_NUMPY::getFromNumpyArray(field, bfield);
+
+        E_Int* ngon = cnc->getNGon();
+        E_Int* indPG = cnc->getIndPG(); 
+        E_Int sizeFace;
+
+        // face-element connectivity
+        FldArrayI cFE;
+        K_CONNECT::connectNG2FE(*cnc, cFE);
+        E_Int* cFE1 = cFE.begin(1);
+        E_Int* cFE2 = cFE.begin(2);
+
+        // neighbor element count for each vertex
+        FldArrayI count(npts); count.setAllValuesAtNull();
+        E_Int* countp = count.begin();
+        for (E_Int i = 0; i < nelts; i++)
+        {
+          const vector<E_Int>& vertices = cEV[i];
+          E_Int nvert = vertices.size();
+          for (E_Int j = 0; j < nvert; j++)
+          {
+            E_Int ind = vertices[j]-1;
+            countp[ind]++;
+          }
+        }
+        
+        E_Int ninterfaces = inds->getSize()*inds->getNfld();
+        E_Int* pind = inds->begin(); // BCMatch interface indices
+        E_Float* FInter = bfield->begin(1); // Field at the BCMatch interfaces
+        E_Float* FNode = fn2->begin(1); // Field at the nodes
+        E_Float* FCenter = fc->begin(1); // Field at the cell-centers
+        
+        for (E_Int i = 0; i < ninterfaces; i++)
+        {
+          E_Int indface = pind[i]-1; // BCMatch interface index to correct
+          E_Int e1 = cFE1[indface]-1; // Left element index
+          E_Int e2 = cFE2[indface]-1; // Right element index (should be -1)
+          E_Int* face = cnc->getFace(indface, sizeFace, ngon, indPG);
+          for (E_Int j = 0; j < sizeFace; j++)
+          {
+            E_Int ind = face[j]-1; // Vertex index to correct
+            E_Int cpt = countp[ind]; // Current neighbor element count
+
+            // Reminder: FInter[i] = 0.5*(FCenter[e1] + FCenter[e2])
+            FNode[ind] = (FNode[ind]*cpt + 2*FInter[i] - FCenter[e1]) / (cpt+1);
+
+            countp[ind]++; // Increment neighbor element count
+          }
+        }
+        
+        RELEASESHAREDN(indices, inds);
+        RELEASESHAREDN(field, bfield);
+      }
+      
       cEV.clear();
 
       RELEASESHAREDS(tpl, fn2);

@@ -1452,16 +1452,16 @@ def node2Center(array, accurate=0):
     else:
         return converter.node2Center(array, accurate)
 
-def center2Node(array, cellNType=0, BCFields=None):
+def center2Node(array, cellNType=0, indices=None, BCField=None):
     """Convert array defined on centers to array defined on nodes.
     Usage: center2Node(array)"""
     if isinstance(array[0], list):
         b = []
         for i in array:
-            b.append(converter.center2Node(i, cellNType, BCFields))
+            b.append(converter.center2Node(i, cellNType, indices, BCField))
         return b
     else:
-        b = converter.center2Node(array, cellNType, BCFields)
+        b = converter.center2Node(array, cellNType, indices, BCField)
         return b
 
 def node2ExtCenter(array):
