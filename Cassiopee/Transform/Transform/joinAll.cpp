@@ -212,6 +212,9 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
   {
     E_Int offsetSizeFN = 0, offsetSizeEF = 0;
     E_Int offsetPts = 0, offsetFaces = 0, offsetElts = 0;
+    std::vector<E_Int> offsetEltsME(nc, 0);
+    E_Int nptsk, nck, neltskic, neltsk, nfacesk, sizeFNk, sizeEFk, ic2;
+
     for (E_Int k = 0; k < nu; k++)
     {
       // Skip if the ref elt type is NGON and if current elt type is not NGON
@@ -219,7 +222,7 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
       if (K_STRING::cmp(eltRef, "NGON") == 0 and K_STRING::cmp(eltRef, eltType[k]) != 0)
         continue;
 
-      E_Int nptsk = unstructF[k]->getSize();
+      nptsk = unstructF[k]->getSize();
       // Copie des champs aux noeuds
       for (E_Int n = 1; n <= nfld; n++)
       {
@@ -231,10 +234,10 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
 
       if (K_STRING::cmp(eltRef, "NGON") == 0)
       {
-        E_Int neltsk = cn[k]->getNElts();
-        E_Int nfacesk = cn[k]->getNFaces();
-        E_Int sizeFNk = cn[k]->getSizeNGon();
-        E_Int sizeEFk = cn[k]->getSizeNFace();
+        neltsk = cn[k]->getNElts();
+        nfacesk = cn[k]->getNFaces();
+        sizeFNk = cn[k]->getSizeNGon();
+        sizeEFk = cn[k]->getSizeNFace();
 
         // Ajout de la connectivite NGON k
         E_Int *ngonk = cn[k]->getNGon(), *nfacek = cn[k]->getNFace();
@@ -267,21 +270,23 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
       else if (dim != 0)  // skip NODE
       {
         // Ajout de la connectivite BE/ME k
-        E_Int nck = cn[k]->getNConnect();
+        nck = cn[k]->getNConnect();
         for (E_Int ic = 0; ic < nck; ic++)
         {
-          if (indir[k][ic] < 0) continue; // skip
+          ic2 = indir[k][ic];
+          if (ic2 < 0) continue; // skip
           FldArrayI& cmkic = *(cn[k]->getConnect(ic));
-          FldArrayI& cm = *(cn2->getConnect(indir[k][ic]));
-          E_Int neltskic = cmkic.getSize();
+          FldArrayI& cm = *(cn2->getConnect(ic2));
+          neltskic = cmkic.getSize();
 
           #pragma omp for
           for (E_Int i = 0; i < neltskic; i++)
             for (E_Int j = 1; j <= cmkic.getNfld(); j++)
               // Add offsets
-              cm(i+offsetElts,j) = cmkic(i,j) + offsetPts;
+              cm(i+offsetEltsME[ic2],j) = cmkic(i,j) + offsetPts;
 
-          // Increment ME offsets
+          // Increment offset
+          offsetEltsME[ic2] += neltskic;
           offsetElts += neltskic;
         }
       }
@@ -484,6 +489,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
     strcpy(newEltType, "NODE");
     tpln = K_ARRAY::buildArray3(nfld, unstructVarString[0], npts, 0,
                                 newEltType, false, api);
+    cn2 = new FldArrayI();
     res2 = 1; K_ARRAY::getFromArray3(tpln, f2);
   }
   else
@@ -548,6 +554,9 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
   {
     E_Int offsetSizeFN = 0, offsetSizeEF = 0;
     E_Int offsetPts = 0, offsetFaces = 0, offsetElts = 0;
+    std::vector<E_Int> offsetEltsME(nc, 0);
+    E_Int nptsk, nck, neltsk, nfacesk, sizeFNk, sizeEFk, ic2;
+
     for (E_Int k = 0; k < nu; k++)
     {
       // Skip if the ref elt type is NGON and if current elt type is not NGON
@@ -555,7 +564,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
       if (K_STRING::cmp(eltRef, "NGON") == 0 and K_STRING::cmp(eltRef, eltType[k]) != 0)
         continue;
 
-      E_Int nptsk = unstructF[k]->getSize();
+      nptsk = unstructF[k]->getSize();
       // Copie des champs aux noeuds
       for (E_Int n = 1; n <= nfld; n++)
       {
@@ -577,10 +586,10 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
 
       if (K_STRING::cmp(eltRef, "NGON") == 0)
       {
-        E_Int neltsk = cn[k]->getNElts();
-        E_Int nfacesk = cn[k]->getNFaces();
-        E_Int sizeFNk = cn[k]->getSizeNGon();
-        E_Int sizeEFk = cn[k]->getSizeNFace();
+        neltsk = cn[k]->getNElts();
+        nfacesk = cn[k]->getNFaces();
+        sizeFNk = cn[k]->getSizeNGon();
+        sizeEFk = cn[k]->getSizeNFace();
 
         // Ajout de la connectivite NGON k
         E_Int *ngonk = cn[k]->getNGon(), *nfacek = cn[k]->getNFace();
@@ -613,21 +622,23 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
       else if (dim != 0)
       {
         // Ajout de la connectivite BE/ME k
-        E_Int nck = cn[k]->getNConnect();
+        nck = cn[k]->getNConnect();
         for (E_Int ic = 0; ic < nck; ic++)
         {
-          if (indir[k][ic] < 0) continue; // skip
+          ic2 = indir[k][ic];
+          if (ic2 < 0) continue; // skip
           FldArrayI& cmkic = *(cn[k]->getConnect(ic));
-          FldArrayI& cm = *(cn2->getConnect(indir[k][ic]));
+          FldArrayI& cm = *(cn2->getConnect(ic2));
           E_Int neltskic = cmkic.getSize();
 
           #pragma omp for
           for (E_Int i = 0; i < neltskic; i++)
             for (E_Int j = 1; j <= cmkic.getNfld(); j++)
               // Add offsets
-              cm(i+offsetElts,j) = cmkic(i,j) + offsetPts;
+              cm(i+offsetEltsME[ic2],j) = cmkic(i,j) + offsetPts;
 
-          // Increment ME offsets
+          // Increment offset
+          offsetEltsME[ic2] += neltskic;
           offsetElts += neltskic;
         }
       }
@@ -697,6 +708,7 @@ PyObject* K_TRANSFORM::joinAllBoth(PyObject* self, PyObject* args)
     PyList_Append(l, tpln); PyList_Append(l, tplc);
   }
   RELEASESHAREDB(res2, tpln, f2, cn2);
+  if (res2 == 1) delete cn2;
   Py_DECREF(tpln); Py_DECREF(tplc); delete fc;
   return l;
 }
