@@ -362,34 +362,33 @@ K_TRANSFORM::joinstructured3d(FldArrayF& f1, E_Int im1, E_Int jm1, E_Int km1,
 
   #pragma omp parallel
   {
-    E_Int ind, ind1, ind2;
-    for (E_Int eq = 0 ; eq < nfld; eq++)
+    for (E_Int eq = 0; eq < nfld; eq++)
     {
       E_Int eq1 = pos1[eq];
       E_Int eq2 = pos2[eq];
       E_Float* floc1 = f1.begin(eq1);
       E_Float* floc2 = f2.begin(eq2);
       E_Float* fcnt = field.begin(eq+1);
+  
+      #pragma omp for collapse(2)
       for (E_Int k = 0; k < km; k++)
-        for (E_Int j = 0; j < jm; j++)
+      for (E_Int j = 0; j < jm; j++)
+      {
+        for (E_Int i = 0; i < im1-1; i++)
         {
-          #pragma omp for
-          for (E_Int i = 0; i < im1-1; i++)
-          {
-            ind1 = i + j * im1 + k * im1jm1;
-            ind = i + j * (im1+im2-1) + k*(im1+im2-1)*jm;
-            fcnt[ind] = floc1[ind1];
-          }
-          #pragma omp for
-          for (E_Int i = 0; i < im2; i++)
-          {
-            ind2 = i + j * im2 + k * im2jm2;
-            ind = i + im1-1 + j * (im1+im2-1) + k*(im1+im2-1)*jm;
-            fcnt[ind] = floc2[ind2];
-          }
+          E_Int ind1 = i + j*im1 + k*im1jm1;
+          E_Int ind = i + j*(im1+im2-1) + k*(im1+im2-1)*jm;
+          fcnt[ind] = floc1[ind1];
+        }
+        for (E_Int i = 0; i < im2; i++)
+        {
+          E_Int ind2 = i + j*im2 + k * im2jm2;
+          E_Int ind = i + im1-1 + j*(im1+im2-1) + k*(im1+im2-1)*jm;
+          fcnt[ind] = floc2[ind2];
         }
       }
     }
+  }
 
   // Remet l'array final avec la numerotation de f1
   /*
