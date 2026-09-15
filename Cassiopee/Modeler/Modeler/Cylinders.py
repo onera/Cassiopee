@@ -33,6 +33,5 @@ def cylinder(R1=1., R2=1., N=10, h=1., Rc=-1):
         b2 = D.axisym(s, (0,0,0), (0,0,1), 360, N)
         b2 = C.convertArray2Tetra(b2)
     o = T.join([o,b1,b2])
-    o = G.close(o)
     o = T.reorder(o, (+1,))
     return o

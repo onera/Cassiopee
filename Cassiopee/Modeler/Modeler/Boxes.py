@@ -26,7 +26,6 @@ def box(Pmin, Pmax, chamfer=-1.):
         Q6 = D.quadrangle(P4,P3,P7,P8)
         a = [Q1,Q2,Q3,Q4,Q5,Q6]
         a = T.join(a)
-        a = G.close(a)
         a = T.reorder(a, (-1,))
         return a
     else: # chanfrein droit
@@ -95,7 +94,6 @@ def box(Pmin, Pmax, chamfer=-1.):
         a = [Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17,
              Q18,Q19,Q20,Q21,Q22,Q23,Q24,Q25,Q26]
         a = T.join(a)
-        a = G.close(a)
         return a
 
 #==========================================================================
@@ -138,7 +136,6 @@ def box2D(Pmin, Pmax, r=0., fill=True, uv=False):
     else: a = [d1,d2,d3,d4]
     a = C.convertArray2Tetra(a)
     a = T.join(a)
-    a = G.close(a)
     a = T.reorder(a, (-1,))
     if fill: a = G.tetraMesher(a)
     if uv:

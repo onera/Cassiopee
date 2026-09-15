@@ -43,7 +43,6 @@ def table2(L=0.6, H=1., N=20):
     a = T.rotate(a, (0,0,0), (1,0,0), -90.)
     a = C.convertArray2Hexa(a)
     a = T.join(a)
-    a = G.close(a)
     ex = P.exteriorFaces(a)
     ex = T.splitConnexity(ex)
     p = G.fittingPlaster(ex[0], bumpFactor=0.)

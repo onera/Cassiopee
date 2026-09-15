@@ -22,7 +22,6 @@ def wall(line,Bx,By,Bz,nlayers=1,chamfer=-1., shrink=1.):
 
     posZ = 0.
     bx = Boxes.box((0,0,0), (Bx,By,Bz), chamfer)
-    hbx = Boxes.box((0,0,0), (Bx*0.5,By,Bz), chamfer) # half box
     bricks = []
     for n in range(nlayers):
         for i in range(Nb-1):
@@ -46,5 +45,4 @@ def wall(line,Bx,By,Bz,nlayers=1,chamfer=-1., shrink=1.):
                 bricks.append(bx2)
         posZ += Bz
     o = T.join(bricks)
-    o = G.close(o)
     return o

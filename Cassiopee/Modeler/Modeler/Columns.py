@@ -21,7 +21,6 @@ def column(R=0.2, N=10, h=1.):
     c2 = D.lineDrive(c, l)
     c2 = C.convertArray2Tetra(c2)
     o = T.join([b,b2,c2])
-    o = G.close(o)
     o = T.reorder(o, (-1,))
     dh = R*math.sqrt(2.)
     box1 = Boxes.box((-dh,-dh,-R),(dh,dh,0), chamfer=0.05*R)
@@ -47,7 +46,6 @@ def column2(R1=0.2, R2=0.2, N=10, h=1.):
     s2 = D.spline(p, N=N, M=N)
     c = C.convertArray2Tetra([s1,l,s2])
     c = T.join(c)
-    c = G.close(c)
     o = D.axisym(c, (0,0,0), (0,0,1), 360, N)
     return o
 
@@ -67,5 +65,4 @@ def column3(R1=0.2, R2=0.2, N=10, h=1.):
     g = [o,o1,o2]
     g = C.convertArray2Hexa(g)
     g = T.join(g)
-    g = G.close(g)
     return g

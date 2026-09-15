@@ -26,7 +26,6 @@ def circle1(R=1., Rd=0.8, Nd=10, fracD=0.5, N=180):
         c += Npts
     out = C.convertArray2Hexa(out)
     out = T.join(out)
-    out = G.close(out)
     return out
 
 #=============================================================================
@@ -53,5 +52,4 @@ def circle2(R=1., Rd=0.8, Nd=10, fracD=0.5, N=180):
         c += Npts
     out = C.convertArray2Hexa(out)
     out = T.join(out)
-    out = G.close(out)
     return out

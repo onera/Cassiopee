@@ -168,7 +168,7 @@ def generate(event=None):
     posEye = CPlot.getState('posEye')
     dirCam = CPlot.getState('dirCam')
 
-    s = T.translate(s, (posEye[0]-xc, posEye[1]-yc, posEye[2]-zc) )
+    s = T.translate(s, (posEye[0]-xc, posEye[1]-yc, posEye[2]-zc))
     lx = posEye[0]-posCam[0]
     ly = posEye[1]-posCam[1]
     lz = posEye[2]-posCam[2]
