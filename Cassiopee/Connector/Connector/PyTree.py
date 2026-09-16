@@ -1755,7 +1755,7 @@ def _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName='cellN'):
     if depth == 0: return None
     if loc == 'centers': varcelln = 'centers:'+cellNName
     else: varcelln = cellNName
-    count = 0
+    count = 0 # TODO bug or useless argument?
     for z in Internal.getZones(a):
         dims = Internal.getZoneDim(z)
         if dims[0] == 'Unstructured' and count == 1: pass
@@ -1770,7 +1770,6 @@ def _setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers',
     """Set cellN=2 around cellN=0 points."""
     count = 0
     _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName)
-
     if addGC:
         count += 1
         ghost = Internal.getNodeFromName(a, 'ZoneRind')
@@ -1780,6 +1779,53 @@ def _setHoleInterpolatedPoints(a, depth=2, dir=0, loc='centers',
             Internal._addGhostCells(a, a, abs(depth), adaptBCs=0, modified=[varcelln])
             _setHoleInterpolatedPoints__(a, depth, dir, count, loc, cellNName)
             Internal._rmGhostCells(a, a, abs(depth), adaptBCs=0, modified=[varcelln])
+    return None
+
+#==============================================================================
+# IN: t: contains the cellN field located at nodes or centers
+# IN: depth can be positive or negative
+# IN: dir=0 (directional), dir=1 (star), dir=2 (diamond), dir=3 (octaedre)
+# Return a PyTree containing a cellN field with added layers around the volume
+# defined by cellN=0
+#==============================================================================
+def addLayers(t, depth=2, dir=0, cellNName='cellN'):
+    """Add layers around a volume defined by cellN=0, with positive or
+    negative depth controlling the side of the mask to expand."""
+    if depth == 0: return t
+    loc = 'centers' if cellNName.startswith('centers:') else 'nodes'
+    if depth < 0:
+        tmpCellN = "_dummyXaL"
+        tmpCellNWLoc = tmpCellN
+        if loc == 'centers': tmpCellNWLoc = "centers:" + tmpCellNWLoc
+        t = C.initVars(t, "{{{var}}}=1.-{{{tag}}}".format(var=tmpCellNWLoc, tag=cellNName))
+    else:
+        tmpCellNWLoc = cellNName
+        tmpCellN = cellNName.split(':')[-1]
+    for _ in range(abs(depth)):
+        t = setHoleInterpolatedPoints(t, depth=1, dir=dir, cellNName=tmpCellN, loc=loc)
+        t = C.initVars(t, "{{{var}}}=({{{var}}}==1.)".format(var=tmpCellNWLoc))
+    if depth < 0:
+        t = C.initVars(t, "{tag}=1.-{{{var}}}".format(var=tmpCellNWLoc, tag=cellNName))
+        t = C.rmVars(t, [tmpCellNWLoc])
+    return t
+
+def _addLayers(t, depth=2, dir=0, cellNName='cellN', addGC=True):
+    if depth == 0: return None
+    loc = 'centers' if cellNName.startswith('centers:') else 'nodes'
+    if depth < 0:
+        tmpCellN = "_dummyXaL"
+        tmpCellNWLoc = tmpCellN
+        if loc == 'centers': tmpCellNWLoc = "centers:" + tmpCellNWLoc
+        C._initVars(t, "{{{var}}}=1.-{{{tag}}}".format(var=tmpCellNWLoc, tag=cellNName))
+    else:
+        tmpCellNWLoc = cellNName
+        tmpCellN = cellNName.split(':')[-1]
+    for _ in range(abs(depth)):
+        _setHoleInterpolatedPoints(t, depth=1, dir=dir, cellNName=tmpCellN, loc=loc, addGC=addGC)
+        C._initVars(t, "{{{var}}}=({{{var}}}==1.)".format(var=tmpCellNWLoc))
+    if depth < 0:
+        C._initVars(t, "{tag}=1.-{{{var}}}".format(var=tmpCellNWLoc, tag=cellNName))
+        C._rmVars(t, [tmpCellNWLoc])
     return None
 
 #=============================================================================

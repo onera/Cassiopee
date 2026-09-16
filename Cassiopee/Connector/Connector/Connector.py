@@ -5,11 +5,18 @@ __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud
 
 from . import connector
 
-__all__ = ['blankCells', '_blankCells', 'blankCellsTetra', 'blankCellsTri', 'blankIntersectingCells', 'chimeraTransfer', 'connectMatch',
-           'getIntersectingDomainsAABB', 'maximizeBlankedCells', 'optimizeOverlap', 'setDoublyDefinedBC', 'setHoleInterpolatedPoints',
-           'setIBCTransfers', 'setIBCTransfersD', 'setInterpTransfers', 'setInterpTransfersD', 'writeCoefs','maskXRay__',
-           '_applyBCOverlapsStruct__', 'applyBCOverlapsStruct__', 'applyBCOverlapsNG__',
-           'getInterpolatedPoints__', 'getEXPoints__', '_modCellN1', '_modCellN2', 'changeWall__']
+__all__ = [
+    'addLayers', '_addLayers',
+    'blankCells', '_blankCells', 'blankCellsTetra', 'blankCellsTri',
+    'blankIntersectingCells', 'chimeraTransfer', 'connectMatch',
+    'getIntersectingDomainsAABB', 'maximizeBlankedCells', 'optimizeOverlap',
+    'setDoublyDefinedBC', 'setHoleInterpolatedPoints',
+    'setIBCTransfers', 'setIBCTransfersD', 'setInterpTransfers',
+    'setInterpTransfersD', 'writeCoefs', 'maskXRay__',
+    '_applyBCOverlapsStruct__', 'applyBCOverlapsStruct__',
+    'applyBCOverlapsNG__', 'getInterpolatedPoints__',
+    'getEXPoints__', '_modCellN1', '_modCellN2', 'changeWall__'
+]
 
 #===============================================================================
 def connectMatch(a1, a2, sameZone=0, tol=1.e-6, dim=3):
@@ -171,51 +178,90 @@ def _setHoleInterpolatedPoints(cellN, depth=2, dir=0, cellNName='cellN'):
     if depth < 0:
         try: import Converter
         except: raise ImportError("_setHoleInterpolatedPoints: requires Converter module.")
-    loc = 'nodes'
-    if len(cellN) == 4:
-        if cellN[3][-1]=='*': loc = 'centers'
+    loc = 'centers' if len(cellN) == 4 and cellN[3][-1] == '*' else 'nodes'
 
     if loc == 'nodes':
         if depth < 0:
-            Converter._initVars(cellN,'{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
+            Converter._initVars(cellN, '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
             _getOversetHolesInterpNodes__(cellN, -depth, dir, cellNName)
-            Converter._initVars(cellN,'{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
-        else:
-            _getOversetHolesInterpNodes__(cellN, depth, dir, cellNName)
+            Converter._initVars(cellN, '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
+        else: _getOversetHolesInterpNodes__(cellN, depth, dir, cellNName)
     else: # unstructured with celln field at centers
         if depth < 0:
-            Converter._initVars(cellN,'{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
+            Converter._initVars(cellN, '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
             _getOversetHolesInterpCellCenters__(cellN, -depth, dir, cellNName)
-            Converter._initVars(cellN,'{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
-        else:
-            _getOversetHolesInterpCellCenters__(cellN, depth, dir, cellNName)
+            Converter._initVars(cellN, '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
+        else: _getOversetHolesInterpCellCenters__(cellN, depth, dir, cellNName)
     return None
 
-def setHoleInterpolatedPoints(celln, depth=2, dir=0, cellNName='cellN', indices=None, BCField=None):
+def setHoleInterpolatedPoints(cellN, depth=2, dir=0, cellNName='cellN', indices=None, BCField=None):
     """Set interpolated points cellN=2 around cellN=0 points."""
-    if depth == 0: return celln
-    try: import Converter
-    except: raise ImportError("setHoleInterpolatedPoints: requires Converter module.")
-    loc = 'nodes'
-    if len(celln) == 4:
-        if celln[3][-1]=='*': loc = 'centers'
+    if depth == 0: return cellN
+    if depth < 0:
+        try: import Converter
+        except: raise ImportError("setHoleInterpolatedPoints: requires Converter module.")
+    loc = 'centers' if len(cellN) == 4 and cellN[3][-1] == '*' else 'nodes'
     if loc == 'nodes':
         if depth < 0:
-            celln = Converter.initVars(celln,
-                                       '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
-            celln = getOversetHolesInterpNodes__(celln, -depth, dir, cellNName)
-            celln = Converter.initVars(celln,
-                                       '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
-        else: celln = getOversetHolesInterpNodes__(celln, depth, dir, cellNName)
+            cellN = Converter.initVars(cellN, '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
+            cellN = getOversetHolesInterpNodes__(cellN, -depth, dir, cellNName)
+            cellN = Converter.initVars(cellN, '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
+        else: cellN = getOversetHolesInterpNodes__(cellN, depth, dir, cellNName)
     else: # unstructured with celln field at centers
         if depth < 0:
-            celln = Converter.initVars(celln,
-                                       '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
-            celln = getOversetHolesInterpCellCenters__(celln, -depth, dir, cellNName)
-            celln = Converter.initVars(celln,
-                                       '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
-        else: celln = getOversetHolesInterpCellCenters__(celln, depth, dir, cellNName, indices, BCField)
-    return celln
+            cellN = Converter.initVars(cellN, '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
+            cellN = getOversetHolesInterpCellCenters__(cellN, -depth, dir, cellNName)
+            cellN = Converter.initVars(cellN, '{%s} = 1-{%s}+({%s}>1.5)*3'%(cellNName, cellNName, cellNName))
+        else: cellN = getOversetHolesInterpCellCenters__(cellN, depth, dir, cellNName, indices, BCField)
+    return cellN
+
+def addLayers(a, depth=2, dir=0, cellNName='cellN', indices=None, BCField=None):
+    """Add layers around a volume defined by cellN=0, with positive or
+    negative depth controlling the side of the mask to expand."""
+    if depth == 0: return a
+    try: import Converter
+    except: raise ImportError("addLayers: requires Converter module.")
+    loc = 'centers' if len(a) == 4 and a[3][-1] == '*' else 'nodes'
+    if depth < 0:
+        tmpCellN = "_dummyXaL"
+        tmpCellNWLoc = tmpCellN
+        if loc == 'centers': tmpCellNWLoc = "centers:" + tmpCellNWLoc
+        a = Converter.initVars(a, "{{{var}}}=1.-{{{tag}}}".format(var=tmpCellNWLoc, tag=cellNName))
+    else:
+        tmpCellN = cellNName.split(':')[-1]
+        tmpCellNWLoc = tmpCellN
+        if loc == 'centers': tmpCellNWLoc = "centers:" + tmpCellNWLoc
+    for _ in range(abs(depth)):
+        a = setHoleInterpolatedPoints(a, depth=1, dir=dir, cellNName=tmpCellN,
+                                      indices=indices, BCField=BCField)
+        a = Converter.initVars(a, "{{{var}}}=({{{var}}}==1.)".format(var=tmpCellNWLoc))
+    if depth < 0:
+        a = Converter.initVars(a, "{tag}=1.-{{{var}}}".format(var=tmpCellNWLoc, tag=cellNName))
+        a = Converter.rmVars(a, [tmpCellNWLoc])
+    return a
+
+def _addLayers(a, depth=2, dir=0, cellNName='cellN', indices=None, BCField=None):
+    if depth == 0: return None
+    try: import Converter
+    except: raise ImportError("_addLayers: requires Converter module.")
+    loc = 'centers' if len(a) == 4 and a[3][-1] == '*' else 'nodes'
+    if depth < 0:
+        tmpCellN = "_dummyXaL"
+        tmpCellNWLoc = tmpCellN
+        if loc == 'centers': tmpCellNWLoc = "centers:" + tmpCellNWLoc
+        Converter._initVars(a, "{{{var}}}=1.-{{{tag}}}".format(var=tmpCellNWLoc, tag=cellNName))
+    else:
+        tmpCellN = cellNName.split(':')[-1]
+        tmpCellNWLoc = tmpCellN
+        if loc == 'centers': tmpCellNWLoc = "centers:" + tmpCellNWLoc
+    for _ in range(abs(depth)):
+        _setHoleInterpolatedPoints(a, depth=1, dir=dir, cellNName=tmpCellN,
+                                   indices=indices, BCField=BCField)
+        Converter._initVars(a, "{{{var}}}=({{{var}}}==1.)".format(var=tmpCellNWLoc))
+    if depth < 0:
+        Converter._initVars(a, "{tag}=1.-{{{var}}}".format(var=tmpCellNWLoc, tag=cellNName))
+        Converter._rmVars(a, [tmpCellNWLoc])
+    return None
 
 #------------------------------------------------------------------------------
 def blankCells(coords, cellnfields, body, blankingType=1, \
