@@ -19,7 +19,7 @@ t2 = XOR.XcellN(t, [(0,1)], output_type=1)
 test.testT(t2, 2)
 t3 = XOR.XcellN(t, [(0,1)], output_type=2)
 test.testT(t3, 3)
-C.convertPyTree2File(t1, "out.cgns")
+#C.convertPyTree2File(t1, "out.cgns")
 
 t1 = XOR.XcellN(t, [(1,0)], output_type=0)
 test.testT(t1, 4)

@@ -1,3 +1,4 @@
+# - adaptCells (pyTree) -
 import Geom.PyTree as D
 import Converter.PyTree as C
 import Intersector.PyTree as XOR
@@ -5,7 +6,6 @@ import Generator.PyTree as G
 import Transform.PyTree as T
 import Post.PyTree as P
 import Converter.Internal as I
-import time
 import KCore.test as test
 
 a = D.triangle((0,0,0), (0,1,0), (1, 0, 0))

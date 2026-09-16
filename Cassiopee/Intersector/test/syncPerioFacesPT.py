@@ -1,4 +1,4 @@
-# - concatenate (PyTree) -
+# - syncMacthPeriodicFaces (PyTree) -
 
 import Converter.PyTree   as C
 import Generator.PyTree   as G
@@ -9,8 +9,8 @@ import Post.PyTree        as P
 import Converter.Internal as I
 
 ## build a cartesian mesh
-a    = G.cartHexa((0.,0.,0.), (1.,1.,1.), (10,10,10))
-a    = C.convertArray2NGon(a)
+a = G.cartHexa((0.,0.,0.), (1.,1.,1.), (10,10,10))
+a = C.convertArray2NGon(a)
 
 XOR._reorient(a)
 

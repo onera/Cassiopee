@@ -1479,7 +1479,7 @@ def tetraMesher(a, maxh=-1., quality=1.2, grading=1.2, triangulateOnly=0,
     try:
         import Transform as T
         a = C.convertArray2Tetra(a)
-        a = T.join(a); a = close(a)
+        a = T.join(a)
     except: pass
     import math
     if a[3] == 'BAR':

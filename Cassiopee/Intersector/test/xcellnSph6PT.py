@@ -3,7 +3,6 @@ import Geom.PyTree as D
 import Converter.PyTree as C
 import Transform.PyTree as T
 import Intersector.PyTree as XOR
-import KCore.test as test
 
 a = D.sphere6((0,0,0), 1, N=20)
 b = a[0]

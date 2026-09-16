@@ -1,4 +1,4 @@
-# - concatenate (PyTree) -
+# - syncMacthPeriodicFaces (PyTree) -
 
 import Converter.PyTree   as C
 import Generator.PyTree   as G
