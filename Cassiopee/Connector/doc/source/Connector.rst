@@ -53,6 +53,7 @@ List of functions
    Connector.blankCellsTri
    Connector.blankIntersectingCells
    Connector.setHoleInterpolatedPoints
+   Connector.addLayers
    Connector.optimizeOverlap
    Connector.maximizeBlankedCells
 
@@ -532,6 +533,51 @@ Overset connectivity
     * `Set the fringe of interpolated points near the blanked points (pyTree) <Examples/Connector/setHoleInterpolatedPtsPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Connector/setHoleInterpolatedPtsPT.py
+
+
+------------------------------------------------------------------------------------------------------------------
+
+.. py:function:: Connector.addLayers()
+
+    *Using the array interface:*
+    
+        ::
+
+         a = X.addLayers(a, depth=2, dir=0, cellNName='cellN')
+    
+        Add layers around a volume defined by a set of blanked points in a mesh a.
+        Parameter depth is the number of layers to be added.
+        If depth > 0, layers are added outside the blanked zones, inside otherwise.
+        If dir=0, uses a directional stencil of depth points, if dir=1, uses a star shape stencil,
+        if dir=2, uses a diamond stencil, if dir=3, uses an octahedron stencil.
+        Blanked points are identified by the variable 'cellN'.
+        The location, 'nodes' or 'centers', must be encoded directly in cellNName.
+        
+
+    *Using the pyTree interface:*
+
+        ::
+
+         t = X.addLayers(t, depth=2, dir=0, cellNName='centers:cellN')
+        
+        Add layers around a volume defined by a set of blanked points in a pyTree t.
+        Parameter depth is the number of layers to be added.
+        If depth > 0, layers are added outside the blanked zones, inside otherwise.
+        If dir=0, uses a directional stencil of depth points, if dir=1, uses a star shape stencil,
+        if dir=2, uses a diamond stencil, if dir=3, uses an octahedron stencil.
+        Blanked points are identified by the variable 'cellN'.
+        The location, 'nodes' or 'centers', must be encoded directly in cellNName.
+    
+
+    *Example of use:*
+
+    * `Set the fringe of interpolated points near blanked points (array) <Examples/Connector/addLayers.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/addLayers.py
+
+    * `Set the fringe of interpolated points near the blanked points (pyTree) <Examples/Connector/addLayersPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Connector/addLayersPT.py
 
 
 -------------------------------------------------------------------------------------------------------------
