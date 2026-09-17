@@ -1050,6 +1050,9 @@ def getBodiesForWallDistanceComputation__(tb2):
         ibctype = Internal.getNodeFromName(z_tb, "ibctype")
         if ibctype == None:
             ibctype = 0
+        elif isinstance(Internal.getValue(ibctype), str):
+            print(Internal.getValue(ibctype))
+            ibctype = 0
         else:
             ibctype = ibctype[1][0]
         if ibctype == 0:
