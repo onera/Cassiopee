@@ -74,6 +74,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             raise ValueError("Choose a valid symmetry plane direction. Exiting..")
             Cmpi.abort(errorcode=1)
 
+    # Important Note: this use of the flag is still ambigious - related to local IBMs??
     different_front_flag = True
     if "use different front for different BCs" in IBM_parameters["integration points"]:
         different_front_flag = IBM_parameters["integration points"]["use different front for different BCs"]
@@ -87,6 +88,9 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
 
+    ## Note: tb2 is the correct geometry for 3D cacls.
+    ##       2D: tb2 = tb with addkplace
+    ##       3D: tb2 = tb
     bbo = Gmpi.bbox(t)
     if dim == 2:
         z0 = Internal.getNodeFromType2(t, "Zone_t")
@@ -97,11 +101,6 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     else:
         tb2 = tb
 
-    tb2_pre = Internal.copyTree(tb2)
-    #tb2_pre = T.join(tb2)
-    #tb2_pre = G.close(tb2_pre)
-    #tb2_pre = C.newPyTree(["unstr", tb2_pre])
-
     #==========================================================
     # STEP 0: Calculate Distance to IBCs (all IBCs) (if needed)
     #==========================================================
@@ -110,8 +109,8 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         Cmpi.trace(">>> Wall distance nodes [start]", master=True, cpu=False)
         if different_front_flag == True: #True is default
             tb_WD = getBodiesForWallDistanceComputation__(tb2)
-            DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
-            if not OPT: DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='centers')
+            DTW._distance2Walls(t, tb_WD, type='ortho', signed=0, dim=dim, loc='nodes')
+            if not OPT: DTW._distance2Walls(t, tb_WD, type='ortho', signed=0, dim=dim, loc='centers')
         else: #False
             DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='nodes')
             if not OPT: DTW._distance2Walls(t, tb2, type='ortho', signed=0, dim=dim, loc='centers')
@@ -131,8 +130,9 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     #==========================================================
     Cmpi.trace(">>> Blanking [start]", master=True, cpu=False)
     C._initVars(t, 'cellN', 1.)
-    t = X_IBM.blankByIBCBodies(t, tb2_pre, 'nodes', 3)
+    t = X_IBM.blankByIBCBodies(t, tb2, 'nodes', 3)
     Cmpi.trace(">>> Blanking [end]  ", master=True, cpu=False)
+    C._initVars(t,'{TurbulentDistance}=-1.*({cellN}<1.)*{TurbulentDistance}+({cellN}>0.)*{TurbulentDistance}')
 
     print('Rank: %d :: Nb of Cartesian grids=%d.'%(Cmpi.rank, len(Internal.getZones(t))), flush=True)
     Nzones = len(Internal.getZones(t))
@@ -141,7 +141,6 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     if Cmpi.master:
         print('Total number of zones=%d.'%Nzones, flush=True)
         print('Final number of cells=%5.4f millions.'%(NCells*1e-6), flush=True)
-    C._initVars(t,'{TurbulentDistance}=-1.*({cellN}<1.)*{TurbulentDistance}+({cellN}>0.)*{TurbulentDistance}')
 
     #=======================================================================
     # STEP 2: Save BC Names & Types - check if QuadNQuad is fully inside IBM
@@ -170,7 +169,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     hminGlobal = Cmpi.allreduce(hminGlobal, op=Cmpi.MIN)
     C._rmVars(t, ["centers:vol"])
     L1 = 0.0
-    for bodyLocal in Internal.getBases(tb2_pre):
+    for bodyLocal in Internal.getBases(tb2):
         bb1 = G.bbox(bodyLocal)
         L1 = max(L1, bb1[3]-bb1[0])
         L1 = max(L1, bb1[4]-bb1[1])
@@ -180,7 +179,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         if bcnames[nobc] == "QuadNQuad":
             XRAYDIM1 = int(L1/hminGlobal) + 10;
             XRAYDIM1 = max(1500, min(15000, XRAYDIM1)) #x3
-            bodies = [Internal.getBases(tb2_pre)]; nbodies = len(Internal.getBases(tb2_pre))
+            bodies = [Internal.getBases(tb2)]; nbodies = len(Internal.getBases(tb2))
             BM = numpy.ones((1, nbodies), dtype=Internal.E_NpyInt)
             zbcTemp = C.newPyTree(["BASE", Internal.getZones(zbc)])
             # Check if BCs is inside the geometry
@@ -252,8 +251,9 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     _recoverBoundaryConditions__(t, t_exteriorFaces, zbcs, bctypes, bcnames)
     Cmpi.trace(" Recovering Boundary Conditions [end]  ", master=True, cpu=False)
     #Cmpi.convertPyTree2File(t,'check_t_afterBC.cgns')
-    # t_exteriorFaces - is not only the exteriorFaces of the integration front on which CODA applies the IBCs
 
+    # Here: 
+    # t_exteriorFaces - is ONLY the exteriorFaces of the integration front on which CODA applies the IBCs
     Cmpi.trace(" Adding the IBC BC tag (per processor) for CFD solver [start]", master=True, cpu=False)
     if Cmpi.master: print("Performing the 'identifyElements' function (it can be long.)", flush=True)
     startTime = time.perf_counter()
