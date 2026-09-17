@@ -1244,12 +1244,15 @@ def _computeTurbulentDistanceForDG__(t, tb, IBM_parameters):
 
 def prepareAMRIBM(tb, vmins, dim, IBM_parameters, levelMax=0, toffset=None, check=False, opt=False, octreeMode=1,
                   snears=0.01, dfars=10, loadBalancing=False, OutputAMRMesh=False,
-                  localDir='./', fileName=None, tbox=None, vminsTbox=None, tbv2=None, forceAlignment=False,
-                  tIn=None, isFastApproach=True):
+                  localDir='./', fileName=None, tbox=None, vminsTbox=5, forceAlignment=False,
+                  tIn=None, isFastApproach=True, **kwargs):
     """Generate AMR IBM mesh and prepare AMR IBM data for CODA simulation. 
     Usage: prepareAMRIBM(tb, levelMax, vmins, dim, IBM_parameters, toffset, check, opt, octreeMode,
                          snears, dfars, loadBalancing, OutputAMRMesh, localDir, fileName, tbox, vminsTbox, tbv2, forceAlignment)"""
 
+    import gc
+    # debug parameters
+    tbv2 = kwargs.get('tbv2', None)
     ## =========================
     ## ==== Mesh Generation ====
     ## =========================
@@ -1281,7 +1284,6 @@ def prepareAMRIBM(tb, vmins, dim, IBM_parameters, levelMax=0, toffset=None, chec
 
     ### Clear memory
     Cmpi.trace("AMR Memory clean & memory check...start", master=True)
-    import gc
     gc.collect()
     Cmpi.trace("AMR Memory clean & memory check...end", master=True)
     Cmpi.barrier()
