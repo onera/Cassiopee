@@ -140,5 +140,3 @@ C._initVars(d, '{F}={CoordinateX}')
 C._initVars(d, '{centers:G}={centers:CoordinateY}')
 d = T.subzone(d, facesL, type='faces')
 #test.testT(d, 14)
-
-
