@@ -2121,7 +2121,7 @@ PyObject* K_TRANSFORM::subzoneFacesBoth(PyObject* self, PyObject* args)
     // Build array
     PyList_Append(l, tpl);
     PyObject* tplc = K_ARRAY::buildArray3(*fc2, varStringc, *cn2, "NGON", api);
-    PyList_Append(l, tplc); Py_DECREF(tplc);
+    PyList_Append(l, tplc); Py_DECREF(tplc); delete fc2;
     RELEASESHAREDU(tpl, f2, cn2);
     return l;
   }
