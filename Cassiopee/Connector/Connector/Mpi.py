@@ -307,39 +307,40 @@ def exchangeBCMatchData(t, varList):
 
 #==============================================================================
 # setHoleInterpolatedPoints
-# NGON, centered cellN, only depth=1 (BCField)
+# NGON, centered cellN
 # BCMatch must be set in t
 #==============================================================================
-def _setHoleInterpolatedPoints(t, depth=1, cellNName="cellN"):
+def _setHoleInterpolatedPoints(t, depth=1, dir=0, cellNName="cellN"):
     """Set cellN=2. around cellN=0."""
     if Cmpi.size == 1:
-        return X._setHoleInterpolatedPoints(t, depth=depth, cellNName=cellNName, loc='centers')
+        return X._setHoleInterpolatedPoints(t, depth=depth, dir=0,
+                                            cellNName=cellNName, loc='centers')
 
     if depth == 1:
-        _setHoleInterpolatedPoints__(t, cellNName=cellNName)
+        _setHoleInterpolatedPoints__(t, dir=0, cellNName=cellNName)
     else: # loop
-        dummyCellNWoLoc = "_dummy"  # internal
+        dummyCellNWoLoc = "_dummyXmpisHIP"  # internal
         dummyCellN = "centers:" + dummyCellNWoLoc
+        cellNNameWLoc = "centers:" + cellNName
         if depth > 0:
-            C._initVars(t, "{{{var}}}={{{tag}}}".format(var=dummyCellN, tag=f'centers:{cellNName}'))
+            C._initVars(t, "{{{var}}}={{{tag}}}".format(var=dummyCellN, tag=cellNNameWLoc))
         else:
-            C._initVars(t, "{{{var}}}=1.-{{{tag}}}".format(var=dummyCellN, tag=f'centers:{cellNName}'))
+            C._initVars(t, "{{{var}}}=1.-{{{tag}}}".format(var=dummyCellN, tag=cellNNameWLoc))
 
-        for d in range(abs(depth)):
-            _setHoleInterpolatedPoints__(t, cellNName=dummyCellNWoLoc)
+        for _ in range(abs(depth)):
+            _setHoleInterpolatedPoints__(t, dir=dir, cellNName=dummyCellNWoLoc)
             C._initVars(t, "{{{var}}}=({{{var}}}==1.)".format(var=dummyCellN))
 
-        #C._initVars(t, "{tag}=1.-{{{var}}}".format(var=dummyCellN, tag=f'centers:{cellNName}'))
         if depth > 0:
-            C._initVars(t, "{tag}=2.*{{{tag}}}-{{{var}}}".format(var=dummyCellN, tag=f'centers:{cellNName}'))
+            C._initVars(t, "{tag}=2.*{{{tag}}}-{{{var}}}".format(var=dummyCellN, tag=cellNNameWLoc))
         else:
-            C._initVars(t, "{tag}=2.-{{{tag}}}-2.*{{{var}}}".format(var=dummyCellN, tag=f'centers:{cellNName}'))
+            C._initVars(t, "{tag}=2.-{{{tag}}}-2.*{{{var}}}".format(var=dummyCellN, tag=cellNNameWLoc))
 
         C._rmVars(t, [dummyCellN])
     return None
 
 # internal function - depth=1
-def _setHoleInterpolatedPoints__(t, cellNName):
+def _setHoleInterpolatedPoints__(t, dir=0, cellNName="_dummyXmpisHIP"):
     indices, BCField = exchangeBCMatchData(t, [cellNName])
     for z in Internal.getZones(t):
         zn = z[0]
@@ -356,25 +357,54 @@ def _setHoleInterpolatedPoints__(t, cellNName):
 
             inds = indices.get(zn, None)
             bcf = BCField[0].get(zn, None)
-            centers = connector.getOversetHolesInterpCellCenters(f, 1, 0, cellNName, inds, bcf)
+            centers = connector.getOversetHolesInterpCellCenters(f, 1, dir, cellNName, inds, bcf)
             C.setFields([centers], z, 'centers')
     return None
 
 #==============================================================================
-def giveName2Window(p, zname, zopp):
-    if p[0] == p[1]:
-        if p[0] == 1: pos = zname+'_imin_'+zopp
-        else: pos = zname+'_imax_'+zopp
-    elif p[2] == p[3]:
-        if p[2] == 1: pos = zname+'_jmin_'+zopp
-        else: pos = zname+'_jmax_'+zopp
-    elif p[4] == p[5]:
-        if p[4] == 1: pos = zname+'_kmin_'+zopp
-        else: pos = zname+'_kmax_'+zopp
-    return pos
+# addLayers
+# NGON, centered cellN
+# BCMatch must be set in t
+#==============================================================================
+def _addLayers(t, depth=1, dir=0, cellNName="centers:cellN"):
+    """Add layers around a volume defined by cellN=0, with positive or
+    negative depth controlling the side of the mask to expand."""
+    if depth == 0: return None
+    if Cmpi.size == 1:
+        return X._addLayers(t, depth=depth, dir=dir, cellNName=cellNName)
+
+    if not cellNName.startswith("centers:"):
+        cellNName = "centers:" + cellNName
+
+    if depth < 0:
+        tmpCellN = "_dummyXmpiaL"  # internal
+        tmpCellNWLoc = "centers:" + tmpCellN
+        C._initVars(t, "{{{var}}}=1.-{{{tag}}}".format(var=tmpCellNWLoc, tag=cellNName))
+    else:
+        tmpCellNWLoc = cellNName
+        tmpCellN = cellNName.split(':')[-1]
+    for _ in range(abs(depth)):
+        _setHoleInterpolatedPoints(t, depth=1, dir=dir, cellNName=tmpCellN)
+        C._initVars(t, "{{{var}}}=({{{var}}}==1.)".format(var=tmpCellNWLoc))
+    if depth < 0:
+        C._initVars(t, "{tag}=1.-{{{var}}}".format(var=tmpCellNWLoc, tag=cellNName))
+        C._rmVars(t, [tmpCellNWLoc])
+    return None
 
 #==============================================================================
 def mergeWindows(t):
+    def giveName2Window(p, zname, zopp):
+        if p[0] == p[1]:
+            if p[0] == 1: pos = zname+'_imin_'+zopp
+            else: pos = zname+'_imax_'+zopp
+        elif p[2] == p[3]:
+            if p[2] == 1: pos = zname+'_jmin_'+zopp
+            else: pos = zname+'_jmax_'+zopp
+        elif p[4] == p[5]:
+            if p[4] == 1: pos = zname+'_kmin_'+zopp
+            else: pos = zname+'_kmax_'+zopp
+        return pos
+
     # Merge grid connectivities created after addBXZones
     zones = Internal.getZones(t)
     for z in zones:
