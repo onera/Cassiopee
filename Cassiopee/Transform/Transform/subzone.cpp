@@ -1173,13 +1173,14 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
       // Skip empty connectivities
       if (binnedEltList[ic].size())
       {
+        if (nc2 > 0) strcat(eltType2, ",");
         strcat(eltType2, eltTypes[ic]); // Build eltType2
         neltspc2[nc2] = binnedEltList[ic].size();
 
         FldArrayI& cm = *(cn->getConnect(ic));
         for (E_Int i = 0; i < neltspc2[nc2]; i++)
         {
-          E_Int noe = binnedEltList[ic][i];
+          E_Int noe = binnedEltList[ic][i] - neltspc[ic];
           for (E_Int v = 1; v <= nvpe[ic]; v++)
           {
             E_Int indv = cm(noe,v)-1;
@@ -1217,7 +1218,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
           FldArrayI& cm = *(cn->getConnect(ic));
           FldArrayI& cm2 = *(cn2->getConnect(ic));
 
-          noe = binnedEltList[ic][i];
+          noe = binnedEltList[ic][i] - neltspc[ic];
           for (E_Int v = 1; v <= nvpe[ic]; v++)
           {
             indv = cm(noe,v)-1;
@@ -1488,13 +1489,14 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
       // Skip empty connectivities
       if (binnedEltList[ic].size())
       {
+        if (nc2 > 0) strcat(eltType2, ",");
         strcat(eltType2, eltTypes[ic]); // Build eltType2
         neltspc2[nc2] = binnedEltList[ic].size();
 
         FldArrayI& cm = *(cn->getConnect(ic));
         for (E_Int i = 0; i < neltspc2[nc2]; i++)
         {
-          E_Int noe = binnedEltList[ic][i];
+          E_Int noe = binnedEltList[ic][i] - neltspc[ic];
           for (E_Int v = 1; v <= nvpe[ic]; v++)
           {
             E_Int indv = cm(noe,v)-1;
@@ -1529,7 +1531,7 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
           FldArrayI& cm = *(cn->getConnect(ic));
           FldArrayI& cm2 = *(cn2->getConnect(ic));
 
-          noe = binnedEltList[ic][i];
+          noe = binnedEltList[ic][i] - neltspc[ic];
           for (E_Int v = 1; v <= nvpe[ic]; v++)
           {
             indv = cm(noe,v)-1;
