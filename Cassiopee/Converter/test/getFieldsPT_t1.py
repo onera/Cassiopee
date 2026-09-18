@@ -47,3 +47,14 @@ res = C.getFields('FlowSolution', z)
 test.testA(res, 10)
 res = C.getFields('FlowSolution#Centers', z)
 test.testA(res, 11)
+
+z = G.cartNGon((0.,0.,0.),(1.,1.,1.),(10,10,10))
+C._initVars(z, 'fldX', 1)
+C._initVars(z, 'fldZ', 3)
+C._initVars(z, 'fldY', 2)
+# The order of the variables in res is that of z
+res = C.getFields('FlowSolution', z, vars=None)
+test.testA(res, 12)
+# The order of the variables in res is that of vars
+res = C.getFields('FlowSolution', z, vars=['fldX', 'fldY', 'fldZ'])
+test.testA(res, 13)

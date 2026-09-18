@@ -1550,7 +1550,7 @@ def getFields(containerName, t, vars=None, api=1):
             #np = dim[1]
             connects = Internal.getElementNodes(z)
 
-        info = z[2]; out = []; loc = 0
+        info = z[2]; data = {}; out = []; loc = 0
         for i in info:
             if i[0] in names:
                 locf = Internal.getNodeFromType1(i, 'GridLocation_t')
@@ -1561,9 +1561,17 @@ def getFields(containerName, t, vars=None, api=1):
                         #if j[0] == 'CoordinateX' or j[0] == 'CoordinateY' or j[0] == 'CoordinateZ':
                         #  if i[0] == Internal.__GridCoordinates__: out.append(j)
                         #else: out.append(j)
-                        if vars is None: out.append(j)
-                        else:
-                            if j[0] in vars: out.append(j)
+                        if vars is None or j[0] in vars: data[j[0]] = j
+
+        if vars is None: out = list(data.values())
+        elif len(data) != len(vars):
+            raise ValueError(
+                f"getFields: number of fields, {len(data)}, does not match the "
+                f"number of vars, {len(vars)}."
+            )
+        else:
+            # the order of the variables is that of vars
+            out = [data[v] for v in vars]
 
         if out != []:
             if api==1: array = Internal.convertDataNodes2Array(out, dim, connects, loc)
