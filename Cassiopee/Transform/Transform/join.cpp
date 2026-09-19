@@ -661,67 +661,81 @@ PyObject* K_TRANSFORM::joinUnstructured(FldArrayF& f1, FldArrayI& cn1,
 {
   // Acces universel sur BE/ME
   E_Int nc1 = cn1.getNConnect(), nc2 = cn2.getNConnect();
-  E_Int nc = nc1;
-  E_Int nfld = f1.getNfld();
+  E_Int nfld = f1.getNfld(); E_Int api = f1.getApi();
   E_Int npts1 = f1.getSize(), npts2 = f2.getSize();
   E_Int npts = npts1 + npts2;
 
-  // Acces universel aux eltTypes
-  vector<char*> eltTypes, eltTypes2;
-  K_ARRAY::extractVars(eltType2, eltTypes2);
-  // Concatenate elttypes, discard duplicates
+  char* etype;
+  vector<char*> eltTypes, eltTypes1, eltTypes2;
   char eltType[K_ARRAY::VARSTRINGLENGTH]; eltType[0] = '\0';
-  strcpy(eltType, eltType1);
-  for (E_Int ic = 0; ic < nc2; ic++)
+  K_ARRAY::extractVars(eltType1, eltTypes1);
+  K_ARRAY::extractVars(eltType2, eltTypes2);
+
+  // Concatenate eltTypes, discard duplicates
+  // Compute the number of elements per conn. and fill the indirection table
+  E_Int nc = 0;
+  vector<E_Int> indir(nc1+nc2, -1);
+  vector<E_Int> nepc(nc1+nc2, 0);
+
+  for (E_Int ic = 0; ic < nc1+nc2; ic++)
   {
-    char* eltTypConn2 = eltTypes2[ic];
-    if (strstr(eltType, eltTypConn2) == NULL)
-    {
-      strcat(eltType, ",");
-      strcat(eltType, eltTypConn2);
-      nc += 1;
-    }
-  }
-
-  // ME
-  E_Int api = f1.getApi();
-
-  K_ARRAY::extractVars(eltType, eltTypes);
-  vector<E_Int> nelts(nc, 0);
-  // Table d'indirection pour la seconde connectivite ME
-  vector<E_Int> indir2(nc2, -1);
-
-  // Calcule le nombre d'elements par type de connectivite et
-  // rempli la table d'indirection
-  for (E_Int ic = 0; ic < nc; ic++)
-  {
-    char* eltTypConn = eltTypes[ic];
+    E_Int pos, nelts;
     if (ic < nc1)
     {
+      etype = eltTypes1[ic];
       FldArrayI& cm1 = *(cn1.getConnect(ic));
-      nelts[ic] += cm1.getSize();
+      nelts = cm1.getSize();
+    }
+    else
+    {
+      etype = eltTypes2[ic-nc1];
+      FldArrayI& cm2 = *(cn2.getConnect(ic-nc1));
+      nelts = cm2.getSize();
     }
 
-    for (E_Int ic2 = 0; ic2 < nc2; ic2++)
+    if (nc > 0)
     {
-      char* eltTypConn2 = eltTypes2[ic2];
-      if (K_STRING::cmp(eltTypConn, eltTypConn2) == 0)
+      pos = -1;
+      K_ARRAY::extractVars(eltType, eltTypes);
+      for (E_Int i = 0; i < nc; i++)
       {
-        FldArrayI& cm2 = *(cn2.getConnect(ic2));
-        nelts[ic] += cm2.getSize();
-        indir2[ic2] = ic;
+        if (K_STRING::cmp(eltTypes[i], etype) == 0) { pos = i; break; }
       }
+      for (size_t i = 0; i < eltTypes.size(); i++) delete [] eltTypes[i];
+      if (pos == -1)
+      {
+        pos = nc++;
+        if (nc > 1) strcat(eltType, ",");
+        strcat(eltType, etype);
+      }
+      indir[ic] = pos;
+      nepc[pos] += nelts;
+    }
+    else
+    {
+      nc++;
+      strcat(eltType, etype);
+      indir[ic] = 0;
+      nepc[0] += nelts;
     }
   }
+  nepc.resize(nc);
+  if (nc > 1) api = 3;
+
+  for (size_t ic = 0; ic < eltTypes1.size(); ic++) delete [] eltTypes1[ic];
+  for (size_t ic = 0; ic < eltTypes2.size(); ic++) delete [] eltTypes2[ic];
 
   // Fusion des connectivites
-  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nelts,
+  PyObject* tpl = K_ARRAY::buildArray3(nfld, varString, npts, nepc,
                                        eltType, false, api);
   FldArrayF* f; FldArrayI* cn;
   K_ARRAY::getFromArray3(tpl, f, cn);
 
   #pragma omp parallel
   {
+    E_Int ico, nelts, nvpe, offV;
+    vector<E_Int> offE(nc, 0);
+
     // Copie des champs aux noeuds
     for (E_Int n = 1; n <= nfld; n++)
     {
@@ -734,34 +748,25 @@ PyObject* K_TRANSFORM::joinUnstructured(FldArrayF& f1, FldArrayI& cn1,
       for (E_Int i = 0; i < npts2; i++) fn[i+npts1] = f2n[i];
     }
 
-    // Boucle sur toutes les connectivites du premier ME
-    for (E_Int ic = 0; ic < nc1; ic++)
+    // Boucle sur toutes les connectivites
+    for (E_Int ic = 0; ic < nc1+nc2; ic++)
     {
-      FldArrayI& cm1 = *(cn1.getConnect(ic));
-      FldArrayI& cm = *(cn->getConnect(ic));
-      #pragma omp for
-      for (E_Int i = 0; i < cm1.getSize(); i++)
-        for (E_Int j = 1; j <= cm1.getNfld(); j++)
-          cm(i,j) = cm1(i,j);
-    }
+      offV = ic < nc1 ? 0 : npts1;
+      ico = indir[ic];
+      FldArrayI& cmi = *(ic < nc1 ? cn1.getConnect(ic) : cn2.getConnect(ic));
+      FldArrayI& cmo = *(cn->getConnect(ico));
+      nelts = cmi.getSize();
+      nvpe = cmi.getNfld();
 
-    // Boucle sur toutes les connectivites du second ME
-    for (E_Int ic = 0; ic < nc2; ic++)
-    {
-      FldArrayI& cm2 = *(cn2.getConnect(ic));
-      FldArrayI& cm = *(cn->getConnect(indir2[ic]));
-      E_Int nelts2 = cm2.getSize();
-      E_Int offsetElts = cm.getSize() - nelts2;
       #pragma omp for
-      for (E_Int i = 0; i < nelts2; i++)
-        for (E_Int j = 1; j <= cm2.getNfld(); j++)
-          // Add offsets
-          cm(i+offsetElts,j) = cm2(i,j) + npts1;
+      for (E_Int i = 0; i < nelts; i++)
+        for (E_Int j = 1; j <= nvpe; j++)
+          cmo(i+offE[ico],j) = cmi(i,j) + offV;
+
+      offE[ico] += nelts;
     }
   }
 
-  for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
-  for (size_t ic = 0; ic < eltTypes2.size(); ic++) delete [] eltTypes2[ic];
   // Clean connectivity
   if (posx > 0 && posy > 0 && posz > 0)
   {

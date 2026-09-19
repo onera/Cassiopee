@@ -303,7 +303,6 @@ namespace K_TRANSFORM
   PyObject* join(PyObject* self, PyObject* args);
   PyObject* joinBoth(PyObject* self, PyObject* args);
   PyObject* joinAll(PyObject* self, PyObject* args);
-  PyObject* joinAllBoth(PyObject* self, PyObject* args);
   PyObject* patch(PyObject* self, PyObject* args);
   PyObject* patch2(PyObject* self, PyObject* args);
 

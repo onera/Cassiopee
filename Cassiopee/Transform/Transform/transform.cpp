@@ -62,7 +62,6 @@ static PyMethodDef PyTransform[] =
   {"join", K_TRANSFORM::join, METH_VARARGS},
   {"joinBoth", K_TRANSFORM::joinBoth, METH_VARARGS},
   {"joinAll", K_TRANSFORM::joinAll, METH_VARARGS},
-  {"joinAllBoth", K_TRANSFORM::joinAllBoth, METH_VARARGS},
   {"patch", K_TRANSFORM::patch, METH_VARARGS},
   {"patch2", K_TRANSFORM::patch2, METH_VARARGS},
   {"subzoneStruct", K_TRANSFORM::subzoneStruct, METH_VARARGS},
