@@ -50,7 +50,7 @@ test.testT(t, 5)
 
 # with fields at centers: hexa - pyra
 #                          |      |
-#                        penta   hexa
+#                        penta - hexa
 a = G.cartHexa((0.,0.4,0.), (0.1,0.1,0.1), (5,5,5))
 b = G.cartPyra((0.4,0.4,0.), (0.1,0.1,0.1), (5,5,5))
 C._initVars(a, 'F', 1.); C._initVars(b, 'F', 2.)
@@ -62,12 +62,12 @@ C._initVars(c, 'F', 3.); C._initVars(d, 'F', 4.)
 C._initVars(c, 'centers:G', 3.); C._initVars(d, 'centers:G', 4.)
 c = C.mergeConnectivity([c, d])
 a = T.join(a, c); t = C.newPyTree(["Base", a])
-C.convertPyTree2File(t, "out.cgns"); exit()
+#C.convertPyTree2File(t, "out.cgns"); exit()
 #test.testT(t, 6)
 
 # with fields at centers: hexa - pyra
 #     (formula)            |      |
-#                        penta   hexa
+#                        penta - hexa
 a = G.cartHexa((0.,0.4,0.), (0.1,0.1,0.1), (5,5,5))
 b = G.cartPyra((0.4,0.4,0.), (0.1,0.1,0.1), (5,5,5))
 C._initVars(a, 'F={CoordinateY}'); C._initVars(b, 'F={CoordinateY}')
@@ -79,7 +79,7 @@ C._initVars(c, 'F={CoordinateY}'); C._initVars(d, 'F={CoordinateY}')
 C._initVars(c, 'centers:G={centers:CoordinateX}'); C._initVars(d, 'centers:G={centers:CoordinateX}')
 c = C.mergeConnectivity([c, d])
 a = T.join(a, c); t = C.newPyTree(["Base", a])
-C.convertPyTree2File(t, "out.cgns"); exit()
+#C.convertPyTree2File(t, "out.cgns"); exit()
 #test.testT(t, 7)
 
 # --- Join two NGON, api 3
@@ -88,7 +88,7 @@ a = G.cartNGon((0.,0.,0.), (0.1,0.1,0.1), (5,10,4), api=3)
 b = G.cartNGon((0.4,0.,0.), (0.1,0.1,0.1), (5,10,4), api=3)
 C._initVars(a, 'F', 1.); C._initVars(b, 'F', 2.)
 a = T.join(a, b); t = C.newPyTree(["Base", a])
-#test.testT(t, 8)
+test.testT(t, 8)
 
 # with fields at centers
 a = G.cartNGon((0.,0.,0.), (0.1,0.1,0.1), (5,10,4), api=3)
@@ -96,4 +96,4 @@ b = G.cartNGon((0.4,0.,0.), (0.1,0.1,0.1), (5,10,4), api=3)
 C._initVars(a, 'F', 1.); C._initVars(b, 'F', 2.)
 C._initVars(a, 'centers:G', 1.); C._initVars(b, 'centers:G', 2.)
 a = T.join(a, b); t = C.newPyTree(["Base", a])
-#test.testT(t, 9)
+test.testT(t, 9)
