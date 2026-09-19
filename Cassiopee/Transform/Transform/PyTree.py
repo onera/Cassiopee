@@ -665,11 +665,11 @@ def subzoneUnstruct__(t, indices, type, dimOut=None):
                     raise TypeError("subzone with list (loc='both'): not yet implemented for structured zones.")
             else:
                 if type == 'faces':
-                    [nodes, centers] = Transform.transform.subzoneFacesBoth(fc, fb, indices)
+                    [nodes, centers] = Transform.transform.subzoneFaces(fc, fb, indices)
                     C.setFields([nodes], z, 'nodes')
                     C.setFields([centers], z, 'centers')
                 elif type == 'elements':
-                    [nodes, centers] = Transform.transform.subzoneElementsBoth(fc, fb, indices)
+                    [nodes, centers] = Transform.transform.subzoneElements(fc, fb, indices)
                     C.setFields([nodes], z, 'nodes')
                     C.setFields([centers], z, 'centers')
                 else:
