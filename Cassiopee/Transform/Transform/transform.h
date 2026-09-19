@@ -312,7 +312,6 @@ namespace K_TRANSFORM
   PyObject* subzoneUnstruct(PyObject* self, PyObject* args);
   PyObject* subzoneUnstructBoth(PyObject* self, PyObject* args);
   PyObject* subzoneElements(PyObject* self, PyObject* args);
-  PyObject* subzoneElementsBoth(PyObject* self, PyObject* args);
   PyObject* subzoneFaces(PyObject* self, PyObject* args);
   PyObject* subzoneFacesBoth(PyObject* self, PyObject* args);
 

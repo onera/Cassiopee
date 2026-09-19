@@ -976,9 +976,14 @@ PyObject* K_TRANSFORM::subzoneUnstructBoth(PyObject* self, PyObject* args)
 // ============================================================================
 PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
 {
-  PyObject* array;
+  PyObject *arrayNodes, *arrayCenters=NULL;
   PyObject* listOfElts;
-  if (!PYPARSETUPLE_(args, OO_, &array, &listOfElts)) return NULL;
+  // Check different signatures
+  if (!PYPARSETUPLE_(args, OO_, &arrayNodes, &listOfElts))
+  {
+    PyErr_Clear();
+    if (!PYPARSETUPLE_(args, OOO_, &arrayNodes, &arrayCenters, &listOfElts)) return NULL;
+  }
 
   // Build element list
   FldArrayI eltList;
@@ -990,11 +995,11 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  // Check array
+  // Check array at nodes
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
+  E_Int res = K_ARRAY::getFromArray3(arrayNodes, varString, f, im, jm, km, cn, eltType);
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -1005,12 +1010,37 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: can not be used on a structured array.");
-    RELEASESHAREDS(array, f); return NULL;
+    RELEASESHAREDS(arrayNodes, f); return NULL;
   }
 
-  PyObject* tpl = NULL;
+  // Check array at centers
+  E_Int nfldc = 0;
+  E_Int resc, imc, jmc, kmc;
+  FldArrayF* fc; FldArrayI* cnc;
+  char* varStringc; char* eltTypec;
+  if (arrayCenters != NULL)
+  {
+    resc = K_ARRAY::getFromArray3(arrayCenters, varStringc, fc, imc, jmc, kmc, cnc, eltTypec);
+    if (resc != 1 && resc != 2)
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "subzone: unknown type of array.");
+      RELEASESHAREDU(arrayNodes, f, cn); return NULL;
+    }
+    if (resc == 1)
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "subzone: cannot be used on a structured array.");
+      RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDS(arrayCenters, fc); return NULL;
+    }
+    nfldc = fc->getNfld();
+  }
+
   E_Int n = eltList.getSize();
   E_Int npts = f->getSize(), nfld = f->getNfld(), api = f->getApi();
+  PyObject* tpln = NULL; PyObject* tplc = NULL;
+  FldArrayF* f2; FldArrayI* cn2;
+  FldArrayF* fc2;
 
   if (K_STRING::cmp(eltType, "NGON") == 0) // NGON
   {
@@ -1087,305 +1117,8 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
     origIndicesOfFaces.clear();
 
     // construit l'array de sortie
-    tpl = K_ARRAY::buildArray3(nfld, varString, nUniqueNodes, n, nbFacesOut,
-                               "NGON", sizeFN2, sizeEF2, ngonType, false, api);
-    FldArrayF* f2; FldArrayI* cn2;
-    K_ARRAY::getFromArray3(tpl, f2, cn2);
-    E_Int *ngon2 = cn2->getNGon(), *nface2 = cn2->getNFace();
-    E_Int *indPG2 = NULL, *indPH2 = NULL;
-    if (ngonType == 2 || ngonType == 3)
-    {
-      indPG2 = cn2->getIndPG(); indPH2 = cn2->getIndPH();
-    }
-
-    #pragma omp parallel default(shared)
-    {
-      E_Int indf;
-      for (E_Int eq = 1; eq <= nfld; eq++)
-      {
-        E_Float* fp = f->begin(eq);
-        E_Float* f2p = f2->begin(eq);
-        #pragma omp for
-        for (E_Int ind = 0; ind < npts; ind++)
-        {
-          indf = indirNp[ind]-1;
-          if (indf > -1) f2p[indf] = fp[ind];
-        }
-      }
-
-      // reconstruction de la connectivite finale
-      #pragma omp for nowait
-      for (E_Int i = 0; i < sizeFN2; i++) ngon2[i] = cFNTemp[i];
-      #pragma omp for nowait
-      for (E_Int i = 0; i < sizeEF2; i++) nface2[i] = cEFTemp[i];
-
-      if (ngonType == 2 || ngonType == 3) // set offsets
-      {
-        #pragma omp for nowait
-        for (E_Int i = 0; i < nbFacesOut; i++) indPG2[i] = cPGTemp[i];
-        #pragma omp for
-        for (E_Int i = 0; i < n; i++) indPH2[i] = cPHTemp[i];
-      }
-    }
-
-    RELEASESHAREDU(tpl, f2, cn2);
-  }
-  else // maillage par elements BE/ME
-  {
-    E_Int nc = cn->getNConnect();
-    E_Int binIndex, nelts;
-    E_Int nc2 = 0, elOffset = 0, nUniqueNodes = 0;
-    vector<E_Int> neltspc(nc+1), neltspc2(nc), nvpe(nc);
-
-    char* eltType2 = new char[50]; strcpy(eltType2, "");
-    vector<char*> eltTypes;
-    K_ARRAY::extractVars(eltType, eltTypes);
-
-    // Compute the cumulative number of elements per connectivity,
-    // these are the bounds of the bins that are used to inform on
-    // the element type of an element index
-    neltspc[0] = elOffset;
-    for (E_Int ic = 0; ic < nc; ic++)
-    {
-      FldArrayI& cm = *(cn->getConnect(ic));
-      nvpe[ic] = cm.getNfld();
-      nelts = cm.getSize();
-      elOffset += nelts;
-      neltspc[ic+1] = elOffset;
-    }
-
-    // Bin input elements
-    vector<vector<E_Int> > binnedEltList(nc);
-    for (E_Int i = 0; i < n; i++)
-    {
-      E_Int noe = eltList[i];
-      binIndex = std::upper_bound(neltspc.begin(), neltspc.end(), noe) - neltspc.begin() - 1;
-      binnedEltList[binIndex].push_back(noe);
-    }
-
-    // Selectionne les elements subzones, calcule le nombre de noeuds uniques
-    FldArrayI indirNodes(npts); indirNodes.setAllValuesAt(-1);
-    E_Int* indirNodesp = indirNodes.begin();
-    vector<E_Int> listOfNodes(npts);
-
-    for (E_Int ic = 0; ic < nc; ic++)
-    {
-      // Skip empty connectivities
-      if (binnedEltList[ic].size())
-      {
-        if (nc2 > 0) strcat(eltType2, ",");
-        strcat(eltType2, eltTypes[ic]); // Build eltType2
-        neltspc2[nc2] = binnedEltList[ic].size();
-
-        FldArrayI& cm = *(cn->getConnect(ic));
-        for (E_Int i = 0; i < neltspc2[nc2]; i++)
-        {
-          E_Int noe = binnedEltList[ic][i] - neltspc[ic];
-          for (E_Int v = 1; v <= nvpe[ic]; v++)
-          {
-            E_Int indv = cm(noe,v)-1;
-            if (indirNodesp[indv] == -1)
-            {
-              listOfNodes[nUniqueNodes] = indv; nUniqueNodes++;
-              indirNodesp[indv] = nUniqueNodes;
-            }
-          }
-        }
-
-        nc2++;
-      }
-    }
-    neltspc2.resize(nc2); listOfNodes.resize(nUniqueNodes);
-
-    // Create connectivities
-    tpl = K_ARRAY::buildArray3(nfld, varString, nUniqueNodes, neltspc2,
-                               eltType2, false, api);
-    FldArrayF* f2; FldArrayI* cn2;
-    K_ARRAY::getFromArray3(tpl, f2, cn2);
-
-    delete[] eltType2;
-    for (E_Int ic = 0; ic < nc; ic++) delete [] eltTypes[ic];
-
-    #pragma omp parallel default(shared)
-    {
-      E_Int indv, noe;
-      for (E_Int ic = 0; ic < nc; ic++)
-      {
-        #pragma omp for
-        for (size_t i = 0; i < binnedEltList[ic].size(); i++)
-        {
-          if (!binnedEltList[ic].size()) continue;
-          FldArrayI& cm = *(cn->getConnect(ic));
-          FldArrayI& cm2 = *(cn2->getConnect(ic));
-
-          noe = binnedEltList[ic][i] - neltspc[ic];
-          for (E_Int v = 1; v <= nvpe[ic]; v++)
-          {
-            indv = cm(noe,v)-1;
-            cm2(i,v) = indirNodesp[indv];
-          }
-        }
-      }
-
-      for (E_Int eq = 1; eq <= nfld; eq++)
-      {
-        E_Float* fp = f->begin(eq);
-        E_Float* f2p = f2->begin(eq);
-        #pragma omp for
-        for (E_Int i = 0; i < nUniqueNodes; i++) f2p[i] = fp[listOfNodes[i]];
-      }
-    }
-
-    indirNodes.malloc(0);
-    RELEASESHAREDU(tpl, f2, cn2);
-  }
-
-  RELEASESHAREDU(array, f, cn);
-  return tpl;
-}
-
-// ============================================================================
-/* Subzone an unstructured mesh by element indices */
-// ============================================================================
-PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
-{
-  PyObject *arrayNodes, *arrayCenters;
-  PyObject* listOfElts;
-  if (!PYPARSETUPLE_(args, OOO_, &arrayNodes, &arrayCenters, &listOfElts))
-  {
-      return NULL;
-  }
-
-  // Build element list
-  FldArrayI eltList;
-  E_Int ret = K_ARRAY::getFromList(listOfElts, eltList);
-  if (ret == 0)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "subzone: argument must be a list of element indices (starting from 0).");
-    return NULL;
-  }
-
-  // Check array of nodes
-  E_Int im, jm, km;
-  FldArrayF* f; FldArrayI* cn;
-  char* varString; char* eltType;
-  E_Int res = K_ARRAY::getFromArray3(arrayNodes, varString, f, im, jm, km, cn, eltType);
-  if (res != 1 && res != 2)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "subzone: unknown type of array.");
-    return NULL;
-  }
-  if (res == 1)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "subzone: can not be used on a structured array.");
-    RELEASESHAREDS(arrayNodes, f); return NULL;
-  }
-
-  // Check array of centers
-  E_Int imc, jmc, kmc;
-  FldArrayF* fc; FldArrayI* cnc;
-  char* varStringc; char* eltTypec;
-  E_Int resc = K_ARRAY::getFromArray3(arrayCenters, varStringc, fc, imc, jmc, kmc, cnc, eltTypec);
-  if (resc != 1 && resc != 2)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "subzone: unknown type of array.");
-    RELEASESHAREDU(arrayNodes, f, cn); return NULL;
-  }
-  if (resc == 1)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "subzone: cannot be used on a structured array.");
-    RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDS(arrayCenters, fc); return NULL;
-  }
-
-  PyObject* l = PyList_New(0);
-  E_Int n = eltList.getSize();
-
-  E_Int npts = f->getSize(), nfld = f->getNfld(), api = f->getApi();
-  E_Int nfldc = fc->getNfld();
-
-  if (K_STRING::cmp(eltType, "NGON") == 0) // NGON
-  {
-    E_Int ngonType = cn->getNGonType();
-    E_Int shift = 1; if (ngonType == 3) shift = 0;
-
-    E_Int *ngon = cn->getNGon(), *indPG = cn->getIndPG();
-    E_Int *nface = cn->getNFace(), *indPH = cn->getIndPH();
-    E_Int sizeFN = cn->getSizeNGon(), sizeEF = cn->getSizeNFace();
-    E_Int nfacesTot = cn->getNFaces();
-
-    E_Int sizeEF2 = 0, sizeFN2 = 0;
-    FldArrayI cEFTemp(sizeEF); E_Int* ptrEFTemp = cEFTemp.begin();
-    FldArrayI cPHTemp(n+1); cPHTemp[0] = 0;
-    FldArrayI indirFaces(nfacesTot); indirFaces.setAllValuesAt(-1);
-    E_Int* indirFacesp = indirFaces.begin();
-    E_Int indface, indFaceOut, nfaces, pose, posf;
-    E_Int nbFacesOut = 0;
-    vector<E_Int> origIndicesOfFaces;
-
-    for (E_Int noe = 0; noe < n; noe++)
-    {
-      // construction de la connectivite elt/faces
-      pose = eltList[noe];
-      E_Int* elt = cn->getElt(pose, nfaces, nface, indPH);
-      ptrEFTemp[0] = nfaces;
-      for (E_Int nof = 0; nof < nfaces; nof++)
-      {
-        indface = elt[nof]-1;
-        if (indirFacesp[indface] == -1)
-        {
-          indFaceOut = nbFacesOut;
-          indirFacesp[indface] = indFaceOut;
-          nbFacesOut++;
-          origIndicesOfFaces.push_back(indface);
-        }
-        else indFaceOut = indirFacesp[indface];
-        ptrEFTemp[nof+shift] = indFaceOut+1;
-      }
-      ptrEFTemp += nfaces+shift; sizeEF2 += nfaces+shift;
-      cPHTemp[noe+1] = cPHTemp[noe] + nfaces + shift;
-    }
-    indirFaces.malloc(0); cEFTemp.resize(sizeEF2);
-
-    // construction de la connectivite Faces/Noeuds
-    FldArrayI cFNTemp(sizeFN); E_Int* ptrFNTemp = cFNTemp.begin();
-    FldArrayI cPGTemp(nbFacesOut+1); cPGTemp[0] = 0;
-    FldArrayI indirNodes(npts); indirNodes.setAllValuesAt(-1); E_Int* indirNp = indirNodes.begin();
-    E_Int indnode, nbnodes;
-    E_Int nUniqueNodes = 0;
-    for (E_Int nfe = 0; nfe < nbFacesOut; nfe++)
-    {
-      posf = origIndicesOfFaces[nfe]; //demarre a 0
-      E_Int* face = cn->getFace(posf, nbnodes, ngon, indPG);
-      ptrFNTemp[0] = nbnodes;
-      for (E_Int p = 0; p < nbnodes; p++)
-      {
-        indnode = face[p]-1;
-        if (indirNp[indnode] == -1) //creation
-        {
-          indirNp[indnode] = nUniqueNodes+1;
-          ptrFNTemp[p+shift] = nUniqueNodes+1;
-          nUniqueNodes++;
-        }
-        else
-        {
-          ptrFNTemp[p+shift] = indirNp[indnode];
-        }
-      }
-      ptrFNTemp += nbnodes+shift; sizeFN2 += nbnodes+shift;
-      cPGTemp[nfe+1] = cPGTemp[nfe] + nbnodes + shift;
-    }
-    origIndicesOfFaces.clear();
-
-    // construit l'array de sortie
-    PyObject* tpln = K_ARRAY::buildArray3(nfld, varString, nUniqueNodes, n, nbFacesOut,
-                                          eltType, sizeFN2, sizeEF2, ngonType,
-                                          false, api);
-    FldArrayF* f2; FldArrayI* cn2;
+    tpln = K_ARRAY::buildArray3(nfld, varString, nUniqueNodes, n, nbFacesOut,
+                                eltType, sizeFN2, sizeEF2, ngonType, false, api);
     K_ARRAY::getFromArray3(tpln, f2, cn2);
     E_Int *ngon2 = cn2->getNGon(), *nface2 = cn2->getNFace();
     E_Int *indPG2 = NULL, *indPH2 = NULL;
@@ -1411,9 +1144,12 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
       }
     }
 
-    PyObject* tplc = K_ARRAY::buildArray3(nfldc, varStringc, n, *cn2,
-                                          eltTypec, 1, api, true);
-    FldArrayF* fc2; K_ARRAY::getFromArray3(tplc, fc2);
+    if (nfldc > 0)
+    {
+      tplc = K_ARRAY::buildArray3(nfldc, varStringc, n, *cn2,
+                                  eltTypec, 1, api, true);
+      K_ARRAY::getFromArray3(tplc, fc2);
+    }
 
     #pragma omp parallel default(shared)
     {
@@ -1443,17 +1179,15 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
         }
       }
     }
-    RELEASESHAREDU(tpln, f2, cn2); PyList_Append(l, tpln); Py_DECREF(tpln);
-    RELEASESHAREDS(tplc, fc2); PyList_Append(l, tplc); Py_DECREF(tplc);
   }
-  else
+  else // maillage par elements BE/ME
   {
     E_Int nc = cn->getNConnect();
     E_Int binIndex, nelts;
     E_Int nc2 = 0, elOffset = 0, nUniqueNodes = 0;
     vector<E_Int> neltspc(nc+1), neltspc2(nc), nvpe(nc);
 
-    char* eltType2 = new char[50]; strcpy(eltType2, "");
+    char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH]; strcpy(eltType2, "");
     vector<char*> eltTypes;
     K_ARRAY::extractVars(eltType, eltTypes);
 
@@ -1514,9 +1248,8 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
     neltspc2.resize(nc2); listOfNodes.resize(nUniqueNodes);
 
     // Create connectivities
-    PyObject* tpln = K_ARRAY::buildArray3(nfld, varString, nUniqueNodes,
-                                          neltspc2, eltType2, false, api);
-    FldArrayF* f2; FldArrayI* cn2;
+    tpln = K_ARRAY::buildArray3(nfld, varString, nUniqueNodes,
+                                neltspc2, eltType2, false, api);
     K_ARRAY::getFromArray3(tpln, f2, cn2);
 
     #pragma omp parallel default(shared)
@@ -1541,13 +1274,16 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
       }
     }
 
-    char* eltType2c = new char[50];
-    K_ARRAY::starVarString(eltType2, eltType2c);
-    PyObject* tplc = K_ARRAY::buildArray3(nfldc, varStringc, n, *cn2,
-                                          eltType2c, 1, api, true);
-    FldArrayF* fc2; K_ARRAY::getFromArray3(tplc, fc2);
-
-    delete[] eltType2; delete[] eltType2c;
+    if (nfldc > 0)
+    {
+      char* eltType2c = new char[K_ARRAY::VARSTRINGLENGTH];
+      K_ARRAY::starVarString(eltType2, eltType2c);
+      tplc = K_ARRAY::buildArray3(nfldc, varStringc, n, *cn2,
+                                  eltType2c, 1, api, true);
+      K_ARRAY::getFromArray3(tplc, fc2);
+      delete[] eltType2c;
+    }
+    delete[] eltType2;
     for (E_Int ic = 0; ic < nc; ic++) delete [] eltTypes[ic];
 
     #pragma omp parallel default(shared)
@@ -1572,11 +1308,23 @@ PyObject* K_TRANSFORM::subzoneElementsBoth(PyObject* self, PyObject* args)
     }
 
     indirNodes.malloc(0);
+  }
+
+  RELEASESHAREDU(arrayNodes, f, cn);
+  if (arrayCenters != NULL) RELEASESHAREDU(arrayCenters, fc, cnc);
+
+  if (tplc == NULL)
+  {
+    RELEASESHAREDU(tpln, f2, cn2);
+    return tpln;
+  }
+  else
+  {
+    PyObject* l = PyList_New(0);
     RELEASESHAREDU(tpln, f2, cn2); PyList_Append(l, tpln); Py_DECREF(tpln);
     RELEASESHAREDS(tplc, fc2); PyList_Append(l, tplc); Py_DECREF(tplc);
+    return l;
   }
-  RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDU(arrayCenters, fc, cnc);
-  return l;
 }
 
 // ============================================================================

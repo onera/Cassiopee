@@ -669,7 +669,7 @@ def subzoneUnstruct__(t, indices, type, dimOut=None):
                     C.setFields([nodes], z, 'nodes')
                     C.setFields([centers], z, 'centers')
                 elif type == 'elements':
-                    [nodes, centers] = Transform.transform.subzoneElementsBoth(fc, fb, indices)
+                    [nodes, centers] = Transform.transform.subzoneElements(fc, fb, indices)
                     C.setFields([nodes], z, 'nodes')
                     C.setFields([centers], z, 'centers')
                 else:
