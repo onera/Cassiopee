@@ -1399,7 +1399,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
   E_Int nfld = f->getNfld(), npts = f->getSize(), api = f->getApi();
   PyObject* tpln = NULL; PyObject* tplc = NULL;
   FldArrayF* f2; FldArrayI* cn2;
-  FldArrayF* fc2;
+  FldArrayF* fc2 = NULL;
 
   if (K_STRING::cmp(eltType, "NGON") == 0) // IN: NGON, OUT: NGON
   {
@@ -1408,9 +1408,11 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     E_Int npts2 = 0; E_Int sizeEF2 = 0;
 
     // Acces non universel sur les ptrs
+    E_Int dim = cn->getDim();
     E_Int ngonType = cn->getNGonType();
     E_Int shift = 1; if (ngonType == 3) shift = 0;
     E_Bool hasCnOffsets = (ngonType == 2 || ngonType == 3);
+    E_Int incrFN = 2;
 
     E_Int* ngon = cn->getNGon(); E_Int* nface = cn->getNFace();
     E_Int* indPG = cn->getIndPG(); E_Int* indPH = cn->getIndPH();
@@ -1457,7 +1459,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
 
     // Construction des nouvelles connectivites Elmt/Faces et Face/Noeuds
     E_Int nfaces2 = edgeMap.size();
-    E_Int sizeFN2 = (2+shift)*nfaces2;
+    E_Int sizeFN2 = (incrFN+shift)*nfaces2;
     E_Int nelts2 = n;
 
     E_Bool center = false;
@@ -1491,10 +1493,10 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
         if (not resE->second.second)
         {
           resE->second.second = true;
-          ngon2[c1] = 2;
+          ngon2[c1] = incrFN;
           ngon2[c1+shift] = indirVertices[edge[0]];
           ngon2[c1+1+shift] = indirVertices[edge[1]];
-          c1 += 2+shift;
+          c1 += incrFN+shift;
         }
         nface2[c2+p+shift] = resE->second.first;
       }
@@ -1504,7 +1506,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     // Build parent elements array to compute face-centered data from
     // cell-centered data
     FldArrayI parentElts;
-    E_Int *PE1, *PE2;
+    E_Int *PE1 = NULL, *PE2 = NULL;
     if (nfldc > 0)
     {
       parentElts.resize(nfaces, 2); parentElts.setAllValuesAtNull();
@@ -1528,7 +1530,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
       if (hasCnOffsets)
       {
         #pragma omp for
-        for(E_Int i = 0; i < nfaces2; i++) indPG2[i] = i*(2 + shift);
+        for(E_Int i = 0; i < nfaces2; i++) indPG2[i] = i*(incrFN + shift);
       }
 
       for(E_Int eq = 1; eq <= nfld; eq++)
