@@ -4335,7 +4335,7 @@ def setElementConnectivity2(z, array):
     info2 = info[len(info)-1][2]
     # Size of ElementRange: nb de faces
     if array[2][2].size > 0 and array[2][2][-1] == array[2][0].size:
-        nfaces = array[2][2].size-1
+      nfaces = array[2][2].size-1
     else: nfaces = array[2][2].size
     i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = nfaces
     info2.append(['ElementRange', i, [], 'IndexRange_t'])
@@ -4355,7 +4355,7 @@ def setElementConnectivity2(z, array):
     info2 = info[len(info)-1][2]
     # Size of ElementRange
     if array[2][3].size > 0 and array[2][3][-1] == array[2][1].size:
-        nelts = array[2][3].size-1
+      nelts = array[2][3].size-1
     else: nelts = array[2][3].size
     i = numpy.empty((2), E_NpyInt)
     i[0] = nfaces+1; i[1] = nfaces+nelts
