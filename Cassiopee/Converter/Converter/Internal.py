@@ -4305,7 +4305,7 @@ def setElementConnectivity(z, array):
 def setElementConnectivity2(z, array):
   estring = array[3]
   estring = estring.split(',')
-  etype0, stype = eltName2EltNo(estring[0])
+  etype0, _ = eltName2EltNo(estring[0])
   GENodes = getElementNodes(z)
   cnames = {}
   for nc, gc in enumerate(GENodes): cnames[nc] = gc[0]
@@ -4314,7 +4314,7 @@ def setElementConnectivity2(z, array):
   #if GENodes == []: # la connectivite n'existe pas
   if etype0 != 22 and etype0 != 23: # Elements->Nodes connectivities
     for nc, gc in enumerate(array[2]):
-      etype, stype = eltName2EltNo(estring[nc])
+      etype, _ = eltName2EltNo(estring[nc])
       i = numpy.empty((2), E_NpyInt); i[0] = etype; i[1] = 0
       #i = numpy.empty((2), numpy.int32); i[0] = etype; i[1] = 0 # force I4
       if nc in cnames: cname = cnames[nc]
@@ -4334,26 +4334,28 @@ def setElementConnectivity2(z, array):
     info.append(['NGonElements', i, [], 'Elements_t'])
     info2 = info[len(info)-1][2]
     # Size of ElementRange: nb de faces
-    if array[2][2][-1] == array[2][0].size: nfaces = array[2][2].size-1
+    if array[2][2].size > 0 and array[2][2][-1] == array[2][0].size:
+      nfaces = array[2][2].size-1
     else: nfaces = array[2][2].size
     i = numpy.empty((2), E_NpyInt); i[0] = 1; i[1] = nfaces
     info2.append(['ElementRange', i, [], 'IndexRange_t'])
     # Tableau de connectivite Face/Noeuds
     info2.append(['ElementConnectivity', array[2][0], [], 'DataArray_t'])
     # Tableau FaceIndex (PH)
-    if array[2][2][-1] == array[2][0].size:
+    if array[2][2].size > 0 and array[2][2][-1] == array[2][0].size:
       info2.append(['ElementStartOffset', array[2][2], [], 'DataArray_t'])
     else:
       info2.append(['FaceIndex', array[2][2], [], 'DataArray_t'])
     _updateElementRange(z)
     # Creation du noeud NFACE_n: connectivite Elements->Faces
-    etype,stype = eltName2EltNo('NFACE')
+    etype, _ = eltName2EltNo('NFACE')
     i2 = numpy.empty((2), E_NpyInt); i2[0] = etype; i2[1] = 0
     #i2 = numpy.empty((2), numpy.int32); i2[0] = etype; i2[1] = 0 # force I4
     info.append(['NFaceElements', i2, [], 'Elements_t'])
     info2 = info[len(info)-1][2]
     # Size of ElementRange
-    if array[2][3].size > 0 and array[2][3][-1] == array[2][1].size: nelts = array[2][3].size-1
+    if array[2][3].size > 0 and array[2][3][-1] == array[2][1].size:
+      nelts = array[2][3].size-1
     else: nelts = array[2][3].size
     i = numpy.empty((2), E_NpyInt)
     i[0] = nfaces+1; i[1] = nfaces+nelts

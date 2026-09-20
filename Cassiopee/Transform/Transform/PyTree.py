@@ -644,8 +644,8 @@ def subzone(t, minIndex, maxIndex=None, type=None, dimOut=None):
 
 def subzoneUnstruct__(t, indices, type, dimOut=None):
     tp = Internal.copyRef(t)
-    nodes = Internal.getZones(tp)
-    for z in nodes:
+    zones = Internal.getZones(tp)
+    for z in zones:
         dimz = Internal.getZoneDim(z)
         fc = C.getFields(Internal.__GridCoordinates__, z, api=3)[0]
         fa = C.getFields(Internal.__FlowSolutionNodes__, z, api=3)[0]
