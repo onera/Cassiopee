@@ -60,7 +60,6 @@ static PyMethodDef PyTransform[] =
   {"projectSmoothDir", K_TRANSFORM::projectSmoothDir, METH_VARARGS},
   {"_alignVectorFieldWithRadialCylindricProjection", K_TRANSFORM::_alignVectorFieldWithRadialCylindricProjection, METH_VARARGS},
   {"join", K_TRANSFORM::join, METH_VARARGS},
-  {"joinBoth", K_TRANSFORM::joinBoth, METH_VARARGS},
   {"joinAll", K_TRANSFORM::joinAll, METH_VARARGS},
   {"patch", K_TRANSFORM::patch, METH_VARARGS},
   {"patch2", K_TRANSFORM::patch2, METH_VARARGS},

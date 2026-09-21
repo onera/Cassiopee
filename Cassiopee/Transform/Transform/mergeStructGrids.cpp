@@ -402,13 +402,13 @@ PyObject* K_TRANSFORM::mergeStructGrids(PyObject* self, PyObject* args)
     nic1 = K_FUNC::E_max(1,blk1->_ni-1); nic2 = K_FUNC::E_max(1,blk2->_ni-1);
     njc1 = K_FUNC::E_max(1,blk1->_nj-1); njc2 = K_FUNC::E_max(1,blk2->_nj-1);
     nkc1 = K_FUNC::E_max(1,blk1->_nk-1); nkc2 = K_FUNC::E_max(1,blk2->_nk-1);
-    res = joinBothStructured(*(blk1->_field), blk1->_ni, blk1->_nj, blk1->_nk, posx, posy, posz,
-                             *(blk2->_field), blk2->_ni, blk2->_nj, blk2->_nk, posx, posy, posz,
-                             *(blk1->_fieldc), nic1, njc1, nkc1,
-                             *(blk2->_fieldc), nic2, njc2, nkc2,
-                             pos1, pos2, posc1, posc2,
-                             *mergedField, nio, njo, nko,
-                             *mergedFieldc, nioc, njoc, nkoc, tol);
+    res = joinStructured(*(blk1->_field), blk1->_ni, blk1->_nj, blk1->_nk, posx, posy, posz,
+                         *(blk2->_field), blk2->_ni, blk2->_nj, blk2->_nk, posx, posy, posz,
+                         *(blk1->_fieldc), nic1, njc1, nkc1,
+                         *(blk2->_fieldc), nic2, njc2, nkc2,
+                         pos1, pos2, posc1, posc2,
+                         *mergedField, nio, njo, nko,
+                         mergedFieldc, nioc, njoc, nkoc, tol);
     if (res != 0)
     {
       if (dircons == 1 && gradeMin == -10000)

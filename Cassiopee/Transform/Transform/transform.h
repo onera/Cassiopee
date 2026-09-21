@@ -43,45 +43,40 @@ namespace K_TRANSFORM
    OUT: field: array resultant des champs obtenus par join des 2 arrays
    OUT: im, jm, km: dimensions de l array resultant
    retourne 0 si pas de join possible, 1 si ok
-   ATTENTION: on fait une copie car joinStructured modifie f1 et f2
+   ATTENTION: on fait une copie car joinStructured modifie f1, f2, fc1 et fc2
 */
   E_Int joinStructured(FldArrayF f1, E_Int im1, E_Int jm1, E_Int km1,
                        E_Int posx1, E_Int posy1, E_Int posz1,
                        FldArrayF f2, E_Int im2, E_Int jm2, E_Int km2,
                        E_Int posx2, E_Int posy2, E_Int posz2,
                        std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
-                       FldArrayF& field,
-                       E_Int& im, E_Int& jm, E_Int& km, E_Float tol);
+                       FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km,
+                       E_Float tol);
 
-  E_Int joinBothStructured(FldArrayF f1, E_Int im1, E_Int jm1, E_Int km1,
-                           E_Int posx1, E_Int posy1, E_Int posz1,
-                           FldArrayF f2, E_Int im2, E_Int jm2, E_Int km2,
-                           E_Int posx2, E_Int posy2, E_Int posz2,
-                           FldArrayF fc1, E_Int imc1, E_Int jmc1, E_Int kmc1,
-                           FldArrayF fc2, E_Int imc2, E_Int jmc2, E_Int kmc2,
-                           std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
-                           std::vector<E_Int>& posc1, std::vector<E_Int>& posc2,
-                           FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km,
-                           FldArrayF& fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc, E_Float tol);
+  E_Int joinStructured(FldArrayF f1, E_Int im1, E_Int jm1, E_Int km1,
+                       E_Int posx1, E_Int posy1, E_Int posz1,
+                       FldArrayF f2, E_Int im2, E_Int jm2, E_Int km2,
+                       E_Int posx2, E_Int posy2, E_Int posz2,
+                       FldArrayF fc1, E_Int imc1, E_Int jmc1, E_Int kmc1,
+                       FldArrayF fc2, E_Int imc2, E_Int jmc2, E_Int kmc2,
+                       std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
+                       std::vector<E_Int>& posc1, std::vector<E_Int>& posc2,
+                       FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km,
+                       FldArrayF* fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc,
+                       E_Float tol);
 
-  // join structure 3d: memes arguments que joinStructured
-  E_Int joinstructured3d(FldArrayF& f1, E_Int im1, E_Int jm1, E_Int km1,
+  // join structure 3D: memes arguments que joinStructured
+  E_Int joinStructured3D(FldArrayF& f1, E_Int im1, E_Int jm1, E_Int km1,
                          E_Int posx1, E_Int posy1, E_Int posz1,
                          FldArrayF& f2, E_Int im2, E_Int jm2, E_Int km2,
                          E_Int posx2, E_Int posy2, E_Int posz2,
+                         FldArrayF& fc1, E_Int imc1, E_Int jmc1, E_Int kmc1,
+                         FldArrayF& fc2, E_Int imc2, E_Int jmc2, E_Int kmc2,
                          std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
-                         FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km, E_Float tol);
-
-  E_Int joinbothstructured3d(FldArrayF& f1, E_Int im1, E_Int jm1, E_Int km1,
-                             E_Int posx1, E_Int posy1, E_Int posz1,
-                             FldArrayF& f2, E_Int im2, E_Int jm2, E_Int km2,
-                             E_Int posx2, E_Int posy2, E_Int posz2,
-                             FldArrayF& fc1, E_Int imc1, E_Int jmc1, E_Int kmc1,
-                             FldArrayF& fc2, E_Int imc2, E_Int jmc2, E_Int kmc2,
-                             std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
-                             std::vector<E_Int>& posc1, std::vector<E_Int>& posc2,
-                             FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km,
-                             FldArrayF& fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc, E_Float tol);
+                         std::vector<E_Int>& posc1, std::vector<E_Int>& posc2,
+                         FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km,
+                         FldArrayF* fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc,
+                         E_Float tol);
 
   E_Int nextCornerMatchingIndices(E_Int i1, E_Int j1, E_Int k1,
                                   E_Int im1, E_Int jm1, E_Int km1,
@@ -92,66 +87,45 @@ namespace K_TRANSFORM
                                   E_Int& i2, E_Int& j2, E_Int& k2,
                                   E_Float eps=1.e-12);
 
-  // join structure 2d: memes arguments que joinStructured
-  E_Int joinstructured2d(FldArrayF& f1, E_Int im1, E_Int jm1, E_Int km1,
+  // join structure 2D: memes arguments que joinStructured
+  E_Int joinStructured2D(FldArrayF& f1, E_Int im1, E_Int jm1, E_Int km1,
                          E_Int posx1, E_Int posy1, E_Int posz1,
                          FldArrayF& f2, E_Int im2, E_Int jm2, E_Int km2,
                          E_Int posx2, E_Int posy2, E_Int posz2,
+                         FldArrayF& fc1, E_Int imc1, E_Int jmc1, E_Int kmc1,
+                         FldArrayF& fc2, E_Int imc2, E_Int jmc2, E_Int kmc2,
                          std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
-                         FldArrayF& field,
-                         E_Int& im, E_Int& jm, E_Int& km, E_Float tol);
+                         std::vector<E_Int>& posc1, std::vector<E_Int>& posc2,
+                         FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km,
+                         FldArrayF* fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc,
+                         E_Float tol);
 
-  E_Int joinbothstructured2d(FldArrayF& f1, E_Int im1, E_Int jm1, E_Int km1,
-                             E_Int posx1, E_Int posy1, E_Int posz1,
-                             FldArrayF& f2, E_Int im2, E_Int jm2, E_Int km2,
-                             E_Int posx2, E_Int posy2, E_Int posz2,
-                             FldArrayF& fc1, E_Int imc1, E_Int jmc1, E_Int kmc1,
-                             FldArrayF& fc2, E_Int imc2, E_Int jmc2, E_Int kmc2,
-                             std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
-                             std::vector<E_Int>& posc1, std::vector<E_Int>& posc2,
-                             FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km,
-                             FldArrayF& fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc, E_Float tol);
-  // join structure 1d: memes arguments que joinStructured
-  E_Int joinstructured1d(FldArrayF& f1, E_Int im1, E_Int jm1, E_Int km1,
+  // join structure 1D: memes arguments que joinStructured
+  E_Int joinStructured1D(FldArrayF& f1, E_Int im1, E_Int jm1, E_Int km1,
                          E_Int posx1, E_Int posy1, E_Int posz1,
                          FldArrayF& f2, E_Int im2, E_Int jm2, E_Int km2,
                          E_Int posx2, E_Int posy2, E_Int posz2,
+                         FldArrayF& fc1, E_Int imc1, E_Int jmc1, E_Int kmc1,
+                         FldArrayF& fc2, E_Int imc2, E_Int jmc2, E_Int kmc2,
                          std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
-                         FldArrayF& field,
-                         E_Int& im, E_Int& jm, E_Int& km, E_Float tol);
-  E_Int joinbothstructured1d(FldArrayF& f1, E_Int im1, E_Int jm1, E_Int km1,
-                             E_Int posx1, E_Int posy1, E_Int posz1,
-                             FldArrayF& f2, E_Int im2, E_Int jm2, E_Int km2,
-                             E_Int posx2, E_Int posy2, E_Int posz2,
-                             FldArrayF& fc1, E_Int imc1, E_Int jmc1, E_Int kmc1,
-                             FldArrayF& fc2, E_Int imc2, E_Int jmc2, E_Int kmc2,
-                             std::vector<E_Int>& pos1, std::vector<E_Int>& pos2,
-                             std::vector<E_Int>& posc1, std::vector<E_Int>& posc2,
-                             FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km,
-                             FldArrayF& fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc, E_Float tol);
+                         std::vector<E_Int>& posc1, std::vector<E_Int>& posc2,
+                         FldArrayF& field, E_Int& im, E_Int& jm, E_Int& km,
+                         FldArrayF* fieldc, E_Int& imc, E_Int& jmc, E_Int& kmc,
+                         E_Float tol);
 
   /* Join 2 arrays non structures */
-  PyObject* joinUnstructured(FldArrayF& f1, FldArrayI& cn1,
-                             FldArrayF& f2, FldArrayI& cn2,
+  PyObject* joinUnstructured(FldArrayF& f1, FldArrayF* fc1, FldArrayI& cn1,
+                             FldArrayF& f2, FldArrayF* fc2, FldArrayI& cn2,
                              E_Int posx, E_Int posy, E_Int posz,
                              char* eltType1, char* eltType2,
-                             char* varString, E_Float tol);
-  PyObject* joinBothUnstructured(FldArrayF& f1, FldArrayF& fc1, FldArrayI& cn1,
-                                 FldArrayF& f2, FldArrayF& fc2, FldArrayI& cn2,
-                                 E_Int posx, E_Int posy, E_Int posz,
-                                 char* eltType1, char* eltType2,
-                                 char* varString, char* varStringc,
-                                 E_Float tol);
+                             char* varString, char* varStringc,
+                             E_Float tol);
 
   /* Join 2 arrays NGON */
-  PyObject* joinNGON(FldArrayF& f1, FldArrayI& cn1,
-                     FldArrayF& f2, FldArrayI& cn2,
+  PyObject* joinNGON(FldArrayF& f1, FldArrayF* fc1, FldArrayI& cn1,
+                     FldArrayF& f2, FldArrayF* fc2, FldArrayI& cn2,
                      E_Int posx, E_Int posy, E_Int posz,
-                     char* varString, E_Float tol);
-  PyObject* joinBothNGON(FldArrayF& f1, FldArrayF& fc1, FldArrayI& cn1,
-                         FldArrayF& f2, FldArrayF& fc2, FldArrayI& cn2,
-                         E_Int posx, E_Int posy, E_Int posz,
-                         char* varString, char* varStringc, E_Float tol);
+                     char* varString, char* varStringc, E_Float tol);
 
   /* Split d'une courbe structuree  definie par f */
   void splitSplineStruct(E_Float dmax, E_Float cvmax,
@@ -301,7 +275,6 @@ namespace K_TRANSFORM
   PyObject* _freeForm(PyObject* self, PyObject* args);
 
   PyObject* join(PyObject* self, PyObject* args);
-  PyObject* joinBoth(PyObject* self, PyObject* args);
   PyObject* joinAll(PyObject* self, PyObject* args);
   PyObject* patch(PyObject* self, PyObject* args);
   PyObject* patch2(PyObject* self, PyObject* args);

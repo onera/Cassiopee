@@ -768,18 +768,18 @@ def joingb__(arrays, arraysc, tol):
         success = 0; c = 0
         for noi in range(len(pool)):
             try:
-                a,ac = joinsb__(a, pool[noi], ac, poolc[noi], tol)
+                a, ac = joinsb__(a, pool[noi], ac, poolc[noi], tol)
                 pool.pop(c); poolc.pop(c)
                 success = 1
                 break
             except: pass
             c += 1
         if success == 0: raise ValueError("join: cannot join!")
-    return [a,ac]
+    return [a, ac]
 
 def joinsb__(array1, array2, arrayc1, arrayc2, tol):
     if len(array1) == 5 and len(array2) == 5:
-        return transform.joinBoth( array1, array2, arrayc1, arrayc2, tol)
+        return transform.join(array1, array2, arrayc1, arrayc2, tol)
 
     elif len(array1) == 4 and len(array2) == 5:
         if array1[3] == "NGON":
@@ -789,7 +789,7 @@ def joinsb__(array1, array2, arrayc1, arrayc2, tol):
             a = Converter.convertArray2Hexa(array2)
             ac = Converter.convertArray2Hexa(arrayc2)
         cn = a[2]; ac = [ac[0], ac[1], cn, ac[3]+'*']
-        return transform.joinBoth(array1, a, arrayc1, ac, tol)
+        return transform.join(array1, a, arrayc1, ac, tol)
 
     elif len(array1) == 5 and len(array2) == 4:
         if array2[3] == "NGON":
@@ -799,21 +799,21 @@ def joinsb__(array1, array2, arrayc1, arrayc2, tol):
             a = Converter.convertArray2Hexa(array1)
             ac = Converter.convertArray2Hexa(arrayc1)
         cn = a[2]; ac = [ac[0], ac[1], cn, ac[3]+'*']# the conversion of a structured array in centers to unstructured does not give an array of type elt*
-        return transform.joinBoth(a, array2, ac, arrayc2, tol)
+        return transform.join(a, array2, ac, arrayc2, tol)
 
     else:
         if array1[3] == "NGON" and array2[3] != "NGON":
             a = Converter.convertArray2NGon(array2)
             ac = Converter.convertArray2NGon(arrayc2)
             cn = a[2]; ac = [ac[0], ac[1], cn, ac[3]+'*']# the conversion of a structured array in centers to unstructured does not give an array of type elt*
-            return transform.joinBoth(array1, a, arrayc1, ac, tol)
+            return transform.join(array1, a, arrayc1, ac, tol)
 
         elif array1[3] != "NGON" and array2[3] == "NGON":
             a = Converter.convertArray2NGon(array1)
             ac = Converter.convertArray2NGon(arrayc1)
             cn = a[2]; ac = [ac[0], ac[1], cn, ac[3]+'*']# the conversion of a structured array in centers to unstructured does not give an array of type elt*
             return transform.join(a, array2, tol)
-        else: return transform.joinBoth(array1, array2, arrayc1, arrayc2, tol)
+        else: return transform.join(array1, array2, arrayc1, arrayc2, tol)
 
 def joins__(array1, array2, tol):
     if len(array1) == 5 and len(array2) == 5:
