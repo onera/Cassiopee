@@ -195,6 +195,7 @@ PyObject* K_TRANSFORM::join(PyObject* self, PyObject* args)
         delete [] varStringc;
       }
       else { delete fc1; delete fc2; }
+      delete an; delete ac;
       return NULL;
     }
 

@@ -892,8 +892,9 @@ namespace K_POST
                                  FldArrayF& fc, FldArrayF& faceField,
                                  E_Int* cellG, E_Int* cellD,
                                  PyObject* indices, PyObject* field);
-  PyObject* computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nic, E_Int njc,
-                                E_Int ixyz, const char* varStringOut, E_Float* cellNp,
+  PyObject* computeDiv2Struct2D(E_Int ni, E_Int nj, E_Int nk,
+                                E_Int nic, E_Int njc, E_Int nkc,
+                                const char* varStringOut, E_Float* cellNp,
                                 E_Float* xt, E_Float* yt, E_Float* zt,
                                 FldArrayF& fc, FldArrayF& faceField,
                                 E_Int* cellG, E_Int* cellD,
