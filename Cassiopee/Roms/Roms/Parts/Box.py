@@ -27,7 +27,7 @@ def createPart(name):
     P3 = T1.Point('P3', (1,1,0))
     T1.Eq(P3.x, P1.x + width)
     T1.Eq(P3.y, P1.y + height)
-    
+
     P4 = T1.Point('P4', (0,1,0))
     T1.Eq(P4.y, P1.y + height)
 
@@ -42,11 +42,11 @@ def createPart(name):
     T1.Eq(P7.x, P1.x + width)
     T1.Eq(P7.y, P1.y + height)
     T1.Eq(P7.z, P1.z + depth)
-    
+
     P8 = T1.Point('P8', (0,1,1))
     T1.Eq(P8.y, P1.y + height)
     T1.Eq(P8.z, P1.z + depth)
-    
+
     # Create lines
     line1 = T1.Line('line1', P1, P2)
     line2 = T1.Line('line2', P2, P3)
@@ -93,7 +93,7 @@ def createPart(name):
     face6 = T1.Fill('face6', sketch6)
 
     surface = T1.Merge('surface', [face1,face2,face3,face4,face5,face6])
-    
+
     # solve result
     T1.solve()
 
