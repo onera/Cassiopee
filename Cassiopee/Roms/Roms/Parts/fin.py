@@ -77,7 +77,7 @@ def createPart(name):
     sketch3 = T1.Sketch('sketch3', [line2])
 
     # body Surface
-    surface1 = T1.Loft('surface1', listSketches=[sketch1, sketch2], listGuides=[])
+    surface = T1.Loft('surface', listSketches=[sketch1, sketch2], listGuides=[])
     #surface1 = T1.MergeEdges('surface1', listSketches=[sketch1, sketch2, sketch3])
 
     # solve

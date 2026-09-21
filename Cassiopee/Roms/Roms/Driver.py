@@ -861,6 +861,7 @@ class Surface():
             nedges = OCC.getNbEdges(self.hook)
             edgeList = [i for i in range(1, nedges+1)]
             OCC._fillHole(self.hook, edgeList, [], self.data['continuity'].v)
+            if self.data['reverse'].v == 1: OCC._reverse(self.hook)
         elif self.type == "mergeEdges": # for debug
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
@@ -910,6 +911,10 @@ class Surface():
         elif self.type == "sphere":
             self.hook = OCC.createEmptyCAD()
             OCC._addSphere(self.hook, self.data['center'].v(), self.data['radius'].v, name=self.name)
+        elif self.type == "addFillet":
+            ne = OCC.getNedges(self.hook)
+            edges = [x for x in range(1,ne+1)]
+            OCC._addFillet(self.hook, edges, self.data['radius'].v())
         # global positionning
         OCC._rotate(self.hook, self.rotCenter.v(), self.rotAxis.v(), self.rotAngle.v)
         OCC._translate(self.hook, self.position.v())
@@ -1201,10 +1206,10 @@ def MergeEdges(name="mergeEdges", listSketches=[], h=None, part=None):
     """Merge edges. Not a surface."""
     return Surface(name=name, listSketches=listSketches, type="mergeEdges", h=h, part=part)
 
-def Fill(name="fill", sketch=None, continuity=0, h=None, part=None):
+def Fill(name="fill", sketch=None, continuity=0, reverse=0, h=None, part=None):
     """Create a surface that fill a sketch."""
     return Surface(name=name, listSketches=[sketch],
-                   data={'continuity':continuity},
+                   data={'continuity':continuity, 'reverse':reverse},
                    type="fill", h=h, part=part)
 
 def Union(name="union", listSurfaces1=[], listSurfaces2=[], h=None, part=None):
@@ -1242,6 +1247,11 @@ def FillLinear(name="linearFill", listPoints=[], continuity=0, h=None, part=None
 def Sphere(name="sphere", C=(0.,0.,0.), R=1., h=None, part=None):
     """Create a sphere of center C and radius R."""
     surface1 = Surface(name=name, data={'center': C, 'radius': R}, type="sphere", h=h, part=part)
+    return surface1
+
+def AddFillet(name="fillet", radius=1., h=None, part=None):
+    """Add a fillet to all edges of surface."""
+    surface1 = Surface(name=name, data={'radius':1.}, type='addFillet', h=h, part=part)
     return surface1
 
 #============================================================
@@ -1678,9 +1688,9 @@ class Part:
         s = Surface(name=name, listSketches=listSketches, type="mergeEdges", h=h, part=self)
         return s
 
-    def Fill(self, name="fill", sketch=None, continuity=0, h=None):
+    def Fill(self, name="fill", sketch=None, continuity=0, reverse=0, h=None):
         s = Surface(name=name, listSketches=[sketch],
-                    data={'continuity':continuity},
+                    data={'continuity':continuity, 'reverse':reverse},
                     type="fill", h=h, part=self)
         return s
 

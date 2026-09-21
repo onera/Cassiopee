@@ -1408,7 +1408,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     E_Int npts2 = 0; E_Int sizeEF2 = 0;
 
     // Acces non universel sur les ptrs
-    E_Int dim = cn->getDim();
+    //E_Int dim = cn->getDim();
     E_Int ngonType = cn->getNGonType();
     E_Int shift = 1; if (ngonType == 3) shift = 0;
     E_Bool hasCnOffsets = (ngonType == 2 || ngonType == 3);

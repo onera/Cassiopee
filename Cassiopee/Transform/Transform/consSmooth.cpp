@@ -634,8 +634,8 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
             E_Float xip3 = x[idx3], yip3 = y[idx3], zip3 = z[idx3];
 
             /* Compute deltas (i+3 - i), (i+2 - i) et (i+1 - i) */
-            E_Float dv1x = xip1 - xi, dv1y = yip1 - yi, dv1z = zip1 - zi; /* xi+1 - xi */
-            E_Float dv2x = xip2 - xi, dv2y = yip2 - yi, dv2z = zip2 - zi; /* xi+2 - xi */
+            E_Float dv1x = xip1 - xi, dv1y = yip1 - yi; /* xi+1 - xi */
+            E_Float dv2x = xip2 - xi, dv2y = yip2 - yi; /* xi+2 - xi */
             E_Float dv3x = xip3 - xi, dv3y = yip3 - yi, dv3z = zip3 - zi; /* xi+3 - xi */
 
             /* Set uNormal = unit normal to baseline (i+3;i) */
@@ -647,8 +647,7 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
             E_Float uNormalx = divNorme * (-dv3y), uNormaly = divNorme * (dv3x), uNormalz = 0;  /* {xi+3-xi}** / ||xi+3-xi||² */
 
             /* Compute signed area */
-            E_Float aire = 0.5 * (dv3x * dv2y - dv3y * dv2x) + \
-                          0.5 * (dv2x * dv1y - dv2y * dv1x) ;
+            E_Float aire = 0.5 * (dv3x * dv2y - dv3y * dv2x) + 0.5 * (dv2x * dv1y - dv2y * dv1x);
 
             E_Float h = 1.5 * aire;
 

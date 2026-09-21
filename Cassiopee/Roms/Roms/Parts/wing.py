@@ -46,7 +46,7 @@ def createPart(name):
 
     # surface
     #surface1 = T1.MergeEdges('surface1', listSketches=[sketch1, sketch2])
-    surface1 = T1.Loft('surface1', listSketches=[sketch1, sketch2], h=(1.e-5,0.1,1.e-1))
+    surface = T1.Loft('surface', listSketches=[sketch1, sketch2], h=(1.e-5,0.1,1.e-1))
 
     #=======================
     # solve and instantiate

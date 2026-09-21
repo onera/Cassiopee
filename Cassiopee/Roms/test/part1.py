@@ -1,11 +1,14 @@
 # new driver using parts
 import Roms.Driver as D
 
-T1 = D.DRIVER.Part('square1', type='Square')
-T1.instantiate({'width':1., 'height':2.})
+#T1 = D.DRIVER.Part('square1', type='Square')
+#T1.instantiate({'width':1., 'height':2.})
 
 #T2 = D.DRIVER.Part('circle1', type='Circle')
 #T2.instantiate({'radius':1.})
+
+T1 = D.DRIVER.Part('box1', type='Box')
+T1.instantiate({'width':1., 'height':1., 'depth':1.})
 
 #T1 = D.DRIVER.Part('nozzle1', type='nozzle2D')
 #T1.instantiate({'P1.x': 0.,

@@ -78,7 +78,7 @@ def createPart(name):
     spline2 = T1.Spline1('spline2', [P1, P3a, P3b, P3])
 
     sketch1 = T1.Sketch('sketch1', [spline1,spline2])
-    surface1 = T1.Revolve('surface1', sketch1, center=(0,0,0), axis=(1,0,0), angle=360., h=(0.1,0.1,0.01))
+    surface = T1.Revolve('surface', sketch1, center=(0,0,0), axis=(1,0,0), angle=360., h=(0.1,0.1,0.01))
 
     #=======================
     # solve and instantiate

@@ -22,10 +22,10 @@ def createPart(name):
 
     P3 = T1.Point('P3', (1,1,0))
     T1.Eq(P3.x, P1.x + width)
-
-    P4 = T1.Point('P4', (0,1,0))
-    T1.Eq(P3.y, P4.y)
     T1.Eq(P3.y, P1.y + height)
+    
+    P4 = T1.Point('P4', (0,1,0))
+    T1.Eq(P4.y, P1.y + height)
 
     # Create lines
     line1 = T1.Line('line1', P1, P2)
@@ -42,6 +42,6 @@ def createPart(name):
     T1.solve()
 
     # example of instantiation
-    #T1.instantiate({'radius':1.})
+    #T1.instantiate({'width':1., 'height':1.})
 
     return T1

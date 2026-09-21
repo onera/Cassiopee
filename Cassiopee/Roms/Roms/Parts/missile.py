@@ -62,7 +62,7 @@ def createPart(name):
     sketch2 = T1.Sketch('sketch2', [circle1])
     surface2 = T1.Fill('surface2', sketch2)
 
-    surface3 = T1.Merge('surface3', [surface1, surface2])
+    surface = T1.Merge('surface', [surface1, surface2])
 
     #=======================
     # solve and instantiate
