@@ -1005,19 +1005,19 @@ def _close(t, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True,
     C.setFields(fields, t, 'nodes')
     return None
 
-def rmOrphans(a, status=None):
+def rmOrphans(a, indices=None, status=None):
     """Remove orphan vertices."""
     return close(a, rmOverlappingPts=False, rmOrphanPts=True,
                  rmDuplicatedFaces=False, rmDuplicatedElts=False,
                  rmDegeneratedFaces=False, rmDegeneratedElts=False,
-                 status=status)
+                 indices=indices, status=status)
 
-def _rmOrphans(a, status=None):
+def _rmOrphans(a, indices=None, status=None):
     """Remove orphan vertices."""
     return _close(a, rmOverlappingPts=False, rmOrphanPts=True,
                   rmDuplicatedFaces=False, rmDuplicatedElts=False,
                   rmDegeneratedFaces=False, rmDegeneratedElts=False,
-                  status=status)
+                  indices=indices, status=status)
 
 def zip(a, tol=1.e-12):
     """Zip zones if they are distant of tol."""
