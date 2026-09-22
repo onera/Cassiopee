@@ -15,7 +15,7 @@ C._initVars(a, '{F}={CoordinateX}')
 # Add BCs
 sz1 = G.cartHexa((0.4,0.4,0.), (0.1,0.1,0.), (5,5,1))
 sz2 = G.cartHexa((0.4,0.8,0.), (0.1,0.,0.1), (5,1,5))
-sz3 = G.cartHexa((0.4,0.,0.), (0.1,0.,0.1), (5,1,5))  
+sz3 = G.cartHexa((0.4,0.,0.), (0.1,0.,0.1), (5,1,5))
 C._addBC2Zone(a, 'wall1', 'BCWall', subzone=sz1)
 C._addBC2Zone(a, 'wall2', 'BCWall', subzone=sz2)
 #C._addBC2Zone(a, 'wall3', 'BCWall', subzone=sz3)  # TODO fail
