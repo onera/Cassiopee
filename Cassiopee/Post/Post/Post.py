@@ -775,8 +775,8 @@ def selectCells(arrayNodes, F, arrayCenters=[], varStrings=[], strict=0, F2E=Non
 # loc=-1: unknown, 1: centers, 0: nodes (forced)
 #------------------------------------------------------------------------------
 # selectCells preserving center flow field solutions
-# an : coordinates and fields in nodes
-# ac : fields in centers
+# an: coordinates and fields in nodes
+# ac: fields in centers
 def selectCells2(an, tag, ac=[], strict=0, loc=-1, F2E=None, cleanConnectivity=True):
     """Select cells in a given array following tag.
     Usage: selectCells2(arrayN, arrayC, tag, strict)"""

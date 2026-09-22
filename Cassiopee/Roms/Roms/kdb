@@ -9,6 +9,7 @@ def usage():
     print("kdb: query verbose: kdb -qv <name.db> <query> ")
     print("kdb: fetch: kdb -f <name.db> <query> \n ")
     print("kdb: join: kdb -j <name1.db> <name2.db> \n ")
+    print("kdb: plot: kdb -p <name1.db> \n ")
     
     print("<query> needs to be enclosed by \"\"")
     print("Examples of <query>:")
@@ -23,9 +24,9 @@ if __name__ == "__main__":
         print("kdb: wrong arguments.")
         usage()
 
-    # argument 1 must be the command (-q or -f or -l)
+    # argument 1 must be the command (-q, -f, ...)
     com = sys.argv[1]
-    if com not in ['-q', '-qv', '-f', '-l', '-h', '-j']:
+    if com not in ['-q', '-qv', '-f', '-l', '-h', '-j', '-p']:
         print("kdb: invalid command.")
         exit(1)
     
@@ -72,6 +73,17 @@ if __name__ == "__main__":
         db2 = DataBase.DataBase(baseName2, mode="r")
         db.join(db2)
         db2.close()
+    elif com == '-p': # plot
+        import CPlot.Tk as CTK
+        (win, menu, file, tools) = CTK.minimal("DataBase", mode=1)
+        module = __import__("tkDb")
+        CTK.TKMODULES["tkDb"] = module
+        tools.add_command(label="tkDb", command=module.showApp)
+        module.setDb(db)
+        module.createApp(win)
+        module.showApp()
+        win.deiconify(); win.focus_set()
+        win.mainloop()
     
     # close db
     db.close()

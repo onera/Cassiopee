@@ -401,13 +401,13 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
 
             /* Get points i, i+1, i+2, i+3 */
             E_Float xi = x[idx0], yi = y[idx0], zi = z[idx0]; 
-            E_Float xip1 = x[idx1], yip1 = y[idx1], zip1 = z[idx1]; 
-            E_Float xip2 = x[idx2], yip2 = y[idx2], zip2 = z[idx2]; 
+            E_Float xip1 = x[idx1], yip1 = y[idx1]; 
+            E_Float xip2 = x[idx2], yip2 = y[idx2]; 
             E_Float xip3 = x[idx3], yip3 = y[idx3], zip3 = z[idx3];
 
             /* Compute deltas (i+3 - i), (i+2 - i) et (i+1 - i) */
-            E_Float dv1x = xip1 - xi, dv1y = yip1 - yi, dv1z = zip1 - zi; /* xi+1 - xi */
-            E_Float dv2x = xip2 - xi, dv2y = yip2 - yi, dv2z = zip2 - zi; /* xi+2 - xi */
+            E_Float dv1x = xip1 - xi, dv1y = yip1 - yi; /* xi+1 - xi */
+            E_Float dv2x = xip2 - xi, dv2y = yip2 - yi; /* xi+2 - xi */
             E_Float dv3x = xip3 - xi, dv3y = yip3 - yi, dv3z = zip3 - zi; /* xi+3 - xi */
 
             /* Set uNormal = unit normal to baseline (i+3;i) */
@@ -629,8 +629,8 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
             E_Int idx3 = bar[c3];
 
             E_Float xi = x[idx0], yi = y[idx0], zi = z[idx0]; 
-            E_Float xip1 = x[idx1], yip1 = y[idx1], zip1 = z[idx1]; 
-            E_Float xip2 = x[idx2], yip2 = y[idx2], zip2 = z[idx2]; 
+            E_Float xip1 = x[idx1], yip1 = y[idx1]; 
+            E_Float xip2 = x[idx2], yip2 = y[idx2]; 
             E_Float xip3 = x[idx3], yip3 = y[idx3], zip3 = z[idx3];
 
             /* Compute deltas (i+3 - i), (i+2 - i) et (i+1 - i) */
