@@ -43,7 +43,7 @@ def initParametersFromDb():
     for c, p in enumerate(points):
         for k in p: RANGEMIN[k] = min(RANGEMIN[k], p[k])
         for k in p: RANGEMAX[k] = max(RANGEMAX[k], p[k])
-        for k in p: POINTS[k][c] = p[k]    
+        for k in p: POINTS[k][c] = p[k]
     for k in points[0]: PARAMS[k] = RANGEMIN[k]
     for k in points[0]: POINTS[k].sort()
     print("RANGEMIN=", RANGEMIN)
@@ -105,7 +105,7 @@ def createApp(win):
     # Get default values
     initParametersFromDb()
     params = list(PARAMS.keys())
-    
+
     # - VARS -
     # -0- Current parameter name -
     V = TK.StringVar(win); V.set(params[0]); VARS.append(V)
