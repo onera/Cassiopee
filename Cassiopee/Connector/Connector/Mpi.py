@@ -310,14 +310,43 @@ def exchangeBCMatchData(t, varList):
 # NGON, centered cellN
 # BCMatch must be set in t
 #==============================================================================
+def setHoleInterpolatedPoints(t, depth=1, dir=0, cellNName="cellN"):
+    """Set cellN=2. around cellN=0."""
+    if Cmpi.size == 1:
+        return X.setHoleInterpolatedPoints(t, depth=depth, dir=dir,
+                                           cellNName=cellNName, loc='centers')
+
+    if depth == 1:
+        _setHoleInterpolatedPoints__(t, dir=dir, cellNName=cellNName)
+    else: # loop
+        dummyCellNWoLoc = "_dummyXmpisHIP"  # internal
+        dummyCellN = "centers:" + dummyCellNWoLoc
+        cellNNameWLoc = "centers:" + cellNName
+        if depth > 0:
+            t = C.initVars(t, "{{{var}}}={{{tag}}}".format(var=dummyCellN, tag=cellNNameWLoc))
+        else:
+            t = C.initVars(t, "{{{var}}}=1.-{{{tag}}}".format(var=dummyCellN, tag=cellNNameWLoc))
+
+        for _ in range(abs(depth)):
+            _setHoleInterpolatedPoints__(t, dir=dir, cellNName=dummyCellNWoLoc)
+            t = C.initVars(t, "{{{var}}}=({{{var}}}==1.)".format(var=dummyCellN))
+
+        if depth > 0:
+            t = C.initVars(t, "{tag}=2.*{{{tag}}}-{{{var}}}".format(var=dummyCellN, tag=cellNNameWLoc))
+        else:
+            t = C.initVars(t, "{tag}=2.-{{{tag}}}-2.*{{{var}}}".format(var=dummyCellN, tag=cellNNameWLoc))
+
+        t = C.rmVars(t, [dummyCellN])
+    return t
+
 def _setHoleInterpolatedPoints(t, depth=1, dir=0, cellNName="cellN"):
     """Set cellN=2. around cellN=0."""
     if Cmpi.size == 1:
-        return X._setHoleInterpolatedPoints(t, depth=depth, dir=0,
+        return X._setHoleInterpolatedPoints(t, depth=depth, dir=dir,
                                             cellNName=cellNName, loc='centers')
 
     if depth == 1:
-        _setHoleInterpolatedPoints__(t, dir=0, cellNName=cellNName)
+        _setHoleInterpolatedPoints__(t, dir=dir, cellNName=cellNName)
     else: # loop
         dummyCellNWoLoc = "_dummyXmpisHIP"  # internal
         dummyCellN = "centers:" + dummyCellNWoLoc
@@ -366,9 +395,32 @@ def _setHoleInterpolatedPoints__(t, dir=0, cellNName="_dummyXmpisHIP"):
 # NGON, centered cellN
 # BCMatch must be set in t
 #==============================================================================
-def _addLayers(t, depth=1, dir=0, cellNName="centers:cellN"):
+def addLayers(t, depth=1, dir=0, cellNName="centers:cellN"):
     """Add layers around a volume defined by cellN=0, with positive or
     negative depth controlling the side of the mask to expand."""
+    if depth == 0: return t
+    if Cmpi.size == 1:
+        return X.addLayers(t, depth=depth, dir=dir, cellNName=cellNName)
+
+    if not cellNName.startswith("centers:"):
+        cellNName = "centers:" + cellNName
+
+    if depth < 0:
+        tmpCellN = "_dummyXmpiaL"  # internal
+        tmpCellNWLoc = "centers:" + tmpCellN
+        t = C.initVars(t, "{{{var}}}=1.-{{{tag}}}".format(var=tmpCellNWLoc, tag=cellNName))
+    else:
+        tmpCellNWLoc = cellNName
+        tmpCellN = cellNName.split(':')[-1]
+    for _ in range(abs(depth)):
+        t = setHoleInterpolatedPoints(t, depth=1, dir=dir, cellNName=tmpCellN)
+        t = C.initVars(t, "{{{var}}}=({{{var}}}==1.)".format(var=tmpCellNWLoc))
+    if depth < 0:
+        t = C.initVars(t, "{tag}=1.-{{{var}}}".format(var=tmpCellNWLoc, tag=cellNName))
+        t = C.rmVars(t, [tmpCellNWLoc])
+    return t
+
+def _addLayers(t, depth=1, dir=0, cellNName="centers:cellN"):
     if depth == 0: return None
     if Cmpi.size == 1:
         return X._addLayers(t, depth=depth, dir=dir, cellNName=cellNName)
