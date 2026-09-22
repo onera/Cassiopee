@@ -673,9 +673,10 @@ def subzoneUnstruct__(t, indices, type, dimOut=None):
                     C.setFields([nodes], z, 'nodes')
                     C.setFields([centers], z, 'centers')
                 else:
-                    [nodes, centers] = Transform.transform.subzoneUnstructBoth(fc, fb, indices)
+                    [nodes, centers] = Transform.transform.subzoneUnstruct(fc, fb, indices, dimOut)
                     C.setFields([nodes], z, 'nodes')
-                    C.setFields([centers], z, 'centers')
+                    if centers is None: C._deleteFlowSolutions__(z, 'centers')
+                    else: C.setFields([centers], z, 'centers')
         z[0] = C.getZoneName(z[0])
     return tp
 

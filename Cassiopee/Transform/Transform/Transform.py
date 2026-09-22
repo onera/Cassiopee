@@ -884,7 +884,7 @@ def subzone(array, minIndex, maxIndex=None, type=None, dimOut=None):
         elif type == 'nodes':
             if len(array) == 5:
                 raise TypeError("subzone: subzone with a list of nodes not yet implemented for structured arrays.")
-            return  transform.subzoneUnstruct(array, minIndex, dimOut)
+            return transform.subzoneUnstruct(array, minIndex, dimOut)
         else:
             if len(array) == 5:
                 raise TypeError("subzone: subzone with a list of nodes not yet implemented for structured arrays.")

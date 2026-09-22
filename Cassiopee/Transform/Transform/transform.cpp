@@ -67,7 +67,6 @@ static PyMethodDef PyTransform[] =
   {"subzoneStructInt", K_TRANSFORM::subzoneStructInt, METH_VARARGS},
   {"subzoneStructIntBoth", K_TRANSFORM::subzoneStructIntBoth, METH_VARARGS},
   {"subzoneUnstruct", K_TRANSFORM::subzoneUnstruct, METH_VARARGS},
-  {"subzoneUnstructBoth",K_TRANSFORM::subzoneUnstructBoth, METH_VARARGS},
   {"subzoneElements",K_TRANSFORM::subzoneElements, METH_VARARGS},
   {"subzoneFaces",K_TRANSFORM::subzoneFaces, METH_VARARGS},
   {"oneovern", K_TRANSFORM::oneovern, METH_VARARGS},
