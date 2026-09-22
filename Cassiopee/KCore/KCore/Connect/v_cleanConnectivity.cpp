@@ -769,7 +769,7 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
 
   // --- 1. Points ---
   // 1a. Identify orphan points, ie, initialise indirection table used in 1b
-  E_Int nuniquePts = 0;
+  E_Int nuniquePts = npts;
   std::vector<E_Int> indir;
   if (rmOrphanPts)
   {
@@ -788,15 +788,16 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
         }
       }
     }
-    
-    rmOrphanPts = false;
-    for (E_Int i = 0; i < npts; i++)
+
+    if (!rmOverlappingPts)
     {
-      if (indir[i] == -1)
+      E_Int norphans = 0;
+      for (E_Int i = 0; i < npts; i++)
       {
-        rmOrphanPts = true;
-        break;
+        if (indir[i] == -1) norphans++;
+        else indir[i] -= norphans;
       }
+      nuniquePts -= norphans;
     }
   }
 

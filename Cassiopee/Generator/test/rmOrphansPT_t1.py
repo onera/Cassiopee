@@ -4,6 +4,7 @@ import Converter.Internal as Internal
 import Generator.PyTree as G
 import KCore.test as test
 
+# -- NGON
 insertPos = [3, 10, 22, 57, 91]
 norphans = len(insertPos)
 
