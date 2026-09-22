@@ -74,7 +74,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
             raise ValueError("Choose a valid symmetry plane direction. Exiting..")
             Cmpi.abort(errorcode=1)
 
-    # Important Note: this use of the flag is still ambigious - related to local IBMs??
+    # Important Note: this use of the flag is still ambiguous - related to local IBMs??
     different_front_flag = True
     if "use different front for different BCs" in IBM_parameters["integration points"]:
         different_front_flag = IBM_parameters["integration points"]["use different front for different BCs"]
@@ -88,8 +88,8 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
     if isinstance(t_case, str): tb = C.convertFile2PyTree(t_case)
     else: tb = t_case
 
-    ## Note: tb2 is the correct geometry for 3D cacls.
-    ##       2D: tb2 = tb with addkplace
+    ## Note: tb2 is the correct geometry for 3D calcs.
+    ##       2D: tb2 = tb with addkplane
     ##       3D: tb2 = tb
     bbo = Gmpi.bbox(t)
     if dim == 2:
@@ -294,7 +294,7 @@ def prepareAMRData(t_case, t, IBM_parameters=None, check=False, dim=3, localDir=
         del frontIP_gath
         Cmpi.trace(" Extracting front of the donor points [end]  ", master=True, cpu=False)
 
-        # Determine location of DP point on DP Front
+        # Determine location of DP points on DP Front
         # 1. calculate normals from tb2 to frontIP
         if dimfrontIP > 0:
             if IBM_parameters["spatial discretization"]["type"] == "FV":
