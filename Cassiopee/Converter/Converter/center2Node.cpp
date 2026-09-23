@@ -198,9 +198,9 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
         
         E_Int ninterfaces = inds->getSize()*inds->getNfld();
         E_Int* pind = inds->begin(); // BCMatch interface indices
-        E_Float* FInter = bfield->begin(1); // Field at the BCMatch interfaces
-        E_Float* FNode = fn2->begin(1); // Field at the nodes
-        E_Float* FCenter = fc->begin(1); // Field at the cell-centers
+        E_Float* FInter = bfield->begin(1); // Field at the BCMatch interfaces (nfld = 1)
+        E_Float* FNode = fn2->begin(1); // Field at the nodes (nfld = 1)
+        E_Float* FCenter = fc->begin(1); // Field at the cell-centers (nfld = 1)
         
         for (E_Int i = 0; i < ninterfaces; i++)
         {

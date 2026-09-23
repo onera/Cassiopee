@@ -134,11 +134,32 @@ TRACESTATE = { 'prevFullTime': None, 'method': 0, 'fileName': 'stdout', 'mem': T
 def center2Node(t, var=None, cellNType=0, graph=None):
     """Convert zone/fields defined at centers to nodes."""
 
+    if var == Internal.__FlowSolutionCenters__:
+        # varList = getVarNames(t, excludeXYZ=True, loc='centers')[0]
+        # varList = [v.split(':')[-1] for v in varList]
+        varList = [] # temporary patch
+    elif isinstance(var, list):
+        varList = [v.split(':')[-1] for v in var]
+    elif isinstance(var, str):
+        varList = [var.split(':')[-1]]
+    else:
+        varList = []
+
+    zones = Internal.getZones(t)
+    ztype = 'STRUCT'
+    if len(zones) > 0:
+        z = Internal.getZones(t)[0] # get unique zone
+        dim = Internal.getZoneDim(z)
+        if dim[0] == 'Unstructured': ztype = dim[3]
+    else:
+        return t
+
     # get BCMatch // data for NGON arrays
-    import Connector.Mpi as Xmpi
-    if isinstance(var, list): varList = [v.split(':')[-1] for v in var]
-    else: varList = [var.split(':')[-1]]
-    indices, BCField = Xmpi.exchangeBCMatchData(t, varList)
+    if varList != [] and ztype == 'NGON':
+        import Connector.Mpi as Xmpi
+        indices, BCField = Xmpi.exchangeBCMatchData(t, varList)
+    else:
+        indices, BCField = None, None
 
     allstructured = 1
     for z in Internal.getZones(t):
