@@ -1730,19 +1730,19 @@ def _reorderStruct__(t, order, topTree):
         for z in zones: zoneNames.append(z[0])
         _reorderBCMatch__(t, order, zoneNames)
         _reorderBCNearMatch__(t, order, zoneNames)
-        C._TZA1(t, loc, loc, True, Transform.reorder, order)
+        C._TZA3(t, loc, loc, True, Transform.reorder, order)
         return None
     else:
         istoptree = Internal.isTopTree(topTree)
         if not istoptree: # pas de modif des zoneDonors dans les BCMatch !
             _reorderBC__(t, order)
             _reorderGC__(t, order)
-            C._TZA1(t, loc, loc, True, Transform.reorder, order)
+            C._TZA3(t, loc, loc, True, Transform.reorder, order)
             return None
         else: # toptree fourni
             _reorderBC__(t, order)
             _reorderBCOverlap__(t, order)
-            C._TZA1(t, loc, loc, True, Transform.reorder, order)
+            C._TZA3(t, loc, loc, True, Transform.reorder, order)
             zones = Internal.getZones(t)
             zoneNames = []
             for z in zones: zoneNames.append(z[0])
