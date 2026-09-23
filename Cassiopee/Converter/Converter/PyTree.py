@@ -6773,7 +6773,7 @@ def center2Node(t, var=None, cellNType=0, useGhost=True, indices=None, BCField=N
         # varList = getVarNames(t, excludeXYZ=True, loc='centers')[0]
         # varList = [v.split(':')[-1] for v in varList]
         varList = [] # temporary patch
-    elif isinstance(var, list): 
+    elif isinstance(var, list):
         varList = [v.split(':')[-1] for v in var]
     elif isinstance(var, str):
         varList = [var.split(':')[-1]]
