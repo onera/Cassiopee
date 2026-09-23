@@ -829,9 +829,9 @@ def selectCells2(an, tag, ac=[], strict=0, loc=-1, F2E=None, cleanConnectivity=T
                     retn = post.selectCellCenters(an, tag, None, cleanConnectivity)[0]
             else:
                 if F2E is not None:
-                    PE2, retn, retc = post.selectCellCentersBoth(an, ac, tag, F2E, cleanConnectivity)
+                    PE2, retn, retc = post.selectCellCenters(an, ac, tag, F2E, cleanConnectivity)
                 else:
-                    retn, retc = post.selectCellCentersBoth(an, ac, tag, None, cleanConnectivity)
+                    retn, retc = post.selectCellCenters(an, ac, tag, None, cleanConnectivity)
         else:
             if ac == []:
                 if F2E is not None:
