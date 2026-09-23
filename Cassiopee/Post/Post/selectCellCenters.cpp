@@ -951,7 +951,7 @@ PyObject* K_POST::selectCellCentersBoth(PyObject* self, PyObject* args)
       if (res == 0)
       {
         RELEASESHAREDN(PE, cFE);
-        PyErr_SetString(PyExc_TypeError, "selectCellsBoth: PE numpy is invalid.");
+        PyErr_SetString(PyExc_TypeError, "selectCellsCentersBoth: PE numpy is invalid.");
         return NULL;
       }
       

@@ -482,9 +482,7 @@ def selectCells2(t, tagName, strict=0, cleanConnectivity=True):
 
     zones = Internal.getZones(tp)
     for z in zones:
-
-        # Get ParentElement node if any
-        # =============================
+        # Get ParentElement node if it exists
         GEl = Internal.getElementNodes(z)
         NGON = 0; found = False; PE = None
         for c in GEl:
@@ -495,11 +493,11 @@ def selectCells2(t, tagName, strict=0, cleanConnectivity=True):
             PE = Internal.getNodeFromName1(node, 'ParentElements')
 
         if loc == 0: # noeuds
-            fb   = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
+            fb = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
             taga = C.getFields(Internal.__FlowSolutionNodes__, z, api=1)
             taga = Converter.extractVars(taga, [tagName])[0]
         else:
-            fb   = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
+            fb = C.getFields(Internal.__FlowSolutionCenters__, z, api=1)[0]
             taga = Converter.extractVars(fb, [res[1]])
 
         fc = C.getFields(Internal.__GridCoordinates__, z, api=1)[0]
@@ -515,10 +513,9 @@ def selectCells2(t, tagName, strict=0, cleanConnectivity=True):
 
             if fb != [] and fb is not None: # il y a des champs en centres
                 if PE is not None:
-                    (PE2, fp,fq) = Post.selectCells2(f, taga, fb, strict, loc, PE[1], cleanConnectivity)
+                    PE2, fp, fq = Post.selectCells2(f, taga, fb, strict, loc, PE[1], cleanConnectivity)
                 else:
-                    (fp,fq) = Post.selectCells2(f, taga, fb, strict, loc, None, cleanConnectivity)
-
+                    fp, fq = Post.selectCells2(f, taga, fb, strict, loc, None, cleanConnectivity)
                 C._deleteFlowSolutions__(z, 'centers')
                 C.setFields([fq], z, 'centers')
 
@@ -527,41 +524,38 @@ def selectCells2(t, tagName, strict=0, cleanConnectivity=True):
                     (PE2, fp) = Post.selectCells2(f, taga, [], strict, loc, PE[1], cleanConnectivity)
                 else:
                     fp = Post.selectCells2(f, taga, [], strict, loc, None, cleanConnectivity)
-
                 Internal._rmNodesFromName(z,Internal.__FlowSolutionCenters__)
-
             C.setFields([fp], z, 'nodes')
 
         elif fa != []:
             if fb != [] and fb is not None: # il y a des champs en centres
                 if PE is not None:
-                    (PE2, fp,fq) = Post.selectCells2(fa, taga, fb, strict, loc, PE[1], cleanConnectivity)
+                    PE2, fp, fq = Post.selectCells2(fa, taga, fb, strict, loc, PE[1], cleanConnectivity)
                 else:
-                    (fp,fq) = Post.selectCells2(fa, taga, fb, strict, loc, None, cleanConnectivity)
+                    fp, fq = Post.selectCells2(fa, taga, fb, strict, loc, None, cleanConnectivity)
                 C.setFields([fq], z, 'centers')
-            else:        # pas de champ en centres
+            else:  # pas de champ en centres
                 if PE is not None:
-                    (PE2, fp) = Post.selectCells2(fa, taga, [], strict, loc, PE[1], cleanConnectivity)
+                    PE2, fp = Post.selectCells2(fa, taga, [], strict, loc, PE[1], cleanConnectivity)
                 else:
                     fp = Post.selectCells2(fa, taga, [], strict, loc, None, cleanConnectivity)
-                Internal._rmNodesFromName(z,Internal.__FlowSolutionCenters__)
+                Internal._rmNodesFromName(z, Internal.__FlowSolutionCenters__)
             C.setFields([fp], z, 'nodes')
 
         elif fc != []:
             if fb != [] and fb is not None: # il y a des champs en centres
                 if PE is not None:
-                    (PE2, fp,fq) = Post.selectCells2(fc, taga, fb, strict, loc, PE[1], cleanConnectivity)
+                    PE2, fp, fq = Post.selectCells2(fc, taga, fb, strict, loc, PE[1], cleanConnectivity)
                 else:
-                    (fp,fq) = Post.selectCells2(fc, taga, fb, strict, loc, None, cleanConnectivity)
+                    fp, fq = Post.selectCells2(fc, taga, fb, strict, loc, None, cleanConnectivity)
 
                 C.setFields([fq], z, 'centers')
-            else:        # pas de champ en centres
-
+            else:  # pas de champ en centres
                 if PE is not None:
-                    (PE2, fp) = Post.selectCells2(fc, taga, [], strict, loc, PE[1], cleanConnectivity)
+                    PE2, fp = Post.selectCells2(fc, taga, [], strict, loc, PE[1], cleanConnectivity)
                 else:
                     fp = Post.selectCells2(fc, taga, [], strict, loc, None, cleanConnectivity)
-                Internal._rmNodesFromName(z,Internal.__FlowSolutionCenters__)
+                Internal._rmNodesFromName(z, Internal.__FlowSolutionCenters__)
             C.setFields([fp], z, 'nodes')
 
         # Set ParentElement
