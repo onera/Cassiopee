@@ -1183,7 +1183,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
   if (ret == 0)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "subzone: argument must be a list of face indices (starting from 1).");
+                    "subzoneFaces: argument must be a list of face indices (starting from 1).");
     return NULL;
   }
 
@@ -1196,13 +1196,13 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
   if (res != 1 && res != 2)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "subzone: unknown type of array.");
+                    "subzoneFaces: unknown type of array.");
     return NULL;
   }
   if (res == 1)
   {
     PyErr_SetString(PyExc_TypeError,
-                    "subzone: cannot be used on a structured array.");
+                    "subzoneFaces: cannot be used on a structured array.");
     RELEASESHAREDS(arrayNodes, f); return NULL;
   }
 
@@ -1218,13 +1218,13 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     if (resc != 1 && resc != 2)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "subzone: unknown type of array.");
+                      "subzoneFaces: unknown type of array.");
       RELEASESHAREDU(arrayNodes, f, cn); return NULL;
     }
     if (resc == 1)
     {
       PyErr_SetString(PyExc_TypeError,
-                      "subzone: cannot be used on a structured array.");
+                      "subzoneFaces: cannot be used on a structured array.");
       RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDS(arrayCenters, fc); return NULL;
     }
     nfldc = fc->getNfld();
@@ -1426,11 +1426,11 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
       FldArrayI& cm = *(cn->getConnect(ic));
       nelts = cm.getSize();
       // fill the list of facets for this BE
-      ierr = K_CONNECT::getEVFacets(facetspc[ic], eltTypes[ic]);
+      ierr = K_CONNECT::getEVFacets(facetspc[ic], eltTypes[ic], false);
       if (ierr == 1)
       {
         PyErr_SetString(PyExc_TypeError,
-                        "subzone: element type not taken into account.");
+                        "subzoneFaces: element type not taken into account.");
         for (E_Int ic = 0; ic < nc; ic++) delete [] eltTypes[ic];
         RELEASESHAREDU(arrayNodes, f, cn);
         if (arrayCenters != NULL) RELEASESHAREDU(arrayCenters, fc, cnc);
@@ -1485,6 +1485,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     }
 
     // Loop over all faces to select
+    std::vector<E_Int> nepc2(2, 0);
     for (E_Int i = 0; i < n; i++)
     {
       E_Int indf = faceListp[i]-1; // global face indexing
@@ -1493,7 +1494,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
         if (indf < nfpc[j+1]) { fic = j; break; }
       if (fic == -1)
       {
-        printf("Warning: subzone: face index " SF_D_ " is larger than the "
+        printf("Warning: subzoneFaces: face index " SF_D_ " is larger than the "
                "total number of faces: " SF_D_ ". Skipping...\n", indf+1, nfacesTot);
         continue;
       }
@@ -1514,6 +1515,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
       }
       F.set(face.data(), nvpf);
       auto resF = faceMap.insert({F, FaceAttrs(fic, eidx, fidx, indf)});
+      if (resF.second && dim == 3) nepc2[nvpf-3]++;  // TRI (0), QUAD (1)
       if (nfldc > 0)
       {
         if (resF.second) pe1[indf] = eidx+1;
@@ -1523,34 +1525,65 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
 
     // Build new ME connectivity
     E_Int nelts2 = faceMap.size();
-    E_Bool center = false;
-    char eltTypeFaces[10];
-    if (dim == 1) strcpy(eltTypeFaces, "NODE");
-    else if (dim == 2) strcpy(eltTypeFaces, "BAR");
-    else if (K_STRING::cmp(eltTypes[0], "TETRA") == 0) strcpy(eltTypeFaces, "TRI");
-    else strcpy(eltTypeFaces, "QUAD");
-    // if (nc2 > 1) api = 3;  TODO
-    tpln = K_ARRAY::buildArray3(nfld, varString, npts2, nelts2,
-                                eltTypeFaces, center, api);
+    char eltType2[10];
+    E_Int nc2 = 1;
+    if (dim == 3 && nepc2[0] != 0 && nepc2[1] != 0)
+    {
+        nc2 = 2; api = 3;
+        strcpy(eltType2, "TRI,QUAD");
+    }
+    else
+    {
+      if (dim == 1) strcpy(eltType2, "NODE");
+      else if (dim == 2) strcpy(eltType2, "BAR");
+      else if (nepc2[0] == 0) strcpy(eltType2, "QUAD");
+      else strcpy(eltType2, "TRI");
+      nepc2.resize(1); nepc2[0] = nelts2;
+    }
+
+    tpln = K_ARRAY::buildArray3(nfld, varString, npts2, nepc2,
+                                eltType2, false, api);
     K_ARRAY::getFromArray3(tpln, f2, cn2);
-    FldArrayI& cm2 = *(cn2->getConnect(0));
 
     // Copy connectivity to cn2
-    eidx = 0;
     E_Int indv;
-    for (const auto& face : faceMap)
+    if (nc2 == 1)
     {
-      nvpf = face.first.n_;
-      FaceAttrs fattrs = face.second;
-      FldArrayI& cm = *(cn->getConnect(fattrs.ic_));
-      const vector<E_Int>& facet = facetspc[fattrs.ic_][fattrs.fidx_];
-
-      for (E_Int j = 0; j < nvpf; j++)
+      eidx = 0;
+      FldArrayI& cm2 = *(cn2->getConnect(0));
+      for (const auto& face : faceMap)
       {
-        indv = cm(fattrs.eidx_,facet[j])-1;
-        cm2(eidx,j+1) = indirVertices[indv];
+        nvpf = face.first.n_;
+        FaceAttrs fattrs = face.second;
+        FldArrayI& cm = *(cn->getConnect(fattrs.ic_));
+        const vector<E_Int>& facet = facetspc[fattrs.ic_][fattrs.fidx_];
+
+        for (E_Int j = 0; j < nvpf; j++)
+        {
+          indv = cm(fattrs.eidx_,facet[j])-1;
+          cm2(eidx,j+1) = indirVertices[indv];
+        }
+        eidx++;
       }
-      eidx++;
+    }
+    else
+    {
+       nepc2[0] = 0; nepc2[1] = 0;
+       for (const auto& face : faceMap)
+      {
+        nvpf = face.first.n_;
+        FaceAttrs fattrs = face.second;
+        FldArrayI& cm = *(cn->getConnect(fattrs.ic_));
+        FldArrayI& cm2 = *(cn2->getConnect(nvpf-3));
+        const vector<E_Int>& facet = facetspc[fattrs.ic_][fattrs.fidx_];
+
+        for (E_Int j = 0; j < nvpf; j++)
+        {
+          indv = cm(fattrs.eidx_,facet[j])-1;
+          cm2(nepc2[nvpf-3],j+1) = indirVertices[indv];
+        }
+        nepc2[nvpf-3]++;
+      }
     }
 
     // To fill fc2, continue populating ParentElements by looping over all
@@ -1568,7 +1601,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
             if (i < nfpc[j+1]) { fic = j; break; }
           if (fic == -1)
           {
-            printf("Warning: subzone: face index " SF_D_ " is larger than the "
+            printf("Warning: subzoneFaces: face index " SF_D_ " is larger than the "
                   "total number of faces: " SF_D_ ". Skipping...\n", i+1, nfacesTot);
             continue;
           }
@@ -1638,7 +1671,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     {
       parentElts.clear();
       // Build array
-      tplc = K_ARRAY::buildArray3(*fc2, varStringc, *cn2, eltTypeFaces, api);
+      tplc = K_ARRAY::buildArray3(*fc2, varStringc, *cn2, eltType2, api);
     }
     for (E_Int ic = 0; ic < nc; ic++) delete [] eltTypes[ic];
   }
