@@ -86,3 +86,14 @@ c = G.cartHexa((0.8,0.,0.), (0.1,0.1,0.1), (5,5,5))
 a = C.mergeConnectivity([a, b, c], None)
 b = P.exteriorFaces(a)
 test.testT(b, 14)
+
+# -- BE with tri and quad faces
+# PYRA
+a = G.cartPyra((0,0,0), (1,1,1), (5,5,5))
+b = P.exteriorFaces(a)
+test.testT(b, 20)
+
+# PENTA
+a = G.cartPenta((0,0,0), (1,1,1), (5,5,5))
+b = P.exteriorFaces(a)
+test.testT(b, 21)

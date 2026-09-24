@@ -290,19 +290,10 @@ def exteriorFaces(a, indices=None):
     if isinstance(a[0], list):
         b = []
         for i in a:
-            b.append(exteriorFacesForOneArray__(i, indices))
+            b.append(post.exteriorFaces(i, indices))
         return b
     else:
-        return exteriorFacesForOneArray__(a, indices)
-
-def exteriorFacesForOneArray__(a, indices):
-    # To be commented in next release
-    if len(a) == 4 and (a[3] == 'PENTA' or a[3] == 'PYRA'):
-        try:
-            import Generator
-            a = Converter.convertArray2NGon(a)
-        except: pass
-    return post.exteriorFaces(a, indices)
+        return post.exteriorFaces(a, indices)
 
 def exteriorElts(array):
     """Exterior elements of an array.
