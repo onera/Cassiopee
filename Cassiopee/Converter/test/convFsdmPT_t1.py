@@ -46,6 +46,12 @@ T._contract(m, (0,0,0), (1,0,0), (0,1,0), dz)
 # Add BCs
 ext = []
 for i in m:
+    elts = Internal.getElementNodes(i)
+    for elt in elts:
+        eltName = Internal.eltNo2EltName(elt[1][0])[0]
+        if eltName in ['PENTA', 'PYRA']:
+            i = C.convertArray2NGon(i)
+            break
     e = P.exteriorFaces(i)
     ext += T.splitSharpEdges(e, 30.) # because of prisms, ext is in ngon
 

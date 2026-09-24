@@ -164,6 +164,12 @@ def createDragonMesh0(body, dictOfParams={}, check=False, directory_tmp_files='.
     lay1 = G.addNormalLayers(body, distrib, check=1, niter=smoothIter)
     lay.append(lay1); # layy = lay[0]  ?
     if check: C.convertPyTree2File(lay, directory_tmp_files+'layer.cgns')
+    elts = Internal.getElementNodes(lay[0])
+    for elt in elts:
+        eltName = Internal.eltNo2EltName(elt[1][0])[0]
+        if eltName in ['PENTA', 'PYRA']:
+            lay[0] = C.convertArray2NGon(lay[0])
+            break
     ext = P.exteriorFaces(lay[0])
     if sym is None:
         ext = T.splitConnexity(ext)
