@@ -52,17 +52,17 @@ N = 11
 d = G.cartNGon((0,0,0), (1,0,1), (N,1,N), api=1)
 facesL = [i for i in range(1, N+1)] + [N*(N-1) + i for i in range(1, 2*N-1)]
 C._initVars(d, '{F}={CoordinateX}')
-C._initVars(d, '{centers:G}={centers:CoordinateY}')
+C._initVars(d, '{centers:G}={centers:CoordinateX}')
 d = T.subzone(d, facesL, type='faces')
 test.testT(d, 10)
 
 # 1D
 N = 11
 d = G.cartNGon((0,0,0), (1,0,0), (N,1,1), api=1)
-facesL = [i for i in range(1, N+1)]
+facesL = [i for i in range(1, 5)]
 C._initVars(d, '{F}={CoordinateX}')
-C._initVars(d, '{centers:G}={centers:CoordinateY}')
-#d = T.subzone(d, facesL, type='faces')
+C._initVars(d, '{centers:G}={centers:CoordinateX}')
+#d = T.subzone(d, facesL, type='faces')  # not implemented yet, output must be NODE
 #C.convertPyTree2File(d, 'out.cgns'); exit()
 #test.testT(d, 11)
 
@@ -74,24 +74,24 @@ facesL = [i for i in range(1, N*N+1)]
 C._initVars(d, '{F}={CoordinateX}')
 C._initVars(d, '{centers:G}={centers:CoordinateY}')
 d = T.subzone(d, facesL, type='faces')
-#test.testT(d, 12)
+test.testT(d, 12)
 
 # 2D
 N = 11
 d = G.cartNGon((0,0,0), (1,0,1), (N,1,N), api=3)
 facesL = [i for i in range(1, N+1)] + [N*(N-1) + i for i in range(1, 2*N-1)]
 C._initVars(d, '{F}={CoordinateX}')
-C._initVars(d, '{centers:G}={centers:CoordinateY}')
+C._initVars(d, '{centers:G}={centers:CoordinateX}')
 d = T.subzone(d, facesL, type='faces')
-#test.testT(d, 13)
+test.testT(d, 13)
 
 # 1D
 N = 11
 d = G.cartNGon((0,0,0), (1,0,0), (N,1,1), api=3)
-facesL = [i for i in range(1, N+1)]
+facesL = [i for i in range(1, 5)]
 C._initVars(d, '{F}={CoordinateX}')
-C._initVars(d, '{centers:G}={centers:CoordinateY}')
-#d = T.subzone(d, facesL, type='faces')
+C._initVars(d, '{centers:G}={centers:CoordinateX}')
+#d = T.subzone(d, facesL, type='faces')  # not implemented yet, output must be NODE
 #C.convertPyTree2File(d, 'out.cgns'); exit()
 #test.testT(d, 14)
 
