@@ -247,15 +247,13 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
       RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDU(arrayCenters, fc, cnc);
       return NULL;
     }
-    // if (cnc->getNElts() != cn->getNElts())
-    // {
-    //   std::cout << "cnc->getNElts()  = " << cnc->getNElts() << std::endl;
-    //   std::cout << "cn->getNElts()  = " << cn->getNElts() << std::endl;
-    //   PyErr_SetString(PyExc_TypeError,
-    //                   "subzoneUnstruct: sizes of connectivities at nodes and centers are not equal.");
-    //   RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDU(arrayCenters, fc, cnc);
-    //   return NULL;
-    // }
+    if (cnc->getNElts() != cn->getNElts())
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "subzoneUnstruct: sizes of connectivities at nodes and centers are not equal.");
+      RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDU(arrayCenters, fc, cnc);
+      return NULL;
+    }
 
     nfldc = fc->getNfld();
   }
@@ -1602,7 +1600,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
       for (const auto& face : faceMap)
       {
         nvpf = face.first.n_;
-        FaceAttrs fattrs = face.second;
+        const FaceAttrs& fattrs = face.second;
         FldArrayI& cm = *(cn->getConnect(fattrs.ic_));
         const vector<E_Int>& facet = facetspc[fattrs.ic_][fattrs.fidx_];
 
@@ -1620,7 +1618,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
        for (const auto& face : faceMap)
       {
         nvpf = face.first.n_;
-        FaceAttrs fattrs = face.second;
+        const FaceAttrs& fattrs = face.second;
         FldArrayI& cm = *(cn->getConnect(fattrs.ic_));
         FldArrayI& cm2 = *(cn2->getConnect(nvpf-3));
         const vector<E_Int>& facet = facetspc[fattrs.ic_][fattrs.fidx_];

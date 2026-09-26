@@ -167,14 +167,14 @@ class FldArray
     inline E_Int getApi() { if (_compact == false) return 3; else return 1; }
 
     /** Get dimensionality, NGon and ME. */
-    // For ME, see K_CONNECT::getDimME.
     inline E_Int getDim(char* eltType=NULL);
+    inline E_Int getDim(std::vector<char*>& eltTypes);
     /** Get number of elements, NGon and ME. */
     inline E_Int getNElts();
 
     /** Get/Set NGon */
     inline E_Int getNGonType() const { return _ngon; }
-    inline E_Bool isNGon() const { return _ngon > 0; }
+    inline E_Bool isNGon();
     // 1: compact array1 NGONv3, 2: rake NGONv3, 3: rake NGONv4
     void setNGonType(E_Int ngon) { _ngon = ngon; };
     /** Only if NGon */
@@ -318,6 +318,12 @@ class FldArray
     //copy from
     void __cpyFrom(const E_Int& deb, const E_Int& sizerhs, const E_Int& sizelhs,
                    const E_Int& nfld, const T* rhs, T* lhs);
+    
+    // Whether this may be an NGon Array 1 connectivity (case _ngon = 0)
+    inline E_Bool _hasNGonArray1Layout();
+    // Get dimensionality, NGon and ME
+    inline E_Int _getDimBE(char* eltType);
+    inline E_Int _getDimNGon();
 
   private:
 
@@ -502,6 +508,30 @@ void FldArray<T>::setitems(int i, int j, T value)
 
 //==============================================================================
 TEMPLATE_T
+E_Bool FldArray<T>::_hasNGonArray1Layout()
+{
+  if (_ngon == 1) return true;
+  else if (_ngon != 0) return false;
+  if (_BEConnects.size() > 0) return false;
+
+  if (!_compact || _nfldLoc != 1 || _sizeLoc < 4) return false;
+  E_Int nfaces = _data[0], sizeNGon = _data[1];
+  if (nfaces < 0 || sizeNGon < 0 || 3+sizeNGon >= _sizeLoc) return false;
+  E_Int nelts = _data[2+sizeNGon], sizeNFace = _data[3+sizeNGon];
+  if (nelts < 0 || sizeNFace < 0) return false;
+  if (4+sizeNGon+sizeNFace == _sizeLoc) { _ngon = 1; return true; }
+  return false;
+}
+
+//==============================================================================
+TEMPLATE_T
+E_Bool FldArray<T>::isNGon()
+{
+  return _ngon > 0 || _hasNGonArray1Layout();
+}
+
+//==============================================================================
+TEMPLATE_T
 E_Int FldArray<T>::getNFaces()
 {
   if (_ngon >= 2) // Array2/3
@@ -518,43 +548,86 @@ E_Int FldArray<T>::getNFaces()
 TEMPLATE_T
 E_Int FldArray<T>::getDim(char* eltType)
 {
-  E_Int size0;  // number of vertices of the first face
+  if (isNGon()) return _getDimNGon();
+
+  // BE/ME connectivity
   E_Int dim = 3;
-  // if (_ngon > 0)  // NGon
-  // {
-    if (_ngon == 3)  // Array3/NGonv4
-    {
-      if (getNFaces() == 0) return dim;
-      E_Int* indPG = _rake[2];
-      E_Int pos0 = indPG[0];
-      size0 = indPG[1] - pos0;
-    }
-    else if (_ngon == 2)  // Array3/NGonv3
-    {
-      if (getNFaces() == 0) return dim;
-      E_Int* ngon = _rake[0];
-      E_Int* indPG = _rake[2];
-      E_Int pos0 = indPG[0];
-      size0 = ngon[pos0];
-    }
-    else // Array1/NGONv3
-    {
-      if (getNFaces() == 0) return dim;
-      E_Int* ngon = _rake[0]+2;
-      E_Int* indPG = getIndPG();
-      E_Int pos0 = indPG[0];
-      size0 = ngon[pos0];
-    }
-    if (size0 == 1) dim = 1;
-    else if (size0 == 2) dim = 2;
-  // }
-  // else  // ME connectivity
-  // {
-  //   assert((eltType != NULL) && "The first eltType must be provided.");
-  //   if (strcmp(eltType, "NODE") == 0) dim = 0;
-  //   else if (strcmp(eltType, "BAR") == 0) dim = 1;
-  //   else if (strcmp(eltType, "TRI") == 0 || strcmp(eltType, "QUAD") == 0) dim = 2;
-  // }
+  E_Int nc = getNConnect();
+  if (eltType == NULL)
+  {
+    printf("Error: FldArray::getDim: a valid eltType must be provided "
+           "for BE/ME arrays.\n");
+    exit(1);
+  }
+  assert((eltType != NULL) && "A valid eltType must be provided.");
+  if (nc == 1) dim = _getDimBE(eltType);
+  else
+  {
+    // Extract the first eltType, eltType0
+    char* eltType0 = new char[strlen(eltType) + 1];
+    strcpy(eltType0, eltType);
+    char* comma = strchr(eltType0, ',');
+    if (comma != NULL) *comma = '\0';
+    dim = _getDimBE(eltType0);
+    delete[] eltType0;
+  }
+  return dim;
+}
+
+TEMPLATE_T
+E_Int FldArray<T>::getDim(std::vector<char*>& eltTypes)
+{
+  if (isNGon()) return _getDimNGon();
+  if (eltTypes[0] == NULL)
+  {
+    printf("Error: FldArray::getDim: a valid eltType must be provided "
+           "for BE/ME arrays.\n");
+    exit(1);
+  }
+  return _getDimBE(eltTypes[0]);
+}
+
+TEMPLATE_T
+E_Int FldArray<T>::_getDimBE(char* eltType)
+{
+  E_Int dim = 3;
+  if (strncmp(eltType, "NODE", 4) == 0) dim = 0;
+  else if (strncmp(eltType, "BAR", 3) == 0) dim = 1;
+  else if (strncmp(eltType, "TRI", 3) == 0 ||
+           strncmp(eltType, "QUAD", 4) == 0) dim = 2;
+  return dim;
+}
+
+TEMPLATE_T
+E_Int FldArray<T>::_getDimNGon()
+{
+  E_Int dim = 3;
+  E_Int size0;  // number of vertices of the first face
+  if (_ngon == 3)  // Array3/NGonv4
+  {
+    if (getNFaces() == 0) return dim;
+    E_Int* indPG = _rake[2];
+    E_Int pos0 = indPG[0];
+    size0 = indPG[1] - pos0;
+  }
+  else if (_ngon == 2)  // Array3/NGonv3
+  {
+    if (getNFaces() == 0) return dim;
+    E_Int* ngon = _rake[0];
+    E_Int* indPG = _rake[2];
+    E_Int pos0 = indPG[0];
+    size0 = ngon[pos0];
+  }
+  else // Array1/NGONv3
+  {
+    if (getNFaces() == 0) return dim;
+    E_Int* ngon = _rake[0]+2;
+    E_Int* indPG = getIndPG();
+    E_Int pos0 = indPG[0];
+    size0 = ngon[pos0];
+  }
+  if (size0 == 1) dim = 1;
+  else if (size0 == 2) dim = 2;
   return dim;
 }
 
@@ -562,23 +635,31 @@ E_Int FldArray<T>::getDim(char* eltType)
 TEMPLATE_T
 E_Int FldArray<T>::getNElts()
 {
-  if (_ngon >= 2) // Array2/3
+  if (isNGon())
   {
+    if (_ngon >= 2) // Array2/3
+    {
+      return _nelts;
+    }
+    else //if (_ngon == 1) // Array1
+    {
+      E_Int sizeNGon = _rake[0][1];
+      return _rake[0][sizeNGon+2]; 
+    }
+  }
+  else  // BE/ME
+  {
+    if (_nelts > 0) return _nelts;
+    E_Int nc = _BEConnects.size();
+    if (nc == 0) _nelts = this->getSize();  // BE
+    else  // BE or ME
+    {
+      _nelts = 0;
+      for (E_Int ic = 0; ic < nc; ic++)
+        _nelts += _BEConnects[ic]->getSize();
+    }
     return _nelts;
   }
-  else //if (_ngon == 1) // Array1
-  {
-    E_Int sizeNGon = _rake[0][1];
-    return _rake[0][sizeNGon+2]; 
-  }
-  // else // ME connectivity
-  // {
-  //   if (_nelts > 0) { return _nelts; }
-  //   _nelts = 0;
-  //   for (size_t i = 0; i < _BEConnects.size(); i++)
-  //     _nelts += _BEConnects[i]->getSize();
-  //   return _nelts;
-  // }
 }
 
 //==============================================================================
@@ -1776,7 +1857,7 @@ E_Int FldArray<T>::compact(FldArray& a, const Vector1& keep, Vector2& new_Ids)
 
 // ME connectivities
 TEMPLATE_T
-FldArray<T>::FldArray(std::vector< FldArray<T>* >& list)
+FldArray<T>::FldArray(std::vector<FldArray<T>* >& list)
 {
   _ngon = 0;
   _compact = false;
