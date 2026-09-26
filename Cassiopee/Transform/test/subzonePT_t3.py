@@ -116,8 +116,7 @@ P.exteriorFaces(d, indices=indices)
 nf = len(indices[0])
 indices = indices[0][:nf//2]  # first half of all exterior faces
 d = T.subzone(d, indices, type='faces')
-#C.convertPyTree2File(d, 'out.cgns'); exit()
-test.testT(d, 15) # TODO known bug centers:G - same as in T.join
+test.testT(d, 15)
 
 # PENTA
 N = 11
@@ -129,7 +128,6 @@ P.exteriorFaces(d, indices=indices)
 nf = len(indices[0])
 indices = indices[0][:nf//2]  # first half of all exterior faces
 d = T.subzone(d, indices, type='faces')
-#C.convertPyTree2File(d, 'out.cgns'); exit()
 test.testT(d, 16)
 
 # HEXA
@@ -139,8 +137,7 @@ facesL = [i for i in range(2, N*N+1)]
 C._initVars(d, '{F}={CoordinateX}')
 C._initVars(d, '{centers:G}={centers:CoordinateY}')
 d = T.subzone(d, facesL, type='faces')
-#C.convertPyTree2File(d, 'out.cgns'); exit()
-test.testT(d, 3)  # TODO bug centers:G
+test.testT(d, 3)
 
 # QUAD
 N = 51
