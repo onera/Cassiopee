@@ -92,7 +92,7 @@ ac2 = C.node2Center(a2); ac2 = C.initVars(ac2,'G',5.);ac2 = C.extractVars(ac2,['
 res = T.join(a1, a2, ac1, ac2)
 test.testA(res,42)
 
-# Join 2 SRUCT-1D
+# Join 2 STRUCT-1D
 a1 = D.line((0.,0.,0.), (1.,0.,0), 100)
 a1 = C.initVars(a1, 'F', 2)
 a2 = D.line((1.,0.,0.), (1.,1,0), 100)

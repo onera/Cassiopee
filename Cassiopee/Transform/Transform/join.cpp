@@ -951,11 +951,13 @@ PyObject* K_TRANSFORM::joinUnstructured(
 
   // Concatenate eltTypes, discard duplicates
   // Compute the number of elements per conn. and fill the indirection table
-  E_Int nc = 0;
-  vector<E_Int> indir(nc1+nc2, -1);
-  vector<E_Int> nepc(nc1+nc2, 0);
+  E_Int nc = 0, ncOrig = nc1 + nc2;
+  E_Int ntotElts1 = 0, ntotElts2 = 0;
+  vector<E_Int> indir(ncOrig, -1);
+  vector<E_Int> nepc(ncOrig, 0);         // number of elements per output conn. (contiguous)
+  vector<E_Int> cumnepcOrig(ncOrig, 0);  // cumulative number of elements per input conn. (may not be contiguous)
 
-  for (E_Int ic = 0; ic < nc1+nc2; ic++)
+  for (E_Int ic = 0; ic < ncOrig; ic++)
   {
     E_Int pos, nelts;
     if (ic < nc1)
@@ -963,12 +965,16 @@ PyObject* K_TRANSFORM::joinUnstructured(
       etype = eltTypes1[ic];
       FldArrayI& cm1 = *(cn1.getConnect(ic));
       nelts = cm1.getSize();
+      cumnepcOrig[ic] = ntotElts1;
+      ntotElts1 += nelts;
     }
     else
     {
       etype = eltTypes2[ic-nc1];
       FldArrayI& cm2 = *(cn2.getConnect(ic-nc1));
       nelts = cm2.getSize();
+      cumnepcOrig[ic] = ntotElts2;
+      ntotElts2 += nelts;
     }
     ntotElts += nelts;
 
@@ -1004,6 +1010,10 @@ PyObject* K_TRANSFORM::joinUnstructured(
   for (size_t ic = 0; ic < eltTypes1.size(); ic++) delete [] eltTypes1[ic];
   for (size_t ic = 0; ic < eltTypes2.size(); ic++) delete [] eltTypes2[ic];
 
+  // cumulative number of elements per output conn. (contiguous)
+  vector<E_Int> cumnepc(nc, 0);
+  for (E_Int ic = 1; ic < nc; ic++) cumnepc[ic] = cumnepc[ic-1] + nepc[ic-1];
+
   // Fusion des connectivites
   PyObject* tpln = K_ARRAY::buildArray3(nfld, varString, npts, nepc,
                                         eltType, false, api);
@@ -1022,7 +1032,7 @@ PyObject* K_TRANSFORM::joinUnstructured(
 
   #pragma omp parallel
   {
-    E_Int ico, nelts, nvpe, offV;
+    E_Int icDst, nelts, nvpe, offV, offOrig, offDst;
     vector<E_Int> offE(nc, 0);
 
     // Copie des champs aux noeuds
@@ -1037,35 +1047,39 @@ PyObject* K_TRANSFORM::joinUnstructured(
       for (E_Int i = 0; i < npts2; i++) fn[i+npts1] = f2n[i];
     }
 
-    // Copie des champs aux centres
-    for (E_Int n = 1; n <= nfldc; n++)
-    {
-      E_Float* fc1n = fc1->begin(n);
-      E_Float* fc2n = fc2->begin(n);
-      E_Float* fcn = fc->begin(n);
-      E_Int nelts1 = fc1->getSize();
-      #pragma omp for
-      for (E_Int i = 0; i < nelts1; i++) fcn[i] = fc1n[i];
-      #pragma omp for
-      for (E_Int i = 0; i < fc2->getSize(); i++) fcn[i+nelts1] = fc2n[i];
-    }
-
     // Boucle sur toutes les connectivites
-    for (E_Int ic = 0; ic < nc1+nc2; ic++)
+    for (E_Int ic = 0; ic < ncOrig; ic++)
     {
       offV = ic < nc1 ? 0 : npts1;
-      ico = indir[ic];
-      FldArrayI& cmi = *(ic < nc1 ? cn1.getConnect(ic) : cn2.getConnect(ic));
-      FldArrayI& cmo = *(cn->getConnect(ico));
-      nelts = cmi.getSize();
-      nvpe = cmi.getNfld();
+      icDst = indir[ic];
+      FldArrayI& cmOrig = (ic < nc1) ? *(cn1.getConnect(ic)) : *(cn2.getConnect(ic-nc1));
+      FldArrayI& cm = *(cn->getConnect(icDst));
+      nelts = cmOrig.getSize();
+      nvpe = cmOrig.getNfld();
 
       #pragma omp for
       for (E_Int i = 0; i < nelts; i++)
         for (E_Int j = 1; j <= nvpe; j++)
-          cmo(i+offE[ico],j) = cmi(i,j) + offV;
+          cm(i+offE[icDst],j) = cmOrig(i,j) + offV;
 
-      offE[ico] += nelts;
+      // Copie des champs aux centres pour cette connectivite d'input
+      if (nfldc > 0)
+      {
+        FldArrayF& fcOrig = (ic < nc1) ? *fc1 : *fc2;
+        offOrig = cumnepcOrig[ic];
+        offDst = cumnepc[icDst] + offE[icDst];
+
+        for (E_Int n = 1; n <= nfldc; n++)
+        {
+          E_Float* fcOrign = fcOrig.begin(n);
+          E_Float* fcn = fc->begin(n);
+          #pragma omp for
+          for (E_Int i = 0; i < nelts; i++) fcn[i+offDst] = fcOrign[i+offOrig];
+        }
+      }
+
+      // Increment offset
+      offE[icDst] += nelts;
     }
   }
 
