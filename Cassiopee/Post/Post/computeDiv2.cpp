@@ -1092,17 +1092,17 @@ PyObject* K_POST::computeDiv2Struct2D(
 
   // divergence
   E_Int indcellg, indcelld;
-  E_Float ffi, ffj, ffk;
+  E_Float ffi, ffj;
   for (E_Int n = 0; n < nfld; n++)
   {
     E_Float* gpdv = gn->begin(n+1);
     E_Float* fpi = faceField.begin(3*n+1);
     E_Float* fpj = faceField.begin(3*n+2);
-    E_Float* fpk = faceField.begin(3*n+3);
+    //E_Float* fpk = faceField.begin(3*n+3);
     for (E_Int i = 0; i < nbIntTot; i++)
     {
       indcellg = cellG[i]; indcelld = cellD[i];
-      ffi = fpi[i]; ffj = fpj[i]; ffk = fpk[i];
+      ffi = fpi[i]; ffj = fpj[i]; //ffk = fpk[i];
       if (indcellg != -1)
       {
         gpdv[indcellg] += ffi*sxint[i] + ffj*syint[i]; //+ ffk*szint[i];

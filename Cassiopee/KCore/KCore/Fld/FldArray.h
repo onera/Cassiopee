@@ -634,7 +634,7 @@ E_Int FldArray<T>::_getDimNGon()
 //==============================================================================
 TEMPLATE_T
 E_Int FldArray<T>::getNElts()
-{
+{  
   if (isNGon())
   {
     if (_ngon >= 2) // Array2/3
@@ -1860,6 +1860,7 @@ TEMPLATE_T
 FldArray<T>::FldArray(std::vector<FldArray<T>* >& list)
 {
   _ngon = 0;
+  _nelts = 0;
   _compact = false;
   _nfldMax = 0;
   _BEConnects = list;

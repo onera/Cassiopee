@@ -180,7 +180,7 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
         FldArrayI cFE;
         K_CONNECT::connectNG2FE(*cnc, cFE);
         E_Int* cFE1 = cFE.begin(1);
-        E_Int* cFE2 = cFE.begin(2);
+        //E_Int* cFE2 = cFE.begin(2);
 
         // neighbor element count for each vertex
         FldArrayI count(npts); count.setAllValuesAtNull();
@@ -206,7 +206,7 @@ PyObject* K_CONVERTER::center2Node(PyObject* self, PyObject* args)
         {
           E_Int indface = pind[i]-1; // BCMatch interface index to correct
           E_Int e1 = cFE1[indface]-1; // Left element index
-          E_Int e2 = cFE2[indface]-1; // Right element index (should be -1)
+          //E_Int e2 = cFE2[indface]-1; // Right element index (should be -1)
           E_Int* face = cnc->getFace(indface, sizeFace, ngon, indPG);
           for (E_Int j = 0; j < sizeFace; j++)
           {
