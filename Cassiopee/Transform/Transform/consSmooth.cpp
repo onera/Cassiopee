@@ -270,24 +270,16 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
   FldArrayF* fo;
   FldArrayI* cno = NULL;
   
-  // Get dimension A VERIFIER PLUS INTENSEMENT
-  E_Int dim = 3;
+  // Get dimension
+  E_Int dim = 0;
   if (res == 1) // Structured
   {
-    E_Int im1 = im - 1;
-    E_Int jm1 = jm - 1;
-    E_Int km1 = km - 1;
-    if (im1 * jm1 * km1 == 0)
-    {
-      if ((im1 && (jm1 || km1)) || (jm1 && km1)) dim = 2;
-      else dim = 1;
-    }
+    if (im > 1) dim += 1;
+    if (jm > 1) dim += 1;
+    if (km > 1) dim += 1;
   }
-  else if (res == 2 && eltType != nullptr) // Unstructured
-  {
-    dim = K_CONNECT::getDimME(eltType);
-  }
-  
+  else dim = cn->getDim(eltType);
+
   if (dim == 1) // 1d curves
   {
     //printf ("consSmooth: on curves.\n");

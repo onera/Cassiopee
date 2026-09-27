@@ -95,8 +95,7 @@ PyObject* K_CONVERTER::identifyNodes(PyObject* self, PyObject* args)
     if (njl > 1) dim += 1;
     if (nkl > 1) dim += 1;
   }
-  else if (K_STRING::cmp(eltType, 4, "NGON") == 0) dim = cn->getDim();
-  else dim = K_CONNECT::getDimME(eltType);
+  else dim = cn->getDim(eltType);
 
   // Cree le numpy de sortie
   E_Int npts = f->getSize();
