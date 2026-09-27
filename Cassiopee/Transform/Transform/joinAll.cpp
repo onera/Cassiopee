@@ -149,10 +149,14 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
   E_Int nfld = unstructF[0]->getNfld();
   E_Int api = (nc > 1) ? 3 : unstructF[0]->getApi();
   E_Int ngonType = -1;
-  vector<E_Int> neltsME;
   E_Int ntotElts = 0;
   E_Int res2 = 2;
   FldArrayF* f2; FldArrayI* cn2;
+
+  // Remplissage table d'indirection et nombre d'elements par eltType
+  vector<E_Int> nepc(nc);                   // number of elements per output conn. (contiguous)
+  vector<E_Int> cumnepc(nc, 0);             // cumulative number of elements per output conn. (contiguous)
+  vector<vector<E_Int> > cumnepcOrig(nu);   // cumulative number of elements per input list of conn. (may not be contiguous)
 
   if (K_STRING::cmp(eltRef, "NGON") == 0)
   {
@@ -196,13 +200,14 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
     K_ARRAY::extractVars(newEltType, newEltTypes);
 
     // Remplissage table d'indirection et nombre d'elements par eltType
-    neltsME.resize(nc); neltsME.assign(nc, 0);
     for (E_Int k = 0; k < nu; k++)
     {
       vector<char*> eltTypesk;
       K_ARRAY::extractVars(eltType[k], eltTypesk);
 
       E_Int nck = cn[k]->getNConnect();
+      cumnepcOrig[k].resize(nck+1); cumnepcOrig[k][0] = 0;
+
       for (E_Int ic = 0; ic < nck; ic++)
       {
         if (indir[k][ic] == -2) continue; // skip
@@ -213,15 +218,18 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
         }
         if (indir[k][ic] < 0) continue; // skip
         FldArrayI& cmkic = *(cn[k]->getConnect(ic));
-        neltsME[indir[k][ic]] += cmkic.getSize();
-        ntotElts += cmkic.getSize();
+        E_Int neltskic = cmkic.getSize();
+        nepc[indir[k][ic]] += neltskic;
+        cumnepcOrig[k][ic+1] = cumnepcOrig[k][ic] + neltskic;
+        ntotElts += neltskic;
       }
-
       for (size_t ic = 0; ic < eltTypesk.size(); ic++) delete [] eltTypesk[ic];
     }
     for (size_t ic = 0; ic < newEltTypes.size(); ic++) delete [] newEltTypes[ic];
 
-    tpln = K_ARRAY::buildArray3(nfld, unstructVarString[0], npts, neltsME,
+    for (E_Int ic = 1; ic < nc; ic++) cumnepc[ic] = cumnepc[ic-1] + nepc[ic-1];
+
+    tpln = K_ARRAY::buildArray3(nfld, unstructVarString[0], npts, nepc,
                                 newEltType, false, api);
     K_ARRAY::getFromArray3(tpln, f2, cn2);
   }
@@ -248,9 +256,10 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
   #pragma omp parallel
   {
     E_Int offsetSizeFN = 0, offsetSizeEF = 0;
-    E_Int offsetPts = 0, offsetFaces = 0, offsetElts = 0;
-    std::vector<E_Int> offsetEltsME(nc, 0);
+    E_Int offV = 0, offsetFaces = 0, offsetElts = 0;
+    std::vector<E_Int> offE(nc, 0);  // element offset per output conn.
     E_Int nptsk, nck, neltskic, neltsk, nfacesk, sizeFNk, sizeEFk, ic2;
+    E_Int offOrig, offDst;
 
     for (E_Int k = 0; k < nu; k++)
     {
@@ -266,21 +275,21 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
         E_Float* fkn = unstructF[k]->begin(n);
         E_Float* fn = f2->begin(n);
         #pragma omp for nowait
-        for (E_Int i = 0; i < nptsk; i++) fn[i+offsetPts] = fkn[i];
-      }
-
-      // Copie des champs aux centres
-      for (E_Int n = 1; n <= nfldc; n++)
-      {
-        E_Float* fckn = unstructFc[k]->begin(n);
-        E_Float* fcn = fc->begin(n);
-        #pragma omp for nowait
-        for (E_Int i = 0; i < unstructFc[k]->getSize(); i++)
-          fcn[i+offsetElts] = fckn[i];
+        for (E_Int i = 0; i < nptsk; i++) fn[i+offV] = fkn[i];
       }
 
       if (K_STRING::cmp(eltRef, "NGON") == 0)
       {
+        // Copie des champs aux centres
+        for (E_Int n = 1; n <= nfldc; n++)
+        {
+          E_Float* fckn = unstructFc[k]->begin(n);
+          E_Float* fcn = fc->begin(n);
+          #pragma omp for nowait
+          for (E_Int i = 0; i < unstructFc[k]->getSize(); i++)
+            fcn[i+offsetElts] = fckn[i];
+        }
+
         neltsk = cn[k]->getNElts();
         nfacesk = cn[k]->getNFaces();
         sizeFNk = cn[k]->getSizeNGon();
@@ -292,7 +301,7 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
 
         #pragma omp for nowait
         for (E_Int i = 0; i < sizeFNk; i++)
-          ngon[i+offsetSizeFN] = ngonk[i] + offsetPts;
+          ngon[i+offsetSizeFN] = ngonk[i] + offV;
         #pragma omp for nowait
         for (E_Int i = 0; i < sizeEFk; i++)
           nface[i+offsetSizeEF] = nfacek[i] + offsetFaces;
@@ -320,8 +329,8 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
         nck = cn[k]->getNConnect();
         for (E_Int ic = 0; ic < nck; ic++)
         {
-          ic2 = indir[k][ic];
-          if (ic2 < 0) continue; // skip
+          ic2 = indir[k][ic];  // output conn. position
+          if (ic2 < 0) continue;  // skip
           FldArrayI& cmkic = *(cn[k]->getConnect(ic));
           FldArrayI& cm = *(cn2->getConnect(ic2));
           neltskic = cmkic.getSize();
@@ -329,14 +338,26 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
           #pragma omp for
           for (E_Int i = 0; i < neltskic; i++)
             for (E_Int j = 1; j <= cmkic.getNfld(); j++)
-              cm(i+offsetEltsME[ic2],j) = cmkic(i,j) + offsetPts;
+              cm(i+offE[ic2],j) = cmkic(i,j) + offV;
 
-          // Increment offset
-          offsetEltsME[ic2] += neltskic;
-          offsetElts += neltskic;
+          // Copie des champs aux centres pour cette connectivite d'input
+          offOrig = cumnepcOrig[k][ic];
+          offDst = cumnepc[ic2] + offE[ic2];
+
+          for (E_Int n = 1; n <= nfldc; n++)
+          {
+            E_Float* fckn = unstructFc[k]->begin(n);
+            E_Float* fcn = fc->begin(n);
+            #pragma omp for nowait
+            for (E_Int i = 0; i < neltskic; i++)
+              fcn[i+offDst] = fckn[i+offOrig];
+          }
+
+          // Increment offsets
+          offE[ic2] += neltskic;
         }
       }
-      offsetPts += nptsk;
+      offV += nptsk;
     }
   }
 
