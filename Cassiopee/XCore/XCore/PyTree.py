@@ -229,7 +229,7 @@ def loadAndSplitNGon(fileName):
 
     zonebc = I.getNodeFromType1(z, 'ZoneBC_t')
     bcs = []
-    bcDataSets = [] 
+    bcDataSets = []
     bcNames = []
     bcTypes = {}
     bcTags = {}

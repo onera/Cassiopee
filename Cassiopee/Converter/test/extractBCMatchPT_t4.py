@@ -34,4 +34,3 @@ for z in zones:
         [indFaceR,fldFace]  = C.extractBCMatch(zdonor,gc,dim,varL)
         test.testO([indFaceR,fldFace], it)
         it += 1
-        
