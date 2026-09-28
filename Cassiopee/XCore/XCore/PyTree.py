@@ -229,6 +229,7 @@ def loadAndSplitNGon(fileName):
 
     zonebc = I.getNodeFromType1(z, 'ZoneBC_t')
     bcs = []
+    bcDataSets = [] 
     bcNames = []
     bcTypes = {}
     bcTags = {}
@@ -251,8 +252,9 @@ def loadAndSplitNGon(fileName):
 
             plist = I.getNodeFromName1(bc, 'PointList')
             bcs.append(plist[1][0])
+            bcDataSets.append([])
 
-    arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs])
+    arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs,bcDataSets])
 
     RES = xcore.chunk2partNGon(arrays)
     (mesh, comm_data, solc, sol, bcs, cells, faces, points) = RES

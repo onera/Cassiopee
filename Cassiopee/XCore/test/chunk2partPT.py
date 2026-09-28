@@ -49,7 +49,7 @@ for z in Internal.getZones(distTree):
     fsol = Internal.getNodeFromName2(z, 'FlowSolution')
     den = Internal.getNodeFromName1(fsol, 'Density')[1]
 
-    arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,[],[]])
+    arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,[],[],[],[]])
 
 #comm_data = list of [neighbor proc (int), interproc faces (array),
 #                     corresponding global neighbor ids (array)]
@@ -61,8 +61,7 @@ mesh = RES[2]
 solc = RES[3]
 sol = RES[4]
 
-if rank == 0:
-    print(solc)
+if rank == 0: print(solc)
 
 print('rank', rank, '-> interproc patches:', len(comm_data))
 

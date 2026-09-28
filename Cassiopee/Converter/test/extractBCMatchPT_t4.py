@@ -15,22 +15,23 @@ t = C.initVars(t, '{F}=3*{CoordinateX}+2*{CoordinateY}')
 t = C.initVars(t, '{centers:G}=2.3')
 t = C.initVars(t, '{centers:H}={centers:CoordinateY}')
 t = C.initVars(t, '{centers:M}={centers:CoordinateX}')
-t = X.connectMatch(t,dim=2)
-t = C.fillEmptyBCWith(t,"wall",'BCWall')
+t = X.connectMatch(t, dim=2)
+t = C.fillEmptyBCWith(t, 'wall', 'BCWall')
 
 varL = ['H']
 
 zones = Internal.getZones(t)
-it    = 0
+it = 1
 
 for z in zones:
     dim = Internal.getZoneDim(z)
     gcs = Internal.getNodesFromType2(z, 'GridConnectivity_t')
 
     for gc in gcs:
-        it  = it + 1
         zname  = Internal.getValue(gc)
-        zdonor = Internal.getNodeFromName(t,zname)
+        zdonor = Internal.getNodeFromName(t, zname)
 
         [indFaceR,fldFace]  = C.extractBCMatch(zdonor,gc,dim,varL)
         test.testO([indFaceR,fldFace], it)
+        it += 1
+        

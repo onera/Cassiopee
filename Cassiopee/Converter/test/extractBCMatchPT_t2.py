@@ -21,25 +21,25 @@ t = C.initVars(t, '{centers:G}=2.3')
 t = C.initVars(t, '{centers:H}={centers:CoordinateY}')
 t = C.initVars(t, '{centers:M}={centers:CoordinateX}')
 t = X.connectMatch(t,dim=3)
-t = C.fillEmptyBCWith(t,"wall",'BCWall')
+t = C.fillEmptyBCWith(t, 'wall', 'BCWall')
 
 zones = Internal.getZones(t)
-it    = 0
+it = 1
 
 for z in zones:
     dim = Internal.getZoneDim(z)
     gcs = Internal.getNodesFromType2(z, 'GridConnectivity1to1_t')
 
     for gc in gcs:
-        zname  = Internal.getValue(gc)
-        zdonor = Internal.getNodeFromName(t,zname)
+        zname = Internal.getValue(gc)
+        zdonor = Internal.getNodeFromName(t, zname)
 
-        [indFaceR,fldFace]  = C.extractBCMatch(zdonor,gc,dim,['centers:G','centers:H','centers:M'])
-
-        test.testO([indFaceR,fldFace], it)
-        it  = it + 1
-
-        [indFaceR,fldFace] = C.extractBCMatch(zdonor,gc,dim)
+        [indFaceR,fldFace] = C.extractBCMatch(zdonor,gc,dim,['centers:G','centers:H','centers:M'])
 
         test.testO([indFaceR,fldFace], it)
-        it  = it + 1
+        it += 1
+
+        [indFaceR,fldFace] = C.extractBCMatch(zdonor, gc, dim)
+
+        test.testO([indFaceR,fldFace], it)
+        it += 1

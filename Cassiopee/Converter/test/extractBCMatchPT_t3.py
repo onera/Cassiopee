@@ -21,20 +21,21 @@ t = C.fillEmptyBCWith(t, 'wall', 'BCWall')
 varL = ['H']
 
 zones = Internal.getZones(t)
-it    = 0
+it = 1
 
 for z in zones:
     dim = Internal.getZoneDim(z)
     gcs = Internal.getNodesFromType2(z, 'GridConnectivity_t')
 
     for gc in gcs:
-        it  = it + 1
-        zname  = Internal.getValue(gc)
-        zdonor = Internal.getNodeFromName(t,zname)
+        zname = Internal.getValue(gc)
+        zdonor = Internal.getNodeFromName(t, zname)
 
         [indFaceR,fldFace]  = C.extractBCMatch(zdonor,gc,dim,varL)
         test.testO([indFaceR,fldFace], it)
-
+        it += 1
+        
         [indFaceR,fldFace]  = C.extractBCMatch(zdonor,gc,dim)
 
-        test.testO([indFaceR,fldFace], it+6)
+        test.testO([indFaceR,fldFace], it)
+        it += 1

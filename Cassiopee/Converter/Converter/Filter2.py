@@ -843,8 +843,8 @@ def chunk2part(dt):
     # extract bcNames and bcTypes from chunked zone
     zonebc = Internal.getNodeFromType1(z, 'ZoneBC_t')
     bcs = [] # list of numpys of PL
+    bcDataSets = [] # list of list of numpy of bcfields
     bcNames = []; bcTypes = {}
-    bcDataSets = []
     if zonebc is not None:
         BCs = Internal.getNodesFromType1(zonebc, 'BC_t')
         for bc in BCs:
