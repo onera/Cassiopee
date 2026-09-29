@@ -125,7 +125,6 @@ PyObject* K_GENERATOR::mmgs(PyObject* self, PyObject* args)
   info.hmin = hmin;
   info.hausd = hausd;
   if (hgrad < 0.0) hgrad = -1;
-  else hgrad = log(hgrad);
   info.hgrad = hgrad;
 
   // Structure pour stocker le maillage et la metrique
