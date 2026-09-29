@@ -235,7 +235,7 @@ def checkObject_(objet, refObjet, reference):
         elif (isinstance(refObjet, (numpy.float32, numpy.float64)) and
               isinstance(objet, (numpy.float32, numpy.float64))): pass
         else:
-            print(f"DIFF: object type differs from {reference}."
+            print(f"DIFF: object type differs from {reference}. "
                   f"current: {type(objet)}, ref: {type(refObjet)}.")
             return False
     # autres tests
