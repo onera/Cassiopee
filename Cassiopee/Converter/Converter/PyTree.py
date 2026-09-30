@@ -4600,7 +4600,22 @@ def _recoverBCsGeometric(t, BCInfo, tol=1.e-11, removeBC=True, missingBCInfo=Non
     return None
 
 def _recoverBCsTopologic(t, BCInfo, removeBC=True, indices=None, missingBCInfo=None):
-    if removeBC: _deleteZoneBC__(t)
+    if BCInfo is None and indices is not None:
+        # Vertex reindexing only
+        zones = Internal.getZones(t)
+        for z in zones:
+            dim = Internal.getZoneDim(z)
+            if dim[0] == 'Structured':
+                raise TypeError("recoverBC: not for structured grids.")
+            if dim[3] == 'NGON':
+                pass
+            else:  # BE / ME
+                elts = Internal.getElementBoundaryNodes(z)
+                for elt in elts:
+                    ec = Internal.getNodeFromName(elt, 'ElementConnectivity')[1]
+                    ec[:] = numpy.copy(indices[ec-1] + 1)
+        return None
+    elif removeBC: _deleteZoneBC__(t)
     else:
         raise NotImplementedError("_recoverBCsTopologic: assignement of new BC "
                                   "topologically not implemented yet when "
