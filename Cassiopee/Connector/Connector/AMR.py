@@ -95,9 +95,9 @@ def prepareAMRDataFV__(t_case, t, IBM_parameters=None, check=False, dim=3, local
     # STEP 3: Get Integration Point Front (Recall: IP = integration point (NOT image point) - Target cells in Mittal et al. approach)
     #===============================================================================================================================
     # only done for frontTypeIP=2 - if frontTypeIP=1 it is F1 so blankByIBCBodies is sufficient for the cellN value
-    Cmpi.trace("Extract front faces of IBM target points [start] ", master=True, cpu=False)
+    Cmpi.trace("Extract front faces of IBM integration points [start] ", master=True, cpu=False)
     frontIP = extractFrontIP(t, dim, IBM_parameters, VPM=VPM)
-    Cmpi.trace("Extract front faces of IBM target points [end]   ", master=True, cpu=False)
+    Cmpi.trace("Extract front faces of IBM integration points [end]   ", master=True, cpu=False)
 
     maxDistanceFrontIP = 0.0
     turbDistanceTmp = Internal.getNodeFromName(frontIP, 'TurbulentDistance')[1]
@@ -260,9 +260,9 @@ def prepareAMRDataDG__(t_case, t, IBM_parameters=None, check=False, dim=3, local
     # STEP 3: Get Integration Point Front (Recall: IP = integration point (NOT image point) - Target cells in Mittal et al. approach)
     #===============================================================================================================================
     # only done for frontTypeIP=2 - if frontTypeIP=1 it is F1 so blankByIBCBodies is sufficient for the cellN value
-    Cmpi.trace("Extract front faces of IBM target points [start] ", master=True, cpu=False)
+    Cmpi.trace("Extract front faces of IBM integration points [start] ", master=True, cpu=False)
     frontIP = extractFrontIP(t, dim, IBM_parameters, VPM=VPM)
-    Cmpi.trace("Extract front faces of IBM target points [end]   ", master=True, cpu=False)
+    Cmpi.trace("Extract front faces of IBM integration points [end]   ", master=True, cpu=False)
 
     maxDistanceFrontIP = 0.0
     turbDistanceTmp = Internal.getNodeFromName(frontIP, 'TurbulentDistance')[1]
@@ -1064,12 +1064,12 @@ def getAllIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check,
 
     if check:
         print("Rank: %d :: Writing IBM tecplot files..."%Cmpi.rank, flush=True)
-        Converter.convertArrays2File(ip_pts  , localDir+"targetPts_proc%s.plt" %Cmpi.rank)
+        Converter.convertArrays2File(ip_pts  , localDir+"integrationPts_proc%s.plt" %Cmpi.rank)
         Converter.convertArrays2File(wallpts , localDir+"wallPts_proc%s.plt" %Cmpi.rank)
         Converter.convertArrays2File(imagepts, localDir+"imagePts_proc%s.plt" %Cmpi.rank)
 
     dictOfImagePtsByIBCName={}
-    dictOfTargetPtsByIBCName={}
+    dictOfIntegrationPtsByIBCName={}
     dictOfWallPtsByIBCName={}
     if (len(res) == 3 and frontTypeDP == "2") or (len(res) == 4 and frontTypeDP == "1"):
         noz = 0 #we always have only one zone
@@ -1085,13 +1085,13 @@ def getAllIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check,
             else:
                 ipPtsL=[]; imagePtsL = []; wallPtsL = []
 
-            dictOfTargetPtsByIBCName[ibcTypeL] = [ipPtsL]
+            dictOfIntegrationPtsByIBCName[ibcTypeL] = [ipPtsL]
             dictOfWallPtsByIBCName[ibcTypeL] = [wallPtsL]
             dictOfImagePtsByIBCName[ibcTypeL] = [imagePtsL]
     else:
         raise ValueError("The function connector.getIBMPtsWith/WithoutFront has not worked properly.")
         Cmpi.abort(errorcode=1)
-    return dictOfTargetPtsByIBCName, dictOfImagePtsByIBCName,  dictOfWallPtsByIBCName
+    return dictOfIntegrationPtsByIBCName, dictOfImagePtsByIBCName,  dictOfWallPtsByIBCName
 
 def isDPinDomain__(bbox, coords):
 
@@ -1252,14 +1252,14 @@ def checkMisalignedWallPoints__(ip_pts, wallpts, imagepts, forceAlignment=False,
         #if forceAlignment:
         print("Rank: %d :: ATTENTION!!!!!!! Max offset on rank = %g"%(Cmpi.rank, numpy.max(offsetcheck)), flush=True)
         f_wall   = open(localDir+"wall_misaligned_before_proc%s.dat" %Cmpi.rank, "w")
-        f_target = open(localDir+"target_misaligned_before_proc%s.dat" %Cmpi.rank, "w")
+        f_integration = open(localDir+"integration_misaligned_before_proc%s.dat" %Cmpi.rank, "w")
         f_image  = open(localDir+"image_misaligned_before_proc%s.dat" %Cmpi.rank, "w")
         for i in range(array_check.size):
             f_wall.write("%f %f %f\n" %(x_wall[array_check[i]], y_wall[array_check[i]], z_wall[array_check[i]]))
-            f_target.write("%f %f %f\n" %(x_intp[array_check[i]], y_intp[array_check[i]], z_intp[array_check[i]]))
+            f_integration.write("%f %f %f\n" %(x_intp[array_check[i]], y_intp[array_check[i]], z_intp[array_check[i]]))
             f_image.write("%f %f %f\n" %(x_image[array_check[i]], y_image[array_check[i]], z_image[array_check[i]]))
         f_wall.close()
-        f_target.close()
+        f_integration.close()
         f_image.close()
 
         if not forceAlignment:
@@ -1272,14 +1272,14 @@ def projectMisalignedWallPoints__(ip_pts, imagepts, wallpts, array_check, tb, lo
 
     zsize = numpy.empty((1,3), E_NpyInt, order='F')
     zsize[0,0] = nb_image_pts; zsize[0,1] = 0; zsize[0,2] = 0
-    zone_targetPts = Internal.newZone(name='TargetPoints', zsize=zsize, ztype='Unstructured')
-    gc = Internal.newGridCoordinates(parent=zone_targetPts)
+    zone_integrationPts = Internal.newZone(name='IntegrationPoints', zsize=zsize, ztype='Unstructured')
+    gc = Internal.newGridCoordinates(parent=zone_integrationPts)
     Internal.newDataArray('CoordinateX', value=ip_pts[0][1][0], parent=gc)
     Internal.newDataArray('CoordinateY', value=ip_pts[0][1][1], parent=gc)
     Internal.newDataArray('CoordinateZ', value=ip_pts[0][1][2], parent=gc)
 
-    DTW._distance2Walls(zone_targetPts, tb, type='ortho', signed=0, dim=3, loc='nodes')
-    array_turb_dist = Internal.getNodeFromName(zone_targetPts, "TurbulentDistance")
+    DTW._distance2Walls(zone_integrationPts, tb, type='ortho', signed=0, dim=3, loc='nodes')
+    array_turb_dist = Internal.getNodeFromName(zone_integrationPts, "TurbulentDistance")
     f_wall = open(localDir+"wall_misaligned_after_proc%s.dat" %Cmpi.rank,"w")
     for count in array_check:
         dist = array_turb_dist[1][count]
