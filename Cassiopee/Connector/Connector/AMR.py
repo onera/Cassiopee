@@ -899,12 +899,12 @@ def localOffset__(tbLocal, dim, dir_sym, minSnear, distIP):
 # ===============================================================================================================================
 def _getIBMData__(t, facesExt, tb2, frontIP, frontIP_C, frontDP_gath, bbo, IBM_parameters, check, dim, forceAlignment, localDir):
     Cmpi.trace(" Extracting IBM Points [start]", master=False, cpu=False)
-    ip_pts, image_pts, wall_pts = getAllIBMPoints(tb2, frontIP, frontIP_C, frontDP_gath, bbo, IBM_parameters, check, dim,
+    ip_pts, donor_pts, wall_pts = getAllIBMPoints(tb2, frontIP, frontIP_C, frontDP_gath, bbo, IBM_parameters, check, dim,
                                                   forceAlignment, localDir=localDir)
     Cmpi.trace(" Extracting IBM Points [end]"  , master=False, cpu=False)
 
     Cmpi.trace(" Adding IBCDatasets [start]", master=False, cpu=False)
-    _addIBCData__(t, facesExt, image_pts, wall_pts, ip_pts, IBM_parameters)
+    _addIBCData__(t, facesExt, donor_pts, wall_pts, ip_pts, IBM_parameters)
     Cmpi.trace(" Adding IBCDatasets [end]  ", master=False, cpu=False)
 
     return None
@@ -970,7 +970,7 @@ def getAllIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check,
     if frontTypeDP == "2":
         res = connector.getIBMPtsWithoutFront(ip_pts, bodies, varsn, 'dist', 1)
         wallpts = res[0]
-        imagepts = res[1]
+        donorpts = res[1]
     elif frontTypeDP == "1":
         frontDP = C.getFields(Internal.__GridCoordinates__, frontDP, api=1)
         frontDP = Converter.convertArray2Tetra(frontDP)
@@ -983,7 +983,7 @@ def getAllIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check,
         else: listOfModelingHeightsLoc.append(0.)
         res = connector.getIBMPtsWithFront(ip_pts, listOfSnearsLoc, listOfModelingHeightsLoc, bodies, frontDP, varsn, 1, 2, projAlgo, 0, 0)
         wallpts = res[0]
-        imagepts = res[1]
+        donorpts = res[1]
 
         ## Ouput the IBM points that have a type 3 and type 4 projection
         if len(res) > 3:
@@ -996,7 +996,7 @@ def getAllIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check,
             allCorrectedPts = Converter.extractVars(ip_pts, ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
             nzonesR         = len(allInterpPts)
 
-            nameZone = ['IBM', 'Wall', 'Image']
+            nameZone = ['IBM', 'Wall', 'Donor']
             tLocal3 = C.newPyTree(nameZone)
             tLocal4 = C.newPyTree(nameZone)
             isWrite3 = 0
@@ -1034,41 +1034,41 @@ def getAllIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check,
             del tLocal3
             del tLocal4
 
-        imagepts = projectDPPoints__(ip_pts, imagepts, wallpts, varsn, 1e-8)
-    # Check if any of the image points lays outside the bbox. In this case we modify it.
-    if isDPinDomain__(bbo,imagepts)[0] == False:
+        donorpts = projectDPPoints__(ip_pts, donorpts, wallpts, varsn, 1e-8)
+    # Check if any of the donor points lays outside the bbox. In this case we modify it.
+    if isDPinDomain__(bbo,donorpts)[0] == False:
         print("Rank: %d :: Warning: At least one donor point lays outside the bbox. The point is being moved closer to the wall..."%Cmpi.rank, flush=True)
-        list_ids_outside_box = isDPinDomain__(bbo, imagepts)[1]
+        list_ids_outside_box = isDPinDomain__(bbo, donorpts)[1]
         epsilon = 0.9
         while (epsilon >= 0.1):
-            print("Rank: %d :: Moving the badly located image point at epsilon %.2f %% of the initial distance from the wall."%(Cmpi.rank, epsilon), flush=True)
-            imagepts2correct = copy.deepcopy(imagepts)
-            imagepts_modified = projectDPPoints__(ip_pts, imagepts2correct, wallpts, varsn, epsilon, list_ids_outside_box, tb)
+            print("Rank: %d :: Moving the badly located donor point at epsilon %.2f %% of the initial distance from the wall."%(Cmpi.rank, epsilon), flush=True)
+            donorpts2correct = copy.deepcopy(donorpts)
+            donorpts_modified = projectDPPoints__(ip_pts, donorpts2correct, wallpts, varsn, epsilon, list_ids_outside_box, tb)
 
-            if isDPinDomain__(bbo, imagepts_modified)[0] == False:
+            if isDPinDomain__(bbo, donorpts_modified)[0] == False:
                 epsilon = epsilon - 0.1
             else:
-                imagepts = imagepts_modified
+                donorpts = donorpts_modified
                 break
-        if isDPinDomain__(bbo, imagepts)[0] == False:
+        if isDPinDomain__(bbo, donorpts)[0] == False:
             raise ValueError("Moving the points has not worked. Exiting..")
             Cmpi.abort(errorcode=1)
 
     wallpts  = Converter.extractVars(wallpts,  ['CoordinateX','CoordinateY','CoordinateZ'])
-    imagepts = Converter.extractVars(imagepts, ['CoordinateX','CoordinateY','CoordinateZ'])
+    donorpts = Converter.extractVars(donorpts, ['CoordinateX','CoordinateY','CoordinateZ'])
     ip_pts   = Converter.extractVars(ip_pts,   ['CoordinateX','CoordinateY','CoordinateZ'])
-    array_check = checkMisalignedWallPoints__(ip_pts[0][1], wallpts[0][1], imagepts[0][1], forceAlignment, localDir=localDir)
+    array_check = checkMisalignedWallPoints__(ip_pts[0][1], wallpts[0][1], donorpts[0][1], forceAlignment, localDir=localDir)
     if array_check.size != 0 and forceAlignment==True:
-        wallpts = projectMisalignedWallPoints__(ip_pts, imagepts, wallpts, array_check, tb, localDir=localDir)
-    _checkDPtoIPDistance__(ip_pts[0][1], imagepts[0][1])
+        wallpts = projectMisalignedWallPoints__(ip_pts, donorpts, wallpts, array_check, tb, localDir=localDir)
+    _checkDPtoIPDistance__(ip_pts[0][1], donorpts[0][1])
 
     if check:
         print("Rank: %d :: Writing IBM tecplot files..."%Cmpi.rank, flush=True)
         Converter.convertArrays2File(ip_pts  , localDir+"integrationPts_proc%s.plt" %Cmpi.rank)
         Converter.convertArrays2File(wallpts , localDir+"wallPts_proc%s.plt" %Cmpi.rank)
-        Converter.convertArrays2File(imagepts, localDir+"imagePts_proc%s.plt" %Cmpi.rank)
+        Converter.convertArrays2File(donorpts, localDir+"donorPts_proc%s.plt" %Cmpi.rank)
 
-    dictOfImagePtsByIBCName={}
+    dictOfDonorPtsByIBCName={}
     dictOfIntegrationPtsByIBCName={}
     dictOfWallPtsByIBCName={}
     if (len(res) == 3 and frontTypeDP == "2") or (len(res) == 4 and frontTypeDP == "1"):
@@ -1080,18 +1080,18 @@ def getAllIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check,
             indicesByTypeL = indicesByTypeForZone[nob]
             if indicesByTypeL.shape[0] > 0:
                 ipPtsL = Transform.subzone(ip_pts[noz], indicesByTypeL)
-                imagePtsL = Transform.subzone(imagepts[noz], indicesByTypeL)
+                donorPtsL = Transform.subzone(donorpts[noz], indicesByTypeL)
                 wallPtsL = Transform.subzone(wallpts[noz], indicesByTypeL)
             else:
-                ipPtsL=[]; imagePtsL = []; wallPtsL = []
+                ipPtsL=[]; donorPtsL = []; wallPtsL = []
 
             dictOfIntegrationPtsByIBCName[ibcTypeL] = [ipPtsL]
             dictOfWallPtsByIBCName[ibcTypeL] = [wallPtsL]
-            dictOfImagePtsByIBCName[ibcTypeL] = [imagePtsL]
+            dictOfDonorPtsByIBCName[ibcTypeL] = [donorPtsL]
     else:
         raise ValueError("The function connector.getIBMPtsWith/WithoutFront has not worked properly.")
         Cmpi.abort(errorcode=1)
-    return dictOfIntegrationPtsByIBCName, dictOfImagePtsByIBCName,  dictOfWallPtsByIBCName
+    return dictOfIntegrationPtsByIBCName, dictOfDonorPtsByIBCName,  dictOfWallPtsByIBCName
 
 def isDPinDomain__(bbox, coords):
 
@@ -1112,47 +1112,47 @@ def isDPinDomain__(bbox, coords):
 
     return out, list_ids_outside_box
 
-def projectDPPoints__(ip_pts, imagepts, wallpts, varsn, epsilon, indices_outside_box=None, tb=None):
+def projectDPPoints__(ip_pts, donorpts, wallpts, varsn, epsilon, indices_outside_box=None, tb=None):
 
-    nb_image_pts = imagepts[0][1][0].size
+    nb_donor_pts = donorpts[0][1][0].size
     if indices_outside_box is None:
         dist = epsilon
-        for count in range(nb_image_pts):
-            dirx0 = (imagepts[0][1][0][count]-wallpts[0][1][0][count])
-            diry0 = (imagepts[0][1][1][count]-wallpts[0][1][1][count])
-            dirz0 = (imagepts[0][1][2][count]-wallpts[0][1][2][count])
+        for count in range(nb_donor_pts):
+            dirx0 = (donorpts[0][1][0][count]-wallpts[0][1][0][count])
+            diry0 = (donorpts[0][1][1][count]-wallpts[0][1][1][count])
+            dirz0 = (donorpts[0][1][2][count]-wallpts[0][1][2][count])
             dirn = (dirx0*dirx0+diry0*diry0+dirz0*dirz0)**0.5
             dist0 = dist/dirn
-            imagepts[0][1][0][count] = imagepts[0][1][0][count] + dirx0*dist0
-            imagepts[0][1][1][count] = imagepts[0][1][1][count] + diry0*dist0
-            imagepts[0][1][2][count] = imagepts[0][1][2][count] + dirz0*dist0
+            donorpts[0][1][0][count] = donorpts[0][1][0][count] + dirx0*dist0
+            donorpts[0][1][1][count] = donorpts[0][1][1][count] + diry0*dist0
+            donorpts[0][1][2][count] = donorpts[0][1][2][count] + dirz0*dist0
     else:
 
         zsize = numpy.empty((1,3), E_NpyInt, order='F')
-        zsize[0,0] = nb_image_pts; zsize[0,1] = 0; zsize[0,2] = 0
-        zone_imagePts = Internal.newZone(name='ImagePoints', zsize=zsize, ztype='Unstructured')
-        gc = Internal.newGridCoordinates(parent=zone_imagePts)
-        Internal.newDataArray('CoordinateX', value=imagepts[0][1][0], parent=gc)
-        Internal.newDataArray('CoordinateY', value=imagepts[0][1][1], parent=gc)
-        Internal.newDataArray('CoordinateZ', value=imagepts[0][1][2], parent=gc)
+        zsize[0,0] = nb_donor_pts; zsize[0,1] = 0; zsize[0,2] = 0
+        zone_donorPts = Internal.newZone(name='DonorPoints', zsize=zsize, ztype='Unstructured')
+        gc = Internal.newGridCoordinates(parent=zone_donorPts)
+        Internal.newDataArray('CoordinateX', value=donorpts[0][1][0], parent=gc)
+        Internal.newDataArray('CoordinateY', value=donorpts[0][1][1], parent=gc)
+        Internal.newDataArray('CoordinateZ', value=donorpts[0][1][2], parent=gc)
 
-        DTW._distance2Walls(zone_imagePts, tb, type='ortho', signed=0, dim=3, loc='nodes')
-        array_turb_dist = Internal.getNodeFromName(zone_imagePts, "TurbulentDistance")
+        DTW._distance2Walls(zone_donorPts, tb, type='ortho', signed=0, dim=3, loc='nodes')
+        array_turb_dist = Internal.getNodeFromName(zone_donorPts, "TurbulentDistance")
         for idx in indices_outside_box:
             dist = epsilon * array_turb_dist[1][idx]
             dist = epsilon * array_turb_dist[1][idx]
-            dirx0 = (imagepts[0][1][0][idx]-wallpts[0][1][0][idx])
-            diry0 = (imagepts[0][1][1][idx]-wallpts[0][1][1][idx])
-            dirz0 = (imagepts[0][1][2][idx]-wallpts[0][1][2][idx])
+            dirx0 = (donorpts[0][1][0][idx]-wallpts[0][1][0][idx])
+            diry0 = (donorpts[0][1][1][idx]-wallpts[0][1][1][idx])
+            dirz0 = (donorpts[0][1][2][idx]-wallpts[0][1][2][idx])
             dirn = (dirx0*dirx0+diry0*diry0+dirz0*dirz0)**0.5
             dist0 = dist/dirn
-            imagepts[0][1][0][idx] = wallpts[0][1][0][idx] + dirx0*dist0
-            imagepts[0][1][1][idx] = wallpts[0][1][1][idx] + diry0*dist0
-            imagepts[0][1][2][idx] = wallpts[0][1][2][idx] + dirz0*dist0
+            donorpts[0][1][0][idx] = wallpts[0][1][0][idx] + dirx0*dist0
+            donorpts[0][1][1][idx] = wallpts[0][1][1][idx] + diry0*dist0
+            donorpts[0][1][2][idx] = wallpts[0][1][2][idx] + dirz0*dist0
 
-    return imagepts
+    return donorpts
 
-def _addIBCData__(t, f, image_pts, wall_pts, ip_pts, IBM_parameters):
+def _addIBCData__(t, f, donor_pts, wall_pts, ip_pts, IBM_parameters):
 
     if IBM_parameters["spatial discretization"]["type"]=="FV":
         N_IP_per_face = 1
@@ -1199,7 +1199,7 @@ def _addIBCData__(t, f, image_pts, wall_pts, ip_pts, IBM_parameters):
                         dnrPts = Internal.createNode("DonorPointCoordinates"+str(list_suffix_datasets[i]), 'BCData_t', parent=ibcdataset)
                         wallPts = Internal.createNode("WallPointCoordinates"+str(list_suffix_datasets[i]), 'BCData_t', parent=ibcdataset)
 
-                        coordsPD = Converter.extractVars(image_pts[namebc], ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
+                        coordsPD = Converter.extractVars(donor_pts[namebc], ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
                         coordsPW = Converter.extractVars(wall_pts[namebc], ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
 
                         Internal.newDataArray('CoordinateX', value=coordsPD[0][1][0,:][i::N_IP_per_face], parent=dnrPts)
@@ -1220,21 +1220,21 @@ def _addIBCData__(t, f, image_pts, wall_pts, ip_pts, IBM_parameters):
     return None
 
 # ===============================================================================================================================
-def checkMisalignedWallPoints__(ip_pts, wallpts, imagepts, forceAlignment=False, localDir="./"):
+def checkMisalignedWallPoints__(ip_pts, wallpts, donorpts, forceAlignment=False, localDir="./"):
     x_wall = wallpts[0]
     y_wall = wallpts[1]
     z_wall = wallpts[2]
 
-    x_image = imagepts[0]
-    y_image = imagepts[1]
-    z_image = imagepts[2]
+    x_donor = donorpts[0]
+    y_donor = donorpts[1]
+    z_donor = donorpts[2]
 
     x_intp = ip_pts[0]
     y_intp = ip_pts[1]
     z_intp = ip_pts[2]
 
     wallPointFacePointDist = ( (x_wall - x_intp)**2  + (y_wall - y_intp)**2  + (z_wall - z_intp)**2 )**0.5
-    donorPointWallPointDist =( (x_wall - x_image)**2 + (y_wall - y_image)**2 + (z_wall - z_image)**2 )**0.5
+    donorPointWallPointDist =( (x_wall - x_donor)**2 + (y_wall - y_donor)**2 + (z_wall - z_donor)**2 )**0.5
 
     x_facePointWallPointVec = (x_intp - x_wall) / wallPointFacePointDist;
     y_facePointWallPointVec = (y_intp - y_wall) / wallPointFacePointDist;
@@ -1245,7 +1245,7 @@ def checkMisalignedWallPoints__(ip_pts, wallpts, imagepts, forceAlignment=False,
     z_offsetPointLocation = z_wall + z_facePointWallPointVec * donorPointWallPointDist;
 
     epsDonorPointOffset = 1e-6
-    offsetcheck = ( (x_offsetPointLocation - x_image)**2 + (y_offsetPointLocation - y_image)**2 + (z_offsetPointLocation - z_image)**2 )**0.5
+    offsetcheck = ( (x_offsetPointLocation - x_donor)**2 + (y_offsetPointLocation - y_donor)**2 + (z_offsetPointLocation - z_donor)**2 )**0.5
     array_check =  numpy.where(offsetcheck > (epsDonorPointOffset * donorPointWallPointDist))[0]
     print("Rank: %d :: Check not aligned points: size array=%d"%(Cmpi.rank,array_check.size), flush=True)
     if array_check.size!=0:
@@ -1253,25 +1253,25 @@ def checkMisalignedWallPoints__(ip_pts, wallpts, imagepts, forceAlignment=False,
         print("Rank: %d :: ATTENTION!!!!!!! Max offset on rank = %g"%(Cmpi.rank, numpy.max(offsetcheck)), flush=True)
         f_wall   = open(localDir+"wall_misaligned_before_proc%s.dat" %Cmpi.rank, "w")
         f_integration = open(localDir+"integration_misaligned_before_proc%s.dat" %Cmpi.rank, "w")
-        f_image  = open(localDir+"image_misaligned_before_proc%s.dat" %Cmpi.rank, "w")
+        f_donor  = open(localDir+"donor_misaligned_before_proc%s.dat" %Cmpi.rank, "w")
         for i in range(array_check.size):
             f_wall.write("%f %f %f\n" %(x_wall[array_check[i]], y_wall[array_check[i]], z_wall[array_check[i]]))
             f_integration.write("%f %f %f\n" %(x_intp[array_check[i]], y_intp[array_check[i]], z_intp[array_check[i]]))
-            f_image.write("%f %f %f\n" %(x_image[array_check[i]], y_image[array_check[i]], z_image[array_check[i]]))
+            f_donor.write("%f %f %f\n" %(x_donor[array_check[i]], y_donor[array_check[i]], z_donor[array_check[i]]))
         f_wall.close()
         f_integration.close()
-        f_image.close()
+        f_donor.close()
 
         if not forceAlignment:
             raise ValueError("The maximum allowed relative tangential offset was exceeded by one of the donor points. Max offset on rank %d = %g"%(Cmpi.rank, numpy.max(offsetcheck)))
             Cmpi.abort(errorcode=1)
     return array_check
 
-def projectMisalignedWallPoints__(ip_pts, imagepts, wallpts, array_check, tb, localDir='./'):
-    nb_image_pts = imagepts[0][1][0].size
+def projectMisalignedWallPoints__(ip_pts, donorpts, wallpts, array_check, tb, localDir='./'):
+    nb_donor_pts = donorpts[0][1][0].size
 
     zsize = numpy.empty((1,3), E_NpyInt, order='F')
-    zsize[0,0] = nb_image_pts; zsize[0,1] = 0; zsize[0,2] = 0
+    zsize[0,0] = nb_donor_pts; zsize[0,1] = 0; zsize[0,2] = 0
     zone_integrationPts = Internal.newZone(name='IntegrationPoints', zsize=zsize, ztype='Unstructured')
     gc = Internal.newGridCoordinates(parent=zone_integrationPts)
     Internal.newDataArray('CoordinateX', value=ip_pts[0][1][0], parent=gc)
@@ -1283,9 +1283,9 @@ def projectMisalignedWallPoints__(ip_pts, imagepts, wallpts, array_check, tb, lo
     f_wall = open(localDir+"wall_misaligned_after_proc%s.dat" %Cmpi.rank,"w")
     for count in array_check:
         dist = array_turb_dist[1][count]
-        dirx0 = (imagepts[0][1][0][count]-ip_pts[0][1][0][count])
-        diry0 = (imagepts[0][1][1][count]-ip_pts[0][1][1][count])
-        dirz0 = (imagepts[0][1][2][count]-ip_pts[0][1][2][count])
+        dirx0 = (donorpts[0][1][0][count]-ip_pts[0][1][0][count])
+        diry0 = (donorpts[0][1][1][count]-ip_pts[0][1][1][count])
+        dirz0 = (donorpts[0][1][2][count]-ip_pts[0][1][2][count])
         dirn = (dirx0*dirx0+diry0*diry0+dirz0*dirz0)**0.5
         dist0 = dist/dirn
         wallpts[0][1][0][count] = ip_pts[0][1][0][count] - dirx0*dist0
@@ -1296,17 +1296,17 @@ def projectMisalignedWallPoints__(ip_pts, imagepts, wallpts, array_check, tb, lo
     f_wall.close()
     return wallpts
 
-def _checkDPtoIPDistance__(ip_pts, imagepts):
+def _checkDPtoIPDistance__(ip_pts, donorpts):
 
-    x_image = imagepts[0]
-    y_image = imagepts[1]
-    z_image = imagepts[2]
+    x_donor = donorpts[0]
+    y_donor = donorpts[1]
+    z_donor = donorpts[2]
 
     x_intp = ip_pts[0]
     y_intp = ip_pts[1]
     z_intp = ip_pts[2]
 
-    donorPointIntegrationPointDist =( (x_intp - x_image)**2 + (y_intp - y_image)**2 + (z_intp - z_image)**2 )**0.5
+    donorPointIntegrationPointDist =( (x_intp - x_donor)**2 + (y_intp - y_donor)**2 + (z_intp - z_donor)**2 )**0.5
     epsDonorPointOffset = 1e-9
     array_check =  numpy.where(donorPointIntegrationPointDist < epsDonorPointOffset)[0]
     print("Rank: %d :: Check not aligned points: size array=%d"%(Cmpi.rank, array_check.size), flush=True)
