@@ -899,12 +899,12 @@ def localOffset__(tbLocal, dim, dir_sym, minSnear, distIP):
 # ===============================================================================================================================
 def _getIBMData__(t, facesExt, tb2, frontIP, frontIP_C, frontDP_gath, bbo, IBM_parameters, check, dim, forceAlignment, localDir):
     Cmpi.trace(" Extracting IBM Points [start]", master=False, cpu=False)
-    ip_pts, donor_pts, wall_pts = getAllIBMPoints(tb2, frontIP, frontIP_C, frontDP_gath, bbo, IBM_parameters, check, dim,
+    integrationPts, donorPts, wallPts = getAllIBMPoints(tb2, frontIP, frontIP_C, frontDP_gath, bbo, IBM_parameters, check, dim,
                                                   forceAlignment, localDir=localDir)
     Cmpi.trace(" Extracting IBM Points [end]"  , master=False, cpu=False)
 
     Cmpi.trace(" Adding IBCDatasets [start]", master=False, cpu=False)
-    _addIBCData__(t, facesExt, donor_pts, wall_pts, ip_pts, IBM_parameters)
+    _addIBCData__(t, facesExt, donorPts, wallPts, integrationPts, IBM_parameters)
     Cmpi.trace(" Adding IBCDatasets [end]  ", master=False, cpu=False)
 
     return None
@@ -951,9 +951,9 @@ def getAllIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check,
         distance_DP = IBM_parameters["donor points"]["distance DonorPoints"]
         C._initVars(frontIP_C, 'dist', distance_DP)
 
-    ip_pts = C.getAllFields(frontIP_C, loc='nodes', api=1)[0]
-    ip_pts = Converter.convertArray2Node(ip_pts)
-    ip_pts = [ip_pts]
+    integrationPts = C.getAllFields(frontIP_C, loc='nodes', api=1)[0]
+    integrationPts = Converter.convertArray2Node(integrationPts)
+    integrationPts = [integrationPts]
 
     # Regrouping of the bodies per BC type
     bodies = []; listOfIBCTypes=[]
@@ -968,9 +968,9 @@ def getAllIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check,
     varsn = ['gradxTurbulentDistance','gradyTurbulentDistance','gradzTurbulentDistance']
 
     if frontTypeDP == "2":
-        res = connector.getIBMPtsWithoutFront(ip_pts, bodies, varsn, 'dist', 1)
-        wallpts = res[0]
-        donorpts = res[1]
+        res = connector.getIBMPtsWithoutFront(integrationPts, bodies, varsn, 'dist', 1)
+        wallPts = res[0]
+        donorPts = res[1]
     elif frontTypeDP == "1":
         frontDP = C.getFields(Internal.__GridCoordinates__, frontDP, api=1)
         frontDP = Converter.convertArray2Tetra(frontDP)
@@ -981,9 +981,9 @@ def getAllIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check,
         listOfSnearsLoc.append(snear)
         if frontTypeIP == "2": listOfModelingHeightsLoc.append(distance_IP)
         else: listOfModelingHeightsLoc.append(0.)
-        res = connector.getIBMPtsWithFront(ip_pts, listOfSnearsLoc, listOfModelingHeightsLoc, bodies, frontDP, varsn, 1, 2, projAlgo, 0, 0)
-        wallpts = res[0]
-        donorpts = res[1]
+        res = connector.getIBMPtsWithFront(integrationPts, listOfSnearsLoc, listOfModelingHeightsLoc, bodies, frontDP, varsn, 1, 2, projAlgo, 0, 0)
+        wallPts = res[0]
+        donorPts = res[1]
 
         ## Ouput the IBM points that have a type 3 and type 4 projection
         if len(res) > 3:
@@ -993,7 +993,7 @@ def getAllIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check,
             allInterpPts = res[1]
             allInterpPts = Converter.extractVars(allInterpPts, ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
 
-            allCorrectedPts = Converter.extractVars(ip_pts, ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
+            allCorrectedPts = Converter.extractVars(integrationPts, ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
             nzonesR         = len(allInterpPts)
 
             nameZone = ['IBM', 'Wall', 'Donor']
@@ -1034,39 +1034,39 @@ def getAllIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check,
             del tLocal3
             del tLocal4
 
-        donorpts = projectDPPoints__(ip_pts, donorpts, wallpts, varsn, 1e-8)
+        donorPts = projectDPPoints__(integrationPts, donorPts, wallPts, varsn, 1e-8)
     # Check if any of the donor points lays outside the bbox. In this case we modify it.
-    if isDPinDomain__(bbo,donorpts)[0] == False:
+    if isDPinDomain__(bbo,donorPts)[0] == False:
         print("Rank: %d :: Warning: At least one donor point lays outside the bbox. The point is being moved closer to the wall..."%Cmpi.rank, flush=True)
-        list_ids_outside_box = isDPinDomain__(bbo, donorpts)[1]
+        list_ids_outside_box = isDPinDomain__(bbo, donorPts)[1]
         epsilon = 0.9
         while (epsilon >= 0.1):
             print("Rank: %d :: Moving the badly located donor point at epsilon %.2f %% of the initial distance from the wall."%(Cmpi.rank, epsilon), flush=True)
-            donorpts2correct = copy.deepcopy(donorpts)
-            donorpts_modified = projectDPPoints__(ip_pts, donorpts2correct, wallpts, varsn, epsilon, list_ids_outside_box, tb)
+            donorPts2correct = copy.deepcopy(donorPts)
+            donorPts_modified = projectDPPoints__(integrationPts, donorPts2correct, wallPts, varsn, epsilon, list_ids_outside_box, tb)
 
-            if isDPinDomain__(bbo, donorpts_modified)[0] == False:
+            if isDPinDomain__(bbo, donorPts_modified)[0] == False:
                 epsilon = epsilon - 0.1
             else:
-                donorpts = donorpts_modified
+                donorPts = donorPts_modified
                 break
-        if isDPinDomain__(bbo, donorpts)[0] == False:
+        if isDPinDomain__(bbo, donorPts)[0] == False:
             raise ValueError("Moving the points has not worked. Exiting..")
             Cmpi.abort(errorcode=1)
 
-    wallpts  = Converter.extractVars(wallpts,  ['CoordinateX','CoordinateY','CoordinateZ'])
-    donorpts = Converter.extractVars(donorpts, ['CoordinateX','CoordinateY','CoordinateZ'])
-    ip_pts   = Converter.extractVars(ip_pts,   ['CoordinateX','CoordinateY','CoordinateZ'])
-    array_check = checkMisalignedWallPoints__(ip_pts[0][1], wallpts[0][1], donorpts[0][1], forceAlignment, localDir=localDir)
+    wallPts  = Converter.extractVars(wallPts,  ['CoordinateX','CoordinateY','CoordinateZ'])
+    donorPts = Converter.extractVars(donorPts, ['CoordinateX','CoordinateY','CoordinateZ'])
+    integrationPts   = Converter.extractVars(integrationPts,   ['CoordinateX','CoordinateY','CoordinateZ'])
+    array_check = checkMisalignedWallPoints__(integrationPts[0][1], wallPts[0][1], donorPts[0][1], forceAlignment, localDir=localDir)
     if array_check.size != 0 and forceAlignment==True:
-        wallpts = projectMisalignedWallPoints__(ip_pts, donorpts, wallpts, array_check, tb, localDir=localDir)
-    _checkDPtoIPDistance__(ip_pts[0][1], donorpts[0][1])
+        wallPts = projectMisalignedWallPoints__(integrationPts, donorPts, wallPts, array_check, tb, localDir=localDir)
+    _checkDPtoIPDistance__(integrationPts[0][1], donorPts[0][1])
 
     if check:
         print("Rank: %d :: Writing IBM tecplot files..."%Cmpi.rank, flush=True)
-        Converter.convertArrays2File(ip_pts  , localDir+"integrationPts_proc%s.plt" %Cmpi.rank)
-        Converter.convertArrays2File(wallpts , localDir+"wallPts_proc%s.plt" %Cmpi.rank)
-        Converter.convertArrays2File(donorpts, localDir+"donorPts_proc%s.plt" %Cmpi.rank)
+        Converter.convertArrays2File(integrationPts  , localDir+"integrationPts_proc%s.plt" %Cmpi.rank)
+        Converter.convertArrays2File(wallPts , localDir+"wallPts_proc%s.plt" %Cmpi.rank)
+        Converter.convertArrays2File(donorPts, localDir+"donorPts_proc%s.plt" %Cmpi.rank)
 
     dictOfDonorPtsByIBCName={}
     dictOfIntegrationPtsByIBCName={}
@@ -1079,9 +1079,9 @@ def getAllIBMPoints(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check,
             ibcTypeL = listOfIBCTypes[nob]
             indicesByTypeL = indicesByTypeForZone[nob]
             if indicesByTypeL.shape[0] > 0:
-                ipPtsL = Transform.subzone(ip_pts[noz], indicesByTypeL)
-                donorPtsL = Transform.subzone(donorpts[noz], indicesByTypeL)
-                wallPtsL = Transform.subzone(wallpts[noz], indicesByTypeL)
+                ipPtsL = Transform.subzone(integrationPts[noz], indicesByTypeL)
+                donorPtsL = Transform.subzone(donorPts[noz], indicesByTypeL)
+                wallPtsL = Transform.subzone(wallPts[noz], indicesByTypeL)
             else:
                 ipPtsL=[]; donorPtsL = []; wallPtsL = []
 
@@ -1112,47 +1112,47 @@ def isDPinDomain__(bbox, coords):
 
     return out, list_ids_outside_box
 
-def projectDPPoints__(ip_pts, donorpts, wallpts, varsn, epsilon, indices_outside_box=None, tb=None):
+def projectDPPoints__(integrationPts, donorPts, wallPts, varsn, epsilon, indices_outside_box=None, tb=None):
 
-    nb_donor_pts = donorpts[0][1][0].size
+    nb_donor_pts = donorPts[0][1][0].size
     if indices_outside_box is None:
         dist = epsilon
         for count in range(nb_donor_pts):
-            dirx0 = (donorpts[0][1][0][count]-wallpts[0][1][0][count])
-            diry0 = (donorpts[0][1][1][count]-wallpts[0][1][1][count])
-            dirz0 = (donorpts[0][1][2][count]-wallpts[0][1][2][count])
+            dirx0 = (donorPts[0][1][0][count]-wallPts[0][1][0][count])
+            diry0 = (donorPts[0][1][1][count]-wallPts[0][1][1][count])
+            dirz0 = (donorPts[0][1][2][count]-wallPts[0][1][2][count])
             dirn = (dirx0*dirx0+diry0*diry0+dirz0*dirz0)**0.5
             dist0 = dist/dirn
-            donorpts[0][1][0][count] = donorpts[0][1][0][count] + dirx0*dist0
-            donorpts[0][1][1][count] = donorpts[0][1][1][count] + diry0*dist0
-            donorpts[0][1][2][count] = donorpts[0][1][2][count] + dirz0*dist0
+            donorPts[0][1][0][count] = donorPts[0][1][0][count] + dirx0*dist0
+            donorPts[0][1][1][count] = donorPts[0][1][1][count] + diry0*dist0
+            donorPts[0][1][2][count] = donorPts[0][1][2][count] + dirz0*dist0
     else:
 
         zsize = numpy.empty((1,3), E_NpyInt, order='F')
         zsize[0,0] = nb_donor_pts; zsize[0,1] = 0; zsize[0,2] = 0
         zone_donorPts = Internal.newZone(name='DonorPoints', zsize=zsize, ztype='Unstructured')
         gc = Internal.newGridCoordinates(parent=zone_donorPts)
-        Internal.newDataArray('CoordinateX', value=donorpts[0][1][0], parent=gc)
-        Internal.newDataArray('CoordinateY', value=donorpts[0][1][1], parent=gc)
-        Internal.newDataArray('CoordinateZ', value=donorpts[0][1][2], parent=gc)
+        Internal.newDataArray('CoordinateX', value=donorPts[0][1][0], parent=gc)
+        Internal.newDataArray('CoordinateY', value=donorPts[0][1][1], parent=gc)
+        Internal.newDataArray('CoordinateZ', value=donorPts[0][1][2], parent=gc)
 
         DTW._distance2Walls(zone_donorPts, tb, type='ortho', signed=0, dim=3, loc='nodes')
         array_turb_dist = Internal.getNodeFromName(zone_donorPts, "TurbulentDistance")
         for idx in indices_outside_box:
             dist = epsilon * array_turb_dist[1][idx]
             dist = epsilon * array_turb_dist[1][idx]
-            dirx0 = (donorpts[0][1][0][idx]-wallpts[0][1][0][idx])
-            diry0 = (donorpts[0][1][1][idx]-wallpts[0][1][1][idx])
-            dirz0 = (donorpts[0][1][2][idx]-wallpts[0][1][2][idx])
+            dirx0 = (donorPts[0][1][0][idx]-wallPts[0][1][0][idx])
+            diry0 = (donorPts[0][1][1][idx]-wallPts[0][1][1][idx])
+            dirz0 = (donorPts[0][1][2][idx]-wallPts[0][1][2][idx])
             dirn = (dirx0*dirx0+diry0*diry0+dirz0*dirz0)**0.5
             dist0 = dist/dirn
-            donorpts[0][1][0][idx] = wallpts[0][1][0][idx] + dirx0*dist0
-            donorpts[0][1][1][idx] = wallpts[0][1][1][idx] + diry0*dist0
-            donorpts[0][1][2][idx] = wallpts[0][1][2][idx] + dirz0*dist0
+            donorPts[0][1][0][idx] = wallPts[0][1][0][idx] + dirx0*dist0
+            donorPts[0][1][1][idx] = wallPts[0][1][1][idx] + diry0*dist0
+            donorPts[0][1][2][idx] = wallPts[0][1][2][idx] + dirz0*dist0
 
-    return donorpts
+    return donorPts
 
-def _addIBCData__(t, f, donor_pts, wall_pts, ip_pts, IBM_parameters):
+def _addIBCData__(t, f, donorPts, wallPts, integrationPts, IBM_parameters):
 
     if IBM_parameters["spatial discretization"]["type"]=="FV":
         N_IP_per_face = 1
@@ -1171,7 +1171,7 @@ def _addIBCData__(t, f, donor_pts, wall_pts, ip_pts, IBM_parameters):
     for z in Internal.getZones(t):
         hook = C.createHook(f, 'elementCenters')
         if IBM_parameters["spatial discretization"]["type"] == "FV":
-            for nobc,ibc in enumerate(list(ip_pts.values())):
+            for nobc,ibc in enumerate(list(integrationPts.values())):
                 if ibc!=[[]]:
                     coords_IBC_x = Converter.extractVars(ibc,["CoordinateX"])[0][1][0]
                     coords_IBC_y = Converter.extractVars(ibc,["CoordinateY"])[0][1][0]
@@ -1197,41 +1197,41 @@ def _addIBCData__(t, f, donor_pts, wall_pts, ip_pts, IBM_parameters):
                     ibcdataset = Internal.createNode('BCDataSet','BCDataSet_t', parent=bc,value='Null')
                     for i in range(N_IP_per_face):
                         dnrPts = Internal.createNode("DonorPointCoordinates"+str(list_suffix_datasets[i]), 'BCData_t', parent=ibcdataset)
-                        wallPts = Internal.createNode("WallPointCoordinates"+str(list_suffix_datasets[i]), 'BCData_t', parent=ibcdataset)
+                        wallPtsTmp = Internal.createNode("WallPointCoordinates"+str(list_suffix_datasets[i]), 'BCData_t', parent=ibcdataset)
 
-                        coordsPD = Converter.extractVars(donor_pts[namebc], ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
-                        coordsPW = Converter.extractVars(wall_pts[namebc], ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
+                        coordsPD = Converter.extractVars(donorPts[namebc], ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
+                        coordsPW = Converter.extractVars(wallPts[namebc], ['CoordinateX', 'CoordinateY', 'CoordinateZ'])
 
                         Internal.newDataArray('CoordinateX', value=coordsPD[0][1][0,:][i::N_IP_per_face], parent=dnrPts)
                         Internal.newDataArray('CoordinateY', value=coordsPD[0][1][1,:][i::N_IP_per_face], parent=dnrPts)
                         Internal.newDataArray('CoordinateZ', value=coordsPD[0][1][2,:][i::N_IP_per_face], parent=dnrPts)
 
-                        Internal.newDataArray('CoordinateX', value=coordsPW[0][1][0,:][i::N_IP_per_face], parent=wallPts)
-                        Internal.newDataArray('CoordinateY', value=coordsPW[0][1][1,:][i::N_IP_per_face], parent=wallPts)
-                        Internal.newDataArray('CoordinateZ', value=coordsPW[0][1][2,:][i::N_IP_per_face], parent=wallPts)
+                        Internal.newDataArray('CoordinateX', value=coordsPW[0][1][0,:][i::N_IP_per_face], parent=wallPtsTmp)
+                        Internal.newDataArray('CoordinateY', value=coordsPW[0][1][1,:][i::N_IP_per_face], parent=wallPtsTmp)
+                        Internal.newDataArray('CoordinateZ', value=coordsPW[0][1][2,:][i::N_IP_per_face], parent=wallPtsTmp)
 
                         if IBM_parameters["spatial discretization"]["type"] in ["DG", "DGSEM"]:
-                            coordsPI = Converter.extractVars(ip_pts[bc[0]], ['CoordinateX','CoordinateY','CoordinateZ'])
-                            integrationPts = Internal.createNode("IntegrationPointCoordinates"+str(list_suffix_datasets[i]),'BCData_t', parent=ibcdataset)
-                            Internal.newDataArray('CoordinateX', value=coordsPI[0][1][0,:][i::N_IP_per_face], parent=integrationPts)
-                            Internal.newDataArray('CoordinateY', value=coordsPI[0][1][1,:][i::N_IP_per_face], parent=integrationPts)
-                            Internal.newDataArray('CoordinateZ', value=coordsPI[0][1][2,:][i::N_IP_per_face], parent=integrationPts)
+                            coordsPI = Converter.extractVars(integrationPts[bc[0]], ['CoordinateX','CoordinateY','CoordinateZ'])
+                            integrationPtsTmp = Internal.createNode("IntegrationPointCoordinates"+str(list_suffix_datasets[i]),'BCData_t', parent=ibcdataset)
+                            Internal.newDataArray('CoordinateX', value=coordsPI[0][1][0,:][i::N_IP_per_face], parent=integrationPtsTmp)
+                            Internal.newDataArray('CoordinateY', value=coordsPI[0][1][1,:][i::N_IP_per_face], parent=integrationPtsTmp)
+                            Internal.newDataArray('CoordinateZ', value=coordsPI[0][1][2,:][i::N_IP_per_face], parent=integrationPtsTmp)
 
     return None
 
 # ===============================================================================================================================
-def checkMisalignedWallPoints__(ip_pts, wallpts, donorpts, forceAlignment=False, localDir="./"):
-    x_wall = wallpts[0]
-    y_wall = wallpts[1]
-    z_wall = wallpts[2]
+def checkMisalignedWallPoints__(integrationPts, wallPts, donorPts, forceAlignment=False, localDir="./"):
+    x_wall = wallPts[0]
+    y_wall = wallPts[1]
+    z_wall = wallPts[2]
 
-    x_donor = donorpts[0]
-    y_donor = donorpts[1]
-    z_donor = donorpts[2]
+    x_donor = donorPts[0]
+    y_donor = donorPts[1]
+    z_donor = donorPts[2]
 
-    x_intp = ip_pts[0]
-    y_intp = ip_pts[1]
-    z_intp = ip_pts[2]
+    x_intp = integrationPts[0]
+    y_intp = integrationPts[1]
+    z_intp = integrationPts[2]
 
     wallPointFacePointDist = ( (x_wall - x_intp)**2  + (y_wall - y_intp)**2  + (z_wall - z_intp)**2 )**0.5
     donorPointWallPointDist =( (x_wall - x_donor)**2 + (y_wall - y_donor)**2 + (z_wall - z_donor)**2 )**0.5
@@ -1267,44 +1267,44 @@ def checkMisalignedWallPoints__(ip_pts, wallpts, donorpts, forceAlignment=False,
             Cmpi.abort(errorcode=1)
     return array_check
 
-def projectMisalignedWallPoints__(ip_pts, donorpts, wallpts, array_check, tb, localDir='./'):
-    nb_donor_pts = donorpts[0][1][0].size
+def projectMisalignedWallPoints__(integrationPts, donorPts, wallPts, array_check, tb, localDir='./'):
+    nb_donorPts = donorPts[0][1][0].size
 
     zsize = numpy.empty((1,3), E_NpyInt, order='F')
-    zsize[0,0] = nb_donor_pts; zsize[0,1] = 0; zsize[0,2] = 0
+    zsize[0,0] = nb_donorPts; zsize[0,1] = 0; zsize[0,2] = 0
     zone_integrationPts = Internal.newZone(name='IntegrationPoints', zsize=zsize, ztype='Unstructured')
     gc = Internal.newGridCoordinates(parent=zone_integrationPts)
-    Internal.newDataArray('CoordinateX', value=ip_pts[0][1][0], parent=gc)
-    Internal.newDataArray('CoordinateY', value=ip_pts[0][1][1], parent=gc)
-    Internal.newDataArray('CoordinateZ', value=ip_pts[0][1][2], parent=gc)
+    Internal.newDataArray('CoordinateX', value=integrationPts[0][1][0], parent=gc)
+    Internal.newDataArray('CoordinateY', value=integrationPts[0][1][1], parent=gc)
+    Internal.newDataArray('CoordinateZ', value=integrationPts[0][1][2], parent=gc)
 
     DTW._distance2Walls(zone_integrationPts, tb, type='ortho', signed=0, dim=3, loc='nodes')
     array_turb_dist = Internal.getNodeFromName(zone_integrationPts, "TurbulentDistance")
     f_wall = open(localDir+"wall_misaligned_after_proc%s.dat" %Cmpi.rank,"w")
     for count in array_check:
         dist = array_turb_dist[1][count]
-        dirx0 = (donorpts[0][1][0][count]-ip_pts[0][1][0][count])
-        diry0 = (donorpts[0][1][1][count]-ip_pts[0][1][1][count])
-        dirz0 = (donorpts[0][1][2][count]-ip_pts[0][1][2][count])
+        dirx0 = (donorPts[0][1][0][count]-integrationPts[0][1][0][count])
+        diry0 = (donorPts[0][1][1][count]-integrationPts[0][1][1][count])
+        dirz0 = (donorPts[0][1][2][count]-integrationPts[0][1][2][count])
         dirn = (dirx0*dirx0+diry0*diry0+dirz0*dirz0)**0.5
         dist0 = dist/dirn
-        wallpts[0][1][0][count] = ip_pts[0][1][0][count] - dirx0*dist0
-        wallpts[0][1][1][count] = ip_pts[0][1][1][count] - diry0*dist0
-        wallpts[0][1][2][count] = ip_pts[0][1][2][count] - dirz0*dist0
+        wallPts[0][1][0][count] = integrationPts[0][1][0][count] - dirx0*dist0
+        wallPts[0][1][1][count] = integrationPts[0][1][1][count] - diry0*dist0
+        wallPts[0][1][2][count] = integrationPts[0][1][2][count] - dirz0*dist0
 
-        f_wall.write("%f %f %f\n" %(wallpts[0][1][0][count], wallpts[0][1][1][count], wallpts[0][1][2][count]))
+        f_wall.write("%f %f %f\n" %(wallPts[0][1][0][count], wallPts[0][1][1][count], wallPts[0][1][2][count]))
     f_wall.close()
-    return wallpts
+    return wallPts
 
-def _checkDPtoIPDistance__(ip_pts, donorpts):
+def _checkDPtoIPDistance__(integrationPts, donorPts):
 
-    x_donor = donorpts[0]
-    y_donor = donorpts[1]
-    z_donor = donorpts[2]
+    x_donor = donorPts[0]
+    y_donor = donorPts[1]
+    z_donor = donorPts[2]
 
-    x_intp = ip_pts[0]
-    y_intp = ip_pts[1]
-    z_intp = ip_pts[2]
+    x_intp = integrationPts[0]
+    y_intp = integrationPts[1]
+    z_intp = integrationPts[2]
 
     donorPointIntegrationPointDist =( (x_intp - x_donor)**2 + (y_intp - y_donor)**2 + (z_intp - z_donor)**2 )**0.5
     epsDonorPointOffset = 1e-9
