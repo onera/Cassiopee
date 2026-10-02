@@ -160,7 +160,7 @@ def prepareAMRDataFV__(t_case, t, IBM_parameters=None, check=False, dim=3, local
         Cmpi.trace(" Computing normals via project ortho [end]  ", master=False, cpu=False)
         frontIP_C = C.node2Center(frontIP)
         Internal._rmNodesByType(frontIP_C, "Elements_t")
-        
+
         _getIBMData__(t, facesExt, tb2, frontIP, frontIP_C, frontDP_gath, bbo, IBM_parameters, check, dim, forceAlignment, localDir)
 
     C._rmVars(t,['cellNFront'])
@@ -926,7 +926,7 @@ def _computeIBCNormals__(front, tb2):
 def _getIBMData__(t, facesExt, tb2, frontIP, frontIP_C, frontDP_gath, bbo, IBM_parameters, check, dim, forceAlignment, localDir):
     Cmpi.trace(" Extracting IBM Points [start]", master=False, cpu=False)
     integrationPts, donorPts, wallPts = getAllIBMPoints(tb2, frontIP, frontIP_C, frontDP_gath, bbo, IBM_parameters, check, dim,
-                                                  forceAlignment, localDir=localDir)
+                                                        forceAlignment, localDir=localDir)
     Cmpi.trace(" Extracting IBM Points [end]"  , master=False, cpu=False)
 
     Cmpi.trace(" Adding IBCDatasets [start]", master=False, cpu=False)
