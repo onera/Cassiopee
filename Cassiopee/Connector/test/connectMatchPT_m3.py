@@ -12,7 +12,7 @@ import KCore.test as test
 # This test case is meant to replicate behavior
 # that can be found in CODA simulations with overset.
 # MPI processors are distributed over separate meshes
-# with separate communicators. Based on the number of 
+# with separate communicators. Based on the number of
 # meshes and procs, some meshes can be split while
 # others are not. We need to make sure that the connectMatchNGon
 # operation does not hang indefinitely in this condition.
@@ -57,10 +57,9 @@ C._deleteEmptyBases(t)
 
 # connectMatchNGon:
 # The background grid is split in two.
-# The curvilinear grid is not split and 
+# The curvilinear grid is not split and
 # all its exterior faces are already assigned a BC.
 zones = Internal.getZones(t)
 Xmpi._connectMatchNGon(zones[0])
 
 if Cmpi.master: test.testT(t, 1)
-
