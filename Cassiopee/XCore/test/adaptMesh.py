@@ -26,8 +26,8 @@ if Cmpi.rank == 0:
 Cmpi.barrier()
 
 t, res = X.loadAndSplitNGon("case.cgns")
-gcells = res[5]
-gfaces = res[6]
+gcells = res[6]
+gfaces = res[7]
 comm = res[1]
 normal2D = np.array([0.0,0.0,1.0])
 normal2D = None

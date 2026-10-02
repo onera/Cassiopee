@@ -1379,8 +1379,8 @@ def adaptMesh__(fileSkeleton, hmin, tb, toffset=None, dim=3, loadBalancing=False
     bodyIntersection = checkBodyIntersection__(tb)
 
     # init. AdaptMesh
-    gcells = res[5]
-    gfaces = res[6]
+    gcells = res[6]
+    gfaces = res[7]
     comm = res[1]
     if dim == 3: normal2D = None
     else: normal2D = numpy.array([0.0, 0.0, 1.0])

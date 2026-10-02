@@ -210,9 +210,9 @@ def consSmooth(t, sweeps, twoWays=False, step=1, omega=0.2):
     """Conservative smoothing."""
     return C.TZGC3(t, 'nodes', False, Transform.consSmooth, sweeps, twoWays, step, omega)
 
-def _consSmooth(t, sweeps, twoWays=False, step=1):
+def _consSmooth(t, sweeps, twoWays=False, step=1, omega=0.2):
     """Conservative smoothing."""
-    return C._TZGC3(t, 'nodes', False, Transform.consSmooth, sweeps, twoWays, step)
+    return C._TZGC3(t, 'nodes', False, Transform.consSmooth, sweeps, twoWays, step, omega)
 
 def deform(t, vector=['dx','dy','dz']):
     """Deform surface by moving surface of the vector (dx, dy, dz).

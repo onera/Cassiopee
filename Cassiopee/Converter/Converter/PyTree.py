@@ -2811,7 +2811,7 @@ def _mergeBCDataSets(t):
     for z in zones:
         bcs = Internal.getNodesFromType2(z, 'BC_t')
         for b in bcs:
-            Internal._mergeBCDataSets__(z,b)
+            Internal._mergeBCDataSets__(z, b)
     return None
 
 # Nullify field in BCDataSet
@@ -2911,9 +2911,9 @@ def _createBCDataSetOfType(t, bndType, loc='FaceCenter', update=True, vectors=[]
         bcs = Internal.getNodesFromValue(allbcs, bndType)
         bcs += Internal.getFamilyBCs(z, families)
         FSNode = Internal.getNodeFromName1(z, FSCont)
-        varnames=[]
+        varnames = []
         for fs in FSNode[2]:
-            if fs[3]=='DataArray_t': varnames.append(fs[0])
+            if fs[3] == 'DataArray_t': varnames.append(fs[0])
         for bc in bcs:
             PR = Internal.getNodeFromName1(bc, 'PointRange')
             PL = Internal.getNodeFromName1(bc, 'PointList')
@@ -2942,7 +2942,7 @@ def _createBCDataSetOfType(t, bndType, loc='FaceCenter', update=True, vectors=[]
                 d = Internal.newBCData('BCDirichlet', parent=d)
                 cont, noc = Internal.getParentOfNode(z, d)
                 for fs in FSNode[2]:
-                    if fs[3]=='DataArray_t':
+                    if fs[3] == 'DataArray_t':
                         varname = fs[0]
                         fInt = numpy.zeros((np),numpy.float64)
                         if PR is not None:
@@ -3008,7 +3008,7 @@ def _initBCDataSet(t, varNameString, v1=None, v2=None,
                         np = max(imax-imin, 1)*max(jmax-jmin, 1)*max(kmax-kmin, 1)
                     elif np2[1].size == 2: # element range
                         npr = np2[1].ravel("k")
-                        np = npr[1] - npr[0]
+                        np = npr[1] - npr[0]+1
                 elif np3 is not None:
                     if np3[1].size == 6: # structured range
                         win = Internal.range2Window(np3[1])
@@ -3016,7 +3016,7 @@ def _initBCDataSet(t, varNameString, v1=None, v2=None,
                         np = max(imax-imin, 1)*max(jmax-jmin, 1)*max(kmax-kmin, 1)
                     elif np3[1].size == 2: # element range
                         npr = np3[1].ravel("k")
-                        np = npr[1] - npr[0]
+                        np = npr[1] - npr[0]+1
                 else: raise ValueError('initBCDataSet: no PointRange or PointList in BC.')
                 fields = Converter.array('empty', np, 1, 1)
             fn = Converter.initVars(fields, varNameString, v1, v2, isVectorized=isVectorized)
@@ -4077,8 +4077,13 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
 
         # Ajoute les Data si necessaire (donnees Dirichlet)
         if data is not None:
-            node1 = Internal.createNode('State', 'DataArray_t', value=data)
-            node2 = Internal.createNode('DirichletData', 'BCData_t', children=[node1])
+            nodes = []
+            if isinstance(data, numpy.ndarray):
+                nodes.append(Internal.createNode('State', 'DataArray_t', value=data))
+            elif isinstance(data, list): # list of DataArray_t nodes
+                for d in data:
+                    nodes.append(Internal.createNode(d[0], 'DataArray_t', value=d[1]))
+            node2 = Internal.createNode('DirichletData', 'BCData_t', children=nodes)
             node3 = Internal.createNode('BCDataSet', 'BCDataSet_t', children=[node2])
             info[2].append(node3)
     return None
@@ -4201,10 +4206,15 @@ def _addBC2NGonZone__(z, bndName, bndType, faceList, data, subzone,
         if bndType1 == 'FamilySpecified':
             Internal.createChild(info, 'FamilyName', 'FamilyName_t', bndType2)
 
-        # Ajoute les Data si necessaire (donnees Dirichlet)
+        # Ajoute les DataSet si necessaire (donnees Dirichlet)
         if data is not None:
-            node1 = Internal.createNode('State', 'DataArray_t', value=data)
-            node2 = Internal.createNode('DirichletData', 'BCData_t', children=[node1])
+            nodes = []
+            if isinstance(data, numpy.ndarray):
+                nodes.append(Internal.createNode('State', 'DataArray_t', value=data))
+            elif isinstance(data, list): # list of DataArray_t nodes
+                for d in data:
+                    nodes.append(Internal.createNode(d[0], 'DataArray_t', value=d[1]))
+            node2 = Internal.createNode('DirichletData', 'BCData_t', children=nodes)
             node3 = Internal.createNode('BCDataSet', 'BCDataSet_t', children=[node2])
             info[2].append(node3)
     return None
@@ -4350,8 +4360,13 @@ def _addBC2UnstructZone__(z, bndName, bndType, elementList, elementRange,
 
         # Ajoute les Data si necessaire (donnees Dirichlet)
         if data is not None:
-            node1 = Internal.createNode('State', 'DataArray_t', value=data)
-            node2 = Internal.createNode('DirichletData', 'BCData_t', children=[node1])
+            nodes = []
+            if isinstance(data, numpy.ndarray):
+                nodes.append(Internal.createNode('State', 'DataArray_t', value=data))
+            elif isinstance(data, list): # list of DataArray_t nodes
+                for d in data:
+                    nodes.append(Internal.createNode(d[0], 'DataArray_t', value=d[1]))
+            node2 = Internal.createNode('DirichletData', 'BCData_t', children=nodes)
             node3 = Internal.createNode('BCDataSet', 'BCDataSet_t', children=[node2])
             info[2].append(node3)
     return None

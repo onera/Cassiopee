@@ -1,3 +1,4 @@
+# XCore PyTree interface
 import Converter.Filter2 as Filter2
 import Converter.Mpi as Cmpi
 import Converter.Internal as I
@@ -6,8 +7,8 @@ from . import xcore
 
 BCType_l = set(I.KNOWNBCS)
 
-# IN : a : zone
-# IN : cid : cell id as integer
+# IN: a: zone
+# IN: cid: cell id as integer
 def extractCell(a, cid):
     z = I.getZones(a)[0]
     m = C.getFields(I.__GridCoordinates__, z, api=3)[0]
@@ -229,14 +230,13 @@ def loadAndSplitNGon(fileName):
 
     zonebc = I.getNodeFromType1(z, 'ZoneBC_t')
     bcs = []
-    bcDataSets = []
+    bcfields = []
     bcNames = []
     bcTypes = {}
     bcTags = {}
     if zonebc is not None:
         BCs = I.getNodesFromType1(zonebc, 'BC_t')
-        for i in range(len(BCs)):
-            bc = BCs[i]
+        for i, bc in enumerate(BCs):
             bcname = bc[0]
             bctype = I.getValue(bc)
 
@@ -251,13 +251,13 @@ def loadAndSplitNGon(fileName):
             bcTags[bcname] = i
 
             plist = I.getNodeFromName1(bc, 'PointList')
-            bcs.append(plist[1][0])
-            bcDataSets.append([])
+            bcs.append(plist[1].ravel("k"))
+            bcfields.append([])
 
-    arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs,bcDataSets])
+    arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs,bcfields])
 
     RES = xcore.chunk2partNGon(arrays)
-    (mesh, comm_data, solc, sol, bcs, cells, faces, points) = RES
+    (mesh, comm_data, solc, sol, bcs, bcfields, cells, faces, points) = RES
 
     Cmpi.barrier()
 
@@ -271,9 +271,9 @@ def loadAndSplitNGon(fileName):
         Name = 'Match_'+str(data[0])
         I.newGridConnectivity1to1(name=Name, donorName=str(data[0]), pointList=data[1], parent=ZGC)
 
-    I.newUserDefinedData(name='CellLoc2Glob', value=RES[5], parent=ZGC)
-    I.newUserDefinedData(name='FaceLoc2Glob', value=RES[6], parent=ZGC)
-    I.newUserDefinedData(name='PointLoc2Glob', value=RES[7], parent=ZGC)
+    I.newUserDefinedData(name='CellLoc2Glob', value=RES[6], parent=ZGC)
+    I.newUserDefinedData(name='FaceLoc2Glob', value=RES[7], parent=ZGC)
+    I.newUserDefinedData(name='PointLoc2Glob', value=RES[8], parent=ZGC)
 
     # add solutions
     for n, name in enumerate(solNames):

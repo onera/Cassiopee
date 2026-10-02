@@ -22,8 +22,8 @@ if Cmpi.rank == 0: C.convertPyTree2File(a, filename)
 Cmpi.barrier()
 
 a, res = XC.loadAndSplitNGon(filename)
-gcells = res[5]
-gfaces = res[6]
+gcells = res[6]
+gfaces = res[7]
 comm = res[1]
 
 normal2D = numpy.array([0.0,0.0,1.0])
@@ -59,8 +59,8 @@ if Cmpi.rank == 0: C.convertPyTree2File(a, filename)
 Cmpi.barrier()
 
 a, res = XC.loadAndSplitNGon(filename)
-gcells = res[5]
-gfaces = res[6]
+gcells = res[6]
+gfaces = res[7]
 comm = res[1]
 
 normal2D = None

@@ -843,8 +843,9 @@ def chunk2part(dt):
     # extract bcNames and bcTypes from chunked zone
     zonebc = Internal.getNodeFromType1(z, 'ZoneBC_t')
     bcs = [] # list of numpys of PL
-    bcDataSets = [] # list of list of numpy of bcfields
     bcNames = []; bcTypes = {}
+    bcfields = [] # list of list of numpy of bcfields
+    bcfieldNames = []
     if zonebc is not None:
         BCs = Internal.getNodesFromType1(zonebc, 'BC_t')
         for bc in BCs:
@@ -859,20 +860,21 @@ def chunk2part(dt):
             plist = Internal.getNodeFromName1(bc, 'PointList')
             bcs.append(plist[1].ravel('k'))
             dataSets = Internal.getNodesFromType1(bc, 'BCDataSet_t')
-            dl = []
+            dl = []; dn = []
             for d in dataSets:
                 data = Internal.getNodeFromType1(d, 'BCData_t') # unique
                 datas = Internal.getNodesFromType1(data, 'DataArray_t')
-                for da in datas:
-                    dl.append(da[1])
-            bcDataSets.append(dl)
+                for da in datas: dl.append(da[1])
+                for da in datas: dn.append(da[0])
+            bcfields.append(dl)
+            bcfieldNames.append(dn)
 
     # bcs is a list of PL
     # bcdataset is a list of list of arrays
-    arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs,bcDataSets])
+    arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs,bcfields])
 
     RES = XCore.xcore.chunk2partNGon(arrays)
-    (mesh, commData, solc, sol, bcs, cells, faces, points) = RES
+    (mesh, commData, solc, sol, bcs, bcfields, cells, faces, points) = RES
     Cmpi.barrier()
 
     # create zone
@@ -900,6 +902,14 @@ def chunk2part(dt):
             else:
                 node = Internal.newBC(name=bcNames[i], pointList=bc, btype=val, parent=cont)
                 Internal._createUniqueChild(node, 'GridLocation', 'GridLocation_t', value='FaceCenter')
+            bcfield = bcfields[i]
+            if len(bcfield) != 0:
+                bcfield = bcfields[i]
+                for j, bcf in enumerate(bcfield):
+                    name = bcfieldNames[i][j]
+                    node2 = Internal.newBCDataSet(parent=node, value='BCDirichlet', gridLocation='FaceCenter')
+                    node2 = Internal.newBCData(parent=node2)
+                    Internal.newDataArray(name, value=bcfield[j], parent=node2)
 
     t = C.newPyTree(['Base', zo])
     Cmpi._setProc(t, Cmpi.rank)
