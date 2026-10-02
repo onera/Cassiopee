@@ -2734,10 +2734,20 @@ def breakElements(t):
 def dual(t, extraPoints=1):
     """Return the dual mesh of a conformal mesh.
     Usage: dual(t, extraPoints)"""
-    t = C.deleteFlowSolutions__(t, 'centers')
-    return C.TZA1(t, 'nodes', 'nodes', True, Transform.dual, extraPoints)
+    tp = Internal.copyRef(t)
+    _dual(tp, extraPoints)
+    return tp
 
 def _dual(t, extraPoints=1):
+    zones = Internal.getZones(t)
+    for z in zones:
+        dim = Internal.getZoneDim(z)
+        if dim[0] != 'Unstructured':
+            C._convertArray2NGon(z, api=3)
+        elif dim[3] == 'NODE':
+            return None
+        elif dim[3] != 'NGON':
+            C._convertArray2NGon(z, api=3)
     C._deleteFlowSolutions__(t, 'centers')
     return C._TZA1(t, 'nodes', 'nodes', True, Transform.dual, extraPoints)
 
