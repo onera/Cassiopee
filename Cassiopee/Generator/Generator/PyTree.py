@@ -960,21 +960,6 @@ def addPointInDistribution(a, ind):
     a = C.deleteAllBCAndSolutions__(a)
     return C.TZGC1(a, 'nodes', True, Generator.addPointInDistribution, ind)
 
-def closeLegacy(a, tol=1.e-12, suppressDegeneratedNGons=False):
-    """Merge vertices distant of tol and remove multiply defined vertices/faces/elements.
-    Usage: closeLegacy(array, tol, suppressDegeneratedNGons)"""
-    t = Internal.copyRef(a)
-    _closeLegacy(t, tol=tol, suppressDegeneratedNGons=suppressDegeneratedNGons)
-    return t
-
-def _closeLegacy(t, tol=1.e-12, suppressDegeneratedNGons=False):
-    """Merge vertices distant of tol and remove multiply defined vertices/faces/elements.
-    Usage: closeLegacy(array, tol, suppressDegeneratedNGons)"""
-    fields = C.getAllFields(t, 'nodes', api=1)
-    fields = Generator.closeLegacy(fields, tol, suppressDegeneratedNGons)
-    C.setFields(fields, t, 'nodes')
-    return None
-
 def close(a, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True,
           rmDuplicatedFaces=True, rmDuplicatedElts=True,
           rmDegeneratedFaces=True, rmDegeneratedElts=True,
