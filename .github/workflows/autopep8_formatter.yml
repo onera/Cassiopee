@@ -3,10 +3,10 @@ name: autopep8 formatter
 on:
   push:
     branches:
-      - dev*
-#  pull_request:
-#    branches:
-#      - main
+      - 'dev*'
+
+permissions:
+  contents: write
 
 jobs:
   autopep8:
@@ -14,31 +14,57 @@ jobs:
 
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v7
         with:
           python-version: '3.10'
 
       - name: Install autopep8
         run: pip install autopep8
 
-      - name: Run autopep8
-        run: |
-          pythonFiles=`find Cassiopee/ -type f -not -path "*/build/*" -not -path "*/ThirdParty/*" -name "*.py" -not -name "Internal.py"`
-          errorCodes="E101,E11,E121,E122,E123,E124,E125,E126,E127,E128,E129,E131,E133,E251,E252,E711,E713,E714,E721,E722,W291,W293,W391"
-          autopep8 --in-place --indent-size=4 --select=$errorCodes $pythonFiles
-          autopep8 --in-place --indent-size=2 --select=$errorCodes Cassiopee/Converter/Converter/Internal.py
-
-      - name: Commit changes
-        run: |
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "Apply autopep8 formatting" || true
-
-      - name: Push changes
-        run: git push origin ${{ github.ref }}
+      - name: Run autopep8 on pushed changes only
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: |
+          set -eu
+          errorCodes="E101,E11,E121,E122,E123,E124,E125,E126,E127,E128,E129,E131,E133,E251,E252,E711,E713,E714,E721,E722,W291,W293,W391"
+          internal="Cassiopee/Converter/Converter/Internal.py"
+
+          # New branch (all-zero SHA) or force-push (old SHA missing): fall back to the last commit
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] \
+             || ! git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
+            BEFORE=$(git rev-parse "$AFTER~1" 2>/dev/null || git hash-object -t tree /dev/null)
+          fi
+
+          # Changed (non-deleted) Python files
+          git diff --name-only --diff-filter=d "$BEFORE" "$AFTER" -- 'Cassiopee/*.py' \
+            | grep -v '/build/' \
+            | grep -v '/ThirdParty/' \
+            | grep -v '/Internal.py$' > "$RUNNER_TEMP/files.txt" || true
+
+          if [ -s "$RUNNER_TEMP/files.txt" ]; then
+            xargs -a "$RUNNER_TEMP/files.txt" autopep8 --in-place --indent-size=4 --select="$errorCodes"
+          fi
+
+          # Converter/Converter/Internal.py uses 2-space indentation
+          if git diff --name-only --diff-filter=d "$BEFORE" "$AFTER" -- "$internal" | grep -q .; then
+            autopep8 --in-place --indent-size=2 --select="$errorCodes" "$internal"
+          fi
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -u
+          if git diff --cached --quiet; then
+            echo "Nothing to format."
+            exit 0
+          fi
+          git commit -m "Apply autopep8 formatting"
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin HEAD:"$GITHUB_REF_NAME"
