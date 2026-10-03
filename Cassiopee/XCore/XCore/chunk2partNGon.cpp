@@ -1306,7 +1306,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
     {
       PyObject* p = PyList_GetItem(o2, bc);
       E_Int nfields = PyList_Size(p);
-      if (rank == 0) printf("find bcdatasets for bc %d with %d fields.\n", bc, nfields);
+      if (rank == 0) printf("find bcdatasets for bc " SF_D_ " with " SF_D_ " fields.\n", bc, nfields);
       bcfields[bc] = (E_Float **)XCALLOC(nfields, sizeof(E_Float *));
       bcfieldsize[bc] = nfields;
       for (E_Int n = 0; n < nfields; n++)
@@ -1533,7 +1533,7 @@ PyObject* K_XCORE::chunk2partNGon(PyObject *self, PyObject *args)
         //MPI_Allreduce(&nrecv, &allSize, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
         //if (rank == 0) printf("BC reduce size=%d\n", allSize);
 
-        int* chunksizes = new E_Int [nproc];
+        int* chunksizes = new int [nproc];
         MPI_Allgather(&bcsize[bc], 1,
           MPI_INT, chunksizes, 1, 
           MPI_INT, MPI_COMM_WORLD); // gather chunk sizes
