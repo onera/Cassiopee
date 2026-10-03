@@ -5,6 +5,7 @@ on:
   push:
     tags:
       - 'v*'
+      - '20*.*'
     branches:
       - 'docker'
 
@@ -17,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
