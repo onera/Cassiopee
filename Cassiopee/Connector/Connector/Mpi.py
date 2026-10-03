@@ -137,6 +137,8 @@ def _connectMatchNGon(z, tol=1.e-6):
         f = Internal.getNodeFromName1(b, 'PointList')
         indicesBC.append(f[1].ravel("k"))
 
+    indicesE = []
+
     if indicesBC == []:
         indicesE = indicesF
     else:
@@ -144,10 +146,7 @@ def _connectMatchNGon(z, tol=1.e-6):
         nfacesExt = indicesF.shape[0]
         nfacesDef = indicesBC.shape[0]
         if nfacesExt == nfacesDef:
-            print('Warning: all exterior faces are already assigned a BC.'
-                  'Check if BCMatch are present.')
-            C.freeHook(hook)
-            return None
+            print('Warning: all exterior faces are already assigned a BC.')
         elif nfacesExt < nfacesDef:
             print('Warning: zone %s: number of faces defined by BCs is greater '
                   'than the number of external faces. Try to reduce the '
@@ -159,11 +158,13 @@ def _connectMatchNGon(z, tol=1.e-6):
             # between indicesF and indicesBC
             indicesE = Converter.converter.diffIndex(indicesF, indicesBC)
 
-    zu = T.subzone(z, indicesE, type='faces')
-    zu[0] = z[0]
+    if len(indicesE) > 0:
+        zu = T.subzone(z, indicesE, type='faces')
+        zu[0] = z[0]
+    else:
+        zu = None
 
     for trip in range(Cmpi.size-1):
-        data = None
         zu, indicesE = Cmpi.passNext([zu, indicesE])
 
         if zu is not None:

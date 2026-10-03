@@ -169,10 +169,10 @@ def center2Node(t, var=None, cellNType=0, graph=None):
     if allstructured == size: # all zones are structured
         return center2Node1__(t, var, cellNType) # to be changed to 2
     else: # mixed or unstructured
-        if indices == {}:
+        if ztype != 'NGON':
             return center2Node1__(t, var, cellNType, graph) # use addXZones (default)
         else:
-            return C.center2Node(t, var, cellNType, indices=indices, BCField=BCField) # use BCMatch data (NGON)
+            return C.center2Node(t, var, cellNType, indices=indices, BCField=BCField) # use BCMatch data if any (NGON)
 
 # generic, use addXZones
 def center2Node1__(t, var=None, cellNType=0, graph=None):
