@@ -1758,7 +1758,7 @@ PyObject* K_POST::selectExteriorFacesME(char* varString, FldArrayF& f,
   // Transform the exterior vertex mask of zeros and ones into a vertex map
   // from old to new connectivities, and get the number of unique exterior
   // vertices, npts2
-  E_Int npts2 = K_CONNECT::prefixSum(vindir);
+  E_Int npts2 = K_CONNECT::mask2Indir(vindir);
 
   // Build new eltType from connectivities that have at least one element
   E_Int nc2 = 0;

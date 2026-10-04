@@ -538,7 +538,11 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
   // number of faces per element, nfpe
   std::vector<E_Int> nfpe;
   E_Int ierr = K_CONNECT::getNFPE(nfpe, eltType, true);
-  if (ierr != 0) return NULL;
+  if (ierr != 0)
+  {
+    for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+    return NULL;
+  }
 
   // Build the element -> number of neighbour elements connectivity
   std::vector<E_Int> cENN(ntotElts);
@@ -568,7 +572,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
   // In a first pass, tag vertex indices that belong to exterior elements
   std::vector<E_Int> vindir(npts, 0);
 
-  #pragma omp parallel
+  #pragma omp parallel num_threads(nthreads)
   {
     E_Int indv;
     E_Int eidx;  // global element index
@@ -587,7 +591,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
       E_Int nvpe = cm.getNfld();
       nextEltsIc = 0;
 
-      #pragma omp for schedule(static)
+      #pragma omp for nowait schedule(static)
       for (E_Int i = 0; i < nepc[ic]; i++)
       {
         eidx = cumnepc[ic] + i;
@@ -618,7 +622,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
   // Transform the exterior vertex mask of zeros and ones into a vertex map
   // from old to new connectivities, and get the number of unique exterior
   // vertices, npts2
-  E_Int npts2 = K_CONNECT::prefixSum(vindir);
+  E_Int npts2 = K_CONNECT::mask2Indir(vindir);
 
   // Compute thread element offsets in the output ME for each connectivity
   // toffset is a cumulative tnextepc over all conns
@@ -673,7 +677,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
   FldArrayF* f2; FldArrayI* cn2;
   K_ARRAY::getFromArray3(tpl, f2, cn2);
 
-  #pragma omp parallel
+  #pragma omp parallel num_threads(nthreads)
   {
     E_Int ic2, indv, inde, nelts, nvpe;
     E_Int offR;  // cumulative element offset of a given conn. to Read from cm
@@ -688,7 +692,7 @@ PyObject* K_POST::selectExteriorEltsME(FldArrayF& f, FldArrayI& cn,
     {
       E_Float* fp = f.begin(n);
       E_Float* f2p = f2->begin(n);
-      #pragma omp for
+      #pragma omp for nowait
       for (E_Int i = 0; i < npts; i++)
       {
         indv = vindir[i];
