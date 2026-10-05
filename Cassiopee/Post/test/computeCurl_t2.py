@@ -11,59 +11,59 @@ def DF(y): return -24.*y
 # cas 3D hexa
 ni = 30; nj = 40; nk = 3
 m = G.cartHexa((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-m = C.initVars(m,'u',F,['x','y','z'])
+m = C.initVars(m,'u',F,['x','y','z'], isVectorized=True)
 m = C.initVars(m,'v',0.)
 m = C.initVars(m,'w',0.)
-m = C.initVars(m,'sol',DF,['y'])
+m = C.initVars(m,'sol',DF,['y'], isVectorized=True)
 p = P.computeCurl(m, ['u','v','w']) # defined on centers
 test.testA([p], 1)
 
 # cas 3D tetra
 ni = 30; nj = 40; nk = 3
 m = G.cartTetra((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-m = C.initVars(m,'u',F,['x','y','z'])
+m = C.initVars(m,'u',F,['x','y','z'], isVectorized=True)
 m = C.initVars(m,'v',0.)
 m = C.initVars(m,'w',0.)
-m = C.initVars(m,'sol',DF,['y'])
+m = C.initVars(m,'sol',DF,['y'], isVectorized=True)
 p = P.computeCurl(m,['u','v','w']) # defined on centers
 test.testA([p], 2)
 
 # cas 3D penta
 ni = 30; nj = 40; nk = 3
 m = G.cartPenta((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-m = C.initVars(m,'u',F,['x','y','z'])
+m = C.initVars(m,'u',F,['x','y','z'], isVectorized=True)
 m = C.initVars(m,'v',0.)
 m = C.initVars(m,'w',0.)
-m = C.initVars(m,'sol',DF,['y'])
+m = C.initVars(m,'sol',DF,['y'], isVectorized=True)
 p = P.computeCurl(m,['u','v','w']) # defined on centers
 test.testA([p], 3)
 
 # cas 2D QUAD
 ni = 30; nj = 40; nk = 1
 m = G.cartHexa((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-m = C.initVars(m,'u',F,['x','y','z'])
+m = C.initVars(m,'u',F,['x','y','z'], isVectorized=True)
 m = C.initVars(m,'v',0.)
 m = C.initVars(m,'w',0.)
-m = C.initVars(m,'sol',DF,['y'])
+m = C.initVars(m,'sol',DF,['y'], isVectorized=True)
 p = P.computeCurl(m,['u','v','w']) # defined on centers
 test.testA([p], 4)
 
 # cas 2D tri
 ni = 30; nj = 40; nk = 1
 m = G.cartTetra((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-m = C.initVars(m,'u',F,['x','y','z'])
+m = C.initVars(m,'u',F,['x','y','z'], isVectorized=True)
 m = C.initVars(m,'v',0.)
 m = C.initVars(m,'w',0.)
-m = C.initVars(m,'sol',DF,['y'])
+m = C.initVars(m,'sol',DF,['y'], isVectorized=True)
 p = P.computeCurl(m,['u','v','w']) # defined on centers
 test.testA([p], 5)
 
 # cas 3D NGON
 ni = 30; nj = 40; nk = 3
 m = G.cartNGon((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-m = C.initVars(m,'u',F,['x','y','z'])
+m = C.initVars(m,'u',F,['x','y','z'], isVectorized=True)
 m = C.initVars(m,'v',0.)
 m = C.initVars(m,'w',0.)
-m = C.initVars(m,'sol',DF,['y'])
+m = C.initVars(m,'sol',DF,['y'], isVectorized=True)
 p = P.computeCurl(m,['u','v','w']) # defined on centers
 test.testA([p], 6)

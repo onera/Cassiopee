@@ -5,23 +5,21 @@ import Generator as G
 import KCore.test as test
 
 def F(x):
-    if ( x > 5. ): return True
-    else : return False
-#
+    return (x > 5.)
+
 def celln(y):
-    if ( y > 5. ): return True
-    else : return False
+    return (y > 5.)
 
 #--------------
 # TRI
 #--------------
 ni = 30; nj = 40; nk = 1
 m = G.cartTetra((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-m = C.initVars(m, 'ro', F, ['x'])
+m = C.initVars(m, 'ro', F, ['x'], isVectorized=True)
 p = P.computeDiff(m,'ro')
 test.testA([p],1)
 #
-m = C.initVars(m, 'cellN', celln, ['y'])
+m = C.initVars(m, 'cellN', celln, ['y'], isVectorized=True)
 p = P.computeDiff(m,'ro')
 test.testA([p],2)
 
@@ -30,11 +28,11 @@ test.testA([p],2)
 #--------------
 ni = 30; nj = 40; nk = 11
 m = G.cartTetra((0,0,0), (10./(ni-1),10./(nj-1),10./(nk-1)), (ni,nj,nk))
-m = C.initVars(m, 'ro', F, ['x'])
+m = C.initVars(m, 'ro', F, ['x'], isVectorized=True)
 p = P.computeDiff(m,'ro')
 test.testA([p],3)
 #
-m = C.initVars(m, 'cellN', celln, ['y'])
+m = C.initVars(m, 'cellN', celln, ['y'], isVectorized=True)
 p = P.computeDiff(m,'ro')
 test.testA([p],4)
 #--------------
@@ -42,11 +40,11 @@ test.testA([p],4)
 #--------------
 ni = 30; nj = 40; nk = 1
 m = G.cartHexa((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-m = C.initVars(m, 'ro', F, ['x'])
+m = C.initVars(m, 'ro', F, ['x'], isVectorized=True)
 p = P.computeDiff(m,'ro')
 test.testA([p],5)
 #
-m = C.initVars(m, 'cellN', celln, ['y'])
+m = C.initVars(m, 'cellN', celln, ['y'], isVectorized=True)
 p = P.computeDiff(m,'ro')
 test.testA([p],6)
 #--------------
@@ -54,11 +52,11 @@ test.testA([p],6)
 #--------------
 ni = 30; nj = 40; nk = 11
 m = G.cartHexa((0,0,0), (10./(ni-1),10./(nj-1),10./(nk-1)), (ni,nj,nk))
-m = C.initVars(m, 'ro', F, ['x'])
+m = C.initVars(m, 'ro', F, ['x'], isVectorized=True)
 p = P.computeDiff(m,'ro')
 test.testA([p],7)
 #
-m = C.initVars(m, 'cellN', celln, ['y'])
+m = C.initVars(m, 'cellN', celln, ['y'], isVectorized=True)
 p = P.computeDiff(m,'ro')
 test.testA([p],8)
 #
@@ -66,11 +64,11 @@ test.testA([p],8)
 #
 ni = 30; nj = 40; nk = 11
 m = G.cartPenta((0,0,0), (10./(ni-1),10./(nj-1),10./(nk-1)), (ni,nj,nk))
-m = C.initVars(m, 'ro', F, ['x'])
+m = C.initVars(m, 'ro', F, ['x'], isVectorized=True)
 p = P.computeDiff(m,'ro')
 test.testA([p],9)
 #
-m = C.initVars(m, 'cellN', celln, ['y'])
+m = C.initVars(m, 'cellN', celln, ['y'], isVectorized=True)
 p = P.computeDiff(m,'ro')
 test.testA([p],10)
 #

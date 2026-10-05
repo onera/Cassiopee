@@ -6,26 +6,26 @@ import Connector.PyTree as X
 import KCore.test as test
 
 def F(x):
-    if x > 5.: return True
-    else: return False
+    return (x > 5.)
+
 def F2(x):
     return x
+
 def celln(y):
-    if y > 5.: return True
-    else: return False
+    return (y > 5.)
 
 #---------------------
 # noeuds 2D structure
 #---------------------
 ni = 30; nj = 40; nk = 1
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-m = C.initVars(m, 'Density', F, ['CoordinateX'])
+m = C.initVars(m, 'Density', F, ['CoordinateX'], isVectorized=True)
 m = P.computeDiff(m, 'Density')
 test.testT(m,1)
 #
 # Prise en compte du cellN
 #
-m = C.initVars(m, 'cellN', celln, ['CoordinateY'])
+m = C.initVars(m, 'cellN', celln, ['CoordinateY'], isVectorized=True)
 m = P.computeDiff(m,'Density')
 test.testT(m,2)
 
@@ -34,8 +34,8 @@ test.testT(m,2)
 #
 m1 = G.cart((0.,0.,0.), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
 m2 = G.cart((10.,0.,0.), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-m1 = C.initVars(m1, 'Density', F2, ['CoordinateX'])
-m2 = C.initVars(m2, 'Density', F2, ['CoordinateX'])
+m1 = C.initVars(m1, 'Density', F2, ['CoordinateX'], isVectorized=True)
+m2 = C.initVars(m2, 'Density', F2, ['CoordinateX'], isVectorized=True)
 m1 = C.node2Center(m1,'Density')
 m2 = C.node2Center(m2,'Density')
 t = C.newPyTree(['Base',2]);
@@ -50,13 +50,13 @@ test.testT(t,21)
 #------------------------
 ni = 30; nj = 40; nk = 11
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),10./(nk-1)), (ni,nj,nk))
-m = C.initVars(m, 'Density', F, ['CoordinateX'])
+m = C.initVars(m, 'Density', F, ['CoordinateX'], isVectorized=True)
 m = P.computeDiff(m,'Density')
 test.testT(m,3)
 #
 # Prise en compte du cellN
 #
-m = C.initVars(m, 'cellN', celln, ['CoordinateY'])
+m = C.initVars(m, 'cellN', celln, ['CoordinateY'], isVectorized=True)
 m = P.computeDiff(m,'Density')
 test.testT(m,4)
 
@@ -65,8 +65,8 @@ test.testT(m,4)
 #
 m1 = G.cart((0,0,0), (10./(ni-1),10./(nj-1),10./(nk-1)), (ni,nj,nk))
 m2 = G.cart((10.,0,0), (10./(ni-1),10./(nj-1),10./(nk-1)), (ni,nj,nk))
-m1 = C.initVars(m1, 'Density', F2, ['CoordinateX'])
-m2 = C.initVars(m2, 'Density', F2, ['CoordinateX'])
+m1 = C.initVars(m1, 'Density', F2, ['CoordinateX'], isVectorized=True)
+m2 = C.initVars(m2, 'Density', F2, ['CoordinateX'], isVectorized=True)
 m1 = C.node2Center(m1,'Density')
 m2 = C.node2Center(m2,'Density')
 t = C.newPyTree(['Base'])

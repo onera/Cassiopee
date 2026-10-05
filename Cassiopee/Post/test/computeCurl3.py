@@ -13,7 +13,7 @@ def H(x) :
 # Maillage en noeuds
 m0 = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
 m = C.addVars(m0,'F1')
-m = C.initVars(m,'F1',F,['x','y','z'])
+m = C.initVars(m,'F1',F,['x','y','z'], isVectorized=True)
 m = C.addVars(m,'F2')
 m = C.initVars(m,'F2',0.)
 m = C.addVars(m,'F3')
@@ -32,7 +32,7 @@ ni = 30; nj = 40; nk = 1
 # Maillage en noeuds
 m0 = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
 m = C.addVars(m0,'F1')
-m = C.initVars(m,'F1',F,['x','y','z'])
+m = C.initVars(m,'F1',F,['x','y','z'], isVectorized=True)
 m = C.addVars(m,'F2')
 m = C.initVars(m,'F2',0.)
 m = C.addVars(m,'F3')
