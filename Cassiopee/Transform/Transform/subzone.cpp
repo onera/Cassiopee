@@ -644,7 +644,7 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
     // Transform the tagged vertex mask of zeros and ones into a vertex map
     // from old to new connectivities, and get the number of unique tagged
     // vertices, npts2
-    E_Int npts2 = K_CONNECT::prefixSum(vindir);
+    E_Int npts2 = K_CONNECT::mask2Indir(vindir);
 
     // Build new eltType from connectivities that have at least one element
     E_Int nc2 = 0;

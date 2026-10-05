@@ -540,15 +540,17 @@ namespace K_CONNECT
                            const std::vector<E_Int>& bucketSizes,
                            std::vector<E_Int>& offsets);
 
-  // Perform an exclusive prefix sum on an array that is a mask comprised solely
-  // of zeros and ones. Return the total number of ones, that is the total number
-  // of tagged elements.
-  E_Int prefixSum(std::vector<E_Int>& a);
+  // Enumerate the tagged entries of a mask comprised solely of zeros and ones.
+  // Each entry equal to 1 is replaced by its rank among the tagged entries.
+  // Return the total number of ones, that is the total number of tagged
+  // elements.
+  E_Int mask2Indir(std::vector<E_Int>& a);
 
-  // Perform an exclusive prefix sum on an array that is a mask comprised solely
-  // of zeros and ones, for each bucket. Return the total number of ones per
-  // bucket, that is the total number of tagged elements per bucket.
-  std::vector<E_Int> prefixSum(std::vector<E_Int>& a,
-                               const std::vector<E_Int>& buckets);
+  // Enumerate the tagged entries of a mask comprised solely of zeros and ones.
+  // Each entry equal to 1 is replaced by its rank among the tagged entries of
+  // its bucket (renumbering restarts at 1 in each bucket).
+  // Return the total number of ones per bucket.
+  std::vector<E_Int> mask2Indir(std::vector<E_Int>& a,
+                                const std::vector<E_Int>& buckets);
 }
 #endif

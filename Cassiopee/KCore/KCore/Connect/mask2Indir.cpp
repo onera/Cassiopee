@@ -20,24 +20,26 @@
 #include <vector>
 
 // ============================================================================
-// Perform an exclusive prefix sum on an array that is a mask comprised solely
-// of zeros and ones.
-// Renumbering starts at 1.
+// Enumerate the tagged entries of a mask comprised solely of zeros and ones.
+// Each entry equal to 1 is replaced by its rank among the tagged entries
+// (1-based, in increasing index order); entries equal to 0 are left at 0.
+// Example: [0,1,1,0,1] -> [0,1,2,0,3].
+// This is an inclusive scan of the mask, evaluated at tagged entries only.
 // Return the total number of ones, that is the total number of tagged elements.
 // ============================================================================
-E_Int K_CONNECT::prefixSum(std::vector<E_Int>& a)
+E_Int K_CONNECT::mask2Indir(std::vector<E_Int>& a)
 {
   const E_Int n = a.size();
   const E_Int nthreads = __NUMTHREADS__;
   std::vector<E_Int> threadSums(nthreads+1, 0);
 
-  // Build thread offsets
-  #pragma omp parallel
+  #pragma omp parallel num_threads(nthreads)
   {
     E_Int ithread = __CURRENT_THREAD__;
-    E_Int ai;
+    E_Int ai, offset;
     E_Int localSum = 1;  // re-indexing starts at 1
 
+    // Build thread offsets
     #pragma omp for schedule(static)
     for (E_Int i = 0; i < n; i++)
     {
@@ -48,17 +50,16 @@ E_Int K_CONNECT::prefixSum(std::vector<E_Int>& a)
         localSum += ai;
       }
     }
-
     threadSums[ithread+1] = localSum - 1;
-  }
 
-  for (E_Int i = 1; i < nthreads+1; i++) threadSums[i] += threadSums[i-1];
+    #pragma omp barrier
+    #pragma omp single
+    {
+      for (E_Int i = 1; i < nthreads+1; i++) threadSums[i] += threadSums[i-1];
+    }
 
-  // Add thread offsets to input array
-  #pragma omp parallel
-  {
-    E_Int ithread = __CURRENT_THREAD__;
-    E_Int offset = threadSums[ithread];
+    // Add thread offsets to input array
+    offset = threadSums[ithread];
 
     #pragma omp for schedule(static)
     for (E_Int i = 0; i < n; i++)
@@ -71,15 +72,14 @@ E_Int K_CONNECT::prefixSum(std::vector<E_Int>& a)
 }
 
 // ============================================================================
-// Perform an exclusive prefix sum on an array that is a mask comprised solely
-// of zeros and ones, for each bucket. The sum of the number of elements in all
-// buckets must equal the size of a (return -1 if not).
-// Renumbering starts at 1 in each bucket.
-// Return the total number of ones per bucket, that is the total number of
-// tagged elements per bucket.
+// Enumerate the tagged entries of a mask comprised solely of zeros and ones.
+// Each entry equal to 1 is replaced by its rank among the tagged entries of its
+// bucket (renumbering restarts at 1 in each bucket).
+// This is an inclusive scan of the mask, evaluated at tagged entries only.
+// Return the total number of ones per bucket.
 // ============================================================================
-std::vector<E_Int> K_CONNECT::prefixSum(std::vector<E_Int>& a,
-                                        const std::vector<E_Int>& buckets)
+std::vector<E_Int> K_CONNECT::mask2Indir(std::vector<E_Int>& a,
+                                         const std::vector<E_Int>& buckets)
 {
   const E_Int n = a.size();
   const E_Int nbuckets = buckets.size();
@@ -91,28 +91,27 @@ std::vector<E_Int> K_CONNECT::prefixSum(std::vector<E_Int>& a,
   if (nn != n) return bucketTotals;
 
   const E_Int nthreads = __NUMTHREADS__;
-  std::vector<std::vector<E_Int> > threadSums(nbuckets);
-  for (E_Int b = 0; b < nbuckets; b++) threadSums[b].resize(nthreads+1);
+  std::vector<E_Int> threadSums(nbuckets*(nthreads+1));
 
   // Compute bucket starting offsets
   std::vector<E_Int> bucketStart(nbuckets, 0);
   for (E_Int b = 1; b < nbuckets; b++)
     bucketStart[b] = bucketStart[b-1] + buckets[b-1];
 
-  // Build thread offsets per bucket
-  #pragma omp parallel
+  #pragma omp parallel num_threads(nthreads)
   {
     E_Int ithread = __CURRENT_THREAD__;
-    E_Int ai, beg, end;
+    E_Int ai, offset, beg, end;
     E_Int localSum;
 
+    // Build thread offsets per bucket
     for (E_Int b = 0; b < nbuckets; b++)
     {
       localSum = 1;  // re-indexing starts at 1
       beg = bucketStart[b];
       end = beg + buckets[b];
 
-      #pragma omp for schedule(static)
+      #pragma omp for nowait schedule(static)
       for (E_Int i = beg; i < end; i++)
       {
         ai = a[i];
@@ -122,31 +121,29 @@ std::vector<E_Int> K_CONNECT::prefixSum(std::vector<E_Int>& a,
           localSum += ai;
         }
       }
-
-      threadSums[b][ithread+1] = localSum - 1;
+      threadSums[(ithread+1)*nbuckets + b] = localSum - 1;
     }
-  }
 
-  // Build thread offsets per bucket
-  for (E_Int b = 0; b < nbuckets; b++)
-  {
-    for (E_Int i = 0; i < nthreads; i++) threadSums[b][i+1] += threadSums[b][i];
-    bucketTotals[b] = threadSums[b][nthreads];
-  }
+    // Build thread offsets per bucket
+    #pragma omp barrier
+    #pragma omp single
+    {
+      for (E_Int b = 0; b < nbuckets; b++)
+      {
+        for (E_Int i = 0; i < nthreads; i++)
+          threadSums[(i+1)*nbuckets + b] += threadSums[i*nbuckets + b];
+        bucketTotals[b] = threadSums[nthreads*nbuckets + b];
+      }
+    }
 
-  // Add thread offsets to input array
-  #pragma omp parallel
-  {
-    E_Int ithread = __CURRENT_THREAD__;
-    E_Int offset, beg, end;
-
+    // Add thread offsets to input array
     for (E_Int b = 0; b < nbuckets; b++)
     {
-      offset = threadSums[b][ithread];
+      offset = threadSums[ithread*nbuckets + b];
       beg = bucketStart[b];
       end = beg + buckets[b];
 
-      #pragma omp for
+      #pragma omp for nowait schedule(static)
       for (E_Int i = beg; i < end; i++)
       {
         if (a[i] > 0) a[i] += offset;

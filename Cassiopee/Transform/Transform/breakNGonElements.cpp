@@ -331,10 +331,10 @@ PyObject* K_TRANSFORM::breakNGonElements(FldArrayF& field, FldArrayI& cNG,
   // output connectivity
   E_Int nptsME = 0;
   std::vector<E_Int> npts2(nbuckets);
-  npts2[0] = K_CONNECT::prefixSum(vMask[0]);
+  npts2[0] = K_CONNECT::mask2Indir(vMask[0]);
   for (E_Int ic = 1; ic < nbuckets; ic++)
   {
-    npts2[ic] = K_CONNECT::prefixSum(vMask[ic]);
+    npts2[ic] = K_CONNECT::mask2Indir(vMask[ic]);
     nptsME += npts2[ic];
   }
 

@@ -109,7 +109,7 @@ cpp_srcs = [
     'KCore/Connect/ngonTools.cpp',
     'KCore/Connect/colorConnexParts.cpp',
     'KCore/Connect/computeStartOffsets.cpp',
-    'KCore/Connect/prefixSum.cpp',
+    'KCore/Connect/mask2Indir.cpp',
     'KCore/Sort/sort.cpp',
     'KCore/Loc/node2Center.cpp',
     'KCore/Loc/node2ExtCenters.cpp',

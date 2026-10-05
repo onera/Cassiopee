@@ -188,7 +188,7 @@ PyObject* K_CONVERTER::adaptBCFacePL2VertexPL_ME(
   // Transform the vertex mask of zeros and ones into a vertex map
   // from old to new connectivities, and get the number of unique visited
   // vertices, npts2
-  E_Int npts2 = K_CONNECT::prefixSum(vindir);
+  E_Int npts2 = K_CONNECT::mask2Indir(vindir);
   // std::cout << "npts2 = " << npts2 << std::endl;
   
   PyObject* tpl = K_NUMPY::buildNumpyArray(npts2, 1, 1);

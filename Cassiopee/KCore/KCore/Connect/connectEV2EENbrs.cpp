@@ -273,7 +273,7 @@ E_Int K_CONNECT::connectEV2NNbrs(
       nelts = cm.getSize();
       nvpe = cm.getNfld();
 
-      #pragma omp for
+      #pragma omp for nowait
       for (E_Int i = 0; i < nelts; i++)
       {
         // Fill vector of neighbour element candidates
