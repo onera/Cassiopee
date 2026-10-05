@@ -7,7 +7,11 @@ do
   if test -e $mod
   then
       cd $mod
-      rm -fr build
+      if [ "$ELSAPROD" = "" ]; then
+          rm -fr build
+      else
+          rm -fr build/$ELSAPROD
+      fi
       rm -fr .sconsign.dblite
       cd ..
   fi

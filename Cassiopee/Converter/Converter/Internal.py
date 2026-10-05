@@ -7,7 +7,7 @@ from . import converter
 
 # INT size for numpy connectivities
 from KCore.Dist import EDOUBLEINT
-if EDOUBLEINT: E_NpyInt = numpy.int64
+if EDOUBLEINT(): E_NpyInt = numpy.int64
 else: E_NpyInt = numpy.int32
 
 # Containers

@@ -14,7 +14,7 @@ import KCore
 
 # INT size for numpys connectivities
 from KCore.Dist import EDOUBLEINT
-if EDOUBLEINT: E_NpyInt = numpy.int64
+if EDOUBLEINT(): E_NpyInt = numpy.int64
 else: E_NpyInt = numpy.int32
 
 __all__ = [

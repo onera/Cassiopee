@@ -4,15 +4,30 @@ from setuptools._distutils import sysconfig
 from setuptools import Extension
 
 # Toggle to True for compiling for debug (valgrind, inspector, sanitizer)
-DEBUG = False
+_DEBUG = False
 
 # Toggle to True for compiling all integers in i8
-EDOUBLEINT = False
+_EDOUBLEINT = False
 # Toggle to True for compiling global index in i8
-GDOUBLEINT = False
+_GDOUBLEINT = False
 
 # System configuration dictionary
 CONFIGDICT = {}
+
+#==============================================================================
+# Getter functions for DEBUG and EDOUBLEINT/GDOUBLEINT
+#==============================================================================
+def DEBUG():
+    elsaprod = os.getenv("ELSAPROD", "")
+    return _DEBUG or "_DBG" in elsaprod
+
+def EDOUBLEINT():
+    elsaprod = os.getenv("ELSAPROD", "")
+    return _EDOUBLEINT or "_i8" in elsaprod
+
+def GDOUBLEINT():
+    elsaprod = os.getenv("ELSAPROD", "")
+    return _GDOUBLEINT or "_i8" in elsaprod
 
 #==============================================================================
 # System configuration using installBase.py / installBaseUser.py
@@ -145,16 +160,8 @@ def getenv(name):
 #==============================================================================
 def getDataFolderName(name='Data'):
     elsaprod = os.getenv("ELSAPROD")
-    if elsaprod is not None:
-        if not '_i8' in elsaprod and EDOUBLEINT:
-            print("Warning: ELSAPROD {} compiled in i8 but recommended suffix "
-                  "'_i8' is missing".format(elsaprod))
-        if not '_DBG' in elsaprod and DEBUG:
-            print("Warning: ELSAPROD {} compiled in DEBUG but recommended "
-                  "suffix '_DBG' is missing".format(elsaprod))
-        name += '_' + elsaprod
-    else:
-        name += '_xx'
+    if elsaprod is not None: name += '_' + elsaprod
+    else: name += '_xx'
     if sys.version_info[0] == 2: name += '2'
     return name
 
@@ -573,9 +580,9 @@ def getDistUtilsCompilers():
 def getPP():
     Cppcompiler = getCppCompiler()
     sizes = '-DREAL_E="REAL*8"'
-    if EDOUBLEINT: sizes += ' -DINTEGER_E="INTEGER*8"'
+    if EDOUBLEINT(): sizes += ' -DINTEGER_E="INTEGER*8"'
     else: sizes += ' -DINTEGER_E="INTEGER*4"'
-    if GDOUBLEINT: sizes += ' -DINTEGER_G="INTEGER*8"'
+    if GDOUBLEINT(): sizes += ' -DINTEGER_G="INTEGER*8"'
     else: sizes += ' -DINTEGER_G="INTEGER*4"'
     sizes += ' -DINTEGER_L="INTEGER*4"'
     if Cppcompiler == 'icl.exe': PP = 'fpp.exe '+sizes+' \\I'
@@ -891,11 +898,11 @@ def getCArgs():
     l = len(compiler)-1
     Cppcompiler = compiler[l]
     options = getCppAdditionalOptions()
-    if EDOUBLEINT: options += ['-DE_DOUBLEINT']
-    if GDOUBLEINT: options += ['-DG_DOUBLEINT']
+    if EDOUBLEINT(): options += ['-DE_DOUBLEINT']
+    if GDOUBLEINT(): options += ['-DG_DOUBLEINT']
     if Cppcompiler == "icpc" or Cppcompiler == "icc":
         v = getCppVersion()
-        if DEBUG:
+        if DEBUG():
             options += ['-g', '-O0', '-wd47', '-wd1224', '-fp-trap=divzero,overflow,invalid']
         else: options += ['-DNDEBUG', '-O2', '-wd47', '-wd1224']
 
@@ -916,7 +923,7 @@ def getCArgs():
         options += simdOptions
         return options
     elif Cppcompiler.find("gcc") == 0 or Cppcompiler.find("g++") == 0:
-        if DEBUG:
+        if DEBUG():
             options += ['-g', '-O0', '-Wall', '-pedantic', '-D_GLIBCXX_DEBUG_PEDANTIC']
             options += ['-ggdb']
             if mySystem[0] != 'mingw': # no asan on mingw
@@ -936,7 +943,7 @@ def getCArgs():
         if useOMP == 1: options += ['/Qopenmp']
         return options
     elif Cppcompiler == "icx" or Cppcompiler == "icpx":
-        if DEBUG: options += ['-g', '-O0', '-fp-trap=divzero,overflow,invalid']
+        if DEBUG(): options += ['-g', '-O0', '-fp-trap=divzero,overflow,invalid']
         else: options += ['-DNDEBUG', '-O2',]
         options += ['-fp-model=precise'] # existe encore?
         if useOMP == 1: options += ['-qopenmp']
@@ -945,7 +952,7 @@ def getCArgs():
         options += simdOptions
         return options
     elif Cppcompiler == "pgcc" or Cppcompiler == "pgc++":
-        if DEBUG: options += ['-g', '-O0']
+        if DEBUG(): options += ['-g', '-O0']
         else: options += ['-DNDEBUG', '-O3']
         if useOMP == 1: options += ['-mp=multicore']
         else: options += ['-nomp']
@@ -955,7 +962,7 @@ def getCArgs():
         if useCuda: options += ['-acc=gpu', '-Minfo:accel']
         return options
     elif Cppcompiler == "nvc" or Cppcompiler == "nvc++":
-        if DEBUG: options += ['-g', '-O0']
+        if DEBUG(): options += ['-g', '-O0']
         else: options += ['-DNDEBUG', '-O3']
         if useOMP == 1: options += ['-mp=multicore']
         else: options += ['-nomp']
@@ -966,7 +973,7 @@ def getCArgs():
         return options
     elif Cppcompiler == "x86_64-w64-mingw32-gcc" or Cppcompiler == "x86_64-w64-mingw32-g++":
         options += ['-DMS_WIN64', '-fpermissive', '-D__USE_MINGW_ANSI_STDIO=1']
-        if DEBUG: options += ['-g', 'O0', '-D_GLIBCXX_DEBUG_PEDANTIC']
+        if DEBUG(): options += ['-g', 'O0', '-D_GLIBCXX_DEBUG_PEDANTIC']
         else: options += ['-DNDEBUG', '-O3']
         if useOMP == 1: options += ['-fopenmp']
         if useStatic == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
@@ -974,7 +981,7 @@ def getCArgs():
         options += simdOptions
         return options
     elif Cppcompiler == "clang" or Cppcompiler == "clang++":
-        if DEBUG: options += ['-g', '-O0', '-Wall', '-D_GLIBCXX_DEBUG_PEDANTIC']
+        if DEBUG(): options += ['-g', '-O0', '-Wall', '-D_GLIBCXX_DEBUG_PEDANTIC']
         else: options += ['-DNDEBUG', '-O3', '-Wall']
         if useOMP == 1: options += ['-fopenmp']
         if useStatic == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
@@ -982,7 +989,7 @@ def getCArgs():
         options += simdOptions
         return options
     elif Cppcompiler == "craycc" or Cppcompiler == "craycxx":
-        if DEBUG: options += ['-g', '-O0', '-Wall', '-D_GLIBCXX_DEBUG_PEDANTIC']
+        if DEBUG(): options += ['-g', '-O0', '-Wall', '-D_GLIBCXX_DEBUG_PEDANTIC']
         else: options += ['-DNDEBUG', '-O3', '-Wall']
         if useOMP == 1: options += ['-fopenmp']
         if useStatic == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
@@ -990,7 +997,7 @@ def getCArgs():
         options += simdOptions
         return options
     elif Cppcompiler == "cc":
-        if DEBUG: options += ['-g', '-O0', '-Wall', '-D_GLIBCXX_DEBUG_PEDANTIC']
+        if DEBUG(): options += ['-g', '-O0', '-Wall', '-D_GLIBCXX_DEBUG_PEDANTIC']
         else: options += ['-DNDEBUG', '-O3', '-Wall']
         if useOMP == 1: options += ['-fopenmp']
         if useStatic == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
@@ -1012,7 +1019,7 @@ def getCppArgs():
 #==============================================================================
 def getCudaArgs():
     options = getNvccAdditionalOptions()
-    if DEBUG: options += ['-g', '-O0']
+    if DEBUG(): options += ['-g', '-O0']
     else: options += ['-DNDEBUG', '-O2']
     return options
 
@@ -1032,7 +1039,7 @@ def getForArgs():
     if f77compiler is None: return []
     options = getf77AdditionalOptions()
     if f77compiler == "gfortran":
-        if DEBUG: options += ['-Wall', '-g', '-O0', '-fbacktrace', '-fbounds-check', '-ffpe-trap=zero,overflow,invalid']
+        if DEBUG(): options += ['-Wall', '-g', '-O0', '-fbacktrace', '-fbounds-check', '-ffpe-trap=zero,overflow,invalid']
         else: options += ['-Wall', '-O3']
         if useOMP == 1: options += ['-fopenmp']
         if useStatic == 1: options += ['--static']
@@ -1041,11 +1048,11 @@ def getForArgs():
             options.remove('-fPIC')
             options += ['-large-address-aware']
         options += simdOptions
-        if EDOUBLEINT: options += ['-fdefault-integer-8']
+        if EDOUBLEINT(): options += ['-fdefault-integer-8']
         options += ['-fdefault-real-8', '-fdefault-double-8']
         return options
     elif f77compiler == "ifort":
-        if DEBUG: options += ['-g', '-O0', '-CB', '-traceback', '-fpe0']
+        if DEBUG(): options += ['-g', '-O0', '-CB', '-traceback', '-fpe0']
         else: options += ['-O3']
         v = getForVersion()
         if v[0] < 15: options += ['-fp-speculation=strict']
@@ -1057,48 +1064,48 @@ def getForArgs():
         if useStatic == 1: options += ['-static']
         else: options += ['-fPIC']
         options += simdOptions
-        if EDOUBLEINT: options += ['-i8']
+        if EDOUBLEINT(): options += ['-i8']
         options += ['-r8']
         return options
     elif f77compiler == "ifx":
-        if DEBUG: options += ['-g', '-O0', '-CB', '-fpe0']
+        if DEBUG(): options += ['-g', '-O0', '-CB', '-fpe0']
         else: options += ['-O3']
         options += ['-fp-model=precise']
         if useOMP == 1: options += ['-qopenmp']
         if useStatic == 1: options += ['-static']
         else: options += ['-fPIC']
         options += simdOptions
-        if EDOUBLEINT: options += ['-i8']
+        if EDOUBLEINT(): options += ['-i8']
         options += ['-r8']
         return options
     elif f77compiler == "pgfortran":
         if useStatic == 1: options += ['-static']
         else: options += ['-fPIC']
-        if DEBUG: options += ['-g', '-O0']
+        if DEBUG(): options += ['-g', '-O0']
         else: options += ['-O3']
         if useOMP == 1: options += ['-mp=multicore']
         options += simdOptions
-        if EDOUBLEINT: options += ['-i8']
+        if EDOUBLEINT(): options += ['-i8']
         options += ['-r8']
         return options
     elif f77compiler == "nvfortran":
         if useStatic == 1: options += ['-static']
         else: options += ['-fPIC']
-        if DEBUG: options += ['-g', '-O0']
+        if DEBUG(): options += ['-g', '-O0']
         else: options += ['-O3']
         if useOMP == 1: options += ['-mp=multicore']
         options += simdOptions
-        if EDOUBLEINT: options += ['-i8']
+        if EDOUBLEINT(): options += ['-i8']
         options += ['-r8']
         return options
     elif f77compiler == "x86_64-w64-mingw32-gfortran":
-        if DEBUG: options += ['-g', '-O0']
+        if DEBUG(): options += ['-g', '-O0']
         else: options += ['-O3']
         if useOMP == 1: options += ['-fopenmp']
         if useStatic == 1: options += ['--static']
         else: options += ['-fPIC']
         options += simdOptions
-        if EDOUBLEINT: options += ['-fdefault-integer-8']
+        if EDOUBLEINT(): options += ['-fdefault-integer-8']
         options += ['-fdefault-real-8', '-fdefault-double-8']
         return options
     elif f77compiler == "ifort.exe":
@@ -1107,31 +1114,31 @@ def getForArgs():
     elif f77compiler == "crayftn":
         if useStatic == 1: options += ['-static']
         else: options += ['-fPIC']
-        if DEBUG: options += ['-g', '-O0']
+        if DEBUG(): options += ['-g', '-O0']
         else: options += ['-O3']
         if useOMP == 1: options += ['-fopenmp']
         options += simdOptions
-        if EDOUBLEINT: options += ['-i8']
+        if EDOUBLEINT(): options += ['-i8']
         options += ['-r8']
         return options
     elif f77compiler == "ftn":
         if useStatic == 1: options += ['-static']
         else: options += ['-fPIC']
-        if DEBUG: options += ['-g', '-O0']
+        if DEBUG(): options += ['-g', '-O0']
         else: options += ['-O3']
         if useOMP == 1: options += ['-fopenmp']
         options += simdOptions
-        if EDOUBLEINT: options += ['-i8']
+        if EDOUBLEINT(): options += ['-i8']
         options += ['-r8']
         return options
     elif f77compiler == "flang":
         if useStatic == 1: options += ['-static']
         else: options += ['-fPIC']
-        if DEBUG: options += ['-g', '-O0']
+        if DEBUG(): options += ['-g', '-O0']
         else: options += ['-O3']
         if useOMP == 1: options += ['-fopenmp']
         options += simdOptions
-        if EDOUBLEINT: options += ['-fdefault-integer-8']
+        if EDOUBLEINT(): options += ['-fdefault-integer-8']
         options += ['-fdefault-real-8', '-fdefault-double-8']
         return options
     else: return options
@@ -2262,7 +2269,7 @@ def checkCppLibs():
         if l is not None:
             libs += ['stdc++']; paths += [l]
 
-        if DEBUG:
+        if DEBUG():
             l = checkLibFile__('libasan.so*', additionalLibPaths)
             if l is None:
                 l = checkLibFile__('libasan.a', additionalLibPaths)
@@ -2300,7 +2307,7 @@ def checkCppLibs():
         if l is not None:
             libs += ['c++']; paths += [l]
 
-        if DEBUG:
+        if DEBUG():
             l = checkLibFile__('libasan.so*', additionalLibPaths)
             if l is None:
                 l = checkLibFile__('libasan.a', additionalLibPaths)
@@ -2330,7 +2337,7 @@ def checkCppLibs():
             l = checkLibFile__('libstdc++.a', additionalLibPaths)
         if l is not None:
             libs += ['stdc++']; paths += [l]
-        #if DEBUG:
+        #if DEBUG():
         #    l = checkLibFile__('libchkpwrap.a', additionalLibPaths)
         #    if l is not None:
         #        libs += ['chkpwrap', 'chkp']; paths += [l]
