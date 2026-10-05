@@ -8,7 +8,7 @@ def F(x): return x
 
 # test 1D structure (i-array) + variable en noeuds
 a = D.circle((0,0,0), 1., 20., 60.)
-C._addVars(a, 'F'); C._initVars(a, 'F', F, ['CoordinateY'])
+C._addVars(a, 'F'); C._initVars(a, 'F', F, ['CoordinateY'], isVectorized=True)
 a = D.axisym(a, (0,0,0), (0,1,0), 360., 50)
 t = C.newPyTree(['Base', 2, a])
 test.testT(t, 1)
@@ -23,7 +23,7 @@ test.testT(t, 2)
 # test BAR-array + variable
 a = D.circle((0,0,0), 1., 20., 60., 10)
 a = C.convertArray2Tetra(a)
-a = C.addVars(a, 'F'); a = C.initVars(a, 'F', F, ['CoordinateY'])
+a = C.addVars(a, 'F'); a = C.initVars(a, 'F', F, ['CoordinateY'], isVectorized=True)
 a = D.axisym(a, (0,0,0), (0,1,0), 360., 50)
 t = C.newPyTree(['Base', 2, a])
 test.testT(t, 3)
