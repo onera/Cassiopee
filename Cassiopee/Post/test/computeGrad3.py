@@ -13,12 +13,12 @@ def DF(x):
 # Maillage en noeuds 3d
 m0 = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
 m = C.addVars(m0,'F')
-m = C.initVars(m,'F',F,['x'])
+m = C.initVars(m,'F',F,['x'], isVectorized=True)
 #
 p = P.computeGrad(m, 'F')
 c = C.node2Center(m0)
 c = C.addVars(c,'DF')
-c = C.initVars(c,'DF',DF,['x'])
+c = C.initVars(c,'DF',DF,['x'], isVectorized=True)
 
 c = C.addVars([c,p])
 C.convertArrays2File([c],"out1.plt","bin_tp")
@@ -28,12 +28,12 @@ import Transform as T
 # Maillage en noeuds
 m0 = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1.), (ni,nj,nk))
 m = C.addVars(m0,'F')
-m = C.initVars(m,'F',F,['x'])
+m = C.initVars(m,'F',F,['x'], isVectorized=True)
 
 p = P.computeGrad(m, 'F')
 c = C.node2Center(m)
 c = C.addVars(c,'DF')
-c = C.initVars(c,'DF',DF,['x'])
+c = C.initVars(c,'DF',DF,['x'], isVectorized=True)
 
 c = C.addVars([c,p])
 C.convertArrays2File([c],"out2.plt","bin_tp")

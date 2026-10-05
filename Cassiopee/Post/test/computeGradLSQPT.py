@@ -12,8 +12,8 @@ I._adaptNGon32NGon4(a)
 def f(x, y, z): return 3.*x + 2.*y + z
 def g(x, y, z): return 4.*x + 3.*y + 2.*z
 
-a = C.initVars(a, 'centers:f', f, ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'])
-a = C.initVars(a, 'centers:g', g, ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'])
+a = C.initVars(a, 'centers:f', f, ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'], isVectorized=True)
+a = C.initVars(a, 'centers:g', g, ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'], isVectorized=True)
 
 a = C.makeParentElements(a)
 a = P.computeGradLSQ(a, ['g', 'f'])

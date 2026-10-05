@@ -11,9 +11,9 @@ def Fv(a): return 4.*a
 def Fw(a,b,c): return b*(c**2)
 
 mc = C.node2Center(m)
-mc = C.initVars(mc, 'fldX', Fu, ['x'])
-mc = C.initVars(mc, 'fldY', Fv, ['y'])
-mc = C.initVars(mc, 'fldZ', Fw, ['x', 'y', 'z'])
+mc = C.initVars(mc, 'fldX', Fu, ['x'], isVectorized=True)
+mc = C.initVars(mc, 'fldY', Fv, ['y'], isVectorized=True)
+mc = C.initVars(mc, 'fldZ', Fw, ['x', 'y', 'z'], isVectorized=True)
 mv = C.extractVars(mc, ['fldX', 'fldY', 'fldZ'])
 
 p = P.computeDiv2(m, mv) # p is defined on centers

@@ -8,7 +8,7 @@ def F(x,y): return x*x + y*y
 
 a = G.cart((0,0,0), (1,1,1), (50,50,50))
 a = C.initVars(a, 'Density', 1.)
-a = C.initVars(a, 'MomentumX', F, ['CoordinateX', 'CoordinateY'])
+a = C.initVars(a, 'MomentumX', F, ['CoordinateX', 'CoordinateY'], isVectorized=True)
 a = C.initVars(a, 'MomentumY', 0.)
 a = C.initVars(a, 'MomentumZ', 0.)
 a = C.initVars(a, 'EnergyStagnationDensity', 100000.)
