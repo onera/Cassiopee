@@ -1662,7 +1662,8 @@ def applyBCOverlapsUnstructured(z, depth, loc, val=2, cellNName='cellN',oversetF
         v = Internal.getValue(bc)
         isOv = False
         if v == 'BCOverlap': isOv=True
-        elif v=='FamilySpecified':
+        elif v == 'BCOverset': isOv=True # CODA
+        elif v == 'FamilySpecified':
             famName = Internal.getNodeFromName1(bc,'FamilyName')
             if famName in oversetFamNames: isOv=True
         if isOv:
