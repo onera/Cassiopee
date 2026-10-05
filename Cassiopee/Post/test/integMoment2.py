@@ -2,7 +2,7 @@
 import Converter as C
 import Transform as T
 import Post as P
-from numpy import *
+import numpy
 
 # Lit le fichier et le met dans arrays
 arrays = []
@@ -34,7 +34,7 @@ for i in a :
     ni = arrays[i][2]
     nj = arrays[i][3]
     nk = arrays[i][4]
-    dens = ones( (3, (ni-1) * (nj-1) * nk), float64 )
+    dens = numpy.ones( (3, (ni-1) * (nj-1) * nk), numpy.float64 )
     densa = ['t', dens, (ni-1), (nj-1), nk]
     density.append(densa)
 

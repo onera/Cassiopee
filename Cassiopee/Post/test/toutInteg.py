@@ -3,7 +3,7 @@ import Generator as G
 import Converter as C
 import Transform as T
 import Post as P
-from numpy import *
+import numpy
 import math
 
 res1 = math.pi*10.
@@ -17,7 +17,7 @@ a2 = T.subzone(a, (1,1,1), (100,1,30))
 
 # integ node2center, nj = 1
 ni = a[2]-1; nj = a[3]-1; nk = a[4]-1
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 res = P.integ([a2],[densa],[])
 if math.fabs(res[0]-res1) > 1.e-1:
@@ -25,7 +25,7 @@ if math.fabs(res[0]-res1) > 1.e-1:
 
 # integ, nj = 1
 ni = a[2]; nj = a[3]-1; nk = a[4]
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 res = P.integ([a2],[densa],[])
 if math.fabs(res[0]-res1) > 1.e-1:
@@ -39,7 +39,7 @@ a2 = T.subzone(a, (1,1,1), (11,11,1))
 # integ node2center, nk = 1
 
 ni = a[2]-1; nj = a[3]-1; nk = a[4]-1
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 
 res = P.integ([a2],[densa],[])
@@ -49,7 +49,7 @@ if math.fabs(res[0]-res2) > 1.e-1:
 # integ, nk = 1
 
 ni = a[2]; nj = a[3]; nk = a[4]-1
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 
 res = P.integ([a2],[densa],[])
@@ -65,7 +65,7 @@ a2 = T.subzone(a, (1,1,1), (1,11,11))
 ni = a[2]-1
 nj = a[3]-1
 nk = a[4]-1
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 
 res = P.integ([a2],[densa],[])
@@ -75,7 +75,7 @@ if math.fabs(res[0]-res2) > 1.e-1:
 
 # integ, ni = 1
 ni = a[2]-1; nj = a[3]; nk = a[4]
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 
 res = P.integ([a2],[densa],[])

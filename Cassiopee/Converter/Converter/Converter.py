@@ -1,6 +1,5 @@
 """Conversion module for Cassiopee package.
 """
-#from numpy import *
 __version__ = '4.2'
 __author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud, Benoit Rodriguez, Simon Verley, Bruno Maugars, Thomas Renaud"
 #
@@ -805,9 +804,11 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
                     if len(i) == 4:
                         if isinstance(i[2], list): # array2/3
                             for c, k in enumerate(i[2]):
-                                if k.dtype != E_NpyInt: i[2][c] = k.astype(E_NpyInt, order='K')
+                                if k.dtype != E_NpyInt:
+                                    i[2][c] = k.astype(E_NpyInt, order='K')
                         else: # array1
-                            if i[2].dtype != E_NpyInt: i[2] = i[2].astype(E_NpyInt, order='K')
+                            if i[2].dtype != E_NpyInt:
+                                i[2] = i[2].astype(E_NpyInt, order='K')
             else:
                 if len(a) == 4:
                     if isinstance(a[2], list): # array2/3
@@ -865,14 +866,20 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
             raise TypeError("convertFile2Arrays: file %s can not be read."%fileName)
     else:
         try:
-            return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, BCFields, centerArrays, api)
+            return converter.convertFile2Arrays(
+                fileName, format, nptsCurve, nptsLine, density, zoneNames,
+                BCFaces, BCFields, centerArrays, api
+            )
         except:
             if not autoTry: raise
             else: pass
 
             format = checkFileType(fileName)
             try:
-                return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, BCFields, centerArrays, api)
+                return converter.convertFile2Arrays(
+                    fileName, format, nptsCurve, nptsLine, density, zoneNames,
+                    BCFaces, BCFields, centerArrays, api
+                )
             except:
                 FORMATS = [
                     'bin_ply', 'fmt_tp', 'fmt_v3d',
@@ -884,10 +891,16 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
                 ]
                 for fmt in FORMATS:
                     try:
-                        a = converter.convertFile2Arrays(fileName, fmt, nptsCurve, nptsLine, density, zoneNames, BCFaces, BCFields, centerArrays, api)
+                        a = converter.convertFile2Arrays(
+                            fileName, fmt, nptsCurve, nptsLine, density,
+                            zoneNames, BCFaces, BCFields, centerArrays, api
+                        )
                         return a
                     except:
-                        return converter.convertFile2Arrays(fileName, format, nptsCurve, nptsLine, density, zoneNames, BCFaces, BCFields, centerArrays, api)
+                        return converter.convertFile2Arrays(
+                            fileName, format, nptsCurve, nptsLine, density,
+                            zoneNames, BCFaces, BCFields, centerArrays, api
+                        )
 
 def convertArrays2File(arrays, fileName, format=None, isize=8, rsize=8,
                        endian='big', colormap=0, dataFormat='%.9e ',
@@ -903,14 +916,16 @@ def convertArrays2File(arrays, fileName, format=None, isize=8, rsize=8,
     else:
         znames = zoneNames
         if len(zoneNames) != len(arrays):
-            raise ValueError("convertArrays2File: zoneNames list, if not empty, must have the same length of arrays list.")
+            raise ValueError("convertArrays2File: zoneNames list, if not "
+                             "empty, must have the same length of arrays list.")
     if format is None:
         format = convertExt2Format__(fileName)
     if format == 'bin_pickle':
         import pickle
         file = open(fileName, 'wb')
         print('Writing \''+fileName+'\'...', end="")
-        pickle.dump(arrays, file, protocol=pickle.HIGHEST_PROTOCOL); file.close()
+        pickle.dump(arrays, file, protocol=pickle.HIGHEST_PROTOCOL)
+        file.close()
         print('done.')
     elif format == 'fmt_free':
         file = open(fileName, 'w')
@@ -1532,8 +1547,10 @@ def addGhostCellsNGon(arrayN, arrayC=[],depth=2):
                 b.append(converter.addGhostCellsNGon(arrayN[noz],depth))
         return b
     else:
-        if arrayN != [] and arrayC==[]: return converter.addGhostCellsNGonNodes(arrayN,depth)
-        elif arrayN == [] and arrayC != []: return converter.addGhostCellsNGonCenters(arrayC,depth)
+        if arrayN != [] and arrayC == []:
+            return converter.addGhostCellsNGonNodes(arrayN, depth)
+        elif arrayN == [] and arrayC != []:
+            return converter.addGhostCellsNGonCenters(arrayC, depth)
         else: return converter.addGhostCellsNGonBoth(arrayN, arrayC, depth)
 
 def rmGhostCellsNGon(arrayN, arrayC=[], depth=2):
@@ -1545,21 +1562,23 @@ def rmGhostCellsNGon(arrayN, arrayC=[], depth=2):
         if nzones == nzonesC:
             for noz in range(nzones):
                 if arrayN[noz] != [] and arrayC[noz] == []:
-                    res = converter.rmGhostCellsNGonNodes(arrayN[noz],depth)
+                    res = converter.rmGhostCellsNGonNodes(arrayN[noz], depth)
                     b.append(res)
                 elif arrayN[noz] == [] and arrayC[noz] != []:
-                    res = converter.rmGhostCellsNGonCenters(arrayC[noz],depth)
+                    res = converter.rmGhostCellsNGonCenters(arrayC[noz], depth)
                     b.append(res)
                 else:
-                    res = converter.rmGhostCellsNGonBoth(arrayN[noz], arrayC[noz],depth)
+                    res = converter.rmGhostCellsNGonBoth(arrayN[noz], arrayC[noz], depth)
                     b.append(res)
         else:
             for noz in range(nzones):
                 b.append(converter.rmGhostCellsNGon(arrayN[noz],depth))
         return b
     else:
-        if arrayN != [] and arrayC==[]: return converter.rmGhostCellsNGonNodes(arrayN,depth)
-        elif arrayN == [] and arrayC != []: return converter.rmGhostCellsNGonCenters(arrayC,depth)
+        if arrayN != [] and arrayC == []:
+            return converter.rmGhostCellsNGonNodes(arrayN, depth)
+        elif arrayN == [] and arrayC != []:
+            return converter.rmGhostCellsNGonCenters(arrayC, depth)
         else: return converter.rmGhostCellsNGonBoth(arrayN, arrayC, depth)
 
 #==============================================================================
@@ -1652,7 +1671,8 @@ def createGlobalHook(a, function='None', indir=0):
         else: return converter.registerAllNodes(a, indir)
     elif function == 'elementCenters': # 3
         # Returns a KDT for element centers
-        if not isinstance(a[0],list): return converter.registerAllElements(convertArray2NGon([a]), indir)
+        if not isinstance(a[0],list):
+            return converter.registerAllElements(convertArray2NGon([a]), indir)
         else: return converter.registerAllElements(convertArray2NGon(a), indir)
     elif function == 'extractMesh': # 1
         raise ValueError('function=extractMesh not implemented for global hook.')
@@ -1815,9 +1835,12 @@ def _recoverGlobalIndex(a, b):
 # simple concatenation
 def mergeConnectivity(a1, a2):
     """Merge two connectivities of basic elements."""
-    if a1[0] != a2[0]: raise ValueError('mergeConnectivity: only for same fields.')
-    if len(a1) != 4 or len(a2) != 4: raise ValueError('mergeConnectivity: only for unstructured arrays.')
-    if a1[3] == 'NGON' or a2[3] == 'NGON': raise ValueError('mergeConnectivity: only for element arrays.')
+    if a1[0] != a2[0]:
+        raise ValueError('mergeConnectivity: only for same fields.')
+    if len(a1) != 4 or len(a2) != 4:
+        raise ValueError('mergeConnectivity: only for unstructured arrays.')
+    if a1[3] == 'NGON' or a2[3] == 'NGON':
+        raise ValueError('mergeConnectivity: only for element arrays.')
 
     # fields
     f1 = a1[1]; f2 = a2[1]
@@ -1996,7 +2019,11 @@ def checkFileType(fileName):
     if header[1:4] == b'HDF': return 'bin_hdf'
     if header[4:7] == b'ADF': return 'bin_adf'
     if header[0:5] == b'#!TDV': return 'bin_tp'
-    if header[0:5] == b'TITLE' or header[0:5] == b'title' or header[0:9] == b"VARIABLES" or header[0:9] == b"variables" or header[0:8] == b"FILETYPE" or header[0:8] == b"filetype":
+    if (
+        header[0:5] == b'TITLE' or header[0:5] == b'title'
+        or header[0:9] == b"VARIABLES" or header[0:9] == b"variables"
+        or header[0:8] == b"FILETYPE" or header[0:8] == b"filetype"
+    ):
         return 'fmt_tp'
     if header[0] == 0x80 and header[1] <= 0x10: return 'bin_pickle'
     if header.find(b"MeshVersionUnformatted") != -1: return 'bin_mesh'
@@ -2017,11 +2044,39 @@ def checkFileType(fileName):
     import binascii as b
     beader = b.b2a_hex(header)
     eol = b"0a"
-    if (beader[0:8] == b"04000000" or beader[0:8] == b"00000004") and (header[16:18] == b'va' or header[16:17] == b'x' or header[16:17] == b'y' or header[16:17] == b'z' or header[16:18] == b'VA' or header[16:17] == b'X' or header[16:17] == b'Y' or header[16:17] == b'Z'):
+    if (
+        (beader[0:8] == b"04000000" or beader[0:8] == b"00000004")
+        and (
+            header[16:18] == b'va' or header[16:17] == b'x'
+            or header[16:17] == b'y' or header[16:17] == b'z'
+            or header[16:18] == b'VA' or header[16:17] == b'X'
+            or header[16:17] == b'Y' or header[16:17] == b'Z'
+        )
+    ):
         return 'bin_v3d'
-    if (beader[0:8] == b"08000000" or beader[0:8] == b"00000008") and (header[20:22] == b'va' or header[20:21] == b'x' or header[20:21] == b'y' or header[20:21] == b'z' or header[20:22] == b'VA' or header[20:21] == b'X' or header[20:21] == b'Y' or header[20:21] == b'Z'):
+    if (
+        (beader[0:8] == b"08000000" or beader[0:8] == b"00000008")
+        and (
+            header[20:22] == b'va' or header[20:21] == b'x'
+            or header[20:21] == b'y' or header[20:21] == b'z'
+            or header[20:22] == b'VA' or header[20:21] == b'X'
+            or header[20:21] == b'Y' or header[20:21] == b'Z'
+        )
+    ):
         return 'bin_v3d'
-    if (beader[10:12] == eol and (beader[50:52] == b"78" or beader[50:52] == b"79" or beader[50:52] == b"80" or  beader[12:14] == b"78" or   beader[12:14] == b"79" or beader[12:14] == b"80"  or beader[50:52] == b"58" or beader[50:52] == b"59" or beader[50:52] == b"60" or  beader[12:14] == b"58" or beader[12:14] == b"59" or beader[12:14] == b"60" or beader[46:52] == b"766172" or beader[46:52] == b"564152" or beader[12:18] == b"766172" or beader[12:18] == b"564152")):
+    if (
+        beader[10:12] == eol
+        and (
+            beader[50:52] == b"78" or beader[50:52] == b"79"
+            or beader[50:52] == b"80" or  beader[12:14] == b"78"
+            or beader[12:14] == b"79" or beader[12:14] == b"80"
+            or beader[50:52] == b"58" or beader[50:52] == b"59"
+            or beader[50:52] == b"60" or  beader[12:14] == b"58"
+            or beader[12:14] == b"59" or beader[12:14] == b"60"
+            or beader[46:52] == b"766172" or beader[46:52] == b"564152"
+            or beader[12:18] == b"766172" or beader[12:18] == b"564152"
+        )
+    ):
         return 'fmt_v3d'
     if beader.find(b"4d4d") == 0: return 'bin_3ds'
     if beader[0:4] == b"d8ff": return 'bin_jpg'

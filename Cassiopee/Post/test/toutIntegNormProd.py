@@ -3,7 +3,6 @@ import Generator as G
 import Converter as C
 import Transform as T
 import Post as P
-from numpy import *
 import math
 
 res1 = math.pi*10.

@@ -3768,7 +3768,6 @@ def getZoneDim(zone):
             return [gtype, np, ne, ','.join(name for name in eltNames), cellDim]
       else:
         raise TypeError("getZoneDim: cannot find a valid zone type for zone '%s'."%zone[0])
-      break
   raise TypeError("getZoneDim: cannot find zone type for zone '%s'."%zone[0])
 
 # -- getZoneType --
@@ -3813,6 +3812,7 @@ def addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1):
   Usage: addGhostCells(t, b, d, adaptBCs, modified, fillCorner)"""
   from . import GhostCells
   return GhostCells.addGhostCells(t, b, d, adaptBCs, modified, fillCorner)
+
 def _addGhostCells(t, b, d, adaptBCs=1, modified=[], fillCorner=1):
   """Add ghost cells to a pyTree.
   Usage: addGhostCells(t, b, d, adaptBCs, modified, fillCorner)"""
@@ -3828,6 +3828,7 @@ def rmGhostCells(t, b, d, adaptBCs=1, modified=[]):
   Usage: rmGhostCells(t, b, d, adaptBCs, modified)"""
   from . import GhostCells
   return GhostCells.rmGhostCells(t, b, d, adaptBCs, modified)
+
 def _rmGhostCells(t, b, d, adaptBCs=1, modified=[]):
   """Remove ghost cells to a pyTree.
   Usage: rmGhostCells(t, b, d, adaptBCs, modified)"""
