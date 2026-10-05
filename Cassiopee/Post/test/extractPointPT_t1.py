@@ -12,7 +12,7 @@ a = G.cart((0,0,0), (1./(ni-1),1./(nj-1),1./(nk-1)), (ni,nj,nk))
 def F(x,y,z): return 2*x*x*x*x*x + 2.*y*y*z + z*z
 
 # Init by function
-a = C.initVars(a, 'F', F, ['CoordinateX','CoordinateY','CoordinateZ'])
+a = C.initVars(a, 'F', F, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
 a = C.initVars(a, 'centers:G', 1.)
 
 # 2nd order

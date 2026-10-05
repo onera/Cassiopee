@@ -15,7 +15,7 @@ def F(x,y,z):
 val0 = F(x,y,z)
 
 # init by function
-a = C.initVars(a, 'F', F, ['x','y','z'])
+a = C.initVars(a, 'F', F, ['x','y','z'], isVectorized=True)
 
 cnt = 0
 val = P.extractPoint([a], (x,y,z), 3)
