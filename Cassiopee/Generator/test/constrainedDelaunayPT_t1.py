@@ -24,7 +24,7 @@ z = C.convertArrays2ZoneNode('contour', [a])
 
 def dens(x,y): return 3*x*y
 
-z = C.initVars(z,'centers:cellN',1.); z = C.initVars(z, 'Density', dens, ['CoordinateX','CoordinateY'])
+z = C.initVars(z,'centers:cellN',1.); z = C.initVars(z, 'Density', dens, ['CoordinateX','CoordinateY'], isVectorized=True)
 
 # constrained Delaunay
 tri = G.constrainedDelaunay( z )
