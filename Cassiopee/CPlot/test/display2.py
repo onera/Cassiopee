@@ -11,7 +11,7 @@ def F(x): return x
 pts = D.polyline([(0.,0.,0.), (4.,5.,0.), (6.,21.,0.), (18.,2.,0.)])
 a = D.bezier(pts, 20)
 C._addVars(a, 'p')
-a = C.initVars(a, 'p', F, ['x'])
+a = C.initVars(a, 'p', F, ['x'], isVectorized=True)
 
 # mesh (mode 0)
 CPlot.display([a], mode='mesh', posCam=(40,-2,15), posEye=(8,13,0)); time.sleep(2)
@@ -26,7 +26,7 @@ CPlot.display([a], mode='scalar', scalarField=0); time.sleep(2)
 pts = D.polyline([(0.,0.,0.), (4.,5.,0.), (6.,21.,0.), (18.,2.,0.)])
 a = D.bezier(pts, 20)
 C._addVars(a, 'p')
-a = C.initVars(a, 'p', F, ['x'])
+a = C.initVars(a, 'p', F, ['x'], isVectorized=True)
 a = C.convertArray2Hexa(a)
 
 # mesh (mode 0)
@@ -40,7 +40,7 @@ CPlot.display([a], mode=3, scalarField=0); time.sleep(2)
 
 # - STRUCTURE 3D -
 a = G.cart((0,0,0),(1,1,1),(18,28,3))
-a = C.initVars(a, 'p', F, ['x'])
+a = C.initVars(a, 'p', F, ['x'], isVectorized=True)
 
 # mesh (mode 0)
 CPlot.display([a], mode=0, posCam=(40,-2,15), posEye=(8,13,0)); time.sleep(2)
@@ -54,7 +54,7 @@ CPlot.display([a], mode=3, scalarField=0); time.sleep(2)
 # - TRI -
 a = G.cart((0,0,0),(1,1,1),(18,28,1))
 C._addVars(a, 'p')
-a = C.initVars(a, 'p', F, ['x'])
+a = C.initVars(a, 'p', F, ['x'], isVectorized=True)
 a = C.convertArray2Tetra(a)
 
 # mesh (mode 0)
@@ -69,7 +69,7 @@ CPlot.display([a], mode=3, scalarField=0); time.sleep(2)
 # - QUAD -
 a = G.cart((0,0,0),(1,1,1),(18,28,1))
 C._addVars(a, 'p')
-a = C.initVars(a, 'p', F, ['x'])
+a = C.initVars(a, 'p', F, ['x'], isVectorized=True)
 a = C.convertArray2Hexa(a)
 
 # mesh (mode 0)
@@ -84,7 +84,7 @@ CPlot.display([a], mode=3, scalarField=0); time.sleep(2)
 # - TETRA -
 a = G.cart((0,0,0),(1,1,1),(18,28,3))
 C._addVars(a, 'p')
-a = C.initVars(a, 'p', F, ['x'])
+a = C.initVars(a, 'p', F, ['x'], isVectorized=True)
 a = C.convertArray2Tetra(a)
 
 # mesh (mode 0)
@@ -99,7 +99,7 @@ CPlot.display([a], mode=3, scalarField=0); time.sleep(2)
 # - HEXA -
 a = G.cart((0,0,0),(1,1,1),(18,28,3))
 C._addVars(a, 'p')
-a = C.initVars(a, 'p', F, ['x'])
+a = C.initVars(a, 'p', F, ['x'], isVectorized=True)
 a = C.convertArray2Hexa(a)
 
 # mesh (mode 0)
