@@ -6,7 +6,7 @@ import Generator.PyTree as G
 def F(x, y): return x*x+y*y
 
 a = G.cartTetra( (0,0,0), (1,1,1), (10,10,1))
-a = C.initVars(a, 'field', F, ['CoordinateX','CoordinateY'])
+a = C.initVars(a, 'field', F, ['CoordinateX','CoordinateY'], isVectorized=True)
 
 isos = []
 min = C.getMinValue(a, 'field')

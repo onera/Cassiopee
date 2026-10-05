@@ -3,21 +3,22 @@ import Converter as C
 import Post as P
 import Generator as G
 import Transform as T
+import numpy
 
 # Create a function
 def F(x,y,z):
     deg = 1
-    if deg == 0 :
-        return 10.
-    elif deg == 1 :
+    if deg == 0:
+        return numpy.full_like(x, 10., dtype=float)
+    elif deg == 1:
         return x + 2.*y + 3.*z
-    elif deg == 2 :
+    elif deg == 2:
         return x*x + 2.*y*y + 3*z
-    elif deg == 3 :
+    elif deg == 3:
         return x*x*y + 2.*y*y*y + 3*z
-    elif deg == 4 :
+    elif deg == 4:
         return x*x*x*x + 2.*y*y*y*y +z*z
-    elif deg == 5 :
+    elif deg == 5:
         return 2*x*x*x*x*x + 2.*y*y*z + z*z
     else:
         print('Error : unknown degree of polynomials')
@@ -33,7 +34,7 @@ ars = []
 ars.append(m)
 # init by function
 m = C.addVars(m, 'F')
-m = C.initVars(m, 'F', F, ['x','y','z'])
+m = C.initVars(m, 'F', F, ['x','y','z'], isVectorized=True)
 
 # Cree un maillage d'extraction
 ni2 = 30; nj2 = 30
@@ -47,7 +48,7 @@ for ordre in ordret:
     a2 = P.extractMesh([m], a, ordre)
     # solution exacte :
     c = C.addVars(a, 'F')
-    c = C.initVars(c, 'F', F, ['x','y','z'])
+    c = C.initVars(c, 'F', F, ['x','y','z'], isVectorized=True)
     #
     e = C.diffArrays([a2], [c])
     print('ordre %d=%f'%(ordre, C.normL0(e[0],"DF")))
