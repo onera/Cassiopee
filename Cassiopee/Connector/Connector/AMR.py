@@ -130,7 +130,7 @@ def prepareAMRDataFV__(t_case, t, IBM_parameters=None, check=False, dim=3, local
 
     #===================================================================================
     # STEP 7: Determine DP points on DPfront & Add IBC Dataset to the PyTree
-    #===================================================================================    
+    #===================================================================================
     Cmpi.trace(" Getting DP IBM points and adding IBC Dataset [start]", master=True, cpu=False)
     _setInterpDataIBM(t, t_exteriorFaces, tb2, frontIP, frontDP, bbo, IBM_parameters, check, dim, forceAlignment, localDir, different_front_flag)
     Cmpi.trace(" Getting DP IBM points and adding IBC Dataset [end]  ", master=True, cpu=False)
@@ -500,13 +500,13 @@ def getBCs(t, tb2, dim):
     return (zbcs, bctypes, bcnames)
 
 def _recoverBCs(t, t_exteriorFaces, BCInfo):
-        zbcs, bctypes, bcnames = BCInfo
-        for elt_t in Internal.getNodesFromType(t_exteriorFaces, "Elements_t"):
-            if not elt_t[0].startswith("GridElements"):
-                Internal._rmNode(t_exteriorFaces, elt_t)
-        _recoverBoundaryConditions__(t, t_exteriorFaces, zbcs, bctypes, bcnames)
+    zbcs, bctypes, bcnames = BCInfo
+    for elt_t in Internal.getNodesFromType(t_exteriorFaces, "Elements_t"):
+        if not elt_t[0].startswith("GridElements"):
+            Internal._rmNode(t_exteriorFaces, elt_t)
+    _recoverBoundaryConditions__(t, t_exteriorFaces, zbcs, bctypes, bcnames)
 
-        return None
+    return None
 
 def _recoverBoundaryConditions__(t, t_exteriorFaces, zbcs, bctypes, bcnames):
     meshgen = "AMR"
