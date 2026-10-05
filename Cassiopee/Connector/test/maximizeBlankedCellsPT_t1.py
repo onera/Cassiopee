@@ -5,13 +5,12 @@ import Generator.PyTree as G
 import KCore.test as test
 
 def F(x,y):
-    if (x+y<1): return 1
-    else: return 2
+    return (x+y>=1).astype(float) + 1
 
 # CAS 2D
 Ni = 50; Nj = 50
 a = G.cart((0,0,0),(1./(Ni-1),1./(Nj-1),1),(Ni,Nj,1))
-C._initVars(a,'cellN', F,['CoordinateX','CoordinateY'])
+C._initVars(a,'cellN', F,['CoordinateX','CoordinateY'], isVectorized=True)
 a = C.node2Center(a, 'cellN')
 C._rmVars(a, 'cellN')
 t = C.newPyTree(['Base',2]); t[2][1][2].append(a)
@@ -27,7 +26,7 @@ test.testT(t2,21)
 # CAS 3D
 Ni = 50; Nj = 50; Nk = 20
 a = G.cart((0,0,0),(1./(Ni-1),1./(Nj-1),1./(Nk-1)),(Ni,Nj,Nk))
-a = C.initVars(a,'cellN', F,['CoordinateX','CoordinateY'])
+a = C.initVars(a,'cellN', F,['CoordinateX','CoordinateY'], isVectorized=True)
 a = C.node2Center(a, 'cellN')
 a = C.rmVars(a,'cellN')
 t = C.newPyTree(['Base']); t[2][1][2].append(a)

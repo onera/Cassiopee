@@ -6,13 +6,16 @@ import Generator.PyTree as G
 import Connector.Mpi as Xmpi
 import Converter.Filter as Filter
 import KCore.test as test
+import numpy
 
 LOCAL = test.getLocal()
 cellNName = "cellNA"
 
-def sphere(x,y,z):
-    if x < 0. and x > -0.5 and y > -2.5 and y < 2.5 and z > -2.5 and z < 2.5: return 0.
-    else: return 1.
+def sphere(x, y, z):
+    return numpy.where(
+        (x < 0.) & (x > -0.5) & (y > -2.5) & (y < 2.5) &
+        (z > -2.5) & (z < 2.5), 0., 1.
+    )
 
 # Field located at cell centers - NGON
 if Cmpi.master:
@@ -23,7 +26,8 @@ if Cmpi.master:
         t,
         f'centers:{cellNName}',
         sphere,
-        ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ']
+        ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'],
+        isVectorized=True
     )
     zones = Internal.getZones(t)
     for i, z in enumerate(zones):
