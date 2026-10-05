@@ -5,6 +5,7 @@ on:
   push:
     tags:
       - 'v*'
+      - '20*.*'
     branches:
       - 'pypi'
 
@@ -14,10 +15,10 @@ jobs:
         
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v7
         with:
            python-version: "3.8"
           
@@ -32,6 +33,7 @@ jobs:
       - name: Build Cassiopee in a Docker container
         run: |
           docker run --rm -v $GITHUB_WORKSPACE/..:/io quay.io/pypa/manylinux2014_x86_64:latest /bin/bash -c "
+              set -e
               export PATH=/opt/python/cp312-cp312/bin:\$PATH
               yum update && yum install -y \
                   gcc \
@@ -66,8 +68,8 @@ jobs:
                   wheel \
                   auditwheel \
                   setuptools \
-                  scons \
-                  numpy
+                  scons
+              pip3 install --only-binary=numpy \"numpy<2.3\"
               export PATH=/usr/lib64/openmpi/bin:\$PATH
               export LD_LIBRARY_PATH=/usr/lib64/openmpi/lib:\$LD_LIBRARY_PATH
               export CFLAGS="-std=c99"
@@ -130,7 +132,7 @@ jobs:
               find . -maxdepth 1 -type d -name '*.dist-info' -not -name \"\${PKG_NV}.dist-info\" -exec rm -rf {} +
               find . -maxdepth 1 -type d -name \"*-\${PKG_VERSION}\" -exec rm -rf {} +
               echo \"Requires-Dist: setuptools (>=61)\" >> \${PKG_NV}.dist-info/METADATA
-              echo \"Requires-Dist: numpy (>=1.23.3)\" >> \${PKG_NV}.dist-info/METADATA
+              echo \"Requires-Dist: numpy (>=1.23.3,<2.3)\" >> \${PKG_NV}.dist-info/METADATA
               echo \"Requires-Dist: mpi4py (>=3.1.3)\" >> \${PKG_NV}.dist-info/METADATA
               echo \"Requires-Dist: matplotlib (>=3.8.0)\" >> \${PKG_NV}.dist-info/METADATA
               cat \${PKG_NV}.dist-info/METADATA
@@ -197,7 +199,7 @@ jobs:
               find . -maxdepth 1 -type d -name '*.dist-info' -not -name \"\${PKG_NV}.dist-info\" -exec rm -rf {} +
               find . -maxdepth 1 -type d -name \"*-\${PKG_VERSION}\" -exec rm -rf {} +
               echo \"Requires-Dist: setuptools (>=61)\" >> \${PKG_NV}.dist-info/METADATA
-              echo \"Requires-Dist: numpy (>=1.23.3)\" >> \${PKG_NV}.dist-info/METADATA
+              echo \"Requires-Dist: numpy (>=1.23.3,<2.3)\" >> \${PKG_NV}.dist-info/METADATA
               echo \"Requires-Dist: mpi4py (>=3.1.3)\" >> \${PKG_NV}.dist-info/METADATA
               echo \"Requires-Dist: matplotlib (>=3.8.0)\" >> \${PKG_NV}.dist-info/METADATA
               cat \${PKG_NV}.dist-info/METADATA
