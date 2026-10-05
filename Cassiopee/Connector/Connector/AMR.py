@@ -288,7 +288,7 @@ def prepareAMRDataDG__(t_case, t, IBM_parameters=None, check=False, dim=3, local
 
             Cmpi.trace(" Extracting IBM Points [start]", master=False, cpu=False)
             integrationPts, donorPts, wallPts = getAllIBMPoints__(tb2, frontIP, frontIP_C, frontDP_gath, bbo, IBM_parameters, check, dim,
-                                                                forceAlignment, localDir=localDir)
+                                                                  forceAlignment, localDir=localDir)
             Cmpi.trace(" Extracting IBM Points [end]"  , master=False, cpu=False)
 
             Cmpi.trace(" Adding IBCDatasets [start]", master=False, cpu=False)
@@ -334,7 +334,7 @@ def prepareAMRIBM(tb, vmins, dim, IBM_parameters, levelMax=0, toffset=None, chec
                                   snears=snears, dfars=dfars, loadBalancing=loadBalancing,
                                   tbox=tbox, vminsTbox=vminsTbox, tbv2=tbv2,
                                   tIn=tIn)
-    
+
     if OutputAMRMesh: Cmpi.convertPyTree2File(t_AMR, localDir+'tAMRMesh.cgns')
 
     printMeshInfo(t_AMR, message='[MESH GEN.]')
@@ -351,7 +351,7 @@ def prepareAMRIBM(tb, vmins, dim, IBM_parameters, levelMax=0, toffset=None, chec
     t_AMR = prepareAMRData(tb, t_AMR, IBM_parameters=IBM_parameters, dim=dim, check=check, localDir=localDir,
                            forceAlignment=forceAlignment, isFastApproach=isFastApproach)
 
-    printMeshInfo(t_AMR, message='[IBM PREP.]')    
+    printMeshInfo(t_AMR, message='[IBM PREP.]')
 
     if fileName is not None:
         Cmpi.convertPyTree2File(t_AMR, localDir+fileName)
