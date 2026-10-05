@@ -134,6 +134,7 @@ def createExtension__(tbIn):
                 b = G.addNormalLayers(z, d)
 
                 # only keep the exterior faces & turn into BE
+                b = C.convertArray2NGon(b)
                 b = P.exteriorFaces(b)
                 b = T.splitSharpEdges(b, 45.)
                 b = T.breakElements(b)
