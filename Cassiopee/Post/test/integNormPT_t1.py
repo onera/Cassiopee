@@ -14,16 +14,16 @@ ni = 30; nj = 40
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,1))
 m = C.addBC2Zone(m,'overlap','BCOverlap','imin')
 m = C.fillEmptyBCWith(m, 'nref','BCFarfield')
-m = C.initVars(m,'vx', f1, ['CoordinateX','CoordinateY'])
-m = C.initVars(m,'vy', f2, ['CoordinateX','CoordinateY'])
+m = C.initVars(m,'vx', f1, ['CoordinateX','CoordinateY'], isVectorized=True)
+m = C.initVars(m,'vy', f2, ['CoordinateX','CoordinateY'], isVectorized=True)
 res = P.integNorm(m, Internal.__FlowSolutionNodes__)
 test.testO(res,1)
 
 # TRI
 ni = 30; nj = 40
 m2 = G.cartTetra((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,1))
-m2 = C.initVars(m2,'vx', f1, ['CoordinateX','CoordinateY'])
-m2 = C.initVars(m2,'vy', f2, ['CoordinateX','CoordinateY'])
+m2 = C.initVars(m2,'vx', f1, ['CoordinateX','CoordinateY'], isVectorized=True)
+m2 = C.initVars(m2,'vy', f2, ['CoordinateX','CoordinateY'], isVectorized=True)
 res = P.integNorm(m2, Internal.__FlowSolutionNodes__)
 test.testO(res,2)
 

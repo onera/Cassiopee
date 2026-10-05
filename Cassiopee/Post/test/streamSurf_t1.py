@@ -3,12 +3,12 @@ import Converter as C
 import Post as P
 import Generator as G
 import Geom as D
-import math as M
+import numpy
 import KCore.test as test
 
 ni = 30; nj = 40; nk = 5
 
-def F(x): return M.cos(x)
+def F(x): return numpy.cos(x)
 
 # Maillage en noeuds
 # 3D
@@ -16,7 +16,7 @@ m1 = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
 m2 = G.cart((5.5,0,0), (9./(ni-1),9./(nj-1),1), (ni,nj,nk))
 m = [m1,m2]
 m = C.initVars(m, 'rou', 1.)
-m = C.initVars(m, 'rov', F, ['x'])
+m = C.initVars(m, 'rov', F, ['x'], isVectorized=True)
 m = C.initVars(m, 'row', 0.)
 
 b = D.line( (0.1,5.,0.1), (0.1,5.,3.9), N=5 )
