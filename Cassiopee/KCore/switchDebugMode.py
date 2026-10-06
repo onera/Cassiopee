@@ -40,8 +40,8 @@ def readDist():
 # Edit Dist
 def editDist(contents, dbgMode):
     for i, line in enumerate(contents):
-        if "DEBUG =" in line:
-            contents[i] = "DEBUG = " + dbgMode + '\n'
+        if "_DEBUG =" in line:
+            contents[i] = "_DEBUG = " + dbgMode + '\n'
             return
     return
 
@@ -55,20 +55,9 @@ def writeDist(contents):
         for line in contents: f.write(line)
     return
 
-# Check ELSAPROD
-def checkElsaProd(dbgMode):
-    elsaprod = os.getenv("ELSAPROD")
-    if elsaprod is not None:
-        if dbgMode and not "_DBG" in elsaprod:
-            print("Add '_DBG' suffix to $ELSAPROD: {}_DBG".format(elsaprod))
-        elif not dbgMode and "_DBG" in elsaprod:
-            print("Remove '_DBG' suffix from $ELSAPROD: {}".format(elsaprod[:-4]))
-    return
-
 if __name__ == '__main__':
     args = parseArgs()
     dbgMode = "True" if args.activate else "False"
     contents = readDist()
     editDist(contents, dbgMode)
     writeDist(contents)
-    checkElsaProd(args.activate)
