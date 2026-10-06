@@ -53,11 +53,11 @@ def editDist(contents, intState):
     sw1 = True
     sw2 = True
     for i, line in enumerate(contents):
-        if sw1 and "EDOUBLEINT =" in line:
-            contents[i] = "EDOUBLEINT = " + intState + '\n'
+        if sw1 and "_EDOUBLEINT =" in line:
+            contents[i] = "_EDOUBLEINT = " + intState + '\n'
             sw1 = False
-        if "GDOUBLEINT =" in line:
-            contents[i] = "GDOUBLEINT = " + intState + '\n'
+        if "_GDOUBLEINT =" in line:
+            contents[i] = "_GDOUBLEINT = " + intState + '\n'
             sw2 = False
         if not (sw1 or sw2): return
     return
@@ -72,25 +72,9 @@ def writeDist(contents):
         for line in contents: f.write(line)
     return
 
-# Check ELSAPROD
-def checkElsaProd(intSize):
-    elsaprod = os.getenv("ELSAPROD")
-    if elsaprod is not None:
-        if intSize == 4 and "_i8" in elsaprod:
-            print("Remove '_i8' suffix from $ELSAPROD: {}".format(
-                elsaprod.replace('_i8', '')))
-        elif intSize == 8 and "_i8" not in elsaprod:
-            if '_DBG' in elsaprod:
-                print("Add '_i8_DBG' suffix to $ELSAPROD: {}_i8_DBG".format(
-                    elsaprod[:-4]))
-            else:
-                print("Add '_i8' suffix to $ELSAPROD: {}_i8".format(elsaprod))
-    return
-
 if __name__ == '__main__':
     args = parseArgs()
     intState = "True" if args.int == 8 else "False"
     contents = readDist()
     editDist(contents, intState)
     writeDist(contents)
-    checkElsaProd(args.int)
