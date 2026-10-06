@@ -120,4 +120,3 @@ C._initVars(a, '{F}={CoordinateX}')
 C._initVars(a, '{centers:G}={centers:CoordinateY}')
 a = T.subzone(a, [], type='elements')
 test.testT(a, 7)
-
