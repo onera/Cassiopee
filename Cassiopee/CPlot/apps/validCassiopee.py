@@ -286,7 +286,7 @@ def checkOutput(cmd, path='.', env=None, stderr=None):
         # for validation tests
         nthreads = float(Threads.get())
         if PREFS["validType"] == "regression":
-            timeout = (100. + 120.*Dist.DEBUG)*(1. + 4.8/nthreads)
+            timeout = (100. + 120.*Dist.DEBUG())*(1. + 4.8/nthreads)
         else: timeout = 3600.
         stdout, stderr = PROCESS.communicate(None, timeout=timeout)
 
@@ -1912,7 +1912,7 @@ if __name__ == '__main__':
             # Show this button if the global database can be interrogated
             toolsTab.add_command(label='Switch to global data base ' + dbInfo,
                                  command=toggleDB)
-        if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
+        if Dist.DEBUG() and os.getenv('ASAN_LIB') is not None:
             toolsTab.add_separator()
             toolsTab.add_command(label='Enable Address Sanitizer (ASan)',
                                  command=toggleASAN)
@@ -2003,7 +2003,7 @@ if __name__ == '__main__':
         if vcargs.filters:
             Filter.set(vcargs.filters)
             filterTestList()
-        if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
+        if Dist.DEBUG() and os.getenv('ASAN_LIB') is not None:
             if vcargs.memorySanitizer: USE_ASAN[0] = True
             if vcargs.leakSanitizer: USE_ASAN[1] = True
             updateASANOptions()
@@ -2037,7 +2037,7 @@ if __name__ == '__main__':
         if vcargs.filters:
             Filter.set(vcargs.filters)
             filterTestList()
-        if Dist.DEBUG and os.getenv('ASAN_LIB') is not None:
+        if Dist.DEBUG() and os.getenv('ASAN_LIB') is not None:
             if vcargs.memorySanitizer: USE_ASAN[0] = True
             if vcargs.leakSanitizer: USE_ASAN[1] = True
             updateASANOptions()
