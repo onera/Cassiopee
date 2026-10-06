@@ -142,20 +142,6 @@ def prepareAMRDataDG__(t_case, t, IBM_parameters=None, check=False, dim=3, local
         if IBM_parameters["IBM type"]["method"] == "VPM":
             VPM = True
 
-    # symmetry & direction
-    dir_sym = 0
-    if "symmetryPlane" in IBM_parameters["IBM type"].keys():
-        dir_sym = int(IBM_parameters["IBM type"]["symmetryPlane"])
-        if IBM_parameters["IBM type"]["symmetryPlane"] < 0 or IBM_parameters["IBM type"]["symmetryPlane"] > 3:
-            if Cmpi.master: print("Warning: Symmetry plane direction can only be : 1 (x-direction), 2 (y-direction) or 3 (z-direction)... exiting", flush=True)
-            raise ValueError("Choose a valid symmetry plane direction. Exiting..")
-            Cmpi.abort(errorcode=1)
-
-    # Important Note: this use of the flag is still ambiguous - related to local IBMs??
-    different_front_flag = True
-    if "use different front for different BCs" in IBM_parameters["integration points"]:
-        different_front_flag = IBM_parameters["integration points"]["use different front for different BCs"]
-
     if IBM_parameters["spatial discretization"]["type"] in ["DG", "DGSEM"]:
         if Cmpi.master: print("Warning: You are using high-order DG/DGSEM spatial discretizations in parallel. This is a development version. For a more validated and robust high-order IBM-preprocessing, switch to serial. ", flush=True)
 
@@ -176,7 +162,12 @@ def prepareAMRDataDG__(t_case, t, IBM_parameters=None, check=False, dim=3, local
         T._addkplane(tb2)
         T._contract(tb2, (0,0,0), (1,0,0), (0,1,0), dz)
     else:
-        tb2 = tb
+        baseSYM = Internal.getNodesFromName1(tb, "SYM")
+        if baseSYM:
+            tb2 = Internal.rmNodesByNameAndType(tb, 'SYM', 'CGNSBase_t')
+            tb2 = Internal.rmNodesByNameAndType(tb2, '*_sym*', 'Zone_t')
+        else:
+            tb2 = tb
 
     #==========================================================
     # STEP 0: Calculate Distance to IBCs (all IBCs) (if needed)
