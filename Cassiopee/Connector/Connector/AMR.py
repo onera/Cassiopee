@@ -110,9 +110,7 @@ def prepareAMRDataFV__(t_case, t, IBM_parameters=None, check=False, dim=3, local
     # STEP 5: Recover BCs - Add IBCs
     #===============================
     Cmpi.trace(" Recovering Boundary Conditions [start]", master=True, cpu=False)
-    t_exteriorFaces = P.exteriorFaces(t)
-    _recoverBCs(t, t_exteriorFaces, BCInfo)
-    zibc, t_exteriorFaces = recoverIBCs__(t_exteriorFaces, frontIP)
+    t, t_exteriorFaces, zibc = recoverBCs(t, frontIP, BCInfo)
     Cmpi.trace(" Recovering Boundary Conditions [end]  ", master=True, cpu=False)
 
     #===================================================================================
@@ -254,7 +252,7 @@ def prepareAMRDataDG__(t_case, t, IBM_parameters=None, check=False, dim=3, local
     for elt_t in Internal.getNodesFromType(t_exteriorFaces, "Elements_t"):
         if not elt_t[0].startswith("GridElements"):
             Internal._rmNode(t_exteriorFaces, elt_t)
-    _recoverBoundaryConditions__(t, t_exteriorFaces, zbcs, bctypes, bcnames)
+    _recoverBCs__(t, t_exteriorFaces, zbcs, bctypes, bcnames)
     Cmpi.trace(" Recovering Boundary Conditions [end]  ", master=True, cpu=False)
     #Cmpi.convertPyTree2File(t,'check_t_afterBC.cgns')
 
@@ -465,16 +463,20 @@ def getBCs(t, tb2, dim):
 
     return (zbcs, bctypes, bcnames)
 
-def _recoverBCs(t, t_exteriorFaces, BCInfo):
+def recoverBCs(t, frontIP, BCInfo):
+    tp = Internal.copyRef(t)
+    t_exteriorFaces = P.exteriorFaces(tp)
+
     zbcs, bctypes, bcnames = BCInfo
     for elt_t in Internal.getNodesFromType(t_exteriorFaces, "Elements_t"):
         if not elt_t[0].startswith("GridElements"):
             Internal._rmNode(t_exteriorFaces, elt_t)
-    _recoverBoundaryConditions__(t, t_exteriorFaces, zbcs, bctypes, bcnames)
+    _recoverBCs__(tp, t_exteriorFaces, zbcs, bctypes, bcnames)
+    zibc, t_exteriorFaces = recoverIBCs__(t_exteriorFaces, frontIP)
 
-    return None
+    return tp, t_exteriorFaces, zibc
 
-def _recoverBoundaryConditions__(t, t_exteriorFaces, zbcs, bctypes, bcnames):
+def _recoverBCs__(t, t_exteriorFaces, zbcs, bctypes, bcnames):
     meshgen = "AMR"
     f = None
     for z in Internal.getZones(t):
@@ -526,6 +528,34 @@ def _recoverBoundaryConditions__(t, t_exteriorFaces, zbcs, bctypes, bcnames):
     #                   This is the unmatched BC that will become the IBC
     if meshgen == "AMR" and f is not None: t_exteriorFaces[2][1][2] = [f]
     return None
+
+def recoverIBCs__(t_exteriorFaces, frontIP):
+    # Here:
+    # t_exteriorFaces - is ONLY the exteriorFaces of the integration front on which CODA applies the IBCs
+    Cmpi.trace(" Adding the IBC BC tag (per processor) for CFD solver [start]", master=True, cpu=False)
+    if Cmpi.master: print("Performing the 'identifyElements' function (it can be long.)", flush=True)
+    startTime = time.perf_counter()
+    f = Internal.getZones(t_exteriorFaces)
+    if f != []:
+        f = f[0]
+        hook = C.createHook(f,"elementCenters")
+        ids = C.identifyElements(hook, frontIP, tol=__TOL__)
+        ids = ids[ids[:] > -1]
+        ids = ids.tolist()
+        ids_IBMWall = [ids[i]-1 for i in range(len(ids))]
+        C.freeHook(hook)
+        if ids_IBMWall != []:
+            zibc = T.subzone(f, ids_IBMWall, type='elements')
+        else:
+            # Needed for MPI all gather
+            zibc = Internal.newZone(name="frontIP%d"%Cmpi.rank, zsize=[[0,0]], ztype="Unstructured")
+    else:
+        # Needed for MPI all gather
+        zibc = Internal.newZone(name="frontIP%d"%Cmpi.rank, zsize=[[0,0]], ztype="Unstructured")
+    outputTime(startTime,functionName='identifyElementsPrt2')
+    Cmpi.trace(" Adding the IBC BC tag (per processor) for CFD solver [end]", master=True, cpu=False)
+
+    return zibc, f
 
 def _addIBC2Zone__(t, f, frontIP):
     for z in Internal.getZones(t):
@@ -638,41 +668,13 @@ def gatherFrontIP__(frontIP, localDir, check):
 
     return frontIP_gath
 
-def recoverIBCs__(t_exteriorFaces, frontIP):
-    # Here:
-    # t_exteriorFaces - is ONLY the exteriorFaces of the integration front on which CODA applies the IBCs
-    Cmpi.trace(" Adding the IBC BC tag (per processor) for CFD solver [start]", master=True, cpu=False)
-    if Cmpi.master: print("Performing the 'identifyElements' function (it can be long.)", flush=True)
-    startTime = time.perf_counter()
-    f = Internal.getZones(t_exteriorFaces)
-    if f != []:
-        f = f[0]
-        hook = C.createHook(f,"elementCenters")
-        ids = C.identifyElements(hook, frontIP, tol=__TOL__)
-        ids = ids[ids[:] > -1]
-        ids = ids.tolist()
-        ids_IBMWall = [ids[i]-1 for i in range(len(ids))]
-        C.freeHook(hook)
-        if ids_IBMWall != []:
-            zibc = T.subzone(f, ids_IBMWall, type='elements')
-        else:
-            # Needed for MPI all gather
-            zibc = Internal.newZone(name="frontIP%d"%Cmpi.rank, zsize=[[0,0]], ztype="Unstructured")
-    else:
-        # Needed for MPI all gather
-        zibc = Internal.newZone(name="frontIP%d"%Cmpi.rank, zsize=[[0,0]], ztype="Unstructured")
-    outputTime(startTime,functionName='identifyElementsPrt2')
-    Cmpi.trace(" Adding the IBC BC tag (per processor) for CFD solver [end]", master=True, cpu=False)
-
-    return zibc, f
-
-def getFrontDP(t, tb2, frontIP, dim, dir_sym, check, distIP, localDir='./', isFastApproach=True):
-    frontDP = extractFrontDP__(t, tb2, frontIP, dim, dir_sym, distIP, isFastApproach)
+def getFrontDP(t, tb, frontIP, dim, dir_sym, check, distIP, localDir='./', isFastApproach=True):
+    frontDP = extractFrontDP__(t, tb, frontIP, dim, dir_sym, distIP, isFastApproach)
     frontDP = gatherFrontDP__(frontDP, localDir, check, isFastApproach)
 
     return frontDP
 
-def extractFrontDP__(t, tb2, frontIP_gath, dim, dir_sym, distIP, isFastApproach=True):
+def extractFrontDP__(t, tb, frontIP_gath, dim, dir_sym, distIP, isFastApproach=True):
     import Geom.IBM as D_IBM
     if dim == 2 and not isFastApproach:
         isFastApproach = True
@@ -723,7 +725,7 @@ def extractFrontDP__(t, tb2, frontIP_gath, dim, dir_sym, distIP, isFastApproach=
         hminTmp = Cmpi.allreduce(hminTmp, op=Cmpi.MIN)
         if Cmpi.master: print('extractFrontDP__ Info: Smallest cell size (snear): %g'%hminTmp, flush=True)
         # Generate Offset - scaled tb
-        frontIP_gathScale = localOffset__(tb2, dim=dim, dir_sym=dir_sym, minSnear=hminTmp, distIP=distIP)
+        frontIP_gathScale = localOffset__(tb, dim=dim, dir_sym=dir_sym, minSnear=hminTmp, distIP=distIP)
         #Cmpi.convertPyTree2File(frontIP_gathScale, 'check_frontIP_gathScale.cgns') # Keep for now - debugging
 
         # blankcells - what is inside the offset
@@ -884,19 +886,19 @@ def localOffset__(tbLocal, dim, dir_sym, minSnear, distIP):
     return iso
 
 # ===============================================================================================================================
-def _setIBCData(t, t_exteriorFaces, tb2, zibc, frontDP, bbo, IBM_parameters, check, forceAlignment, localDir, different_front_flag):
+def _setIBCData(t, t_exteriorFaces, tb, zibc, frontDP, bbo, IBM_parameters, check, forceAlignment, localDir, different_front_flag):
     ncellsIP = C.getNCells(zibc)
 
     if ncellsIP > 0:
         Cmpi.trace(" Computing normals via project ortho [start]", master=False, cpu=False)
-        _computeIBCNormals__(zibc, tb2)
+        _computeIBCNormals__(zibc, tb)
         Cmpi.trace(" Computing normals via project ortho [end]  ", master=False, cpu=False)
 
         zcibc = C.node2Center(zibc)
         Internal._rmNodesByType(zcibc, "Elements_t")
 
         Cmpi.trace(" Extracting IBM Points [start]", master=False, cpu=False)
-        integrationPts, donorPts, wallPts = getAllIBMPoints__(tb2, zcibc, frontDP, bbo, IBM_parameters, check, forceAlignment, localDir)
+        integrationPts, donorPts, wallPts = getAllIBMPoints__(tb, zcibc, frontDP, bbo, IBM_parameters, check, forceAlignment, localDir)
         Cmpi.trace(" Extracting IBM Points [end]"  , master=False, cpu=False)
 
         Cmpi.trace(" Adding IBCDatasets [start]", master=False, cpu=False)
