@@ -64,7 +64,6 @@ static PyMethodDef Pyconverter [] =
   {"convertArray2TetraBary", K_CONVERTER::convertArray2TetraBary, METH_VARARGS},
   {"convertArray2TetraBaryBoth", K_CONVERTER::convertArray2TetraBaryBoth, METH_VARARGS},
   {"convertNGon2TetraBary", K_CONVERTER::convertNGon2TetraBary, METH_VARARGS},
-  {"convertNGon2TetraBaryBoth", K_CONVERTER::convertNGon2TetraBaryBoth, METH_VARARGS},
   {"convertHO2LO", K_CONVERTER::convertHO2LO, METH_VARARGS},
   {"convertLO2HO", K_CONVERTER::convertLO2HO, METH_VARARGS},
   {"convertTri2Quad", K_CONVERTER::convertTri2Quad, METH_VARARGS},

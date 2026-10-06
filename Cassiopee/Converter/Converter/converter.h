@@ -71,7 +71,6 @@ namespace K_CONVERTER
   PyObject* mergeByEltType(PyObject* self, PyObject* args);
   PyObject* convertNGon2TetraBary(PyObject* self, PyObject* args);
   PyObject* convertMix2BE(PyObject* self, PyObject* args);
-  PyObject* convertNGon2TetraBaryBoth(PyObject* self, PyObject* args);
   PyObject* convertArray2Tetra(PyObject* self, PyObject* args);
   PyObject* convertArray2TetraBary(PyObject* self, PyObject* args);
   PyObject* convertArray2TetraBaryBoth(PyObject* self, PyObject* args);
