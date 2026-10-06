@@ -82,21 +82,19 @@ PyObject* K_OCC::projectOnEdges(PyObject* self, PyObject* args)
   E_Float* poz = new E_Float [npts];
   E_Float* dist = new E_Float [npts];
 
-#pragma omp parallel
+  #pragma omp parallel
   {
     gp_Pnt Point;
     E_Float dx,dy,dz,d;
 
-#pragma omp for
-    for (E_Int i = 0; i < npts; i++) pox[i] = px[i];
-#pragma omp for
-    for (E_Int i = 0; i < npts; i++) poy[i] = py[i];
-#pragma omp for
-    for (E_Int i = 0; i < npts; i++) poz[i] = pz[i];
-#pragma omp for
-    for (E_Int i = 0; i < npts; i++) dist[i] = K_CONST::E_MAX_FLOAT;
+    #pragma omp for
+    for (E_Int i = 0; i < npts; i++)
+    {
+      pox[i] = px[i]; poy[i] = py[i]; poz[i] = pz[i];
+      dist[i] = K_CONST::E_MAX_FLOAT;
+    }
 
-#pragma omp for
+    #pragma omp for
     for (E_Int i=0; i < npts; i++)
     {
       ptx[i] = K_CONST::E_MAX_FLOAT;

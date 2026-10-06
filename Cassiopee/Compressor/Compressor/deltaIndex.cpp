@@ -86,12 +86,12 @@ PyObject* K_COMPRESSOR::deltaIndex(PyObject* self, PyObject* args)
   E_Int Nadd = 0;
   for (E_Int i = 0; i < s1; i++)
   {
-    if (r1p[i] == false) Nadd++;
+    if (!r1p[i]) Nadd++;
   }
   E_Int Nsupp = 0;
   for (E_Int i = 0; i < s2; i++)
   {
-    if (r2p[i] == false) Nsupp++;
+    if (!r2p[i]) Nsupp++;
   }
   // build le numpy de sortie
   PyObject* a = K_NUMPY::buildNumpyArray(Nadd + Nsupp + 2, 1, 1);
@@ -101,12 +101,12 @@ PyObject* K_COMPRESSOR::deltaIndex(PyObject* self, PyObject* args)
   E_Int c = 1;
   for (E_Int i = 0; i < s1; i++)
   {
-    if (r1p[i] == false) { ptra[c] = index[i]; c++; }
+    if (!r1p[i]) { ptra[c] = index[i]; c++; }
   }
   ptra[c] = Nsupp; c++;
   for (E_Int i = 0; i < s2; i++)
   {
-    if (r2p[i] == false) { ptra[c] = ref[i]; c++; }
+    if (!r2p[i]) { ptra[c] = ref[i]; c++; }
   }
   return a;
 }

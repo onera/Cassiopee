@@ -1720,15 +1720,15 @@ def setFields(arrays, t, loc, writeDim=True):
         # Remplace les noeuds contenant les variables
         if a == []: vars = []
         else:
-            vars = a[0].split(",")
+            vars = [v for v in a[0].split(",") if v]
             # un array * ne peut pas etre mis en nodes
             if loc == 'nodes' and len(a) == 4:
                 elt = a[3]
                 if elt[-1] == '*':
                     print('Warning: setFields: %s array is not set.'%elt)
                     vars = []
-        p = 0
-        for v in vars:
+
+        for p, v in enumerate(vars):
             renamed = 0 # si le nom est change en nom CGNS = 1
             variable = Internal.getCGNSName(v)
             if variable != v: renamed = 1
@@ -1770,8 +1770,6 @@ def setFields(arrays, t, loc, writeDim=True):
                 else:
                     info[2].append(node)
                     if renamed == 1: Internal._rmNodesByName(info, v)
-
-            p += 1
 
         # update les dimensions si necessaire
         if writeDim and loc == 'nodes' and vars != []:

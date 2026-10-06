@@ -98,7 +98,7 @@ test.testT(a, 41)
 
 # 3D ME: hexa - pyra
 #          |      |
-#        pyra   hexa
+#        pyra - hexa
 a = G.cartHexa((0.,0.4,0.), (0.1,0.1,0.1), (5,5,5))
 b = G.cartPyra((0.4,0.4,0.), (0.1,0.1,0.1), (5,5,5))
 c = G.cartPyra((0.,0.,0.), (0.1,0.1,0.1), (5,5,5))
@@ -112,3 +112,12 @@ eltsL = (
 )
 a = T.subzone(a, eltsL, type='elements')
 test.testT(a, 32)
+
+
+# -- Empty element list, returning an empty NODE connectivity
+a = G.cartPyra((0.,0.,0.), (0.1,0.1,0.1), (5,5,5))
+C._initVars(a, '{F}={CoordinateX}')
+C._initVars(a, '{centers:G}={centers:CoordinateY}')
+a = T.subzone(a, [], type='elements')
+test.testT(a, 7)
+
