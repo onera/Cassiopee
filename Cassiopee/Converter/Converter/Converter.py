@@ -1331,8 +1331,8 @@ def convertArray2Tetra1__(array, arrayC=[], split='simple'):
 
     elif split == 'withBarycenters': # new points added at centers of elements and faces
         if t == 'STRUCT':
-            if arrayC == []: return converter.convertStruct2TetraBary(array)
-            else: return converter.convertStruct2TetraBaryBoth(array, arrayC)
+            if arrayC == []: arrayC = None
+            return converter.convertStruct2TetraBary(array, arrayC)
         elif t == 'NGON':
             if arrayC == []: return converter.convertNGon2TetraBary(array)
             else: return converter.convertNGon2TetraBaryBoth(array, arrayC)

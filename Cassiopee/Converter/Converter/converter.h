@@ -62,7 +62,6 @@ namespace K_CONVERTER
   PyObject* setNANValuesAt(PyObject* self, PyObject* args);
   PyObject* convertBAR2Struct(PyObject* self, PyObject* args);
   PyObject* convertStruct2TetraBary(PyObject* self, PyObject* args);
-  PyObject* convertStruct2TetraBaryBoth(PyObject* self, PyObject* args);
   PyObject* convertStruct2Hexa(PyObject* self, PyObject* args);
   PyObject* convertStruct2NGon(PyObject* self, PyObject* args);
   PyObject* convertHexa2Struct(PyObject* self, PyObject* args);
