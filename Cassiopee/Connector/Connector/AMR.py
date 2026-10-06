@@ -96,7 +96,7 @@ def prepareAMRDataFV__(t_case, t, IBM_parameters=None, check=False, dim=3, local
     #===============================================================================================================================
     # only done for frontTypeIP=2 - if frontTypeIP=1 it is F1 so blankByIBCBodies is sufficient for the cellN value
     Cmpi.trace("Extract front faces of IBM integration points [start] ", master=True, cpu=False)
-    frontIP, maxDistIP = getFrontIP(t, dim, IBM_parameters, localDir, False, VPM=VPM)
+    frontIP, maxDistIP = getFrontIP(t, IBM_parameters, localDir, False, VPM=VPM)
     Cmpi.trace("Extract front faces of IBM integration points [end]   ", master=True, cpu=False)
 
     #====================================================
@@ -112,6 +112,7 @@ def prepareAMRDataFV__(t_case, t, IBM_parameters=None, check=False, dim=3, local
     Cmpi.trace(" Recovering Boundary Conditions [start]", master=True, cpu=False)
     t_exteriorFaces = P.exteriorFaces(t)
     _recoverBCs(t, t_exteriorFaces, BCInfo)
+    zibc, t_exteriorFaces = recoverIBCs__(t_exteriorFaces, frontIP)
     Cmpi.trace(" Recovering Boundary Conditions [end]  ", master=True, cpu=False)
 
     #===================================================================================
@@ -129,7 +130,7 @@ def prepareAMRDataFV__(t_case, t, IBM_parameters=None, check=False, dim=3, local
     # STEP 7: Determine DP points on DPfront & Add IBC Dataset to the PyTree
     #===================================================================================
     Cmpi.trace(" Getting DP IBM points and adding IBC Dataset [start]", master=True, cpu=False)
-    _setIBCData(t, t_exteriorFaces, tb2, frontIP, frontDP, bbo, IBM_parameters, check, dim, forceAlignment, localDir, different_front_flag)
+    _setIBCData(t, t_exteriorFaces, tb2, zibc, frontDP, bbo, IBM_parameters, check, forceAlignment, localDir, different_front_flag)
     Cmpi.trace(" Getting DP IBM points and adding IBC Dataset [end]  ", master=True, cpu=False)
 
     return t
@@ -257,7 +258,7 @@ def prepareAMRDataDG__(t_case, t, IBM_parameters=None, check=False, dim=3, local
     Cmpi.trace(" Recovering Boundary Conditions [end]  ", master=True, cpu=False)
     #Cmpi.convertPyTree2File(t,'check_t_afterBC.cgns')
 
-    (frontIP, facesExt, dimfrontIP) = getFrontIBCs__(t_exteriorFaces, frontIP_gath)
+    frontIP, facesExt = recoverIBCs__(t_exteriorFaces, frontIP_gath)
 
     #===================================================================================
     # STEP 6: Get Donor Point Front (Recall: DP = image point in Mittal et. al approach)
@@ -589,8 +590,8 @@ def getBodiesDist2wall__(tb2):
     return tb_WD
 
 # ===============================================================================================================================
-def getFrontIP(t, dim, IBM_parameters, localDir, check=False, VPM=False):
-    frontIP = extractFrontIP__(t, dim, IBM_parameters, VPM=VPM)
+def getFrontIP(t, IBM_parameters, localDir, check=False, VPM=False):
+    frontIP = extractFrontIP__(t, IBM_parameters, VPM=VPM)
 
     maxDistIP = 0.0
     turbDistanceTmp = Internal.getNodeFromName(frontIP, 'TurbulentDistance')[1]
@@ -598,11 +599,11 @@ def getFrontIP(t, dim, IBM_parameters, localDir, check=False, VPM=False):
     maxDistIP = Cmpi.allreduce(maxDistIP, op=Cmpi.MAX)
     if Cmpi.master: print('extractFrontDP__ Info: maxDistanceFrontIP=%g'%maxDistIP, flush=True)
 
-    frontIP, _ = gatherFrontIP__(frontIP, localDir, check)
+    frontIP = gatherFrontIP__(frontIP, localDir, check)
 
     return frontIP, maxDistIP
 
-def extractFrontIP__(t, dim, IBM_parameters, VPM=False):
+def extractFrontIP__(t, IBM_parameters, VPM=False):
     if VPM == False:
         frontTypeIP = IBM_parameters["integration points"]["front type"]
         print("Rank: %d :: frontTypeIP=%d"%(Cmpi.rank, int(frontTypeIP)), flush=True)
@@ -622,7 +623,6 @@ def extractFrontIP__(t, dim, IBM_parameters, VPM=False):
 def gatherFrontIP__(frontIP, localDir, check):
     Cmpi.trace("Gathering front IP [start]", master=True, cpu=False)
     frontIP = Internal.getZones(frontIP)[0]
-    dimfrontIP = numpy.sum(Internal.getValue(frontIP)[0])
     frontIP_gath = Cmpi.allgatherZones(frontIP)
     frontIP_gath = C.newPyTree(["frontIP", frontIP_gath])
     frontIP_gath = T.join(frontIP_gath)
@@ -636,9 +636,9 @@ def gatherFrontIP__(frontIP, localDir, check):
         C.convertPyTree2File(frontIP_gath, localDir+"frontIP_gath.plt")
         C.convertPyTree2File(frontIP_gath, localDir+"frontIP_gath.cgns")
 
-    return (frontIP_gath, dimfrontIP)
+    return frontIP_gath
 
-def getFrontIBCs__(t_exteriorFaces, frontIP_gath):
+def recoverIBCs__(t_exteriorFaces, frontIP):
     # Here:
     # t_exteriorFaces - is ONLY the exteriorFaces of the integration front on which CODA applies the IBCs
     Cmpi.trace(" Adding the IBC BC tag (per processor) for CFD solver [start]", master=True, cpu=False)
@@ -648,34 +648,31 @@ def getFrontIBCs__(t_exteriorFaces, frontIP_gath):
     if f != []:
         f = f[0]
         hook = C.createHook(f,"elementCenters")
-        ids = C.identifyElements(hook, frontIP_gath, tol=__TOL__)
+        ids = C.identifyElements(hook, frontIP, tol=__TOL__)
         ids = ids[ids[:] > -1]
         ids = ids.tolist()
         ids_IBMWall = [ids[i]-1 for i in range(len(ids))]
         C.freeHook(hook)
         if ids_IBMWall != []:
-            frontIP = T.subzone(f, ids_IBMWall, type='elements')
-            dimfrontIP = numpy.sum(Internal.getValue(frontIP)[0])
+            zibc = T.subzone(f, ids_IBMWall, type='elements')
         else:
             # Needed for MPI all gather
-            frontIP = Internal.newZone(name="frontIP%d"%Cmpi.rank, zsize=[[0,0]], ztype="Unstructured")
-            dimfrontIP = 0
+            zibc = Internal.newZone(name="frontIP%d"%Cmpi.rank, zsize=[[0,0]], ztype="Unstructured")
     else:
         # Needed for MPI all gather
-        frontIP = Internal.newZone(name="frontIP%d"%Cmpi.rank, zsize=[[0,0]], ztype="Unstructured")
-        dimfrontIP = 0
+        zibc = Internal.newZone(name="frontIP%d"%Cmpi.rank, zsize=[[0,0]], ztype="Unstructured")
     outputTime(startTime,functionName='identifyElementsPrt2')
     Cmpi.trace(" Adding the IBC BC tag (per processor) for CFD solver [end]", master=True, cpu=False)
 
-    return (frontIP, f, dimfrontIP)
+    return zibc, f
 
 def getFrontDP(t, tb2, frontIP, dim, dir_sym, check, distIP, localDir='./', isFastApproach=True):
-    frontDP = extractFrontDP__(t, tb2, frontIP, dim, dir_sym, check, distIP, localDir, isFastApproach)
+    frontDP = extractFrontDP__(t, tb2, frontIP, dim, dir_sym, distIP, isFastApproach)
     frontDP = gatherFrontDP__(frontDP, localDir, check, isFastApproach)
 
     return frontDP
 
-def extractFrontDP__(t, tb2, frontIP_gath, dim, dir_sym, check, distIP, localDir='./', isFastApproach=True):
+def extractFrontDP__(t, tb2, frontIP_gath, dim, dir_sym, distIP, isFastApproach=True):
     import Geom.IBM as D_IBM
     if dim == 2 and not isFastApproach:
         isFastApproach = True
@@ -887,19 +884,19 @@ def localOffset__(tbLocal, dim, dir_sym, minSnear, distIP):
     return iso
 
 # ===============================================================================================================================
-def _setIBCData(t, t_exteriorFaces, tb2, frontIP, frontDP, bbo, IBM_parameters, check, dim, forceAlignment, localDir, different_front_flag):
-    frontIP, t_exteriorFaces, dimfrontIP = getFrontIBCs__(t_exteriorFaces, frontIP)
+def _setIBCData(t, t_exteriorFaces, tb2, zibc, frontDP, bbo, IBM_parameters, check, forceAlignment, localDir, different_front_flag):
+    ncellsIP = C.getNCells(zibc)
 
-    if dimfrontIP > 0:
+    if ncellsIP > 0:
         Cmpi.trace(" Computing normals via project ortho [start]", master=False, cpu=False)
-        _computeIBCNormals__(frontIP, tb2)
+        _computeIBCNormals__(zibc, tb2)
         Cmpi.trace(" Computing normals via project ortho [end]  ", master=False, cpu=False)
 
-        frontIP_C = C.node2Center(frontIP)
-        Internal._rmNodesByType(frontIP_C, "Elements_t")
+        zcibc = C.node2Center(zibc)
+        Internal._rmNodesByType(zcibc, "Elements_t")
 
         Cmpi.trace(" Extracting IBM Points [start]", master=False, cpu=False)
-        integrationPts, donorPts, wallPts = getAllIBMPoints__(tb2, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check, dim, forceAlignment, localDir)
+        integrationPts, donorPts, wallPts = getAllIBMPoints__(tb2, zcibc, frontDP, bbo, IBM_parameters, check, forceAlignment, localDir)
         Cmpi.trace(" Extracting IBM Points [end]"  , master=False, cpu=False)
 
         Cmpi.trace(" Adding IBCDatasets [start]", master=False, cpu=False)
@@ -941,7 +938,7 @@ def _computeIBCNormals__(front, tb2):
     Internal.newDataArray(varsn[2], value=dirz0, parent=FS)
     return None
 
-def getAllIBMPoints__(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, check, dim, forceAlignment=False, localDir='./'):
+def getAllIBMPoints__(tb, zcibc, frontDP, bbo, IBM_parameters, check, forceAlignment=False, localDir='./'):
     projAlgo = 0
 
     frontTypeDP = IBM_parameters["donor points"]["front type"]
@@ -955,9 +952,9 @@ def getAllIBMPoints__(tb, frontIP, frontIP_C, frontDP, bbo, IBM_parameters, chec
 
     if frontTypeDP == "2":
         distance_DP = IBM_parameters["donor points"]["distance DonorPoints"]
-        C._initVars(frontIP_C, 'dist', distance_DP)
+        C._initVars(zcibc, 'dist', distance_DP)
 
-    integrationPts = C.getAllFields(frontIP_C, loc='nodes', api=1)[0]
+    integrationPts = C.getAllFields(zcibc, loc='nodes', api=1)[0]
     integrationPts = Converter.convertArray2Node(integrationPts)
     integrationPts = [integrationPts]
 
