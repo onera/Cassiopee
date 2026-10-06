@@ -8,26 +8,26 @@ def f1(x1,x2,x3): return 3*x1*x2 + x3
 
 # Structure
 a = D.sphere((0,0,0), 1., 50)
-a = C.initVars(a, 'sx', f1, ['CoordinateX','CoordinateY','CoordinateZ'])
-a = C.initVars(a, 'sy', f1, ['CoordinateX','CoordinateY','CoordinateZ'])
-a = C.initVars(a, 'sz', f1, ['CoordinateX','CoordinateY','CoordinateZ'])
+a = C.initVars(a, 'sx', f1, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
+a = C.initVars(a, 'sy', f1, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
+a = C.initVars(a, 'sz', f1, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
 a = C.normalize(a, ['sx','sy','sz'])
 test.testT(a,1)
 
 # Non structure
 a = D.sphere( (0,0,0), 1., 50 )
 a = C.convertArray2Hexa(a)
-a = C.initVars(a, 'sx', f1, ['CoordinateX','CoordinateY','CoordinateZ'])
-a = C.initVars(a, 'sy', f1, ['CoordinateX','CoordinateY','CoordinateZ'])
-a = C.initVars(a, 'sz', f1, ['CoordinateX','CoordinateY','CoordinateZ'])
+a = C.initVars(a, 'sx', f1, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
+a = C.initVars(a, 'sy', f1, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
+a = C.initVars(a, 'sz', f1, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
 a = C.normalize(a, ['sx','sy','sz'])
 test.testT(a,2)
 
 # On lists
 b = D.sphere( (2.,0,0), 1., 50 )
-b = C.initVars(b, 'sx', f1, ['CoordinateX','CoordinateY','CoordinateZ'])
-b = C.initVars(b, 'sy', f1, ['CoordinateX','CoordinateY','CoordinateZ'])
-b = C.initVars(b, 'sz', f1, ['CoordinateX','CoordinateY','CoordinateZ'])
+b = C.initVars(b, 'sx', f1, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
+b = C.initVars(b, 'sy', f1, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
+b = C.initVars(b, 'sz', f1, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
 out = C.normalize([a,b], ['sx','sy','sz'])
 test.testT(out, 3)
 

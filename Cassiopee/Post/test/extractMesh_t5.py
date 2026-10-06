@@ -17,7 +17,7 @@ def FI(x,y,z):
 
 # Creation de la surface portant la solution
 a = D.surface(FS, 50, isVectorized=True)
-a = C.initVars(a, 'sol', FI, ['x','y','z'])
+a = C.initVars(a, 'sol', FI, ['x','y','z'], isVectorized=True)
 
 # Creation de la surface d'extraction
 e = D.surface(FS, 100, isVectorized=True)

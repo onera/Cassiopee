@@ -11,11 +11,11 @@ def F(x,y,z): return 12*y*y + 4
 #-----
 ni = 30; nj = 40
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,1))
-m = C.initVars(m,'F1',F,['CoordinateX','CoordinateY','CoordinateZ'])
+m = C.initVars(m,'F1',F,['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
 m = C.addVars(m,'F2'); m = C.addVars(m,'F3')
 varname = ['F1','F2','F3']
 m = P.computeCurl(m, varname)
-m = C.initVars(m,'centers:F4',F,['centers:rotx','centers:roty','centers:rotz'])
+m = C.initVars(m,'centers:F4',F,['centers:rotx','centers:roty','centers:rotz'], isVectorized=True)
 m = C.addVars(m,'centers:F5'); m = C.addVars(m,'centers:F6')
 m = C.addBC2Zone(m,'ov','BCOverlap','imin')
 t = C.newPyTree(['Base',2]); t[2][1][2].append(m)
@@ -29,11 +29,11 @@ test.testT(t,2)
 #-----
 ni = 30; nj = 40
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,2))
-m = C.initVars(m,'F1',F,['CoordinateX','CoordinateY','CoordinateZ'])
+m = C.initVars(m,'F1',F,['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
 m = C.addVars(m,'F2'); m = C.addVars(m,'F3')
 varname = ['F1','F2','F3']
 m = P.computeCurl(m, varname)
-m = C.initVars(m,'centers:F4',F,['centers:rotx','centers:roty','centers:rotz'])
+m = C.initVars(m,'centers:F4',F,['centers:rotx','centers:roty','centers:rotz'], isVectorized=True)
 m = C.addVars(m,'centers:F5'); m = C.addVars(m,'centers:F6')
 m = C.addBC2Zone(m,'ov','BCOverlap','imin')
 t = C.newPyTree(['Base',3]); t[2][1][2].append(m)

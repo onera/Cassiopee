@@ -12,12 +12,10 @@ rank = Cmpi.rank
 cellNName = "cellN"
 
 def sphere(x,y,z):
-    if x*x+y*y+z*z < 0.48**2: return 0.
-    else: return 1.
+    return (x*x + y*y + z*z >= 0.48**2).astype(float)
 
 def sphere2(x,y,z):
-    if x*x+y*y+z*z < 0.48**2: return 1.
-    else: return 0.
+    return (x*x + y*y + z*z < 0.48**2).astype(float)
 
 def createTest(func):
     # Field located at cell centers - NGON
@@ -29,7 +27,8 @@ def createTest(func):
             t,
             f'centers:{cellNName}',
             func,
-            ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ']
+            ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'],
+            isVectorized=True
         )
         zones = Internal.getZones(t)
         for i, z in enumerate(zones):

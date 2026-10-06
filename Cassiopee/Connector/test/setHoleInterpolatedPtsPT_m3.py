@@ -12,8 +12,7 @@ rank = Cmpi.rank
 cellNName = "cellN_shock"
 
 def sphere(x,y,z):
-    if x*x+y*y+z*z < 0.48**2: return 0.
-    else: return 1.
+    return (x*x + y*y + z*z >= 0.48**2).astype(float)
 
 # Field located at cell centers - NGON
 if Cmpi.master:
@@ -24,7 +23,8 @@ if Cmpi.master:
         t,
         f'centers:{cellNName}',
         sphere,
-        ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ']
+        ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'],
+        isVectorized=True
     )
     zones = Internal.getZones(t)
     for i, z in enumerate(zones):

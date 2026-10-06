@@ -14,7 +14,7 @@ def F(x,y,z):
 
 ref = [F(0.55,0.38,0.)]
 # init by function
-a = C.initVars(a, 'F', F, ['x','y','z'])
+a = C.initVars(a, 'F', F, ['x','y','z'], isVectorized=True)
 val = P.extractPoint([a], (0.55, 0.38, 0.))
 # Une fonction lineaire doit etre interpolee exactement
 print("Test1... done.")

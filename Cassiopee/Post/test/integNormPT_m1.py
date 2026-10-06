@@ -11,8 +11,8 @@ def f2(x,y): return 3*x*y + 4
 
 ni = 30; nj = 40
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,1))
-m = C.initVars(m,'vx', f1, ['CoordinateX','CoordinateY'])
-m = C.initVars(m,'vy', f2, ['CoordinateX','CoordinateY'])
+m = C.initVars(m,'vx', f1, ['CoordinateX','CoordinateY'], isVectorized=True)
+m = C.initVars(m,'vy', f2, ['CoordinateX','CoordinateY'], isVectorized=True)
 res = Pmpi.integNorm(m, Internal.__FlowSolutionNodes__)
 test.testO(res[0],1)
 

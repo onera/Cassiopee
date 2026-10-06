@@ -6,18 +6,18 @@ import KCore.test as test
 
 def F(x,y):
     return (x-5)*(x-5)
+
 def celln(y):
-    if ( y > 5. ): return True
-    else: return False
+    return (y > 5.)
 
 #-------------------------------
 # 2D structure + raccords match
 #-------------------------------
 ni = 10; nj = 10; nk = 1
 a = G.cart((0,0,0), (1,1,1), (ni,nj,nk))
-a = C.initVars(a, 'Density', F, ['CoordinateX', 'CoordinateY'])
+a = C.initVars(a, 'Density', F, ['CoordinateX', 'CoordinateY'], isVectorized=True)
 b = G.cart((9,0,0), (1,1,1), (ni,nj,nk))
-b = C.initVars(b, 'Density', F, ['CoordinateX', 'CoordinateY'])
+b = C.initVars(b, 'Density', F, ['CoordinateX', 'CoordinateY'], isVectorized=True)
 
 a = C.addBC2Zone(a, 'match1', 'BCMatch', 'imax', b, 'imin',
                  trirac=[1,2])

@@ -25,7 +25,7 @@ def initIndic(v,w): return 3*v + 4*v*v
 
 s = D.circle((0,0,0), 1., N=100); snear = 0.1
 o = G.octree([s], [snear], dfar=10.,balancing=1)
-o = C.initVars(o,'Density',initIndic,['CoordinateX','CoordinateY'])
+o = C.initVars(o,'Density',initIndic,['CoordinateX','CoordinateY'], isVectorized=True)
 # test sans bodies
 o, valInf, valSup = P.computeIndicatorField(o, 'Density')
 test.testT(o,3)

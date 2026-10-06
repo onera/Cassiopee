@@ -5,6 +5,7 @@ import Post as P
 import KCore.test as test
 
 ni = 11; nj = 11
+
 def f1(x,y):
     return 2*x + y
 
@@ -18,8 +19,8 @@ m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,1))
 m2 = C.node2Center(m)
 c = C.array('vx,vy', ni-1, nj-1, 1)
 c0 = C.addVars([m2,c])
-c0 = C.initVars(c0, 'vx', f1, ['x','y'])
-c0 = C.initVars(c0, 'vy', f2, ['x','y'])
+c0 = C.initVars(c0, 'vx', f1, ['x','y'], isVectorized=True)
+c0 = C.initVars(c0, 'vy', f2, ['x','y'], isVectorized=True)
 c = C.extractVars(c0, ['vx','vy'])
 res = P.integMomentNorm([m], [c], [], (xc,yc,zc))
 out = C.array('resvx,resvy', 3, 1, 1)
@@ -31,8 +32,8 @@ test.testA([out], 1)
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,1))
 c = C.array('vx,vy', ni-1, nj-1, 1)
 c0 = C.addVars([m2,c])
-c0 = C.initVars(c0,'vx', f1, ['x','y'])
-c0 = C.initVars(c0,'vy', f2, ['x','y'])
+c0 = C.initVars(c0,'vx', f1, ['x','y'], isVectorized=True)
+c0 = C.initVars(c0,'vy', f2, ['x','y'], isVectorized=True)
 c = C.extractVars(c0, ['vx','vy'])
 res = P.integMomentNorm([m], [c], [], (xc,yc,zc))
 out = C.array('resvx,resvy', 3, 1, 1)

@@ -3,21 +3,28 @@ import Converter.PyTree as C
 import Connector.PyTree as X
 import Generator.PyTree as G
 import KCore.test as test
+
 # DONOR NON STRUCTURE TETRA
 # Create a function
-def F(x,y,z):
-    deg = 1
-    if deg == 0: return 10.
-    elif deg == 1: return x + 2.*y + 3.*z
-    elif deg == 2: return x*x + 2.*y*y + 3*z
-    elif deg == 3: return x*x*y + 2.*y*y*y + 3*z
-    elif deg == 4: return x*x*x*x + 2.*y*y*y*y +z*z
-    else: return 2*x*x*x*x*x + 2.*y*y*z + z*z
+def F(x, y, z):
+    deg = 1  # hardcoded
+    if deg == 0:
+        return np.full_like(x, 10., dtype=float)
+    elif deg == 1:
+        return x + 2.*y + 3.*z
+    elif deg == 2:
+        return x*x + 2.*y*y + 3.*z
+    elif deg == 3:
+        return x*x*y + 2.*y*y*y + 3.*z
+    elif deg == 4:
+        return x*x*x*x + 2.*y*y*y*y + z*z
+    else:
+        return 2.*x*x*x*x*x + 2.*y*y*z + z*z
 
 # Donor mesh
 ni = 11; nj = 11; nk = 11
 m = G.cartTetra((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-C._initVars(m, 'F', F, ['CoordinateX','CoordinateY','CoordinateZ'])
+C._initVars(m, 'F', F, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
 C._initVars(m,'centers:G',1.)
 
 # Receiver mesh

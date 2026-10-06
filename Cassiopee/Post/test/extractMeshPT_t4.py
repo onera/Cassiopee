@@ -17,7 +17,7 @@ def FI(x,y,z):
 
 # Creation de la surface portant la solution
 a = D.surface(FS, 50, isVectorized=True)
-C._initVars(a, 'sol', FI, ['CoordinateX','CoordinateY','CoordinateZ'])
+C._initVars(a, 'sol', FI, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
 
 # Creation de la surface d'extraction
 e = D.surface(FS, 100, isVectorized=True)
@@ -26,13 +26,13 @@ test.testT(e, 1)
 
 # unstructured surface
 a = C.convertArray2Tetra(a);
-C._initVars(a, 'sol', FI, ['CoordinateX','CoordinateY','CoordinateZ'])
+C._initVars(a, 'sol', FI, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
 e = C.convertArray2Tetra(e)
 P._extractMesh([a], e, order=2, tol=1.e-3)
 test.testT(e, 2)
 
 # arbre
 t= C.newPyTree(['Base',2]); t[2][1][2] += [a]
-C._initVars(a, 'sol', FI, ['CoordinateX','CoordinateY','CoordinateZ'])
+C._initVars(a, 'sol', FI, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
 P._extractMesh(t, e, order=2, tol=1.e-3)
 test.testT(e, 3)

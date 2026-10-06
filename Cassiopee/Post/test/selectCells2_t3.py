@@ -5,16 +5,15 @@ import Post as P
 import KCore.test as test
 
 def F(x, y, z):
-    if (x+2*y+z > 20.): return True
-    else: return False
+    return x + 2*y + z > 20.
 
 # List
 a    = G.cart( (0,0,0), (1,1,1), (11,11,11) )
-taga = C.initVars(a, 'tag', F, ['x','y','z'])
+taga = C.initVars(a, 'tag', F, ['x','y','z'], isVectorized=True)
 taga = C.extractVars(taga,['tag'])
 
 b    = G.cart( (1,1,1), (1,1,1), (11,11,11) )
-tagb = C.initVars(b, 'tag', F, ['x','y','z'])
+tagb = C.initVars(b, 'tag', F, ['x','y','z'], isVectorized=True)
 tagb = C.extractVars(tagb,['tag'])
 
 c    = [a,b]

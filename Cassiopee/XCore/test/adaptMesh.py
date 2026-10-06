@@ -12,9 +12,10 @@ xc = 0.5
 yc = 0.5
 
 def Func(x, y, z):
-    x2 = (x-xc)**2
-    y2 = (y-yc)**2
-    return x2+y2 > a1 and x2+y2 < a2
+    x2 = (x - xc)**2
+    y2 = (y - yc)**2
+    r2 = x2 + y2
+    return ((r2 > a1) & (r2 < a2)).astype(float)
 
 if Cmpi.rank == 0:
     a = G.cartHexa((0,0,0),(0.1,0.1,0.1),(11,11,2))
@@ -40,7 +41,7 @@ for iter in range(itermax):
     if Cmpi.rank == 0:
         print("\niter:", iter, flush=True)
 
-    C._initVars(t, 'centers:F', Func, ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'])
+    C._initVars(t, 'centers:F', Func, ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'], isVectorized=True)
     f = I.getNodeFromName(t, 'F')[1]
     REF = f.astype(dtype=I.E_NpyInt)
 

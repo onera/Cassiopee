@@ -21,7 +21,7 @@ def F(x): return x
 pts = D.polyline([(0.,0.,0.), (4.,5.,0.), (6.,21.,0.), (18.,2.,0.)])
 a = D.bezier(pts, 20)
 C._addVars(a, 'p')
-a = C.initVars(a, 'p', F, ['x'])
+a = C.initVars(a, 'p', F, ['x'], isVectorized=True)
 
 # mesh (mode 0)
 CPlot.display([a], mode='mesh', posCam=(40,-2,15), posEye=(8,13,0),
@@ -43,7 +43,7 @@ test.testF(LOCAL+"/out.png", 3)
 pts = D.polyline([(0.,0.,0.), (4.,5.,0.), (6.,21.,0.), (18.,2.,0.)])
 a = D.bezier(pts, 20)
 C._addVars(a, 'p')
-a = C.initVars(a, 'p', F, ['x'])
+a = C.initVars(a, 'p', F, ['x'], isVectorized=True)
 a = C.convertArray2Hexa(a)
 
 # mesh (mode 0)
@@ -64,7 +64,7 @@ test.testF(LOCAL+"/out.png", 6)
 
 # - STRUCTURE 3D -
 a = G.cart((0,0,0),(1,1,1),(18,28,3))
-a = C.initVars(a, 'p', F, ['x'])
+a = C.initVars(a, 'p', F, ['x'], isVectorized=True)
 
 # mesh (mode 0)
 CPlot.display([a], mode=0, posCam=(40,-2,15), posEye=(8,13,0),
@@ -85,7 +85,7 @@ test.testF(LOCAL+"/out.png", 9)
 # - TRI -
 a = G.cart((0,0,0),(1,1,1),(18,28,1))
 C._addVars(a, 'p')
-a = C.initVars(a, 'p', F, ['x'])
+a = C.initVars(a, 'p', F, ['x'], isVectorized=True)
 a = C.convertArray2Tetra(a)
 
 # mesh (mode 0)
@@ -107,7 +107,7 @@ test.testF(LOCAL+"/out.png", 12)
 # - QUAD -
 a = G.cart((0,0,0),(1,1,1),(18,28,1))
 C._addVars(a, 'p')
-a = C.initVars(a, 'p', F, ['x'])
+a = C.initVars(a, 'p', F, ['x'], isVectorized=True)
 a = C.convertArray2Hexa(a)
 
 # mesh (mode 0)
@@ -129,7 +129,7 @@ test.testF(LOCAL+"/out.png", 15)
 # - TETRA -
 a = G.cart((0,0,0),(1,1,1),(18,28,3))
 C._addVars(a, 'p')
-a = C.initVars(a, 'p', F, ['x'])
+a = C.initVars(a, 'p', F, ['x'], isVectorized=True)
 a = C.convertArray2Tetra(a)
 
 # mesh (mode 0)
@@ -152,7 +152,7 @@ test.testF(LOCAL+"/out.png", 18)
 # - HEXA -
 a = G.cart((0,0,0),(1,1,1),(18,28,3))
 C._addVars(a, 'p')
-a = C.initVars(a, 'p', F, ['x'])
+a = C.initVars(a, 'p', F, ['x'], isVectorized=True)
 a = C.convertArray2Hexa(a)
 
 # mesh (mode 0)

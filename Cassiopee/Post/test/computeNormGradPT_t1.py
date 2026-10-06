@@ -11,9 +11,9 @@ def F(x,y): return 2*x+x*y
 #-----
 ni = 30
 m = G.cart((0,0,0), (10./(ni-1),1,1), (ni,1,1))
-m = C.initVars(m, 'Density', F, ['CoordinateX','CoordinateY'])
+m = C.initVars(m, 'Density', F, ['CoordinateX','CoordinateY'], isVectorized=True)
 m = P.computeGrad(m,'Density')
-m = C.initVars(m, 'centers:Pressure', F, ['centers:gradxDensity','centers:gradyDensity'])
+m = C.initVars(m, 'centers:Pressure', F, ['centers:gradxDensity','centers:gradyDensity'], isVectorized=True)
 m = P.computeNormGrad(m, 'centers:Pressure')
 test.testT(m,1)
 
@@ -22,9 +22,9 @@ test.testT(m,1)
 #-----
 ni = 30; nj = 40
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,1))
-m = C.initVars(m, 'Density', F, ['CoordinateX', 'CoordinateY'])
+m = C.initVars(m, 'Density', F, ['CoordinateX', 'CoordinateY'], isVectorized=True)
 m = P.computeGrad(m, 'Density')
-m = C.initVars(m, 'centers:Pressure', F, ['centers:gradxDensity','centers:gradyDensity'])
+m = C.initVars(m, 'centers:Pressure', F, ['centers:gradxDensity','centers:gradyDensity'], isVectorized=True)
 m = P.computeNormGrad(m, 'centers:Pressure')
 test.testT(m,2)
 
@@ -33,8 +33,8 @@ test.testT(m,2)
 #-----
 ni = 30; nj = 40
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,2))
-m = C.initVars(m, 'Density', F, ['CoordinateX','CoordinateY'])
+m = C.initVars(m, 'Density', F, ['CoordinateX','CoordinateY'], isVectorized=True)
 m = P.computeGrad(m, 'Density')
-m = C.initVars(m, 'centers:Pressure', F, ['centers:gradxDensity','centers:gradyDensity'])
+m = C.initVars(m, 'centers:Pressure', F, ['centers:gradxDensity','centers:gradyDensity'], isVectorized=True)
 m = P.computeNormGrad(m, 'centers:Pressure')
 test.testT(m,3)

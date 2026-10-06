@@ -16,8 +16,7 @@ WIDGETS = {}; VARS = []
 # Filters
 #==============================================================================
 def F1(v):
-    if v <= 0: return 1
-    else: return 0
+    return (v <= 0).astype(float)
 
 #==============================================================================
 # La variable var existe t'elle dans la premiere zone de l'arbre?

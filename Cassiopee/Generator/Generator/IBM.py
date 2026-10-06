@@ -1113,7 +1113,7 @@ def buildOctree(tb, dimPb=3, vmin=15, snears=0.01, snearFactor=1., dfars=10., df
             to = X_IBM.blankByIBCBodies(to, tb, 'centers', dimPb)
             indic = C.getField("centers:cellN",to)[0]
             octreeA = C.getFields(Internal.__GridCoordinates__, o, api=1)[0]
-            indic = Converter.initVars(indic, 'indicator', 0., api=1)
+            indic = Converter.initVars(indic, 'indicator', 0.)
             indic = Generator.generator.modifyIndicToExpandLayer(octreeA, indic, 0,0,1)
             indic = Converter.extractVars(indic, ["indicator"])
             octreeA = Generator.adaptOctree(octreeA, indic, balancing=2)
