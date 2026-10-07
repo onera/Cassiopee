@@ -33,7 +33,7 @@ libraryDirs += paths; libraries += libs
 
 # setup ======================================================================
 setup(
-    name="Distributor2",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "Distributor2",
     version="4.2",
     description="Distributor for arrays and pyTrees.",
     author="ONERA",

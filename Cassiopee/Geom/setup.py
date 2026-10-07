@@ -45,7 +45,7 @@ if adolc:
 
 # setup ======================================================================
 setup(
-    name="Geom",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "Geom",
     version="4.2",
     description="Geometry definition for *Cassiopee* modules.",
     author="ONERA",

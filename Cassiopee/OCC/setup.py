@@ -65,7 +65,7 @@ libraryDirs += paths; libraries += libs
 
 # setup ======================================================================
 setup(
-    name="OCC",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "OCC",
     version="4.2",
     description="OpenCascade python module.",
     author="ONERA",
