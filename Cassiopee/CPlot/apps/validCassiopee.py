@@ -2,7 +2,7 @@
 import os, sys, re, glob, signal, platform
 import socket
 import json
-import numpy as np
+import numpy
 import subprocess
 import threading
 import time
@@ -890,7 +890,7 @@ def buildTestList(sessionName=None, modules=[]):
             sessionLog = [testLog for testLog in sessionLog
                           if (isinstance(testLog, list) and len(testLog) == ncolumns)]
         # Create array and remove leading and trailing white spaces
-        arr = np.array([entry.strip() for testLog in sessionLog for entry in testLog],
+        arr = numpy.array([entry.strip() for testLog in sessionLog for entry in testLog],
                        dtype=object)
         arr = arr.reshape(-1, ncolumns)
 
@@ -907,7 +907,7 @@ def buildTestList(sessionName=None, modules=[]):
                 ncolumns = 7
                 sessionLog = [testLog for testLog in sessionLog
                               if (isinstance(testLog, list) and len(testLog) == ncolumns)]
-            arr2 = np.array([entry.strip() for testLog in sessionLog for entry in testLog],
+            arr2 = numpy.array([entry.strip() for testLog in sessionLog for entry in testLog],
                             dtype=object)
             arr2 = arr2.reshape(-1, ncolumns)
 
@@ -918,16 +918,16 @@ def buildTestList(sessionName=None, modules=[]):
                 key = tuple(t[:2])
                 if (key not in testDict) or ('...' in testDict[key]):
                     testDict[key] = t[2:]
-            arr = np.array([list(key) + list(data) for key, data in testDict.items()])
+            arr = numpy.array([list(key) + list(data) for key, data in testDict.items()])
     else:
         # Build an empty array
-        arr = np.array([], dtype=object)
+        arr = numpy.array([], dtype=object)
 
     for m in modules:
         tests = getTests(m)
         for t in tests:
             if sessionName is not None and arr.size:
-                testArr = arr[np.logical_and(arr[:,0] == m, arr[:,1] == t)]
+                testArr = arr[numpy.logical_and(arr[:,0] == m, arr[:,1] == t)]
                 if testArr.size:
                     # Args are CPU time, Coverage, Status, and Tag if present
                     if ncolumns == 8:

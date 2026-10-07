@@ -5,7 +5,7 @@ import Converter.Internal as Internal
 import Generator.PyTree as G
 import Connector.PyTree as X
 import Post.PyTree as P
-import numpy as N
+import numpy
 import Dist2Walls.PyTree as DTW
 import Transform.PyTree as T
 import Connector.OversetData as XOD
@@ -17,7 +17,7 @@ s = C.convertArray2Tetra(s); s = T.join(s); s = P.exteriorFaces(s)
 t = C.newPyTree(['Base', a])
 # Blanking
 bodies = [[s]]
-BM = N.array([[1]], Internal.E_NpyInt)
+BM = numpy.array([[1]], Internal.E_NpyInt)
 t = X.blankCells(t, bodies, BM, blankingType='center_in')
 X._setHoleInterpolatedPoints(t, depth=-2)
 # Dist2Walls

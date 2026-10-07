@@ -9,8 +9,8 @@ insertPos = [3, 10, 22, 57, 91]
 norphans = len(insertPos)
 
 def _addOrphans(t, api):
-    import numpy as np
-    np.random.seed(42)
+    import numpy
+    numpy.random.seed(42)
 
     gc = Internal.getNodeFromType2(t, 'GridCoordinates_t')
     n_x = Internal.getNodeFromName1(gc, 'CoordinateX')
@@ -22,41 +22,41 @@ def _addOrphans(t, api):
 
     npts = x.shape[0]
     npts2 = npts + norphans
-    indir = np.full(npts2, -1, dtype=Internal.E_NpyInt)
-    mask = np.ones(npts2, dtype=bool)
+    indir = numpy.full(npts2, -1, dtype=Internal.E_NpyInt)
+    mask = numpy.ones(npts2, dtype=bool)
     mask[insertPos] = False
-    indir[mask] = np.arange(npts)
+    indir[mask] = numpy.arange(npts)
     origPts = indir >= 0
 
     # New coords: copy existing coords and add new ones
-    x2 = np.empty(npts2, dtype=x.dtype)
-    y2 = np.empty(npts2, dtype=y.dtype)
-    z2 = np.empty(npts2, dtype=z.dtype)
+    x2 = numpy.empty(npts2, dtype=x.dtype)
+    y2 = numpy.empty(npts2, dtype=y.dtype)
+    z2 = numpy.empty(npts2, dtype=z.dtype)
 
     x2[mask] = x[indir[mask]]
     y2[mask] = y[indir[mask]]
     z2[mask] = z[indir[mask]]
 
-    x2[~mask] = np.random.uniform(10., 11., norphans)
-    y2[~mask] = np.random.uniform(10., 11., norphans)
-    z2[~mask] = np.random.uniform(10., 11., norphans)
+    x2[~mask] = numpy.random.uniform(10., 11., norphans)
+    y2[~mask] = numpy.random.uniform(10., 11., norphans)
+    z2[~mask] = numpy.random.uniform(10., 11., norphans)
 
     Internal.setValue(n_x, x2)
     Internal.setValue(n_y, y2)
     Internal.setValue(n_z, z2)
 
     if api != 3:
-        mask = np.zeros(ec.size, dtype=bool)
+        mask = numpy.zeros(ec.size, dtype=bool)
         i = 0
         while i < ec.size:
             nvert = ec[i]
             mask[i+1:i+1+nvert] = True
             i += nvert + 1
     else:
-        mask = np.ones(ec.size, dtype=bool)
+        mask = numpy.ones(ec.size, dtype=bool)
 
-    invIndir = np.empty(npts, dtype=Internal.E_NpyInt)
-    invIndir[indir[origPts]] = np.flatnonzero(origPts)
+    invIndir = numpy.empty(npts, dtype=Internal.E_NpyInt)
+    invIndir[indir[origPts]] = numpy.flatnonzero(origPts)
     ec[mask] = invIndir[ec[mask] - 1] + 1
 
     t[1][0][0] += norphans

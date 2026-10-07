@@ -3,7 +3,7 @@
 # --- Import Section
 # Import python
 import copy
-import numpy as np
+import numpy
 import os
 import re
 import subprocess
@@ -187,12 +187,12 @@ for i, (stylename,styleclass) in enumerate(sorted(styles.items())):
     box_stylelist.append(stylename)
 shape_typelist = ['Circle','Rectangle','Ellipse','Arrow','Bracket','FancyBbox','Line']
 
-t = np.arange(0., 5., 0.002)
+t = numpy.arange(0., 5., 0.002)
 
 data = {
     'Iteration':t,
-    'Residual':np.sin(t),
-    'Cf':np.sin(t/2),
+    'Residual':numpy.sin(t),
+    'Cf':numpy.sin(t/2),
     'Debit':t*t
 }
 
@@ -1845,7 +1845,7 @@ class editTextWindow(TK.Toplevel):
 #         for ind in range(len(self.subGraph.curves)):
 #             c = self.subGraph.curves[ind]
 #             B = TTK.Button(lblframe,text=c.line_width,command=lambda n=(ind,self.frame.line_widthItem): self.bt_click(n))
-#             B.list = (np.arange(0.5,100,0.5)).tolist()
+#             B.list = (numpy.arange(0.5,100,0.5)).tolist()
 #             B.val = c.line_width
 #             B.var = 'line_width'
 #             B.ind = ind
@@ -1856,7 +1856,7 @@ class editTextWindow(TK.Toplevel):
 #         # Curve to add
 #         ind = len(self.subGraph.curves)
 #         B = TTK.Button(lblframe,text=default_values['Curve']['line_width'],command=lambda n=(ind,self.frame.line_widthItem): self.bt_click(n))
-#         B.list = (np.arange(0.5,100,0.5)).tolist()
+#         B.list = (numpy.arange(0.5,100,0.5)).tolist()
 #         B.val = default_values['Curve']['line_width']
 #         B.var = 'line_width'
 #         B.ind = ind
@@ -1982,7 +1982,7 @@ class editTextWindow(TK.Toplevel):
 #         for ind in range(len(self.subGraph.curves)):
 #             c = self.subGraph.curves[ind]
 #             B = TTK.Button(lblframe,text=c.marker_size,command=lambda n=(ind,self.frame.marker_sizeItem): self.bt_click(n))
-#             B.list = (np.arange(0.5,100,0.5)).tolist()
+#             B.list = (numpy.arange(0.5,100,0.5)).tolist()
 #             B.val = c.marker_size
 #             B.var = 'marker_size'
 #             B.ind = ind
@@ -1993,7 +1993,7 @@ class editTextWindow(TK.Toplevel):
 #         # Curve to add
 #         ind = len(self.subGraph.curves)
 #         B = TTK.Button(lblframe,text=default_values['Curve']['marker_size'],command=lambda n=(ind,self.frame.marker_sizeItem): self.bt_click(n))
-#         B.list = (np.arange(0.5,100,0.5)).tolist()
+#         B.list = (numpy.arange(0.5,100,0.5)).tolist()
 #         B.val = default_values['Curve']['marker_size']
 #         B.var = 'marker_size'
 #         B.ind = ind
@@ -2087,7 +2087,7 @@ class editTextWindow(TK.Toplevel):
 #         for ind in range(len(self.subGraph.curves)):
 #             c = self.subGraph.curves[ind]
 #             B = TTK.Button(lblframe,text=c.marker_edge_width,command=lambda n=(ind,self.frame.marker_edge_widthItem): self.bt_click(n))
-#             B.list = (np.arange(0.5,100,0.5)).tolist()
+#             B.list = (numpy.arange(0.5,100,0.5)).tolist()
 #             B.val = c.marker_edge_width
 #             B.var = 'marker_edge_width'
 #             B.ind = ind
@@ -2098,7 +2098,7 @@ class editTextWindow(TK.Toplevel):
 #         # Curve to add
 #         ind = len(self.subGraph.curves)
 #         B = TTK.Button(lblframe,text=default_values['Curve']['marker_edge_width'],command=lambda n=(ind,self.frame.marker_edge_widthItem): self.bt_click(n))
-#         B.list = (np.arange(0.5,100,0.5)).tolist()
+#         B.list = (numpy.arange(0.5,100,0.5)).tolist()
 #         B.val = default_values['Curve']['marker_edge_width']
 #         B.var = 'marker_edge_width'
 #         B.ind = ind
@@ -9693,9 +9693,9 @@ class GraphTK(TK.Toplevel):
 
         if scale == 'linear': old_min, old_max = min_, max_
         elif scale == 'log':
-            old_min = np.log10(min_ if min_ > 0. else np.nextafter(0, 1))
-            center = np.log10(center if center > 0. else np.nextafter(0, 1))
-            old_max = np.log10(max_) if max_ > 0. else 0.
+            old_min = numpy.log10(min_ if min_ > 0. else numpy.nextafter(0, 1))
+            center = numpy.log10(center if center > 0. else numpy.nextafter(0, 1))
+            old_max = numpy.log10(max_) if max_ > 0. else 0.
         else: return begin, end
 
         offset = (center - old_min) / (old_max - old_min)
@@ -10723,7 +10723,7 @@ class editCurvesWindow(TK.Toplevel):
         for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TTK.Button(lblframe,text=c.line_width,command=lambda n=(ind,self.frame.line_widthItem): self.bt_click(n))
-            B.list = (np.arange(0.5,100,0.5)).tolist()
+            B.list = (numpy.arange(0.5,100,0.5)).tolist()
             B.val = c.line_width
             B.var = 'line_width'
             B.ind = ind
@@ -10734,7 +10734,7 @@ class editCurvesWindow(TK.Toplevel):
         # Curve to add
         ind = len(self.subGraph.curves)
         B = TTK.Button(lblframe,text=default_values['Curve']['line_width'],command=lambda n=(ind,self.frame.line_widthItem): self.bt_click(n))
-        B.list = (np.arange(0.5,100,0.5)).tolist()
+        B.list = (numpy.arange(0.5,100,0.5)).tolist()
         B.val = default_values['Curve']['line_width']
         B.var = 'line_width'
         B.ind = ind
@@ -10860,7 +10860,7 @@ class editCurvesWindow(TK.Toplevel):
         for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TTK.Button(lblframe,text=c.marker_size,command=lambda n=(ind,self.frame.marker_sizeItem): self.bt_click(n))
-            B.list = (np.arange(0.5,100,0.5)).tolist()
+            B.list = (numpy.arange(0.5,100,0.5)).tolist()
             B.val = c.marker_size
             B.var = 'marker_size'
             B.ind = ind
@@ -10871,7 +10871,7 @@ class editCurvesWindow(TK.Toplevel):
         # Curve to add
         ind = len(self.subGraph.curves)
         B = TTK.Button(lblframe,text=default_values['Curve']['marker_size'],command=lambda n=(ind,self.frame.marker_sizeItem): self.bt_click(n))
-        B.list = (np.arange(0.5,100,0.5)).tolist()
+        B.list = (numpy.arange(0.5,100,0.5)).tolist()
         B.val = default_values['Curve']['marker_size']
         B.var = 'marker_size'
         B.ind = ind
@@ -10965,7 +10965,7 @@ class editCurvesWindow(TK.Toplevel):
         for ind in range(len(self.subGraph.curves)):
             c = self.subGraph.curves[ind]
             B = TTK.Button(lblframe,text=c.marker_edge_width,command=lambda n=(ind,self.frame.marker_edge_widthItem): self.bt_click(n))
-            B.list = (np.arange(0.5,100,0.5)).tolist()
+            B.list = (numpy.arange(0.5,100,0.5)).tolist()
             B.val = c.marker_edge_width
             B.var = 'marker_edge_width'
             B.ind = ind
@@ -10976,7 +10976,7 @@ class editCurvesWindow(TK.Toplevel):
         # Curve to add
         ind = len(self.subGraph.curves)
         B = TTK.Button(lblframe,text=default_values['Curve']['marker_edge_width'],command=lambda n=(ind,self.frame.marker_edge_widthItem): self.bt_click(n))
-        B.list = (np.arange(0.5,100,0.5)).tolist()
+        B.list = (numpy.arange(0.5,100,0.5)).tolist()
         B.val = default_values['Curve']['marker_edge_width']
         B.var = 'marker_edge_width'
         B.ind = ind
@@ -11559,7 +11559,7 @@ class editCurvesWindow(TK.Toplevel):
         ### Add new curve line
         c = self.subGraph.curves[ind]
         self.frame.line_widthItem[ind].config(text=c.line_width)
-        self.frame.line_widthItem[ind].list = (np.arange(0.5,100,0.5)).tolist()
+        self.frame.line_widthItem[ind].list = (numpy.arange(0.5,100,0.5)).tolist()
         self.frame.line_widthItem[ind].val = c.line_width
         self.frame.line_widthItem[ind].var = 'line_width'
         self.frame.line_widthItem[ind].ind = ind
@@ -11569,7 +11569,7 @@ class editCurvesWindow(TK.Toplevel):
         # Curve to add
         ind = len(self.subGraph.curves)
         B = TTK.Button(lblframe,text=default_values['Curve']['line_width'],command=lambda n=(ind,self.frame.line_widthItem): self.bt_click(n))
-        B.list = (np.arange(0.5,100,0.5)).tolist()
+        B.list = (numpy.arange(0.5,100,0.5)).tolist()
         B.val = default_values['Curve']['line_width']
         B.var = 'line_width'
         B.ind = ind
@@ -11638,7 +11638,7 @@ class editCurvesWindow(TK.Toplevel):
         ### Add new curve line
         c = self.subGraph.curves[ind]
         self.frame.marker_sizeItem[ind].config(text=c.marker_size)
-        self.frame.marker_sizeItem[ind].list = (np.arange(0.5,100,0.5)).tolist()
+        self.frame.marker_sizeItem[ind].list = (numpy.arange(0.5,100,0.5)).tolist()
         self.frame.marker_sizeItem[ind].val = c.marker_size
         self.frame.marker_sizeItem[ind].var = 'marker_size'
         self.frame.marker_sizeItem[ind].ind = ind
@@ -11648,7 +11648,7 @@ class editCurvesWindow(TK.Toplevel):
         # Curve to add
         ind = len(self.subGraph.curves)
         B = TTK.Button(lblframe,text=default_values['Curve']['marker_size'],command=lambda n=(ind,self.frame.marker_sizeItem): self.bt_click(n))
-        B.list = (np.arange(0.5,100,0.5)).tolist()
+        B.list = (numpy.arange(0.5,100,0.5)).tolist()
         B.val = default_values['Curve']['marker_size']
         B.var = 'marker_size'
         B.ind = ind
@@ -11718,7 +11718,7 @@ class editCurvesWindow(TK.Toplevel):
         ### Add new curve line
         c = self.subGraph.curves[ind]
         self.frame.marker_edge_widthItem[ind].config(text=c.marker_edge_width)
-        self.frame.marker_edge_widthItem[ind].list = (np.arange(0.5,100,0.5)).tolist()
+        self.frame.marker_edge_widthItem[ind].list = (numpy.arange(0.5,100,0.5)).tolist()
         self.frame.marker_edge_widthItem[ind].val = c.marker_edge_width
         self.frame.marker_edge_widthItem[ind].var = 'marker_edge_width'
         self.frame.marker_edge_widthItem[ind].ind = ind
@@ -11728,7 +11728,7 @@ class editCurvesWindow(TK.Toplevel):
         # Curve to add
         ind = len(self.subGraph.curves)
         B = TTK.Button(lblframe,text=default_values['Curve']['marker_edge_width'],command=lambda n=(ind,self.frame.marker_edge_widthItem): self.bt_click(n))
-        B.list = (np.arange(0.5,100,0.5)).tolist()
+        B.list = (numpy.arange(0.5,100,0.5)).tolist()
         B.val = default_values['Curve']['marker_edge_width']
         B.var = 'marker_edge_width'
         B.ind = ind
@@ -14209,12 +14209,12 @@ class MatplotlibFigure():
             #ymax = ymin+ntickMy*dy
             #stepx = (xmax-xmin)/(float(ntickMx))
             #dstepx = stepx*1.e-3
-            #majorx = np.arange(xmin,xmax+dstepx,stepx)
-            #minorx = np.arange(xmin,xmax+dstepx,stepx/(float(ntickmx)))
+            #majorx = numpy.arange(xmin,xmax+dstepx,stepx)
+            #minorx = numpy.arange(xmin,xmax+dstepx,stepx/(float(ntickmx)))
             #stepy = (ymax-ymin)/(float(ntickMy))
             #dstepy = stepy*1.e-3
-            #majory = np.arange(ymin,ymax+dstepy,stepy)
-            #minory = np.arange(ymin,ymax+dstepy,stepy/(float(ntickmy)))
+            #majory = numpy.arange(ymin,ymax+dstepy,stepy)
+            #minory = numpy.arange(ymin,ymax+dstepy,stepy/(float(ntickmy)))
             # locs = self.subGraph[iCurSubGraph].axis[iCurrentAxis].xaxis.get_ticklocs()
             #self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_xticks(majorx)
             #self.subGraph[iCurSubGraph].axis[iCurrentAxis].set_xticks(minorx, minor=True)
@@ -14491,7 +14491,7 @@ class MatplotlibFigure():
                                                 hatch=hatch,linestyle=s.linestyle,alpha=s.alpha)
                     self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_patch(shape)
                 elif s.shape_type == 'Line':
-                    x,y = np.array([[p[0] for p in points],[p[1] for p in points]])
+                    x,y = numpy.array([[p[0] for p in points],[p[1] for p in points]])
                     line = mlines.Line2D(x,y,linewidth=s.linewidth,linestyle=s.linestyle,color=s.linecolor,alpha=s.alpha)
                     self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_line(line)
                 elif s.shape_type == 'Bracket':

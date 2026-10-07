@@ -11,7 +11,7 @@ import Generator.PyTree as G
 import Distributor2.PyTree as D2
 import Converter.Distributed as D
 
-import numpy as numpy
+import numpy
 import KCore.test as test
 
 LOCAL = test.getLocal()

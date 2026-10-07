@@ -2,7 +2,7 @@
 import Generator as G
 import Converter as C
 import Converter.expression as expr
-import numpy as np
+import numpy
 from math import *
 
 def test_function(formule, func) :
@@ -31,11 +31,11 @@ print("{} avec x = {}, y = {} et z = {} => {}".format(a, xs, ys, zs,
                                                       a(x=xs, y=ys, z=zs)))
 
 coords = C.array("x,y,z", 3, 1, 1)
-coords[1][:, :] = np.array([[1., 2., 3.], [2., 3., 4.], [-1., -3., -5.]])
+coords[1][:, :] = numpy.array([[1., 2., 3.], [2., 3., 4.], [-1., -3., -5.]])
 
-xv = np.array([1.0, 2.0, 3.0])
-yv = np.array([2., 3., 4.])
-zv = np.array([-1., -3., -5.])
+xv = numpy.array([1.0, 2.0, 3.0])
+yv = numpy.array([2., 3., 4.])
+zv = numpy.array([-1., -3., -5.])
 print("{} avec x = {}, y = {} et z = {} => {}".format(a, xv, yv, zv,
                                                       a(x=xv, y=yv, z=zv)))
 
@@ -52,7 +52,7 @@ print(res)
 
 a = expr.ast("{norm} = {x}**2+{y}**2+{z}**2")
 coords = C.array("x,y,z,norm", 3, 1, 1)
-coords[1][:, :] = np.array([[1., 2., 3.], [2., 3., 4.], [-1., -3., -5.],
+coords[1][:, :] = numpy.array([[1., 2., 3.], [2., 3., 4.], [-1., -3., -5.],
                             [0., 0., 0.]])
 a.run(coords)
 print(coords)
@@ -92,7 +92,7 @@ C._addVars(crds, 'norm')
 da = expr.derivate(a)
 C._addVars(crds, 'd_norm')
 shp = crds[1][0].shape
-da.run(crds, d_x=np.ones(shp), d_y=np.zeros(shp), d_z=np.zeros(shp))
+da.run(crds, d_x=numpy.ones(shp), d_y=numpy.zeros(shp), d_z=numpy.zeros(shp))
 print(da)
 print(crds)
 

@@ -880,14 +880,14 @@ namespace {
             >>> import Generator as G
             >>> import Converter as C
             >>> import Converter.expression as expr
-            >>> import numpy as np
+            >>> import numpy
             >>> crds = G.cart((0, 0, 0), (1, 1, 1), (3, 3, 1), api=1)
             >>> C._addVars(crds, 'norm')
             >>> C._addVars(crds, 'd_norm')
             >>> a = expr.ast("{norm} = {x}**2+{y}**2+{z}**2")
             >>> da = expr.derivate(a)
             >>> shp = crds[1][0].shape
-            >>> da.run(crds, d_x=np.ones(shp), d_y=np.zeros(shp), d_z=np.zeros(shp))
+            >>> da.run(crds, d_x=numpy.ones(shp), d_y=numpy.zeros(shp), d_z=numpy.zeros(shp))
             >>> print da
             (d_norm=(((2.000000*d_x)*x)+(((2.000000*d_y)*y)+((2.000000*d_z)*z))))
             >>> print crds

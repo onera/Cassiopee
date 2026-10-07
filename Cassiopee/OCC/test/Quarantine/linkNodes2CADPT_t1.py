@@ -4,7 +4,7 @@ import OCC.occ as occ
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import Intersector.PyTree as XOR
-import numpy as np
+import numpy
 import sys
 import KCore.test as test
 
@@ -47,7 +47,7 @@ t = C.initVars(t, 'hz', sys.float_info.max)
 t = C.initVars(t, 'ncadid', -1)
 
 # Initialisation fcadid
-fcadid = np.empty((XOR.nb_faces(t)), dtype=np.int32)
+fcadid = numpy.empty((XOR.nb_faces(t)), dtype=numpy.int32)
 fcadid[:] = -1
 
 XOR._setZonesAndJoinsUId(t)
@@ -88,7 +88,7 @@ occ.updateFcadidFromNcadid( c, wall_face_ids, ncadid, fcadid)
 # adaptCells
 #-------------------------------------------
 n = C.getNPts(t)
-nv = np.empty((n,), dtype=np.int32)
+nv = numpy.empty((n,), dtype=numpy.int32)
 nv[:] = 1
 
 t = XOR.adaptCells(t,nv, sensor_type=2,hmesh=hmsh)

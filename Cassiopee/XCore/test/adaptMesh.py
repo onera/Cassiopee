@@ -4,7 +4,7 @@ import Converter.PyTree as C
 import XCore.PyTree as X
 import Converter.Mpi as Cmpi
 import Converter.Internal as I
-import numpy as np
+import numpy
 
 a1 = 0.37**2
 a2 = 0.45**2
@@ -30,7 +30,7 @@ t, res = X.loadAndSplitNGon("case.cgns")
 gcells = res[6]
 gfaces = res[7]
 comm = res[1]
-normal2D = np.array([0.0,0.0,1.0])
+normal2D = numpy.array([0.0,0.0,1.0])
 normal2D = None
 
 AM = X.AdaptMesh_Init(t, normal2D, comm, gcells, gfaces)
