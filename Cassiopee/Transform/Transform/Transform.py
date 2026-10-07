@@ -1734,22 +1734,22 @@ def breakElements(a):
             return transform.breakElements(a)
         else: return [a]
 
-def dual(array, extraPoints=1):
+def dual(a, extraPoints=1):
     """Returns the dual mesh of a conformal mesh.
     Usage: dual(array, extraPoints)"""
-    try:
-        import Generator as G
-        a = Converter.convertArray2NGon(array)
-        a = G.close(a)
-    except: # NODE necessarily
-        return array
-
     if isinstance(a[0], list):
         out = []
         for i in a:
-            out.append(transform.dualNGon(i, extraPoints))
+            out.append(dual__(i, extraPoints))
         return out
-    else: return transform.dualNGon(a, extraPoints)
+    return dual__(a, extraPoints)
+
+def dual__(a, extraPoints=1):
+    if len(a) == 4 and a[3] == 'NODE':
+        return a
+    if (len(a) == 4 and a[3] != 'NGON') or len(a) == 5:
+        a = Converter.convertArray2NGon(a)
+    return transform.dualNGon(a, extraPoints)
 
 def splitSharpEdges(array, alphaRef=30.):
     """Split array into smooth zones (angles between elements are less than
