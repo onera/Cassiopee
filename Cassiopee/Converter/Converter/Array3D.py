@@ -1,7 +1,7 @@
 # Conversion from/to Array / 3D Array
 # Written by P. Ginibre
 
-import numpy as N
+import numpy
 
 # Convert arrays in 3D arrays
 def convertArrays2Arrays3D(CArrays, VERBOSE=None):
@@ -18,7 +18,7 @@ def convertArrays2Arrays3D(CArrays, VERBOSE=None):
         var = CArrays[b][0].split(',')
         if VERBOSE:
             print(CArrays[b][1].shape)
-        Var = [N.swapaxes(CArrays[b][1][i,:].reshape((dimK,dimJ,dimI)),0,2) for i in range(CArrays[b][1].shape[0])]
+        Var = [numpy.swapaxes(CArrays[b][1][i,:].reshape((dimK,dimJ,dimI)),0,2) for i in range(CArrays[b][1].shape[0])]
         Blocks.append([var,Var])
     return Blocks
 
@@ -40,13 +40,13 @@ def convertArray3D2Array(var, Var):
         if Var[n].shape != Shape0:
             raise Exception("Dimensions Differentes des variables non autorise !")
 
-    V = N.zeros((len(var),Var[0].size))
+    V = numpy.zeros((len(var),Var[0].size))
     for n in range(len(var)):
         #print Var[n]
         if len(Shape0) == 2:
-            VV = N.ravel(N.swapaxes(Var[n].reshape(Var[n].shape[0],Var[n].shape[1],1),2,0))
+            VV = numpy.ravel(numpy.swapaxes(Var[n].reshape(Var[n].shape[0],Var[n].shape[1],1),2,0))
         elif len(Shape0) == 3:
-            VV = N.ravel(N.swapaxes(Var[n],0,2))
+            VV = numpy.ravel(numpy.swapaxes(Var[n],0,2))
         else:
             VV = Var[n]
         #print VV

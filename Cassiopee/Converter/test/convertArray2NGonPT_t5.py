@@ -3,10 +3,10 @@ import Converter.PyTree as C
 import Converter.Internal as Internal
 import Generator.PyTree as G
 import KCore.test as test
-import numpy as np
+import numpy
 
-np.random.seed(42)
-randVals = np.random.rand(100000)
+numpy.random.seed(42)
+randVals = numpy.random.rand(100000)
 
 # Simple box, Elements, with BCs
 N = 10

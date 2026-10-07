@@ -10,7 +10,7 @@ import Geom.PyTree as D
 import Geom.IBM as IBM
 import Connector.PyTree as X
 import Converter.Internal as Internal
-import numpy as np
+import numpy
 import KCore.test as test
 
 LOCAL = test.getLocal()
@@ -105,7 +105,7 @@ t_curvi = X.connectMatchPeriodic(t_curvi, translation=[0.,0.,0.04])
 #stretch maillage plaque direction normal paroi
 for z in zones:
     coordy =  Internal.getNodeFromName(z,'CoordinateY')[1]
-    sh = np.shape(coordy)
+    sh = numpy.shape(coordy)
     for j in range(1,sh[1]):
         coordy[:,j,:]=coordy[:,j-1,:]+0.002*1.02**j
 

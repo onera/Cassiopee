@@ -2,13 +2,13 @@
 import Geom.PyTree as D
 import Converter.PyTree as C
 import KCore.test as test
-import numpy as np
+import numpy
 
 na, nb = 100, 50
-xa = np.arange(na)/na
+xa = numpy.arange(na)/na
 ya = xa
-za = np.zeros_like(xa)
-xb = -np.arange(1,nb+1)/na
+za = numpy.zeros_like(xa)
+xb = -numpy.arange(1,nb+1)/na
 yb = xb
 zb = xb
 

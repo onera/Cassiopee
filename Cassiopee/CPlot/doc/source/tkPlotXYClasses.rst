@@ -157,17 +157,17 @@ Several methods are available to set, update or even remove data :
 
 .. code-block:: python
 
-    import numpy as np
+    import numpy
     import tkPlotXY as tkP
     # Create a graphEditor
     graphDesktop = tkP.openGraphEditor(None)
     # Generate data
-    t = np.arange(0., 5., 0.002)
+    t = numpy.arange(0., 5., 0.002)
     dataFromDict = {'Zone1':
                             {
                                 'Iteration':t,
-                                'Residual':np.sin(t),
-                                'Cf':np.sin(t/2),
+                                'Residual':numpy.sin(t),
+                                'Cf':numpy.sin(t/2),
                                 'Debit':t*t
                             }
                     }

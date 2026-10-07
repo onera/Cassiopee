@@ -3,7 +3,7 @@
 # Extrait certaines variables d'un fichier
 # Ecrit un nouveau fichier tecplot
 import Converter as C
-import numpy as N
+import numpy
 
 # Read a file into numpy arrays
 arrays = C.convertFile2Arrays('in.plt')
@@ -15,7 +15,7 @@ for b in arrays:
     ni = b[2]
     nj = b[3]
     nk = b[4]
-    t2 = N.zeros( (6,ni*nj*nk) )
+    t2 = numpy.zeros( (6,ni*nj*nk) )
     l = (0, 1, 2, 3, 4, 8)
     c = 0
     for i in l:

@@ -42,7 +42,7 @@ import Converter.Internal as Internal
 import Dist2Walls.PyTree as D2W
 
 import matplotlib.pyplot as plt
-import numpy as np
+import numpy
 
 factorThreshold = dict(
     minF=0.1,
@@ -87,8 +87,8 @@ def updateMeshThreshold (BAR1, hf, dz):
     x, y, _ = getCoords(C.convertBAR2Struct(BAR1))
 
     # Calcul des espacements entre chaque point consécutif
-    dl = np.sqrt(np.diff(x)**2 + np.diff(y)**2)
-    mindl = np.min(dl)
+    dl = numpy.sqrt(numpy.diff(x)**2 + numpy.diff(y)**2)
+    mindl = numpy.min(dl)
     # print (f'mindl = {mindl}')
 
     vminBL = hf * mindl * secu
@@ -98,11 +98,11 @@ def updateMeshThreshold (BAR1, hf, dz):
     oldT3 = DEFAULT_MESH_QUALITY['minVT3']
 
     if vminBL > 0:
-        vminBL = 10 ** np.floor(np.log10(vminBL))
+        vminBL = 10 ** numpy.floor(numpy.log10(vminBL))
         DEFAULT_MESH_QUALITY['minVBL'] = vminBL
 
     if vminT3 > 0:
-        vminT3 = 10 ** np.floor(np.log10(vminT3))
+        vminT3 = 10 ** numpy.floor(numpy.log10(vminT3))
         DEFAULT_MESH_QUALITY['minVT3'] = vminT3
 
     print (f"new vmin= {DEFAULT_MESH_QUALITY['minVBL']} (vs old {oldBL}) et vminT3 = {DEFAULT_MESH_QUALITY['minVT3']} (vs old {oldT3})")
@@ -163,7 +163,7 @@ def mesherBL(smoothed1D, ht, hf, extruder):
         T._reorder(profile, (-1, 2, 3))
 
     nLayersRatio = 1.15
-    nLayers = int(np.log(ht / hf) / np.log(nLayersRatio)) + 1
+    nLayers = int(numpy.log(ht / hf) / numpy.log(nLayersRatio)) + 1
     nLayers = max(nLayers, 10)
     nLayers = min(nLayers, 100)
 
@@ -318,7 +318,7 @@ def normaliseDensity(profile, chord, targetDensity, factor=None, te_protect_frac
         x, y, _ = getCoords(p)
         te_x_threshold = chord * (1.0 - te_protect_frac)
 
-        te_indices = np.where(x >= te_x_threshold)[0]
+        te_indices = numpy.where(x >= te_x_threshold)[0]
         print(f"    → {len(te_indices)} points protégés au TE (x >= {te_x_threshold:.4f})")
 
         # Coarsening global via oneovern
@@ -332,7 +332,7 @@ def normaliseDensity(profile, chord, targetDensity, factor=None, te_protect_frac
 
         # Réinjecter les points TE supprimés si nécessaire
         xc, yc, _ = getCoords(p_coarse)
-        te_x_coarse = np.where(xc >= te_x_threshold)[0]
+        te_x_coarse = numpy.where(xc >= te_x_threshold)[0]
 
         if len(te_x_coarse) < 2:
             # Le TE a été trop coarsen — on reconstruit avec les points originaux
@@ -340,8 +340,8 @@ def normaliseDensity(profile, chord, targetDensity, factor=None, te_protect_frac
 
             # Points non-TE du profil coarsen
             non_te_mask = xc < te_x_threshold
-            x_new = np.concatenate([xc[non_te_mask], x[te_indices]])
-            y_new = np.concatenate([yc[non_te_mask], y[te_indices]])
+            x_new = numpy.concatenate([xc[non_te_mask], x[te_indices]])
+            y_new = numpy.concatenate([yc[non_te_mask], y[te_indices]])
 
             # Reconstruction de la zone
             npts_new = len(x_new)
@@ -352,7 +352,7 @@ def normaliseDensity(profile, chord, targetDensity, factor=None, te_protect_frac
             )
             Internal.getNodeFromName(rebuilt, 'CoordinateX')[1].flat[:] = x_new
             Internal.getNodeFromName(rebuilt, 'CoordinateY')[1].flat[:] = y_new
-            Internal.getNodeFromName(rebuilt, 'CoordinateZ')[1].flat[:] = np.zeros(npts_new)
+            Internal.getNodeFromName(rebuilt, 'CoordinateZ')[1].flat[:] = numpy.zeros(npts_new)
             profile = C.convertArray2Tetra(rebuilt)
         else:
             profile = C.convertArray2Tetra(p_coarse)
@@ -391,7 +391,7 @@ def getDensity(profile, chord, targetDensity, factor, te_protect_frac=0.02):
     x, y, _ = getCoords(p)
     te_x_threshold = chord * (1.0 - te_protect_frac)
 
-    te_indices = np.where(x >= te_x_threshold)[0]
+    te_indices = numpy.where(x >= te_x_threshold)[0]
     print(f"    → {len(te_indices)} points protégés au TE (x >= {te_x_threshold:.4f})")
 
     # Coarsening global via oneovern
@@ -400,7 +400,7 @@ def getDensity(profile, chord, targetDensity, factor, te_protect_frac=0.02):
 
     # Réinjecter les points TE supprimés si nécessaire
     xc, yc, _ = getCoords(p_coarse)
-    te_x_coarse = np.where(xc >= te_x_threshold)[0]
+    te_x_coarse = numpy.where(xc >= te_x_threshold)[0]
 
     if len(te_x_coarse) < 2:
         # Le TE a été trop coarsen — on reconstruit avec les points originaux
@@ -408,8 +408,8 @@ def getDensity(profile, chord, targetDensity, factor, te_protect_frac=0.02):
 
         # Points non-TE du profil coarsen
         non_te_mask = xc < te_x_threshold
-        x_new = np.concatenate([xc[non_te_mask], x[te_indices]])
-        y_new = np.concatenate([yc[non_te_mask], y[te_indices]])
+        x_new = numpy.concatenate([xc[non_te_mask], x[te_indices]])
+        y_new = numpy.concatenate([yc[non_te_mask], y[te_indices]])
 
         # Reconstruction de la zone
         npts_new = len(x_new)
@@ -420,7 +420,7 @@ def getDensity(profile, chord, targetDensity, factor, te_protect_frac=0.02):
         )
         Internal.getNodeFromName(rebuilt, 'CoordinateX')[1].flat[:] = x_new
         Internal.getNodeFromName(rebuilt, 'CoordinateY')[1].flat[:] = y_new
-        Internal.getNodeFromName(rebuilt, 'CoordinateZ')[1].flat[:] = np.zeros(npts_new)
+        Internal.getNodeFromName(rebuilt, 'CoordinateZ')[1].flat[:] = numpy.zeros(npts_new)
         profile = C.convertArray2Tetra(rebuilt)
     else:
         profile = C.convertArray2Tetra(p_coarse)
@@ -428,7 +428,7 @@ def getDensity(profile, chord, targetDensity, factor, te_protect_frac=0.02):
     N_final  = getNpts(profile)
     ds_mean  = chord / N_final
     # Loi empirique : entre 5° (très fin) et 20° (très grossier)
-    splitSensib = float(np.clip(10.0 * np.sqrt(ds_mean / chord) * np.sqrt(targetDensity), 5.0, 20.0))
+    splitSensib = float(numpy.clip(10.0 * numpy.sqrt(ds_mean / chord) * numpy.sqrt(targetDensity), 5.0, 20.0))
 
     print(f"    → N_final={N_final}  ds_mean={ds_mean:.4e}"
           f"  splitSensib adaptatif={splitSensib:.2f}°")
@@ -450,14 +450,14 @@ def repairShortSegments(curve, hf, factor=5.0):
         x, y, z = getCoords(p)
         x, y, z = x.copy(), y.copy(), z.copy()
 
-        ds = np.sqrt(np.diff(x)**2 + np.diff(y)**2)
+        ds = numpy.sqrt(numpy.diff(x)**2 + numpy.diff(y)**2)
         tol_phys = factor * hf
-        tol_stat = 1e-2 * float(np.mean(ds))
+        tol_stat = 1e-2 * float(numpy.mean(ds))
         tol = max(tol_phys, tol_stat)
         print(f"tol = {tol}")
 
         n_before = len(x)
-        keep = np.ones(len(x), dtype=bool)
+        keep = numpy.ones(len(x), dtype=bool)
 
         i = 0
         while i < len(x) - 1:
@@ -467,15 +467,15 @@ def repairShortSegments(curve, hf, factor=5.0):
                 if i + 1 < len(x) - 1:
                     keep[i + 1] = False
                     # Recalculer ds pour le segment suivant
-                    ds_new = np.sqrt((x[i] - x[i+2])**2 + (y[i] - y[i+2])**2)
+                    ds_new = numpy.sqrt((x[i] - x[i+2])**2 + (y[i] - y[i+2])**2)
                     # Mise à jour locale pour éviter de sauter un autre court segment
                     if i + 2 < len(ds) + 1:
-                        ds = np.concatenate([ds[:i],[ds_new],ds[i+2:]])
+                        ds = numpy.concatenate([ds[:i],[ds_new],ds[i+2:]])
                         x = x[keep[:len(x)]]  # pas encore — on filtre à la fin
                         y = y[keep[:len(y)]]
                         z = z[keep[:len(z)]]
-                        keep = np.ones(len(x), dtype=bool)
-                        ds = np.sqrt(np.diff(x)**2 + np.diff(y)**2)
+                        keep = numpy.ones(len(x), dtype=bool)
+                        ds = numpy.sqrt(numpy.diff(x)**2 + numpy.diff(y)**2)
                         # Repart du même i pour vérifier le nouveau segment
                         continue
             i += 1
@@ -536,26 +536,26 @@ def scoreZone(rug, alphaInternal, angleLeft, signLeft, angleRight, signRight,
 
     if sharpSign == -1:  # convexe
         # Score entre 0 et 1 selon la sévérité de l'angle
-        score_p = float(np.clip((protectAngle - sharpAngle) / protectAngle, 0, 1))
+        score_p = float(numpy.clip((protectAngle - sharpAngle) / protectAngle, 0, 1))
     elif sharpSign == +1:  # concave
-        score_v = float(np.clip((protectAngle - sharpAngle) / protectAngle, 0, 1))
+        score_v = float(numpy.clip((protectAngle - sharpAngle) / protectAngle, 0, 1))
 
     # --- courbure interne (alphaInternal = tableau des angles intérieurs) ---
     # Une zone pic a ses angles INTERNES aussi tournés vers l'extérieur
     if len(alphaInternal) > 2:
-        meanAlpha = float(np.mean(alphaInternal[1:-1]))
+        meanAlpha = float(numpy.mean(alphaInternal[1:-1]))
         # 180° = plat, <180° = courbé
-        curvatureScore = float(np.clip((180.0 - meanAlpha) / 60.0, 0, 1))
+        curvatureScore = float(numpy.clip((180.0 - meanAlpha) / 60.0, 0, 1))
         # Renforce le score pic ou valley selon le signe moyen
-        signs = np.sign(180.0 - alphaInternal[1:-1])
-        dominantSign = float(np.mean(signs))
+        signs = numpy.sign(180.0 - alphaInternal[1:-1])
+        dominantSign = float(numpy.mean(signs))
         if dominantSign < 0:   # majorité convexe
             score_p = max(score_p, 0.4 * curvatureScore)
         elif dominantSign > 0: # majorité concave
             score_v = max(score_v, 0.4 * curvatureScore)
 
     # --- Score RUGUEUX ---
-    score_r = float(np.clip(rug / (roughThreshold * 3.0), 0, 1))
+    score_r = float(numpy.clip(rug / (roughThreshold * 3.0), 0, 1))
     consistency = curvatureConsistency(alphaInternal)
     # Zone chaotique → renforce rugosité
     score_r = max(score_r, (1.0 - consistency) * 0.8)
@@ -610,7 +610,7 @@ def splitting (profile, splitSensib, roughThreshold, chord, maxSegFrac=0.05):
             L = D.getLength(sub)
             if L > maxLen and getNpts(sub) >= 6:
                 # Nombre de morceaux nécessaires
-                nParts = int(np.ceil(L / maxLen))
+                nParts = int(numpy.ceil(L / maxLen))
                 nPts = getNpts(sub)
                 # Découpe régulière en nParts morceaux par sous-zonage
                 pts_per_part = max(3, nPts // nParts)
@@ -652,9 +652,9 @@ def curvatureConsistency(alphas):
     if len(alphas) < 4:
         return 1.0
     deviations = 180.0 - alphas[1:-1]
-    signs = np.sign(deviations)
+    signs = numpy.sign(deviations)
     # Nombre de changements de signe
-    nFlips = int(np.sum(np.abs(np.diff(signs)) > 0))
+    nFlips = int(numpy.sum(numpy.abs(numpy.diff(signs)) > 0))
     maxFlips = len(signs) - 1
     if maxFlips == 0:
         return 1.0
@@ -675,14 +675,14 @@ def computeSplitSensib(profile, targetDensity, chord, percentile=15.0, minVal=3.
     if len(significant) < 5:
         # Profil trop lisse ou trop peu de points : fallback empirique
         ds_mean = chord / getNpts(profile)
-        return float(np.clip(10.0 * np.sqrt(ds_mean / chord) * np.sqrt(targetDensity), minVal, maxVal))
+        return float(numpy.clip(10.0 * numpy.sqrt(ds_mean / chord) * numpy.sqrt(targetDensity), minVal, maxVal))
 
     # splitSensib = percentile bas des déviations significatives
     # → on coupe dès qu'on dépasse ce seuil, ce qui capture les zones à courbure modérée
-    raw = float(np.percentile(significant, percentile))
-    result = float(np.clip(raw, minVal, maxVal))
+    raw = float(numpy.percentile(significant, percentile))
+    result = float(numpy.clip(raw, minVal, maxVal))
 
-    print(f"  [computeSplitSensib] déviation médiane={np.median(significant):.2f}°"
+    print(f"  [computeSplitSensib] déviation médiane={numpy.median(significant):.2f}°"
           f"  p{percentile:.0f}={raw:.2f}°  → splitSensib={result:.2f}°")
     return result
 #===========================================================================
@@ -788,7 +788,7 @@ def detectTopology (BAR1, profileBody, distThreshold, splitSensib,
         if len(blocks) > 1:
 
             # trailing edge is protected in priority and protects adjacents, fall back to the heaviest block.
-            te_idx = max( range(nSub), key=lambda i: np.mean((getCoords(subCurves[i])[0])))
+            te_idx = max( range(nSub), key=lambda i: numpy.mean((getCoords(subCurves[i])[0])))
             print(f"  [Topology] 📍 Trailing edge auto-detected at sub-curve [{te_idx+1:02d}]")
 
             bestBlockIdx = next(
@@ -799,7 +799,7 @@ def detectTopology (BAR1, profileBody, distThreshold, splitSensib,
             if bestBlockIdx is None:
                 # Fallback: keep the heaviest block (legacy behaviour)
                 score = [sum(getNpts(subCurves[i]) for i in block) for block in blocks]
-                bestBlockIdx = int(np.argmax(score))
+                bestBlockIdx = int(numpy.argmax(score))
                 print("  [Topology] ⚠️  Trailing edge sub-curve not in any protected block — "
                       "falling back to largest block.")
             # ── END AUTO-DETECT ────────────────────────────────────────────────────
@@ -913,16 +913,16 @@ def detectTopology (BAR1, profileBody, distThreshold, splitSensib,
                 xP, yP, zP = getCoords(prevSubCurves[i - 1])
                 k = min(getKFromDist(xP, yP, targetDist, fromEnd=True), len(xP) - 3)
                 if k > 0:
-                    xA = np.concatenate([xP[-k-1:-1], xA])
-                    yA = np.concatenate([yP[-k-1:-1], yA])
-                    zA = np.concatenate([zP[-k-1:-1], zA])
+                    xA = numpy.concatenate([xP[-k-1:-1], xA])
+                    yA = numpy.concatenate([yP[-k-1:-1], yA])
+                    zA = numpy.concatenate([zP[-k-1:-1], zA])
             if i < n - 1 and isProtList[i + 1]:
                 xN2, yN2, zN2 = getCoords(prevSubCurves[i + 1])
                 k = min(getKFromDist(xN2, yN2, targetDist, fromEnd=False), len(xN2) - 3)
                 if k > 0:
-                    xA = np.concatenate([xA, xN2[1:k+1]])
-                    yA = np.concatenate([yA, yN2[1:k+1]])
-                    zA = np.concatenate([zA, zN2[1:k+1]])
+                    xA = numpy.concatenate([xA, xN2[1:k+1]])
+                    yA = numpy.concatenate([yA, yN2[1:k+1]])
+                    zA = numpy.concatenate([zA, zN2[1:k+1]])
         else:
             if i > 0 and not isProtList[i - 1]:
                 prevL = D.getLength(prevSubCurves[i - 1])
@@ -987,8 +987,8 @@ def refineProfile (curve, npts=300, i=0):
 
     C.convertPyTree2File(curve, f'monitoring/bef{i}.plt')
     # x, y, _ = getCoords(curve)
-    # h1 = np.sqrt((x[1]-x[0])**2 + (y[1]-y[0])**2)
-    # h2 = np.sqrt((x[-1]-x[-2])**2 + (y[-1]-y[-2])**2)
+    # h1 = numpy.sqrt((x[1]-x[0])**2 + (y[1]-y[0])**2)
+    # h2 = numpy.sqrt((x[-1]-x[-2])**2 + (y[-1]-y[-2])**2)
     # d = D.distrib2(curve, h1, h2)
 
     h = D.getLength(curve)/(npts-1)
@@ -1083,8 +1083,8 @@ def joinInOrder(processedFree, processedProtected, orderMap, mergeTol=1e-2):
         xA, yA, zA = getCoords(ordered[i])
         xB, yB, zB = getCoords(ordered[next_i])
 
-        gap = np.sqrt((float(xA[-1]) - float(xB[0]))**2 +
-                      (float(yA[-1]) - float(yB[0]))**2)
+        gap = numpy.sqrt((float(xA[-1]) - float(xB[0]))**2 +
+                         (float(yA[-1]) - float(yB[0]))**2)
 
         if gap > 1e-12:
             print ("il y a une rupture")
@@ -1140,9 +1140,9 @@ def joinInOrder(processedFree, processedProtected, orderMap, mergeTol=1e-2):
             except Exception:
                 joined_struct = joined
             x, y, _ = getCoords(joined_struct)
-            ds = np.sqrt(np.diff(x)**2 + np.diff(y)**2)
+            ds = numpy.sqrt(numpy.diff(x)**2 + numpy.diff(y)**2)
             # Check for very short segments (< 0.1% of mean spacing)
-            meanDs = float(np.mean(ds)) if len(ds) > 0 else 1.
+            meanDs = float(numpy.mean(ds)) if len(ds) > 0 else 1.
 
             # G.close merges nodes within tol of each other
             tol = 1e-2 * meanDs
@@ -1608,7 +1608,7 @@ def getSharpestAngles(curve):
 #===========================================================================
 def isClockwise(curve):
     x, y, z = getCoords(curve)
-    area = np.sum((np.roll(x, -1) - x) * (np.roll(y, -1) + y))
+    area = numpy.sum((numpy.roll(x, -1) - x) * (numpy.roll(y, -1) + y))
     return area > 0
 
 #===========================================================================
@@ -1619,7 +1619,7 @@ def rugosity(alphas):
     # alphas = getSharpestAngles(curve)
     if len(alphas) > 2:
         alphas = alphas[1:-1]
-    return float (np.std(180.0 - alphas))
+    return float (numpy.std(180.0 - alphas))
 
 #===========================================================================
 # Finds how many points 'k' correspond to a physical 'target Dist'
@@ -1634,12 +1634,12 @@ def getKFromDist(x, y, targetDist, fromEnd=True):
 
     if fromEnd:
         for j in range(nPts - 1, 0, -1):
-            distAcc += np.sqrt((x[j]-x[j-1])**2 + (y[j]-y[j-1])**2)
+            distAcc += numpy.sqrt((x[j]-x[j-1])**2 + (y[j]-y[j-1])**2)
             k += 1
             if distAcc >= targetDist: break
     else:
         for j in range(0, nPts - 1):
-            distAcc += np.sqrt((x[j+1]-x[j])**2 + (y[j+1]-y[j])**2)
+            distAcc += numpy.sqrt((x[j+1]-x[j])**2 + (y[j+1]-y[j])**2)
             k += 1
             if distAcc >= targetDist: break
 
@@ -1653,9 +1653,9 @@ def getStepSize(curve, end="first"):
     if len(x) < 2: return 1e-5
 
     if end == "first":
-        return float(np.sqrt((x[1]-x[0])**2 + (y[1]-y[0])**2 + (z[1]-z[0])**2))
+        return float(numpy.sqrt((x[1]-x[0])**2 + (y[1]-y[0])**2 + (z[1]-z[0])**2))
     else:
-        return float(np.sqrt((x[-1]-x[-2])**2 + (y[-1]-y[-2])**2 + (z[-1]-z[-2])**2))
+        return float(numpy.sqrt((x[-1]-x[-2])**2 + (y[-1]-y[-2])**2 + (z[-1]-z[-2])**2))
 
 #===========================================================================
 # Verify the 1D profile is:
@@ -1686,28 +1686,28 @@ def checkGeometryIntegrity(profile, label='profile', exportPath='photos'):
     isClosed = dist2 < 1e-12 * max(ref2, 1e-30)
 
     # Check for duplicate consecutive points (zero-length segments)
-    ds = np.sqrt(np.diff(x)**2 + np.diff(y)**2)
-    nDuplicates = int(np.sum(ds < 1e-14))
+    ds = numpy.sqrt(numpy.diff(x)**2 + numpy.diff(y)**2)
+    nDuplicates = int(numpy.sum(ds < 1e-14))
 
     # Check for very short segments (< 0.1% of mean spacing)
-    meanDs = float(np.mean(ds)) if len(ds) > 0 else 1.
+    meanDs = float(numpy.mean(ds)) if len(ds) > 0 else 1.
 
     # ON IDENTIFIE LES MAUVAIS SEGMENTS
     dup_mask = ds < 1e-14
-    nDuplicates = int(np.sum(dup_mask))
+    nDuplicates = int(numpy.sum(dup_mask))
 
     bad_mask = ds < 1e-2 * meanDs
 
     print ("tol = ", 1e-2 * meanDs)
-    nVeryShort = int(np.sum(bad_mask))
+    nVeryShort = int(numpy.sum(bad_mask))
 
     print(f"\n[checkGeometryIntegrity] {label}")
     print(f"  N = {N}  |  closed = {isClosed}  |  duplicates = {nDuplicates}"
           f"  |  very-short segments = {nVeryShort}")
 
     if not isClosed:
-        gap = float(np.sqrt(dist2))
-        print(f"  ⚠️  NOT CLOSED — gap = {gap:.2e}  (should be < {1e-6*float(np.sqrt(ref2)):.2e})")
+        gap = float(numpy.sqrt(dist2))
+        print(f"  ⚠️  NOT CLOSED — gap = {gap:.2e}  (should be < {1e-6*float(numpy.sqrt(ref2)):.2e})")
         ok = False
 
     if nDuplicates > 0:
@@ -1723,8 +1723,8 @@ def checkGeometryIntegrity(profile, label='profile', exportPath='photos'):
     # ====================================================================
     if nDuplicates > 0 or nVeryShort > 0:
         try:
-            dup_indices = np.where(dup_mask)[0]
-            bad_indices = np.where(bad_mask)[0]
+            dup_indices = numpy.where(dup_mask)[0]
+            bad_indices = numpy.where(bad_mask)[0]
 
             os.makedirs(exportPath, exist_ok=True)
             fig, ax = plt.subplots(figsize=(8, 6))
@@ -1753,10 +1753,10 @@ def checkGeometryIntegrity(profile, label='profile', exportPath='photos'):
             ax.set_title(f"DEBUG: {nDuplicates} Doublon(s) | {nVeryShort} Micro-segment(s) - {label}")
 
             # On zoom autour du TOUT PREMIER défaut détecté pour le voir clairement
-            all_bad = np.concatenate((dup_indices, bad_indices))
+            all_bad = numpy.concatenate((dup_indices, bad_indices))
             if len(all_bad) > 0:
-                first_bad = np.min(all_bad)
-                marge = 0.05 * (np.max(x) - np.min(x)) # Marge de 5% de la corde
+                first_bad = numpy.min(all_bad)
+                marge = 0.05 * (numpy.max(x) - numpy.min(x)) # Marge de 5% de la corde
                 ax.set_xlim(x[first_bad] - marge, x[first_bad] + marge)
                 ax.set_ylim(y[first_bad] - marge, y[first_bad] + marge)
 
@@ -1785,15 +1785,15 @@ def junctionAngleSigned(subA, subB):
     if len(xA) < 2 or len(xB) < 2:
         return 180.0, 0
 
-    vA = np.array([xA[-1] - xA[-2], yA[-1] - yA[-2]], dtype=float)
-    vB = np.array([xB[1]  - xB[0],  yB[1]  - yB[0]],  dtype=float)
+    vA = numpy.array([xA[-1] - xA[-2], yA[-1] - yA[-2]], dtype=float)
+    vB = numpy.array([xB[1]  - xB[0],  yB[1]  - yB[0]],  dtype=float)
 
-    nA, nB = np.linalg.norm(vA), np.linalg.norm(vB)
+    nA, nB = numpy.linalg.norm(vA), numpy.linalg.norm(vB)
     if nA < 1e-14 or nB < 1e-14:
         return 180.0, 0
 
-    cosT = np.clip(np.dot(vA, vB) / (nA * nB), -1.0, 1.0)
-    magnitude = 180.0 - float(np.degrees(np.arccos(cosT)))
+    cosT = numpy.clip(numpy.dot(vA, vB) / (nA * nB), -1.0, 1.0)
+    magnitude = 180.0 - float(numpy.degrees(numpy.arccos(cosT)))
     cross = vA[0]*vB[1] - vA[1]*vB[0]
 
     if abs(cross) < 1e-14:
@@ -1826,7 +1826,7 @@ def getWallDistances(curve, profileBody):
 def getChord(profile):
 
     xN, _, _ = getCoords(profile)
-    chord = np.max(xN) #float(np.max(xN) - np.min(xN))
+    chord = numpy.max(xN) #float(numpy.max(xN) - numpy.min(xN))
 
     # print(f"\n[Loop]  chord = {chord:.4f}")
 
@@ -1980,8 +1980,8 @@ def isProtected(curve, rug, alphaCache, profileBody=None, distThreshold=None, ro
     if profileBody is not None:
 
         dist = getWallDistances(curve, profileBody)
-        distMax = float(np.max(dist))
-        distMean = float(np.mean(dist))
+        distMax = float(numpy.max(dist))
+        distMean = float(numpy.mean(dist))
         info['mode'] = 'distance'
         info['distMax'] = distMax
         info['distMean'] = distMean
@@ -1989,7 +1989,7 @@ def isProtected(curve, rug, alphaCache, profileBody=None, distThreshold=None, ro
         # Estimation automatique du seuil si non fourni
         if distThreshold is None:
             # Corde ≈ étendue en X du profile (normalisé → corde ≈ 1)
-            chord = getChord(profileBody)# float(np.max(xN) - np.min(xN))
+            chord = getChord(profileBody)# float(numpy.max(xN) - numpy.min(xN))
             distThreshold = 0.001 * chord           # 0.1 % de la corde
             info['distThreshold_auto'] = distThreshold
 
@@ -2002,11 +2002,11 @@ def isProtected(curve, rug, alphaCache, profileBody=None, distThreshold=None, ro
             reason = f"Rugosité forte ({rug:.2f} > {roughThreshold})"
 
         xN, _, _ = getCoords(curve)
-        if np.mean(xN) >= chord * 0.2:
+        if numpy.mean(xN) >= chord * 0.2:
             protected = True
             info['forced'] = True
             info['rugosity'] = False
-            reason = f"Forcé (x_mean {np.mean(xN):.4f} >= 20% corde {chord*0.2:.4f})"
+            reason = f"Forcé (x_mean {numpy.mean(xN):.4f} >= 20% corde {chord*0.2:.4f})"
 
         length = D.getLength(curve)
         if length > 0.2 * chord:
@@ -2016,7 +2016,7 @@ def isProtected(curve, rug, alphaCache, profileBody=None, distThreshold=None, ro
         alphas = alphaCache
         if len(alphas) > 2:
             alphas = alphas[1:-1]
-        info['minAngle'] = float(np.min(alphas))
+        info['minAngle'] = float(numpy.min(alphas))
 
         print(f"  [isProtected - Distance] -> {protected} | Raison: {reason}")
         return protected, info
@@ -2024,7 +2024,7 @@ def isProtected(curve, rug, alphaCache, profileBody=None, distThreshold=None, ro
     alphas = alphaCache
     if len(alphas) > 2:
         alphas = alphas[1:-1]
-    minAngle = float(np.min(alphas))
+    minAngle = float(numpy.min(alphas))
     hasSharp = minAngle < protectAngle
     if maxCornerLength > 0:
         protected = hasSharp and D.getLength(curve) < maxCornerLength
@@ -2102,10 +2102,10 @@ def checkDeviation(rough, smoothed, refLen, method="ortho"):
     distances = D2W.distance2Walls(sIce, [rIceCellN], signed=1, type=method, loc='nodes')
     values = Internal.getNodeFromName(distances, 'TurbulentDistance')[1].ravel()
 
-    maxInward = float(np.min(values)) / refLen
-    maxOutward = float(np.max(values)) / refLen
-    stdDev = float(np.std(values)) / refLen
-    meanDev = float(np.mean(values)) / refLen
+    maxInward = float(numpy.min(values)) / refLen
+    maxOutward = float(numpy.max(values)) / refLen
+    stdDev = float(numpy.std(values)) / refLen
+    meanDev = float(numpy.mean(values)) / refLen
 
     aSmooth = checkArea(sIce)
     aRough = checkArea(rIce)
@@ -2113,9 +2113,9 @@ def checkDeviation(rough, smoothed, refLen, method="ortho"):
         areaError = (aSmooth - aRough) / aRough * 100
         print(f"\n[Conservation] Area error : {areaError:.8f} % ")
 
-    sumInward = float(np.sum(np.abs(values[values < -tol])))
-    sumOutward = float(np.sum(values[values > tol]))
-    sumStable = float(np.sum(np.abs(values[np.abs(values) <= tol])))
+    sumInward = float(numpy.sum(numpy.abs(values[values < -tol])))
+    sumOutward = float(numpy.sum(values[values > tol]))
+    sumStable = float(numpy.sum(numpy.abs(values[numpy.abs(values) <= tol])))
     total = sumInward + sumOutward + sumStable
 
     return dict(maxInward=maxInward, maxOutward=maxOutward,
@@ -2403,7 +2403,7 @@ def checkGeoQuality(profile, smoothed1D, devThresholds=None):
 #===========================================================================
 def visualizeRemeshing(subcurves_with_shapes,  figName="remeshing", exportPath="photos", limZoom=[0,1,0,1]):
     import os
-    import numpy as np
+    import numpy
     os.makedirs(exportPath, exist_ok=True)
 
     COLOR_MAP = {
@@ -2428,15 +2428,15 @@ def visualizeRemeshing(subcurves_with_shapes,  figName="remeshing", exportPath="
         allX.extend(x)
         allY.extend(y)
 
-    allX = np.array(allX)
-    allY = np.array(allY)
+    allX = numpy.array(allX)
+    allY = numpy.array(allY)
 
     # LE FILTRE ULTIME ANTI-NAN
     # On crée un masque qui ne garde que les points qui SONT des nombres
-    valid_mask = ~(np.isnan(allX) | np.isnan(allY))
+    valid_mask = ~(numpy.isnan(allX) | numpy.isnan(allY))
 
     # Si tout est corrompu (cas extrême), on annule le dessin proprement
-    if not np.any(valid_mask):
+    if not numpy.any(valid_mask):
         print("  [visualizeRemeshing] ⚠️ Image ignorée : données corrompues (NaN).")
         return
 
@@ -2445,8 +2445,8 @@ def visualizeRemeshing(subcurves_with_shapes,  figName="remeshing", exportPath="
     allY_clean = allY[valid_mask]
 
     # On calcule les limites sur les données saines
-    xmin, xmax = np.min(allX_clean), np.max(allX_clean)
-    ymin, ymax = np.min(allY_clean), np.max(allY_clean)
+    xmin, xmax = numpy.min(allX_clean), numpy.max(allX_clean)
+    ymin, ymax = numpy.min(allY_clean), numpy.max(allY_clean)
 
     # Calcul des limites (Global et Zoom)
 
@@ -2588,11 +2588,11 @@ def getGeometryDeviation (report, sweeps, pf, vf, rf):
 def plotHistoryBL(history, exportPath="photos", figName="optimizationHistoryBL.png"):
     import os
     import matplotlib.pyplot as plt
-    import numpy as np
+    import numpy
 
     os.makedirs(exportPath, exist_ok=True)
 
-    iters = np.array(history['iter'])
+    iters = numpy.array(history['iter'])
 
     # Création d'une figure avec 2 sous-graphes empilés qui partagent l'axe X
     fig, axs = plt.subplots(2, 1, figsize=(10, 12), sharex=True)
@@ -2631,10 +2631,10 @@ def plotHistoryBL(history, exportPath="photos", figName="optimizationHistoryBL.p
     ax3_twin = ax3.twinx()
 
     # On filtre les itérations où le maillage a échoué (NaN)
-    valid_idx = ~np.isnan(history['nk'])
+    valid_idx = ~numpy.isnan(history['nk'])
     valid_iters = iters[valid_idx]
-    valid_bl = np.array(history['nk'])[valid_idx]
-    valid_vmin = np.array(history['vminBL'])[valid_idx]
+    valid_bl = numpy.array(history['nk'])[valid_idx]
+    valid_vmin = numpy.array(history['vminBL'])[valid_idx]
 
     if len(valid_iters) > 0:
         # Axe gauche : Couches BL créées
@@ -2673,7 +2673,7 @@ def plotHistory(history, exportPath="photos", figName="optimizationHistory.png")
 
     os.makedirs(exportPath, exist_ok=True)
 
-    iters = np.array(history['iter'])
+    iters = numpy.array(history['iter'])
 
     # Création d'une figure avec 3 sous-graphes empilés qui partagent l'axe X (Itérations)
     fig, axs = plt.subplots(2, 1, figsize=(10, 12), sharex=True)
@@ -2701,10 +2701,10 @@ def plotHistory(history, exportPath="photos", figName="optimizationHistory.png")
     ax3 = axs[1]
     ax3_twin = ax3.twinx() # Création d'un axe secondaire à droite pour Vmin (très petit)
 
-    valid_idx = ~np.isnan(history['rmaxT3'])
+    valid_idx = ~numpy.isnan(history['rmaxT3'])
     valid_iters = iters[valid_idx]
-    valid_rmax = np.array(history['rmaxT3'])[valid_idx]
-    valid_vmin = np.array(history['vminT3'])[valid_idx]
+    valid_rmax = numpy.array(history['rmaxT3'])[valid_idx]
+    valid_vmin = numpy.array(history['vminT3'])[valid_idx]
 
     if len(valid_iters) > 0:
         # Rmax (Axe de gauche, linéaire)
@@ -2743,7 +2743,7 @@ def exportHistory(history, bestReport=None, reportDev=None, finalAreaError=None,
     """Exporte l'historique d'optimisation dans un fichier texte bien formaté,
        incluant les derniers rapports de qualité à la fin."""
     import os
-    import numpy as np
+    import numpy
     os.makedirs(exportPath, exist_ok=True)
     outPath = os.path.join(exportPath, fileName)
 
@@ -2760,8 +2760,8 @@ def exportHistory(history, bestReport=None, reportDev=None, finalAreaError=None,
             rf = history['rf'][i]
             sw = history['sweeps'][i]
 
-            rmaxT3 = f"{history['rmaxT3'][i]:9.2f}" if not np.isnan(history['rmaxT3'][i]) else "      NaN"
-            vminT3 = f"{history['vminT3'][i]:10.2e}" if not np.isnan(history['vminT3'][i]) else "       NaN"
+            rmaxT3 = f"{history['rmaxT3'][i]:9.2f}" if not numpy.isnan(history['rmaxT3'][i]) else "      NaN"
+            vminT3 = f"{history['vminT3'][i]:10.2e}" if not numpy.isnan(history['vminT3'][i]) else "       NaN"
 
             f.write(f"{it:5d} | {pf:6.3f} | {vf:6.3f} | {rf:6.3f} | {sw:6d} | {rmaxT3} | {vminT3}\n")
 
