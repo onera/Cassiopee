@@ -96,7 +96,7 @@ def prepareAMRDataFV__(t_case, t, IBM_parameters=None, check=False, dim=3, local
     #===============================================================================================================================
     # only done for frontTypeIP=2 - if frontTypeIP=1 it is F1 so blankByIBCBodies is sufficient for the cellN value
     Cmpi.trace("Extract front faces of IBM integration points [start] ", master=True, cpu=False)
-    frontIP, maxDistIP = getFrontIP(t, IBM_parameters, localDir, False, VPM=VPM)
+    frontIP, maxDistIP = getFrontIP(t, IBM_parameters, localDir, check=check, VPM=VPM)
     Cmpi.trace("Extract front faces of IBM integration points [end]   ", master=True, cpu=False)
 
     #====================================================
@@ -976,10 +976,10 @@ def getAllIBMPoints__(tb, zcibc, frontDP, bbo, IBM_parameters, check, forceAlign
                 if type_4 > 0: X_IBM._prepOutputProject__(outputProjection4, 4, arrayLocal, allCorrectedPts[noz][1], allWallPts[noz][1], allInterpPts[noz][1])
 
             if outputProjection3[0] and check:
-                tLocal3  = X_IBM._writeOutputProject__(outputProjection3, tLocal3)
+                tLocal3  = X_IBM._writeOutputProject__(outputProjection3, tLocal3, nameZone)
                 isWrite3 = 1
             if outputProjection4[0] and check:
-                tLocal4  = X_IBM._writeOutputProject__(outputProjection4, tLocal4)
+                tLocal4  = X_IBM._writeOutputProject__(outputProjection4, tLocal4, nameZone)
                 isWrite4 = 1
 
             if check:
