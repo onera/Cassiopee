@@ -185,15 +185,6 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
   }
   else return NULL;
 
-  FldArrayI indices;
-  E_Int ierr = K_ARRAY::getFromList(listOfNodes, indices);
-  if (ierr == 0)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "subzoneUnstruct: 2nd argument must be an integer list or a numpy.");
-    return NULL;
-  }
-
   // Check array of nodes
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
@@ -227,7 +218,8 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
   PyObject* tplc = NULL;
   if (arrayCenters != NULL)
   {
-    E_Int resc = K_ARRAY::getFromArray3(arrayCenters, varStringc, fc, imc, jmc, kmc, cnc, eltTypec);
+    E_Int resc = K_ARRAY::getFromArray3(arrayCenters, varStringc, fc,
+                                        imc, jmc, kmc, cnc, eltTypec);
     if (resc != 1 && resc != 2)
     {
       PyErr_SetString(PyExc_TypeError,
@@ -238,7 +230,8 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError,
                       "subzoneUnstruct: cannot be used on a structured array.");
-      RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDS(arrayCenters,fc); return NULL;
+      RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDS(arrayCenters, fc);
+      return NULL;
     }
     else if (K_STRING::cmp(eltTypec, "NGON*") == 0)
     {
@@ -258,8 +251,39 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
     nfldc = fc->getNfld();
   }
 
+  // Build node list
+  E_Int api = f->getApi(), nfld = f->getNfld();
+  FldArrayI indices;
+  E_Int ierr = K_ARRAY::getFromList(listOfNodes, indices);
+  if (ierr == 0)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "subzoneUnstruct: 2nd argument must be an integer list or a numpy.");
+    RELEASESHAREDU(arrayNodes, f, cn);
+    return NULL;
+  }
+  else if (indices.getSize() == 0)
+  {
+    // empty list, return an empty NODE connectivity
+    PyObject* tpln = K_ARRAY::buildArray3(nfld, varString, 0, 0, "NODE", false, api);
+    if (arrayCenters == NULL)
+    {
+      RELEASESHAREDU(arrayNodes, f, cn);
+      return tpln;
+    }
+    else
+    {
+      PyObject* l = PyList_New(0);
+      PyObject* tplc = K_ARRAY::buildArray3(nfldc, varStringc, 0, 0, "NODE", false, api);
+      PyList_Append(l, tpln); Py_DECREF(tpln);
+      PyList_Append(l, tplc); Py_DECREF(tplc);
+      RELEASESHAREDU(arrayNodes, f, cn);
+      return l;
+    }
+  }
+
   E_Int n = indices.getSize();
-  E_Int npts = f->getSize(), nfld = f->getNfld(), api = f->getApi();
+  E_Int npts = f->getSize();
   E_Int* indicesp = indices.begin();
   FldArrayI tmap(npts); tmap.setAllValuesAt(-1); E_Int* tmapP = tmap.begin();
 
@@ -818,16 +842,6 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
     if (!PYPARSETUPLE_(args, OOO_, &arrayNodes, &arrayCenters, &listOfElts)) return NULL;
   }
 
-  // Build element list
-  FldArrayI eltList;
-  E_Int ret = K_ARRAY::getFromList(listOfElts, eltList);
-  if (ret == 0)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "subzone: argument must be a list of element indices (starting from 0).");
-    return NULL;
-  }
-
   // Check array at nodes
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
@@ -839,7 +853,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
                     "subzone: unknown type of array.");
     return NULL;
   }
-  if (res == 1)
+  else if (res == 1)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzone: can not be used on a structured array.");
@@ -864,13 +878,45 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError,
                       "subzone: cannot be used on a structured array.");
-      RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDS(arrayCenters, fc); return NULL;
+      RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDS(arrayCenters, fc);
+      return NULL;
     }
     nfldc = fc->getNfld();
   }
 
+  // Build element list
+  E_Int api = f->getApi(), nfld = f->getNfld();
+  FldArrayI eltList;
+  E_Int ierr = K_ARRAY::getFromList(listOfElts, eltList);
+  if (ierr == 0)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "subzone: argument must be a list of element indices (starting from 0).");
+    RELEASESHAREDU(arrayNodes, f, cn);
+    return NULL;
+  }
+  else if (eltList.getSize() == 0)
+  {
+    // empty list, return an empty NODE connectivity
+    PyObject* tpln = K_ARRAY::buildArray3(nfld, varString, 0, 0, "NODE", false, api);
+    if (arrayCenters == NULL)
+    {
+      RELEASESHAREDU(arrayNodes, f, cn);
+      return tpln;
+    }
+    else
+    {
+      PyObject* l = PyList_New(0);
+      PyObject* tplc = K_ARRAY::buildArray3(nfldc, varStringc, 0, 0, "NODE", false, api);
+      PyList_Append(l, tpln); Py_DECREF(tpln);
+      PyList_Append(l, tplc); Py_DECREF(tplc);
+      RELEASESHAREDU(arrayNodes, f, cn);
+      return l;
+    }
+  }
+
   E_Int n = eltList.getSize();
-  E_Int npts = f->getSize(), nfld = f->getNfld(), api = f->getApi();
+  E_Int npts = f->getSize();
   PyObject* tpln = NULL; PyObject* tplc = NULL;
   FldArrayF* f2; FldArrayI* cn2;
   FldArrayF* fc2;
@@ -1175,16 +1221,6 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     if (!PYPARSETUPLE_(args, OOO_, &arrayNodes, &arrayCenters, &listOfFaces)) return NULL;
   }
 
-  // Build face list
-  FldArrayI faceList;
-  E_Int ret = K_ARRAY::getFromList(listOfFaces, faceList);
-  if (ret == 0)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "subzoneFaces: argument must be a list of face indices (starting from 1).");
-    return NULL;
-  }
-
   // Check array at nodes
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
@@ -1234,9 +1270,40 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     nfldc = fc->getNfld();
   }
 
+  // Build face list
+  E_Int api = f->getApi(), nfld = f->getNfld();
+  FldArrayI faceList;
+  E_Int ierr = K_ARRAY::getFromList(listOfFaces, faceList);
+  if (ierr == 0)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "subzoneFaces: argument must be a list of face indices (starting from 1).");
+    RELEASESHAREDU(arrayNodes, f, cn);
+    return NULL;
+  }
+  else if (faceList.getSize() == 0)
+  {
+    // empty list, return an empty NODE connectivity
+    PyObject* tpln = K_ARRAY::buildArray3(nfld, varString, 0, 0, "NODE", false, api);
+    if (arrayCenters == NULL)
+    {
+      RELEASESHAREDU(arrayNodes, f, cn);
+      return tpln;
+    }
+    else
+    {
+      PyObject* l = PyList_New(0);
+      PyObject* tplc = K_ARRAY::buildArray3(nfldc, varStringc, 0, 0, "NODE", false, api);
+      PyList_Append(l, tpln); Py_DECREF(tpln);
+      PyList_Append(l, tplc); Py_DECREF(tplc);
+      RELEASESHAREDU(arrayNodes, f, cn);
+      return l;
+    }
+  }
+
   E_Int n = faceList.getSize();
   E_Int* faceListp = faceList.begin();
-  E_Int nfld = f->getNfld(), npts = f->getSize(), api = f->getApi();
+  E_Int npts = f->getSize();
   PyObject* tpln = NULL; PyObject* tplc = NULL;
   FldArrayF* f2; FldArrayI* cn2;
   FldArrayF* fc2 = NULL;

@@ -31,14 +31,14 @@ E_Int K_ARRAY::getFromList(PyObject* o, FldArrayI& out)
 {
   E_Int val; E_Float valf;
   IMPORTNUMPY;
-  if (PyList_Check(o) == true)
+  if (PyList_Check(o))
   {
     E_Int n = PyList_Size(o);
-    if (n == 0) return 0; // nothing in list
+    if (n == 0) return 1;  // empty list supported
     out.malloc(n);
     PyObject* first = PyList_GetItem(o, 0);
 
-    if (PyLong_Check(first) == true || PyInt_Check(first) == true)
+    if (PyLong_Check(first) || PyInt_Check(first))
     {
       for (E_Int i = 0; i < n; i++)
       {
@@ -59,7 +59,7 @@ E_Int K_ARRAY::getFromList(PyObject* o, FldArrayI& out)
       return 1;
     }
 
-    if (PyFloat_Check(first) == true)
+    if (PyFloat_Check(first))
     {
       for (E_Int i = 0; i < n; i++)
       {
@@ -74,14 +74,14 @@ E_Int K_ARRAY::getFromList(PyObject* o, FldArrayI& out)
     }
     return 0;
   }
-  else if (PyArray_Check(o) == true)
+  else if (PyArray_Check(o))
   {
     //PyArrayObject* ac = (PyArrayObject*)
     //  PyArray_ContiguousFromObject(o, NPY_INT, 1, 10000000);
     PyArrayObject* ac = (PyArrayObject*)o; Py_INCREF(ac);
     if (ac == NULL) return 0;
     E_Int nd = PyArray_NDIM(ac);
-    if (nd < 1) return 0;
+    if (nd == 0) return 1;  // empty array supported
     E_Int n = 1;
     for (E_Int i = 0; i < nd; i++) n *= PyArray_DIMS(ac)[i];
     out.malloc(n);
@@ -105,11 +105,12 @@ E_Int K_ARRAY::getFromList(PyObject* o, FldArrayF& out)
 {
   E_Float val; E_Int vali;
   IMPORTNUMPY;
-  if (PyList_Check(o) == true)
+  if (PyList_Check(o))
   {
     E_Int n = PyList_Size(o);
+    if (n == 0) return 1;  // empty list supported
     out.malloc(n);
-    if (PyFloat_Check(PyList_GetItem(o, 0)) == true)
+    if (PyFloat_Check(PyList_GetItem(o, 0)))
     {
       for (E_Int i = 0; i < n; i++)
       {
@@ -127,14 +128,14 @@ E_Int K_ARRAY::getFromList(PyObject* o, FldArrayF& out)
     }
     return 1;
   }
-  else if (PyArray_Check(o) == true)
+  else if (PyArray_Check(o))
   {
     //PyArrayObject* ac = (PyArrayObject*)
     //  PyArray_ContiguousFromObject(o, NPY_DOUBLE, 1, 10000000);
     PyArrayObject* ac = (PyArrayObject*)o; Py_INCREF(ac);
     if (ac == NULL) return 0;
     E_Int nd = PyArray_NDIM(ac);
-    if (nd < 1) return 0;
+    if (nd == 0) return 1;  // empty array supported
     E_Int n = 1;
     for (E_Int i = 0; i < nd; i++) n *= PyArray_DIMS(ac)[i];
     out.malloc(n);

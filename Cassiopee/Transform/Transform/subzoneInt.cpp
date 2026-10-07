@@ -37,7 +37,7 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
   E_Int res = K_ARRAY::getFromArray3(array, varString, f, ni, nj, nk, cn, eltType);
-  if ( res == 1 ) ;
+  if (res == 1) ;
   else if (res == 2)
   {
     PyErr_SetString(PyExc_TypeError,
@@ -50,14 +50,24 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
                     "subzoneStructInt: unknown type of array.");
     return NULL;
   }
+
+  E_Int api = f->getApi(), nfld = f->getNfld();
   FldArrayI intIndices;
-  E_Int ok = K_ARRAY::getFromList(listOfInterfaces, intIndices);
-  if (ok == 0)
+  E_Int ierr = K_ARRAY::getFromList(listOfInterfaces, intIndices);
+  if (ierr == 0)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzoneStructInt: 2nd argument must be an integer list or a numpy.");
-    RELEASESHAREDS(array,f); return NULL;
+    RELEASESHAREDS(array, f); return NULL;
   }
+  else if (intIndices.getSize() == 0)
+  {
+    // empty list, return an empty NODE connectivity
+    PyObject* tpln = K_ARRAY::buildArray3(nfld, varString, 0, 0, "NODE", false, api);
+    RELEASESHAREDS(array, f);
+    return tpln;
+  }
+
   E_Int n = intIndices.getSize();
   E_Int* intIndicesp = intIndices.begin();
 
@@ -69,8 +79,6 @@ PyObject* K_TRANSFORM::subzoneStructInt(PyObject* self, PyObject* args)
   E_Int ninti  = ni*nj1*nk1;
   E_Int nintj  = ni1*nj*nk1;
   E_Int nintij = ninti+nintj;
-  E_Int nfld = f->getNfld();
-  E_Int api = f->getApi();
   PyObject* tpl;
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString)+1;
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString)+1;
@@ -219,17 +227,6 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
   PyObject *arrayN, *arrayC, *listOfInterfaces;
   if (!PYPARSETUPLE_(args, OOO_, &arrayN, &arrayC, &listOfInterfaces)) return NULL;
 
-  FldArrayI intIndices;
-  E_Int ok = K_ARRAY::getFromList(listOfInterfaces, intIndices);
-  if (ok == 0)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "subzoneStructIntBoth: 2nd argument must be an integer list or a numpy.");
-    return NULL;
-  }
-  E_Int n = intIndices.getSize();
-  E_Int* intIndicesp = intIndices.begin();
-
   // Check array of nodes
   E_Int ni, nj, nk;
   FldArrayF* f; FldArrayI* cn;
@@ -248,6 +245,7 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
                     "subzoneStructInt: unknown type of array.");
     return NULL;
   }
+
   // Check array of centers
   E_Int nic, njc, nkc;
   FldArrayF* fc; FldArrayI* cnc;
@@ -258,14 +256,41 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzoneStructInt: cannot be used on an unstructured array.");
-    RELEASESHAREDS(arrayN,f); RELEASESHAREDU(arrayC, fc, cnc); return NULL;
+    RELEASESHAREDS(arrayN, f); RELEASESHAREDU(arrayC, fc, cnc);
+    return NULL;
   }
   else
   {
     PyErr_SetString(PyExc_TypeError,
                     "subzoneStructInt: unknown type of array.");
-    RELEASESHAREDS(arrayN,f); return NULL;
+    RELEASESHAREDS(arrayN, f); return NULL;
   }
+
+  E_Int api = f->getApi(), nfld = f->getNfld();
+  E_Int nfldc = fc->getNfld();
+  FldArrayI intIndices;
+  E_Int ierr = K_ARRAY::getFromList(listOfInterfaces, intIndices);
+  if (ierr == 0)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "subzoneStructIntBoth: 2nd argument must be an integer list or a numpy.");
+    RELEASESHAREDS(arrayN, f); RELEASESHAREDS(arrayC, f);
+    return NULL;
+  }
+  else if (intIndices.getSize() == 0)
+  {
+    // empty list, return an empty NODE connectivity
+    PyObject* l = PyList_New(0);
+    PyObject* tpln = K_ARRAY::buildArray3(nfld, varString, 0, 0, "NODE", false, api);
+    PyObject* tplc = K_ARRAY::buildArray3(nfldc, varStringc, 0, 0, "NODE", false, api);
+    PyList_Append(l, tpln); Py_DECREF(tpln);
+    PyList_Append(l, tplc); Py_DECREF(tplc);
+    RELEASESHAREDS(arrayN, f); RELEASESHAREDS(arrayC, f);
+    return l;
+  }
+
+  E_Int n = intIndices.getSize();
+  E_Int* intIndicesp = intIndices.begin();
 
   char newEltType[256];
   E_Int ni1 = K_FUNC::E_max(1,ni-1);
@@ -281,9 +306,6 @@ PyObject* K_TRANSFORM::subzoneStructIntBoth(PyObject* self, PyObject* args)
   E_Int ninj = ni*nj;
   E_Int ninj1 = ni*nj1;
 
-  E_Int api = f->getApi();
-  E_Int nfld = f->getNfld();
-  E_Int nfldc = fc->getNfld();
   PyObject *tplN, *tplC;
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString)+1;
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString)+1;

@@ -166,7 +166,7 @@ C._initVars(d, '{centers:G}={centers:CoordinateY}')
 d = T.subzone(d, facesL, type='faces')
 test.testT(d, 6)
 
-## -- ME
+# -- ME
 # 2D: tri-quad-tri
 indices = []
 a = G.cartTetra((0.,0.,0.), (0.1,0.1,0.2), (5,10,1))
@@ -177,7 +177,6 @@ C._initVars(a, '{F}={CoordinateX}')
 C._initVars(a, '{centers:G}={centers:CoordinateY}')
 indices = [i for i in range(1, 500)]
 a = T.subzone(a, indices, type='faces')
-#C.convertPyTree2File(a, 'out.cgns'); exit()
 test.testT(a, 20)
 
 # 3D: pyra - penta - hexa
@@ -192,5 +191,12 @@ P.exteriorFaces(a, indices=indices)
 nf = len(indices[0])
 indices = indices[0][:nf//2]  # first half of all exterior faces
 a = T.subzone(a, indices, type='faces')
-#C.convertPyTree2File(a, 'out.cgns'); exit()
 test.testT(a, 21)
+
+
+# -- Empty face list, returning an empty NODE connectivity
+a = G.cartPyra((0.,0.,0.), (0.1,0.1,0.1), (5,5,5))
+C._initVars(a, '{F}={CoordinateX}')
+C._initVars(a, '{centers:G}={centers:CoordinateY}')
+a = T.subzone(a, [], type='faces')
+test.testT(a, 22)
