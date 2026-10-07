@@ -1084,7 +1084,7 @@ def joinInOrder(processedFree, processedProtected, orderMap, mergeTol=1e-2):
         xB, yB, zB = getCoords(ordered[next_i])
 
         gap = numpy.sqrt((float(xA[-1]) - float(xB[0]))**2 +
-                      (float(yA[-1]) - float(yB[0]))**2)
+                         (float(yA[-1]) - float(yB[0]))**2)
 
         if gap > 1e-12:
             print ("il y a une rupture")

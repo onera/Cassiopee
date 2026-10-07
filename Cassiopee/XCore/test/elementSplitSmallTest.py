@@ -12,9 +12,9 @@ splitted = None
 if nb_procs == 1:
     elt2vert = numpy.array([1,2,3,4,3,2,4,5], numpy.int32)
     coord    = numpy.array([[0.,0.,1.,1./3.],
-                         [0.,1.,0.,1./3.],
-                         [1.,0.,0.,1./3.]
-                         [1.,1.,1.,1./3.]], numpy.double)
+                            [0.,1.,0.,1./3.],
+                            [1.,0.,0.,1./3.]
+                            [1.,1.,1.,1./3.]], numpy.double)
     zone = ("TETRA", elt2vert, coord)
     zones = [([zone,], 5, 2),]
     #

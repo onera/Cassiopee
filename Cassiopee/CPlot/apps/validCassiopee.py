@@ -891,7 +891,7 @@ def buildTestList(sessionName=None, modules=[]):
                           if (isinstance(testLog, list) and len(testLog) == ncolumns)]
         # Create array and remove leading and trailing white spaces
         arr = numpy.array([entry.strip() for testLog in sessionLog for entry in testLog],
-                       dtype=object)
+                          dtype=object)
         arr = arr.reshape(-1, ncolumns)
 
         # Read sessionLog and combine with lastSession. Priority given to
@@ -908,7 +908,7 @@ def buildTestList(sessionName=None, modules=[]):
                 sessionLog = [testLog for testLog in sessionLog
                               if (isinstance(testLog, list) and len(testLog) == ncolumns)]
             arr2 = numpy.array([entry.strip() for testLog in sessionLog for entry in testLog],
-                            dtype=object)
+                               dtype=object)
             arr2 = arr2.reshape(-1, ncolumns)
 
             testDict = {}
