@@ -1545,7 +1545,7 @@ def _updateTree(t, oldNbEdges, oldNbFaces, new2OldEdgeMap, new2OldFaceMap):
 
 # internal function
 def identifyTags__(a):
-    array = C.getFields(Internal.__FlowSolutionNodes__, a, "__tag__", api=3)[0]
+    array = C.getFields(Internal.__FlowSolutionNodes__, a, ["__tag__"], api=3)[0]
     return OCC.identifyTags__(array)
 
 # add family name on faces taken from OCAF labels

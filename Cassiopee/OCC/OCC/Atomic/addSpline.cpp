@@ -34,7 +34,7 @@
 #include "GeomAPI_Interpolate.hxx"
 
 //=====================================================================
-// Add a spline to CAD hook
+// Add a 1D spline to CAD hook
 // method=0; chord length parametrization from control points
 // method=1; interpolation of given points
 // method=2; uniform parametrization
@@ -64,7 +64,7 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
   GETPACKET;
   GETSHAPE;
   
-  // incoming numpy
+  // incoming numpy of points
   E_Int ncp = pc->getSize();
   //for (E_Int i = 0; i < ncp; i++) printf("%d : %g %g %g\n", i, x[i], y[i], z[i]);
 

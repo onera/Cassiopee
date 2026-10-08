@@ -178,29 +178,52 @@ def checkCAD(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
         if len(edgesm) > 0:
             print("ERROR: you must delete non manifold faces manually.")
 
+    #==============================
+    # Find compounds by OCAF labels
+    #==============================
+    found = {}
+    nbFaces = OCC.getNbFaces(hook)
+    for i in range(nbFaces): found[i+1] = False
+    ret = OCC.getFaceNameInOCAF(hook)
+    compounds = {}
+    for l in range(len(ret)//2):
+        label = ret[2*l]
+        nos = ret[2*l+1]
+        for no in nos: found[no] = True
+        compounds[label] = nos
+        rest = []
+        for no in found:
+            if not found[no]: rest.append(no)
+        compounds['noLabels'] = rest
+    print(f"INFO: i found {len(compounds)} compounds.")
+    for c in compounds:
+        print(f"INFO: compound {c} has {len(compounds[c])} / {nbFaces} faces.")
+    
     #=======================
     # check for face overlap
     #=======================
-    print("INFO: checking face overlap...", flush=True)
-    try:
-        overlaps, intersectings = getFaceOverlap(hook, tol=tol, byOCAFLabels=byOCAFLabels)
-    except:
-        if byOCAFLabels:
-            print("Warning: OCAF may be incoherent. byOCAFLabels deactivated.")
-            byOCAFLabels = False
+    checkOverlap = False # too expansive
+    if checkOverlap:
+        print("INFO: checking face overlap...", flush=True)
+        try:
             overlaps, intersectings = getFaceOverlap(hook, tol=tol, byOCAFLabels=byOCAFLabels)
+        except:
+            if byOCAFLabels:
+                print("Warning: OCAF may be incoherent. byOCAFLabels deactivated.")
+                byOCAFLabels = False
+                overlaps, intersectings = getFaceOverlap(hook, tol=tol, byOCAFLabels=byOCAFLabels)
 
-    if len(intersectings) == 0 and len(overlaps) == 0:
-        print("INFO: NONE.")
-        score += 1
-    if repair:
-        if len(intersectings) > 0:
-            print("ERROR: you must trim faces manually: ", intersectings)
-        if len(overlaps) > 0:
-            print("ERROR: you must remove overlap faces manually: ", overlaps)
+        if len(intersectings) == 0 and len(overlaps) == 0:
+            print("INFO: NONE.")
+            score += 1
+        if repair:
+            if len(intersectings) > 0:
+                print("ERROR: you must trim faces manually: ", intersectings)
+            if len(overlaps) > 0:
+                print("ERROR: you must remove overlap faces manually: ", overlaps)
 
-    print(f"score: {score}/3")
-    if score < 3: return False
+    print(f"INFO: score: {score}/2")
+    if score < 2: return False
     else: return True
 
 # check CAD through meshing (coarse)
