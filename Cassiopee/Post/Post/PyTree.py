@@ -3,8 +3,6 @@ from . import Post
 from . import post
 __version__ = Post.__version__
 
-import math
-
 try:
     import Converter
     import Converter.PyTree as C
@@ -848,7 +846,7 @@ def _computeVariables2(t, varList, gamma=-1., rgp=-1., s0=0., betas=-1.,
         try: Ts = C.getState(t, 'Ts')
         except: pass
     if Cs >= 0. and mus >= 0. and Ts >= 0.:
-        betas = mus*(1.+Cs/Ts)/math.sqrt(Ts)
+        betas = mus*(1.+Cs/Ts)/numpy.sqrt(Ts)
 
     if Cs  < 0: Cs  = 110.4
     if mus < 0: mus = 1.76e-5

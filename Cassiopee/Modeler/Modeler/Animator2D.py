@@ -7,7 +7,7 @@ import Generator.PyTree as G
 import Transform.PyTree as T
 import CPlot.PyTree as CPlot
 from operator import itemgetter
-import math
+import numpy
 import time
 
 class Animator2D:
@@ -186,9 +186,9 @@ class Animator2D:
         for i in range(Np):
             xpos = (pos[0]-i*0.01/Np,pos[1],pos[2])
             b = D.point(xpos)
-            alpha = i*math.pi/(Np-1)
-            C._initVars(b, 'vx=%g'%math.cos(alpha))
-            C._initVars(b, 'vy=%g'%math.sin(alpha))
+            alpha = i*numpy.pi/(Np-1)
+            C._initVars(b, 'vx=%g'%numpy.cos(alpha))
+            C._initVars(b, 'vy=%g'%numpy.sin(alpha))
             C._initVars(b, 'vz=0.')
             r = random.randint(-10, 10)
             if r > 0: r = 0

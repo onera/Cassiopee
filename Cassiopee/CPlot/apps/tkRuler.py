@@ -4,7 +4,8 @@ import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
-import math, time
+import numpy
+import time
 
 # local widgets list
 WIDGETS = {}; VARS = []
@@ -35,7 +36,7 @@ def measure():
                     dist = (l[0]-prev[0])*(l[0]-prev[0])+\
                         (l[1]-prev[1])*(l[1]-prev[1])+\
                         (l[2]-prev[2])*(l[2]-prev[2])
-                    dist = math.sqrt(dist)
+                    dist = numpy.sqrt(dist)
                     CTK.TXT.insert('START', 'd= %.4e\n'%dist)
                     time.sleep(CPlot.__timeStep__)
                     prev = []

@@ -3,10 +3,10 @@ import Generator as G
 import Converter as C
 import Transform as T
 import Post as P
-import math
+import numpy
 #
-res1 = math.pi*10.
-res1c = (math.pi-math.pi/25.)*10.
+res1 = numpy.pi*10.
+res1c = (numpy.pi-numpy.pi/25.)*10.
 res2 = 1.
 res2c = 1.62
 #
@@ -36,7 +36,7 @@ densa = C.initVars(dens,'tx', 0.)
 densa = C.initVars(densa,'ty', 1.)
 densa = C.initVars(densa,'tz', 0.)
 res = P.integMoment([a2],[densa],[], (0.,0.,5.))
-## if math.fabs(res[0]-res1) > 1.e-1:
+## if numpy.fabs(res[0]-res1) > 1.e-1:
 ##     print "pb in integMoment, nj=1"
 print(res, res1)
 
@@ -55,7 +55,7 @@ densa = C.initVars(dens,'tx', 0.)
 densa = C.initVars(densa,'ty', 1.)
 densa = C.initVars(densa,'tz', 0.)
 res = P.integMoment([a2],[densa],[], (0.5,1.,0.))
-## if math.fabs(res[0]-res2) > 1.e-1:
+## if numpy.fabs(res[0]-res2) > 1.e-1:
 ##     print "pb in integMomentNodeCenter, nk=1"
 print(res, res2)
 
@@ -86,7 +86,7 @@ densa = C.initVars(densa,'ty', 1.)
 densa = C.initVars(densa,'tz', 0.)
 
 res = P.integMoment([a2],[densa],[], (0.,1.,0.5))
-## if math.fabs(res[0]-res2) > 1.e-1:
+## if numpy.fabs(res[0]-res2) > 1.e-1:
 ##     print "pb in integMomentNodeCenter, ni=1"
 print(res, res2)
 
@@ -98,6 +98,6 @@ densa = C.initVars(densa,'ty', 1.)
 densa = C.initVars(densa,'tz', 0.)
 
 res = P.integMoment([a2],[densa],[], (0.,1.,0.5))
-## if math.fabs(res[0]-res2) > 1.e-1:
+## if numpy.fabs(res[0]-res2) > 1.e-1:
 ##     print "pb in integMoment, ni=1"
 print(res, res2)

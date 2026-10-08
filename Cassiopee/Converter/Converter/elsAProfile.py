@@ -4,7 +4,7 @@ from . import Internal
 import Connector.PyTree as X
 from . import Converter
 import numpy
-import math
+import numpy
 
 __CONSERVATIVE__ = ["Density", "MomentumX", "MomentumY", "MomentumZ", "EnergyStagnationDensity"]
 __TURBULENT__ = ["TurbulentEnergyKineticDensity", "TurbulentDissipationDensity", "TurbulentSANuTildeDensity"]
@@ -971,9 +971,9 @@ def _adaptNearMatch(t):
                         matchside = ''
                         if nmratioFact<1: # fine
                             matchside='fine'
-                            iratio = int(math.ceil(1./nmr[0]))
-                            jratio = int(math.ceil(1./nmr[1]))
-                            kratio = int(math.ceil(1./nmr[2]))
+                            iratio = int(numpy.ceil(1./nmr[0]))
+                            jratio = int(numpy.ceil(1./nmr[1]))
+                            kratio = int(numpy.ceil(1./nmr[2]))
                         else:
                             matchside='coarse'
                             iratio = int(nmr[0])

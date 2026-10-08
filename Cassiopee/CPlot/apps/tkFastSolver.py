@@ -9,7 +9,7 @@ import Converter.Internal as Internal
 try: import Fast.PyTree as Fast
 except: pass
 import CPlot.iconics as iconics
-import math
+import numpy
 
 # local widgets list
 WIDGETS = {}; VARS = []
@@ -445,7 +445,7 @@ def getAlphaAngle(t):
         if abs(vx) < 1.e-12 and abs(vy) < 1.e-12: alpha = 0.
         elif abs(vx) < 1.e-12 and vy > 0: alpha = 90.
         elif abs(vx) < 1.e-12 and vy < 0: alpha = -90.
-        else: alpha = math.atan2(vy, vx)*180./math.pi
+        else: alpha = numpy.arctan2(vy, vx)*180./numpy.pi
     return alpha
 
 #========================================================================

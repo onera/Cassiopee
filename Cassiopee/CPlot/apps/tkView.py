@@ -9,7 +9,7 @@ import CPlot.Panels as Panels
 import Converter.Internal as Internal
 import Post.PyTree as P
 import Transform.PyTree as T
-import math
+import numpy
 
 # local widgets list
 WIDGETS = {}; VARS = []
@@ -607,7 +607,7 @@ def setXY(event=None):
     dx = posCam[0]-posEye[0]
     dy = posCam[1]-posEye[1]
     dz = posCam[2]-posEye[2]
-    d = math.sqrt(dx*dx + dy*dy + dz*dz)
+    d = numpy.sqrt(dx*dx + dy*dy + dz*dz)
     if dz > 0: d = -d
     posCam2 = (posEye[0], posEye[1] , posEye[2]+d)
     dirCam2 = (0,1,0)
@@ -622,7 +622,7 @@ def setYZ(event=None):
     dx = posCam[0]-posEye[0]
     dy = posCam[1]-posEye[1]
     dz = posCam[2]-posEye[2]
-    d = math.sqrt(dx*dx + dy*dy + dz*dz)
+    d = numpy.sqrt(dx*dx + dy*dy + dz*dz)
     if dx > 0: d = -d
     posCam2 = (posEye[0]+d, posEye[1] , posEye[2])
     dirCam2 = (0,0,1)
@@ -637,7 +637,7 @@ def setXZ(event=None):
     dx = posCam[0]-posEye[0]
     dy = posCam[1]-posEye[1]
     dz = posCam[2]-posEye[2]
-    d = math.sqrt(dx*dx + dy*dy + dz*dz)
+    d = numpy.sqrt(dx*dx + dy*dy + dz*dz)
     if dy < 0: d = -d
     posCam2 = (posEye[0], posEye[1]-d , posEye[2])
     dirCam2 = (0,0,1)

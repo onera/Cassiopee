@@ -1,7 +1,7 @@
 """PolyC1 mesh generator. Extension of Generator.
 """
 from . import Generator as G
-import math
+import numpy
 try:
     import Geom as D
     import Post as P
@@ -22,7 +22,7 @@ def polyC1Mesher(curve, h, yplus, density, splitCrit=10., dalpha=5.,depth=1):
     # Determination de l'angle a partir duquel on construit un raccord
     # coincident au lieu d'une extension recouvrante
     # Evite de plus les extrapolations locales pour les angles tres obtus
-    alpha0 = 4.*math.atan((2*depth-1)*yplus*density)*180/math.pi
+    alpha0 = 4.*numpy.arctan((2*depth-1)*yplus*density)*180/numpy.pi
     alpha0 = max(alpha0, dalpha)
     alphaMax = 360.-alpha0
 
@@ -308,7 +308,7 @@ def generateExtExt(curve, density, extension, delta):
     # extension lineaire
     x1 = curve[1][0,0]; y1 = curve[1][1,0]; z1 = curve[1][2,0]
     x2 = curve[1][0,1]; y2 = curve[1][1,1]; z2 = curve[1][2,1]
-    norm = math.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2) )
+    norm = numpy.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2) )
     px1 = x1 - ext*(x2-x1)*hm/norm
     py1 = y1 - ext*(y2-y1)*hm/norm
     pz1 = z1 - ext*(z2-z1)*hm/norm
@@ -317,7 +317,7 @@ def generateExtExt(curve, density, extension, delta):
     n = curve[1].shape[1]
     x1 = curve[1][0,n-2]; y1 = curve[1][1,n-2]; z1 = curve[1][2,n-2]
     x2 = curve[1][0,n-1]; y2 = curve[1][1,n-1]; z2 = curve[1][2,n-1]
-    norm = math.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2) )
+    norm = numpy.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2) )
     px1 = x2 + ext*(x2-x1)*hm/norm
     py1 = y2 + ext*(y2-y1)*hm/norm
     pz1 = z2 + ext*(z2-z1)*hm/norm
@@ -368,14 +368,14 @@ def generateExtExtMatch(c, curves, density, extension, delta,
     # extension coincidente en i=0
     x1 = f[0,0]; y1 = f[1,0]; z1 = f[2,0]
     x2 = f[0,1]; y2 = f[1,1]; z2 = f[2,1]
-    norm = math.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2) )
+    norm = numpy.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2) )
     px1 = x1 - ext*(x2-x1)*hm/norm
     py1 = y1 - ext*(y2-y1)*hm/norm
     pz1 = z1 - ext*(z2-z1)*hm/norm
 
     x3 = curvev1[1][0,indv1]; y3 = curvev1[1][1,indv1]; z3 = curvev1[1][2,indv1]
     # recup des coordonnees du pt suivant de la courbe voisine
-    norm = math.sqrt( (x1-x3)*(x1-x3)+(y1-y3)*(y1-y3)+(z1-z3)*(z1-z3) )
+    norm = numpy.sqrt( (x1-x3)*(x1-x3)+(y1-y3)*(y1-y3)+(z1-z3)*(z1-z3) )
     px2 = x1 - ext*(x3-x1)*hmv1/norm
     py2 = y1 - ext*(y3-y1)*hmv1/norm
     pz2 = z1 - ext*(z3-z1)*hmv1/norm
@@ -385,12 +385,12 @@ def generateExtExtMatch(c, curves, density, extension, delta,
     # extension coincidente en i=n-1
     x1 = f[0,np-2]; y1 = f[1,np-2]; z1 = f[2,np-2]
     x2 = f[0,np-1]; y2 = f[1,np-1]; z2 = f[2,np-1]
-    norm = math.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2) )
+    norm = numpy.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2) )
     px1 = x2 + ext*(x2-x1)*hm/norm
     py1 = y2 + ext*(y2-y1)*hm/norm
     pz1 = z2 + ext*(z2-z1)*hm/norm
     x3 = curvev2[1][0,indv2]; y3 = curvev2[1][1,indv2]; z3 = curvev2[1][2,indv2]# recup des coordonnees du pt suivant de la courbe voisine
-    norm = math.sqrt( (x3-x2)*(x3-x2)+(y3-y2)*(y3-y2)+(z3-z2)*(z3-z2) )
+    norm = numpy.sqrt( (x3-x2)*(x3-x2)+(y3-y2)*(y3-y2)+(z3-z2)*(z3-z2) )
     px2 = x2 - ext*(x3-x2)*hmv2/norm
     py2 = y2 - ext*(y3-y2)*hmv2/norm
     pz2 = z2 - ext*(z3-z2)*hmv2/norm
@@ -481,12 +481,12 @@ def generateOtherCases(curve, curves,
 
         if (ext2 == 0):# TFI paroi
             if (nghbind2 == 1):
-                h0 = h / math.sin( angle2 * math.pi / 180. )
+                h0 = h / numpy.sin( angle2 * numpy.pi / 180. )
                 h0 = min(h0, 2*h)
                 ind = D.getDistantIndex(curvev2, 1, h0)
                 d4 = T.subzone( curvev2, (1,1,1), (ind,1,1) )
             else:
-                h0 = h / math.sin( angle2 * math.pi / 180. )
+                h0 = h / numpy.sin( angle2 * numpy.pi / 180. )
                 h0 = min(h0, 2*h)
                 ind = D.getDistantIndex(curvev2, nghbind2, -h0)
                 d4 = T.subzone( curvev2, (ind,1,1), (curvev[2],1,1) )
@@ -506,7 +506,7 @@ def generateOtherCases(curve, curves,
             p = f.shape[1]
             x1 = f[0,p-1]; y1 = f[1,p-1]; z1 = f[2,p-1]
             x2 = f[0,p-2]; y2 = f[1,p-2]; z2 = f[2,p-2]
-            norm = math.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2) )
+            norm = numpy.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2) )
             px1 = x1 + ext*(x1-x2)*hm/norm
             py1 = y1 + ext*(y1-y2)*hm/norm
             pz1 = z1 + ext*(z1-z2)*hm/norm
@@ -524,12 +524,12 @@ def generateOtherCases(curve, curves,
         # Ajout de l'extension coincidente en i=1
         x1 = f[0,0]; y1 = f[1,0]; z1 = f[2,0]
         x2 = f[0,1]; y2 = f[1,1]; z2 = f[2,1]
-        norm = math.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2))
+        norm = numpy.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2))
         px1 = x1 - ext*(x2-x1)*hm/norm
         py1 = y1 - ext*(y2-y1)*hm/norm
         pz1 = z1 - ext*(z2-z1)*hm/norm
         x3 = curvev1[1][0,indv1]; y3 = curvev1[1][1,indv1]; z3 = curvev1[1][2,indv1]# recup des coordonnees du pt suivant de la courbe voisine
-        norm = math.sqrt( (x1-x3)*(x1-x3)+(y1-y3)*(y1-y3)+(z1-z3)*(z1-z3) )
+        norm = numpy.sqrt( (x1-x3)*(x1-x3)+(y1-y3)*(y1-y3)+(z1-z3)*(z1-z3) )
         px2 = x1 - ext*(x3-x1)*hmv1/norm
         py2 = y1 - ext*(y3-y1)*hmv1/norm
         pz2 = z1 - ext*(z3-z1)*hmv1/norm
@@ -550,7 +550,7 @@ def generateOtherCases(curve, curves,
     elif (ext1 == 1):
         x1 = f[0,0]; y1 = f[1,0]; z1 = f[2,0]
         x2 = f[0,1]; y2 = f[1,1]; z2 = f[2,1]
-        norm = math.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2))
+        norm = numpy.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2))
         px1 = x1 - ext*(x2-x1)*hm/norm
         py1 = y1 - ext*(y2-y1)*hm/norm
         pz1 = z1 - ext*(z2-z1)*hm/norm
@@ -566,12 +566,12 @@ def generateOtherCases(curve, curves,
         if (ext2 == 0):
             curvev = curves[int(nghb2)]
             if (nghbind2 == 1):
-                h0 = h / math.sin( angle2 * math.pi / 180. )
+                h0 = h / numpy.sin( angle2 * numpy.pi / 180. )
                 h0 = min(h0, 2*h)
                 ind = D.getDistantIndex(curvev, 1, h0)
                 d4 = T.subzone( curvev, (1,1,1), (ind,1,1) )
             else:
-                h0 = h / math.sin( angle2 * math.pi / 180. )
+                h0 = h / numpy.sin( angle2 * numpy.pi / 180. )
                 h0 = min(h0, 2*h)
                 ind = D.getDistantIndex(curvev, nghbind2, -h0)
                 d4 = T.subzone( curvev, (ind,1,1), (curvev[2],1,1) )
@@ -611,7 +611,7 @@ def generateOtherCases(curve, curves,
             p = f.shape[1]
             x1 = f[0,p-1]; y1 = f[1,p-1]; z1 = f[2,p-1]
             x2 = f[0,p-2]; y2 = f[1,p-2]; z2 = f[2,p-2]
-            norm = math.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2) )
+            norm = numpy.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2) )
             px1 = x1 + ext*(x1-x2)*hm/norm
             py1 = y1 + ext*(y1-y2)*hm/norm
             pz1 = z1 + ext*(z1-z2)*hm/norm
@@ -664,7 +664,7 @@ def generateOtherCases(curve, curves,
             nil = f.shape[1]
             x1 = f[0,nil-1]; y1 = f[1,nil-1]; z1 = f[2,nil-1]
             x2 = f[0,nil-2]; y2 = f[1,nil-2]; z2 = f[2,nil-2]
-            norm = math.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2) )
+            norm = numpy.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2) )
             px1 = x1 + ext*(x1-x2)*hm/norm
             py1 = y1 + ext*(y1-y2)*hm/norm
             pz1 = z1 + ext*(z1-z2)*hm/norm
@@ -746,13 +746,13 @@ def buildd1d4Match(curvev2, nghbind2, density, delta, f, ext, d1, d3, hm, h, n, 
     #
     # recup des coordonnees du pt suivant de la courbe voisine
     #
-    norm = math.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2))
+    norm = numpy.sqrt( (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2)+(z1-z2)*(z1-z2))
     px1 = x2 + ext*(x2-x1)*hm/norm
     py1 = y2 + ext*(y2-y1)*hm/norm
     pz1 = z2 + ext*(z2-z1)*hm/norm
     #
     x3 = curvev2[1][0,indv2]; y3 = curvev2[1][1,indv2]; z3 = curvev2[1][2,indv2]
-    norm3 = math.sqrt( (x3-x2)*(x3-x2)+(y3-y2)*(y3-y2)+(z3-z2)*(z3-z2) )
+    norm3 = numpy.sqrt( (x3-x2)*(x3-x2)+(y3-y2)*(y3-y2)+(z3-z2)*(z3-z2) )
     #
     px2 = x2 + ext*(x2-x3)*hmv2/norm3
     py2 = y2 + ext*(y2-y3)*hmv2/norm3
@@ -890,16 +890,16 @@ def comph0(h, angle):
     if (abs(angle) < 1.e-6):
         return 2*h
     if (angle <= 90 and angle >= 0):
-        h0 = h / math.sin( angle * math.pi / 180. )
+        h0 = h / numpy.sin( angle * numpy.pi / 180. )
     else:
-        h0 = h / math.cos( (angle-90.) * math.pi / 180. )
+        h0 = h / numpy.cos( (angle-90.) * numpy.pi / 180. )
     h0 = min(h0, 2*h)
     return h0
 
 #==============================================================================
 def compH(h, angle):
     if (angle <= 90 and angle >= 0):
-        H = h / math.tan( angle * math.pi / 180. )
+        H = h / numpy.tan( angle * numpy.pi / 180. )
     else:
-        H = h * math.tan( (angle-90.) * math.pi / 180. )
+        H = h * numpy.tan( (angle-90.) * numpy.pi / 180. )
     return 3*abs(H)

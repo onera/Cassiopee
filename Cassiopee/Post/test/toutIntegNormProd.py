@@ -3,10 +3,10 @@ import Generator as G
 import Converter as C
 import Transform as T
 import Post as P
-import math
+import numpy
 
-res1 = math.pi*10.
-res1c = (math.pi-math.pi/25.)*10.
+res1 = numpy.pi*10.
+res1c = (numpy.pi-numpy.pi/25.)*10.
 res2 = 2.
 res2c = 1.62
 # Lit le fichier et le met dans arrays
@@ -21,7 +21,7 @@ densa = C.initVars(dens,'tx', 0.)
 densa = C.initVars(densa,'ty', 1.)
 densa = C.initVars(densa,'tz', 0.)
 res = P.integNormProduct([a2],[densa],[])
-if math.fabs(res) > 1.e-1:
+if numpy.fabs(res) > 1.e-1:
     print("pb in integNormProdNodeCenter, nj=1")
 
 # integNormProd, nj = 1
@@ -33,7 +33,7 @@ densa = C.initVars(dens,'tx', 0.)
 densa = C.initVars(densa,'ty', 1.)
 densa = C.initVars(densa,'tz', 0.)
 res = P.integNormProduct([a2],[densa],[])
-if math.fabs(res) > 1.e-1:
+if numpy.fabs(res) > 1.e-1:
     print("pb in integNormProd, nj=1")
 
 ##############################################################
@@ -51,7 +51,7 @@ densa = C.initVars(dens,'tx', 0.)
 densa = C.initVars(densa,'ty', 1.)
 densa = C.initVars(densa,'tz', 0.)
 res = P.integNormProduct([a2],[densa],[])
-if math.fabs(res) > 1.e-1:
+if numpy.fabs(res) > 1.e-1:
     print("pb in integNormProdNodeCenter, nk=1")
 
 # integNormProd, nk = 1
@@ -63,7 +63,7 @@ densa = C.initVars(dens,'tx', 0.)
 densa = C.initVars(densa,'ty', 1.)
 densa = C.initVars(densa,'tz', 0.)
 res = P.integNormProduct([a2],[densa],[])
-if math.fabs(res) > 1.e-1:
+if numpy.fabs(res) > 1.e-1:
     print("pb in integNormProd, nk=1")
 
 #######################################################
@@ -80,7 +80,7 @@ densa = C.initVars(dens,'tx', 0.)
 densa = C.initVars(densa,'ty', 1.)
 densa = C.initVars(densa,'tz', 0.)
 res = P.integNormProduct([a2],[densa],[])
-if math.fabs(res) > 1.e-1:
+if numpy.fabs(res) > 1.e-1:
     print("pb in integNormProdNodeCenter, ni=1")
 
 
@@ -93,5 +93,5 @@ densa = C.initVars(dens,'tx', 0.)
 densa = C.initVars(densa,'ty', 1.)
 densa = C.initVars(densa,'tz', 0.)
 res = P.integNormProduct([a2],[densa],[])
-if math.fabs(res) > 1.e-1:
+if numpy.fabs(res) > 1.e-1:
     print("pb in integNormProd, ni=1")

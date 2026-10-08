@@ -10,7 +10,7 @@ import Geom.PyTree as D
 import Transform.PyTree as T
 import Generator.PyTree as G
 import Converter.Internal as Internal
-import math
+import numpy
 from Geom.Parametrics import base
 
 # local widgets list
@@ -53,7 +53,7 @@ def meshTri(P0, P1, P2, N):
 # Maille un cercle en structure (decoupe en 5 quads)
 #==============================================================================
 def meshCircle(center, R, N):
-    coeff = R*math.sqrt(2.)*0.25
+    coeff = R*numpy.sqrt(2.)*0.25
     x = center[0]; y = center[1]; z = center[2]
     c = D.circle( center, R, tetas=-45., tetae=45., N=N)
     l1 = D.line((x+coeff,y-coeff,z), (x+coeff,y+coeff,z), N=N)
@@ -175,7 +175,7 @@ def generate(event=None):
     if lx*lx + ly*ly + lz*lz < 1.e-10: lx = -1
     if dirCam[0]*dirCam[0] + dirCam[1]*dirCam[1] + dirCam[2]*dirCam[2] == 0.:
         dirCam = (0,0,1)
-    ll = math.sqrt(lx*lx + ly*ly + lz*lz)
+    ll = numpy.sqrt(lx*lx + ly*ly + lz*lz)
     s = T.homothety(s, (posEye[0], posEye[1], posEye[2]), 0.5*ll)
 
     ux = dirCam[1]*lz - dirCam[2]*ly
