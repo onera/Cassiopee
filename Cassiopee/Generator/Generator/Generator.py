@@ -1421,7 +1421,7 @@ def mapSplitStruct__(array, dist, splitCrit, densMax):
     a = T.splitCurvatureRadius(a, splitCrit)
 
     # Build array with distance of each "split point"
-    L = numpy.zeros((len(a)), dtype= numpy.float64)
+    L = numpy.zeros((len(a)), dtype=numpy.float64)
     ltinv = 1./lt
     L[0] = D.getLength(a[0]) * ltinv
 
