@@ -53,7 +53,6 @@ static PyMethodDef Pyconverter [] =
   {"setNANValuesAt", K_CONVERTER::setNANValuesAt, METH_VARARGS},
   {"convertBAR2Struct", K_CONVERTER::convertBAR2Struct, METH_VARARGS},
   {"convertStruct2TetraBary", K_CONVERTER::convertStruct2TetraBary, METH_VARARGS},
-  {"convertStruct2TetraBaryBoth", K_CONVERTER::convertStruct2TetraBaryBoth, METH_VARARGS},
   {"convertStruct2Hexa", K_CONVERTER::convertStruct2Hexa, METH_VARARGS},
   {"convertStruct2NGon", K_CONVERTER::convertStruct2NGon, METH_VARARGS},
   {"convertHexa2Struct", K_CONVERTER::convertHexa2Struct, METH_VARARGS},
