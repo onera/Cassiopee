@@ -36,7 +36,7 @@ libraryDirs += paths; libraries += libs
 
 # setup =======================================================================
 setup(
-    name="Initiator",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "Initiator",
     version="4.2",
     description="Initiator for *Cassiopee* modules.",
     author="ONERA",

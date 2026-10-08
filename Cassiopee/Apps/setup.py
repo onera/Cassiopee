@@ -5,13 +5,12 @@
 #=============================================================================
 import os
 from setuptools import setup
-import KCore.Dist as Dist
 
 prod = os.getenv("ELSAPROD") or "xx"
 
 # setup ======================================================================
 setup(
-    name="Apps",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "Apps",
     version="4.2",
     description="Application modules",
     author="ONERA",

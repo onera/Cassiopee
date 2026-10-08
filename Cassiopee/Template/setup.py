@@ -49,7 +49,7 @@ listExtensions.append(
 
 # setup ======================================================================
 setup(
-    name="Template",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "Template",
     version="2.0",
     description="Template module.",
     author="You",
