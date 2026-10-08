@@ -9,7 +9,7 @@ import re
 import subprocess
 import shlex
 from collections import OrderedDict
-import math
+import numpy
 
 # Import Tkinter
 IMPORTOK = True
@@ -400,11 +400,11 @@ def setBatch(batch=True):
 #==========================================================
 def pround(dx):
     """Return alpha and power."""
-    if dx > 0: n = -math.ceil(-math.log(dx)/math.log(10.))
-    elif dx < 0: n = -math.ceil(-math.log(-dx)/math.log(10.))
+    if dx > 0: n = int(-numpy.ceil(-numpy.log(dx) / numpy.log(10.)))
+    elif dx < 0: n = int(-numpy.ceil(-numpy.log(-dx) / numpy.log(10.)))
     else: return dx
     alpha = dx*10**(-n)
-    #alpha = math.ceil(alpha)
+    #alpha = numpy.ceil(alpha)
     alpha = round(alpha)
     if alpha == 0.: alpha = 1
     #print(dx, alpha*10**n)
@@ -9716,7 +9716,6 @@ class GraphTK(TK.Toplevel):
     @staticmethod
     def _panUpdateLimits(ax, axis_id, event, last_event):
         """Compute limits with applied pan."""
-        import math
         assert axis_id in (0, 1)
         if axis_id == 0:
             lim = ax.get_xlim()
@@ -9734,9 +9733,9 @@ class GraphTK(TK.Toplevel):
             new_lim = lim[0] - delta, lim[1] - delta
         elif scale == 'log':
             try:
-                delta = math.log10(data[axis_id]) - math.log10(last_data[axis_id])
-                new_lim = [pow(10., (math.log10(lim[0]) - delta)),
-                           pow(10., (math.log10(lim[1]) - delta))]
+                delta = numpy.log10(data[axis_id]) - numpy.log10(last_data[axis_id])
+                new_lim = [pow(10., (numpy.log10(lim[0]) - delta)),
+                           pow(10., (numpy.log10(lim[1]) - delta))]
             except (ValueError, OverflowError):
                 new_lim = lim  # Keep previous limits
         else: new_lim = lim

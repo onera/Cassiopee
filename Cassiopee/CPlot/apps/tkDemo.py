@@ -8,7 +8,8 @@ import CPlot.Tk as CTK
 import Generator.PyTree as G
 import Converter.Internal as Internal
 import Transform.PyTree as T
-import math, time
+import numpy
+import time
 import CPlot.iconics as iconics
 
 # local widgets list
@@ -53,8 +54,8 @@ def rotate():
         i = 0
         while CTK.__BUSY__:
             speed = WIDGETS['speed'].get() * 0.0006 / 100.
-            cs = math.cos(speed*i * math.pi/180)
-            ss = math.sin(speed*i * math.pi/180)
+            cs = numpy.cos(speed*i * numpy.pi/180)
+            ss = numpy.sin(speed*i * numpy.pi/180)
             px = cs * (posCam[0]-xc) + ss * (posCam[1]-yc) + xc
             py = -ss * (posCam[0]-xc) + cs * (posCam[1]-yc) + yc
             posCam[0] = px; posCam[1] = py

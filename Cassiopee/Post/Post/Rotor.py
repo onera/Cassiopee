@@ -9,7 +9,6 @@ from . import Mpi as Pmpi
 import Converter.Mpi as Cmpi
 import RigidMotion.PyTree as R
 import numpy
-import math
 
 # Helpers
 # Echange deux noeuds
@@ -192,30 +191,30 @@ def exportAccumulatorMap(accumulator, vars=['Fx','Fy','Fz']):
 
     C._addVars(z, vars)
     if len(psis) == 1:
-        psirad = psis[0]*math.pi/180.
+        psirad = psis[0]*numpy.pi/180.
         for r, rad in enumerate(radii):
             acu = accumulator[(psis[0],rad)]
-            qx[r] = rad * math.cos(psirad)
-            qy[r] = rad * math.sin(psirad)
+            qx[r] = rad * numpy.cos(psirad)
+            qy[r] = rad * numpy.sin(psirad)
             for c, v in enumerate(vars):
                 q = Internal.getNodeFromName2(z, v)[1]
                 q[r] = acu[c]
     elif len(radii) == 1:
         for p, psi in enumerate(psis):
-            psirad = psi*math.pi/180.
+            psirad = psi*numpy.pi/180.
             acu = accumulator[(psi,radii[0])]
-            qx[p] = radii[0] * math.cos(psirad)
-            qy[p] = radii[0] * math.sin(psirad)
+            qx[p] = radii[0] * numpy.cos(psirad)
+            qy[p] = radii[0] * numpy.sin(psirad)
             for c, v in enumerate(vars):
                 q = Internal.getNodeFromName2(z, v)[1]
                 q[p] = acu[c]
     else:
         for p, psi in enumerate(psis):
-            psirad = psi*math.pi/180.
+            psirad = psi*numpy.pi/180.
             for r, rad in enumerate(radii):
                 acu = accumulator[(psi,rad)]
-                qx[p,r] = rad * math.cos(psirad)
-                qy[p,r] = rad * math.sin(psirad)
+                qx[p,r] = rad * numpy.cos(psirad)
+                qy[p,r] = rad * numpy.sin(psirad)
                 for c, v in enumerate(vars):
                     q = Internal.getNodeFromName2(z, v)[1]
                     q[p,r] = acu[c]
@@ -242,7 +241,7 @@ def computeZb(teff, psi, RoInf, ASOUND, Mtip, AR, SIGMA,
     xb = Pmpi.integ(teff, 'centers:Fx')[0]
     yb = Pmpi.integ(teff, 'centers:Fy')[0]
     zb = Pmpi.integ(teff, 'centers:Fz')[0]
-    S = math.pi * AR**2
+    S = numpy.pi * AR**2
     adim = 0.5*RoInf*S*SIGMA*(Mtip*ASOUND)**2
     xb = 100. * xb / adim
     yb = 100. * yb / adim
@@ -307,7 +306,7 @@ def extractRadius(teff, axis_pnt, axis_vct, loc='node'):
         ax = (y-cy)*uz - (z-cz)*uy
         ay = (x-cx)*uz - (z-cz)*ux
         az = (x-cx)*uy - (y-cy)*ux
-        return math.sqrt(ax**2 + ay**2 + az**2)/math.sqrt(ux**2 + uy**2 + uz**2)
+        return numpy.sqrt(ax**2 + ay**2 + az**2)/numpy.sqrt(ux**2 + uy**2 + uz**2)
 
     if loc == 'center':
         teff = C.initVars(teff, 'centers:Radius', function, ['centers:CoordinateX', 'centers:CoordinateY', 'centers:CoordinateZ'])
@@ -381,7 +380,7 @@ def extractTheta(teff, axis_pnt, axis_vct, loc='node'):
     base = []
     for vec in [vec1, vec2, vec3]:
         a,b,c = vec
-        norm = math.sqrt(a*a + b*b + c*c)
+        norm = numpy.sqrt(a*a + b*b + c*c)
         base.append((a/norm, b/norm, c/norm))
 
     # matrice de passage de R dans base
@@ -429,7 +428,7 @@ def extractTheta(teff, axis_pnt, axis_vct, loc='node'):
 # IN: accumulatorCmM2: dict of CmM2 used to track their evolution. Keys are (psi,rad)
 # IN: adimCnM2: scaling value for CnM2. If adimCnM2=0: computes the value with adimCnM2=0.5*RoInf*ASOUND**2*CHORD
 # IN: adimCmM2: scaling value for CmM2. If adimCmM2=0: computes the value with adimCmM2=0.5*RoInf*ASOUND**2*CHORD
-# IN: adimKp: scaling value for Kp. If Kp=0: computes the value with Kp=0.5*RoInf*(abs(rad)*Mtip*ASOUND/AR+MU*Mtip*ASOUND*math.sin(psi/180.*math.pi))**2
+# IN: adimKp: scaling value for Kp. If Kp=0: computes the value with Kp=0.5*RoInf*(abs(rad)*Mtip*ASOUND/AR+MU*Mtip*ASOUND*numpy.sin(psi/180.*numpy.pi))**2
 # IN: relativeShaft: relative shaft angle if the mesh is not in the wind frame
 # IN: localFrame: if True, returns CnM2 and CmM2 in relative (blade section) frame
 # IN: delta: mean mesh step on blade in the span wise direction
@@ -476,7 +475,7 @@ def extractSlices(teff, bladeName, psi, radii,
     #     if theta < 0: theta += 2*numpy.pi
     #     return theta
     # C._initVars(teff,'Theta', arctan3, [coordXSC, coordSlice])
-    # C._initVars(teff,'{Theta2}={Theta}*%f/%f'%(180., math.pi))
+    # C._initVars(teff,'{Theta2}={Theta}*%f/%f'%(180., numpy.pi))
 
     b = Internal.getNodeFromName1(teff, bladeName)
     if b is not None:
@@ -590,7 +589,7 @@ def extractSlices(teff, bladeName, psi, radii,
 
 
         # Kp
-        if adimKp == 0: adimKp_loc = 0.5*RoInf*(abs(rad)*Mtip*ASOUND/AR + MU*Mtip*ASOUND*math.sin(psi/180.*math.pi))**2
+        if adimKp == 0: adimKp_loc = 0.5*RoInf*(abs(rad)*Mtip*ASOUND/AR + MU*Mtip*ASOUND*numpy.sin(psi/180.*numpy.pi))**2
         else: adimKp_loc = adimKp
         C._initVars(iso, '{Kp}= ({Pressure}-%20.16g)/ %20.16g'%(PInf,adimKp_loc))
         # Cf
@@ -787,7 +786,7 @@ def concatenateStress(t1, t2, cpt):
         ymax = C.getMaxValue(iso, 'CoordinateY')
         C._initVars(iso, '{xc}= 1.-({CoordinateY}-%20.16g)/(%20.16g-%20.16g)'%(ymin,ymax,ymin))
         # Kp
-        adimKp = 0.5*ROINF*(r*MTIP*ASOUND/AR+MU*MTIP*ASOUND*math.sin(psib/180.*math.pi))**2
+        adimKp = 0.5*ROINF*(r*MTIP*ASOUND/AR+MU*MTIP*ASOUND*numpy.sin(psib/180.*numpy.pi))**2
         C._initVars(iso, '{Kp}= ({Pressure}-%20.16g)/ %20.16g'%(PINF,adimKp))
         # Cf
         C._initVars(iso, '{Cf}= {frictionMagnitude}/ %20.16g'%adimKp)

@@ -4,7 +4,7 @@ import Transform as T
 import Generator as G
 import Converter as C
 from . import Boxes
-import math
+import numpy
 
 #==============================================================================
 # IN: line: une courbe dans le plan (x,y)
@@ -31,17 +31,17 @@ def wall(line,Bx,By,Bz,nlayers=1,chamfer=-1., shrink=1.):
             if n%2 == 0:
                 xi = 0.5*(x+xp); yi = 0.5*(y+yp)
                 bx2 = T.translate(bx, (xi,yi,posZ))
-                if xp-x>1.e-16: alpha = math.atan((yp-y)/(xp-x))
-                else: alpha = math.pi*0.5
-                bx2 = T.rotate(bx2, (xi,yi,posZ), (0,0,1), alpha*180/math.pi)
+                if xp-x>1.e-16: alpha = numpy.arctan((yp-y)/(xp-x))
+                else: alpha = numpy.pi*0.5
+                bx2 = T.rotate(bx2, (xi,yi,posZ), (0,0,1), alpha*180/numpy.pi)
                 bricks.append(bx2)
             else:
                 if i > 0: [xm,ym,zm] = C.getValue(line, i-1)
                 else: [xm,ym,zm] = C.getValue(line, 0)
                 bx2 = T.translate(bx, (x,y,posZ))
-                if xp-xm>1.e-12: alpha = math.atan((yp-ym)/(xp-xm))
-                else: alpha = math.pi*0.5
-                bx2 = T.rotate(bx2, (x,y,posZ), (0,0,1), alpha*180/math.pi)
+                if xp-xm>1.e-12: alpha = numpy.arctan((yp-ym)/(xp-xm))
+                else: alpha = numpy.pi*0.5
+                bx2 = T.rotate(bx2, (x,y,posZ), (0,0,1), alpha*180/numpy.pi)
                 bricks.append(bx2)
         posZ += Bz
     o = T.join(bricks)

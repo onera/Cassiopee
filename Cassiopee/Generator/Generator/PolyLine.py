@@ -11,7 +11,7 @@ def polyLineMesher(polyLine, h, yplus, density):
     Usage : polyLineMesher( polyLine, h, yplus, density, extension)"""
     import Geom as D
     import Converter as C
-    import math
+    import numpy
     import Transform as T
 
     polyLine = C.convertArray2Tetra(polyLine)
@@ -31,7 +31,7 @@ def polyLineMesher(polyLine, h, yplus, density):
         ind1 = c[0,i]-1; ind2 = c[1,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
-        l = math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
+        l = numpy.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
         if (h > 0.9*l):
             h = 0.9*l
             print("Warning: height changed to", h,"...")
@@ -46,7 +46,7 @@ def polyLineMesher(polyLine, h, yplus, density):
         ind1 = c[0,i]-1; ind2 = c[1,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
-        l = math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
+        l = numpy.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
         ni = int(l*density)+1
         if (ni < 4):
             density = 4./l
@@ -81,7 +81,7 @@ def polyLineMesher(polyLine, h, yplus, density):
         ind1 = c[0,i]-1; ind2 = c[1,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
-        l = math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
+        l = numpy.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
         ni = int(l*density)+1
         hi = extension * 1. / (ni-1)
         # ext = 1 ; extension chimere
@@ -135,8 +135,8 @@ def polyLineMesher(polyLine, h, yplus, density):
                 indv = findNeighbourIndex(polyLine, ind1+1, i+1)
                 indv = indv-1
                 x4 = f[0,indv]; y4 = f[1,indv]; z4 = f[2,indv]
-                no = math.sqrt( (x4-px1)*(x4-px1) + (y4-py1)*(y4-py1) + (z4-pz1)*(z4-pz1))
-                hp = h / math.sin( curvature[1][0,ind1] * math.pi / 180. )
+                no = numpy.sqrt( (x4-px1)*(x4-px1) + (y4-py1)*(y4-py1) + (z4-pz1)*(z4-pz1))
+                hp = h / numpy.sin( curvature[1][0,ind1] * numpy.pi / 180. )
                 px4 = px1 + hp * (x4-px1)/no
                 py4 = py1 + hp * (y4-py1)/no
                 pz4 = pz1 + hp * (z4-pz1)/no
@@ -153,8 +153,8 @@ def polyLineMesher(polyLine, h, yplus, density):
                 indv = findNeighbourIndex(polyLine, ind2+1, i+1)
                 indv = indv-1
                 x3 = f[0,indv]; y3 = f[1,indv]; z3 = f[2,indv]
-                no = math.sqrt( (x3-px2)*(x3-px2) + (y3-py2)*(y3-py2) + (z3-pz2)*(z3-pz2))
-                hp = h / math.sin( curvature[1][0,ind2] * math.pi / 180. )
+                no = numpy.sqrt( (x3-px2)*(x3-px2) + (y3-py2)*(y3-py2) + (z3-pz2)*(z3-pz2))
+                hp = h / numpy.sin( curvature[1][0,ind2] * numpy.pi / 180. )
                 px3 = px2 + hp * (x3-px2)/no
                 py3 = py2 + hp * (y3-py2)/no
                 pz3 = pz2 + hp * (z3-pz2)/no

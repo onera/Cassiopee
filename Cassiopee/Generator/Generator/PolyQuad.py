@@ -2,7 +2,7 @@
 """
 from . import Generator as G
 import Geom as D
-import math
+import numpy
 
 __version__ = G.__version__
 
@@ -26,7 +26,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
 
     f = polyQuad[1]; c = polyQuad[2]; ne = c.shape[1]
 
-    deuxPiSur3 = 2.*math.pi/3.
+    deuxPiSur3 = 2.*numpy.pi/3.
 
     # Calcul des longueurs minimum et maximum des arretes
     lmin = 1.e6
@@ -35,25 +35,25 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
         ind1 = c[0,i]-1; ind2 = c[1,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
-        l = math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
+        l = numpy.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
         lmin = min(lmin, l)
         lmax = max(lmax, l)
         ind1 = c[1,i]-1; ind2 = c[2,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
-        l = math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
+        l = numpy.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
         lmin = min(lmin, l)
         lmax = max(lmax, l)
         ind1 = c[2,i]-1; ind2 = c[3,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
-        l = math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
+        l = numpy.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
         lmin = min(lmin, l)
         lmax = max(lmax, l)
         ind1 = c[3,i]-1; ind2 = c[0,i]-1
         x1 = f[0,ind1]; y1 = f[1,ind1]; z1 = f[2,ind1]
         x2 = f[0,ind2]; y2 = f[1,ind2]; z2 = f[2,ind2]
-        l = math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
+        l = numpy.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2))
         lmin = min(lmin, l)
         lmax = max(lmax, l)
 
@@ -124,25 +124,25 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
         a4 = min(a4,1.); a4 = max(a4,-1.)
         if t1x*n1x + t1y*n1y + t1z*n1z < -1.e-10: # extension
             ext1 = 1
-        elif math.acos(a1) < deuxPiSur3: # TFI 2 parois
+        elif numpy.arccos(a1) < deuxPiSur3: # TFI 2 parois
             ext1 = 0
         else: # TFI MD + TTM
             ext1 = -1
         if t2x*n2x + t2y*n2y + t2z*n2z < -1.e-10: # extension
             ext2 = 1
-        elif math.acos(a2) < deuxPiSur3: # TFI 2 parois
+        elif numpy.arccos(a2) < deuxPiSur3: # TFI 2 parois
             ext2 = 0
         else: # TFI MD + TTM
             ext2 = -1
         if t3x*n3x + t3y*n3y + t3z*n3z < -1.e-10: # extension
             ext3 = 1
-        elif math.acos(a3) < deuxPiSur3: # TFI 2 parois
+        elif numpy.arccos(a3) < deuxPiSur3: # TFI 2 parois
             ext3 = 0
         else: # TFI MD + TTM
             ext3 = -1
         if t4x*n4x + t4y*n4y + t4z*n4z < -1.e-10: # extension
             ext4 = 1
-        elif math.acos(a4) < deuxPiSur3: # TFI 2 parois
+        elif numpy.arccos(a4) < deuxPiSur3: # TFI 2 parois
             ext4 = 0
         else: # TFI MD + TTM
             ext4 = -1
@@ -280,7 +280,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
             rx = (n1y+ny)*(z2 - z1) - (n1z+nz)*(y2 - y1)
             ry = (n1z+nz)*(x2 - x1) - (n1x+nx)*(z2 - z1)
             rz = (n1x+nx)*(y2 - y1) - (n1y+ny)*(x2 - x1)
-            norme = math.sqrt(rx*rx + ry*ry + rz*rz)
+            norme = numpy.sqrt(rx*rx + ry*ry + rz*rz)
             n1x = rx/norme
             n1y = ry/norme
             n1z = rz/norme
@@ -293,7 +293,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
             rx = (n2y+ny)*(z3 - z2) - (n2z+nz)*(y3 - y2)
             ry = (n2z+nz)*(x3 - x2) - (n2x+nx)*(z3 - z2)
             rz = (n2x+nx)*(y3 - y2) - (n2y+ny)*(x3 - x2)
-            norme = math.sqrt(rx*rx + ry*ry + rz*rz)
+            norme = numpy.sqrt(rx*rx + ry*ry + rz*rz)
             n2x = rx/norme
             n2y = ry/norme
             n2z = rz/norme
@@ -306,7 +306,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
             rx = (n3y+ny)*(z4 - z3) - (n3z+nz)*(y4 - y3)
             ry = (n3z+nz)*(x4 - x3) - (n3x+nx)*(z4 - z3)
             rz = (n3x+nx)*(y4 - y3) - (n3y+ny)*(x4 - x3)
-            norme = math.sqrt(rx*rx + ry*ry + rz*rz)
+            norme = numpy.sqrt(rx*rx + ry*ry + rz*rz)
             n3x = rx/norme
             n3y = ry/norme
             n3z = rz/norme
@@ -319,7 +319,7 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
             rx = (n4y+ny)*(z1 - z4) - (n4z+nz)*(y1 - y4)
             ry = (n4z+nz)*(x1 - x4) - (n4x+nx)*(z1 - z4)
             rz = (n4x+nx)*(y1 - y4) - (n4y+ny)*(x1 - x4)
-            norme = math.sqrt(rx*rx + ry*ry + rz*rz)
+            norme = numpy.sqrt(rx*rx + ry*ry + rz*rz)
             n4x = rx/norme
             n4y = ry/norme
             n4z = rz/norme
@@ -350,10 +350,10 @@ def polyQuadMesher(polyQuad, h, hf, density, next):
         p8y = (dh*(n3z*n4x-n3x*n4z) + d3*(n4z*nx-n4x*nz) + d4*(nz*n3x-nx*n3z))/n34
         p8z = (dh*(n3x*n4y-n3y*n4x) + d3*(n4x*ny-n4y*nx) + d4*(nx*n3y-ny*n3x))/n34
 
-        l1 = math.sqrt( (p1x-p2x)*(p1x-p2x) + (p1y-p2y)*(p1y-p2y) + (p1z-p2z)*(p1z-p2z) )
-        l2 = math.sqrt( (p2x-p3x)*(p2x-p3x) + (p2y-p3y)*(p2y-p3y) + (p2z-p3z)*(p2z-p3z) )
-        l3 = math.sqrt( (p3x-p4x)*(p3x-p4x) + (p3y-p4y)*(p3y-p4y) + (p3z-p4z)*(p3z-p4z) )
-        l4 = math.sqrt( (p4x-p1x)*(p4x-p1x) + (p4y-p1y)*(p4y-p1y) + (p4z-p1z)*(p4z-p1z) )
+        l1 = numpy.sqrt( (p1x-p2x)*(p1x-p2x) + (p1y-p2y)*(p1y-p2y) + (p1z-p2z)*(p1z-p2z) )
+        l2 = numpy.sqrt( (p2x-p3x)*(p2x-p3x) + (p2y-p3y)*(p2y-p3y) + (p2z-p3z)*(p2z-p3z) )
+        l3 = numpy.sqrt( (p3x-p4x)*(p3x-p4x) + (p3y-p4y)*(p3y-p4y) + (p3z-p4z)*(p3z-p4z) )
+        l4 = numpy.sqrt( (p4x-p1x)*(p4x-p1x) + (p4y-p1y)*(p4y-p1y) + (p4z-p1z)*(p4z-p1z) )
 
         distribi1 = G.cart((0,0,0), (1./(ni-1),1,1), (ni,1,1))
         distribi2 = G.cart((0,0,0), (1./(ni-1),1,1), (ni,1,1))
@@ -514,7 +514,7 @@ def normalVector(polyQuad,i):
     nx = (y3 - y1)*(z4 - z2) - (z3 - z1)*(y4 - y2)
     ny = (z3 - z1)*(x4 - x2) - (x3 - x1)*(z4 - z2)
     nz = (x3 - x1)*(y4 - y2) - (y3 - y1)*(x4 - x2)
-    norme = math.sqrt(nx*nx + ny*ny + nz*nz)
+    norme = numpy.sqrt(nx*nx + ny*ny + nz*nz)
 
     if norme == 0.:
         print(i)
@@ -543,7 +543,7 @@ def tangentVector(polyQuad,i,iP1,iP2):
     tx = ny*(z2 - z1) - nz*(y2 - y1)
     ty = nz*(x2 - x1) - nx*(z2 - z1)
     tz = nx*(y2 - y1) - ny*(x2 - x1)
-    norme = math.sqrt(tx*tx + ty*ty + tz*tz)
+    norme = numpy.sqrt(tx*tx + ty*ty + tz*tz)
 
     if norme == 0.:
         raise TypeError("Division par 0! (2)")

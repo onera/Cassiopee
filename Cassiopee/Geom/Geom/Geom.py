@@ -190,10 +190,13 @@ def export__(a, ntype='STRUCT'):
 def disc(C, R, N=100, ntype='STRUCT'):
     """Create a disc of center C and radius R made of 5 parts.
     Usage: a = disc((xc,yc,zc), R, N)"""
-    try: import Generator; import Transform; import math
+    try:
+        import Generator
+        import Transform
+        import numpy
     except ImportError:
         raise ImportError("disc: requires Generator and Transform module.")
-    coeff = R*math.sqrt(2.)*0.25
+    coeff = R*numpy.sqrt(2.)*0.25
     x = C[0]; y = C[1]; z = C[2]
     c = circle(C, R, tetas=-45., tetae=45., N=N)
     l1 = line((x+coeff,y-coeff,z), (x+coeff,y+coeff,z), N=N)

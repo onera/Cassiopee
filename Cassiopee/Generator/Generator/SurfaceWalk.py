@@ -12,7 +12,7 @@ try:
     import Converter as C
     import Post as P
     import Geom as D
-    import math
+    import numpy
 except: raise ImportError("SurfaceWalk: requires Converter, Geom, Transform, Post modules.")
 
 #=============================================================================
@@ -118,7 +118,7 @@ def surfaceWalk__(surfaces, c, distrib, constraints, niter,alphaRef, check, told
     normales = C.addVars([surfaces,normales])
     hook = C.createHook(normales, function='nodes')
     # Check de l angle de courbure max autorise
-    cosalphaRef = math.cos(alphaRef*math.pi/180.)
+    cosalphaRef = numpy.cos(alphaRef*numpy.pi/180.)
     alphaMin = abs(alphaRef); alphaCheck = 1
     if abs(alphaRef) >= 180.: alphaCheck = 0
     stop = 0; j1 = 1; jmaxout = -1

@@ -363,7 +363,7 @@ def enforceCurvature(arrayD, arrayC, power=0.5):
 # alpha is the factor of stretch for point of maximum curvature
 #--------------------------------------------------------------
 def enforceCurvature2(arrayD, arrayC, alpha=1.e-2):
-    try: import Geom as D; import math; import KCore
+    try: import Geom as D; import KCore
     except: raise ImportError("enforceCurvature2: requires Converter and Geom modules.")
 
     tol = 1.e-12 # tolerance on coincident points (=close)
@@ -397,10 +397,10 @@ def enforceCurvature2(arrayD, arrayC, alpha=1.e-2):
     for i in range(ni): rc[1][0,i] = min(1.,rc[1][0,i])
     rcmean = C.getMeanValue(rc, 'radius')
     dh = C.initVars(rc, 'dhloc', 1.); dh = C.extractVars(dh, ['dhloc'])
-    coefa = math.log(alpha)/(rcmin-1.)
+    coefa = numpy.log(alpha)/(rcmin-1.)
     for i in range(ni):
         rad = rc[1][0,i]
-        if rad < 0.2*rcmean: dh[1][0,i] = math.exp(coefa*rc[1][0,i]-coefa)
+        if rad < 0.2*rcmean: dh[1][0,i] = numpy.exp(coefa*rc[1][0,i]-coefa)
     if loop == 1: rc[1][0,ni-1] = rc[1][0,0]
     minima = []; dht = dh[1]
     dhmax = C.getMaxValue(dh, 'dhloc'); dhmin = C.getMinValue(dh, 'dhloc')
@@ -1369,7 +1369,6 @@ def mapSplit(array, dist, splitCrit=100., densMax=1000):
 def mapSplitStruct__(array, dist, splitCrit, densMax):
     import KCore
     try:
-        import math
         import Transform as T
         import Geom as D
     except:
@@ -1394,7 +1393,7 @@ def mapSplitStruct__(array, dist, splitCrit, densMax):
 
     for i in range(1, nbpoints):
         dx = x[i]-x[i-1]; dy = y[i]-y[i-1]; dz = z[i]-z[i-1]
-        ld[i] = ld[i-1] + math.sqrt(dx*dx+dy*dy+dz*dz)*ldti
+        ld[i] = ld[i-1] + numpy.sqrt(dx*dx+dy*dy+dz*dz)*ldti
 
     # Compute total length of array
     lt = D.getLength(a); lti = 1./lt
@@ -1411,9 +1410,9 @@ def mapSplitStruct__(array, dist, splitCrit, densMax):
 
     xa = a[1][posx]; ya = a[1][posy]; za = a[1][posz]
 
-    for i in range(1,len(xa)):
+    for i in range(1, len(xa)):
         dxa = xa[i]-xa[i-1]; dya = ya[i]-ya[i-1]; dza = za[i]-za[i-1]
-        la = math.sqrt(dxa*dxa+dya*dya+dza*dza) *lti
+        la = numpy.sqrt(dxa*dxa+dya*dya+dza*dza) *lti
         if la < stepmin and la > 0.: stepmin = la
     if lt/stepmin > densMax: stepmin = lt/densMax
     # Densify array
@@ -1422,7 +1421,7 @@ def mapSplitStruct__(array, dist, splitCrit, densMax):
     a = T.splitCurvatureRadius(a, splitCrit)
 
     # Build array with distance of each "split point"
-    L = numpy.zeros((len(a)), dtype='float64')
+    L = numpy.zeros((len(a)), dtype=numpy.float64)
     ltinv = 1./lt
     L[0] = D.getLength(a[0]) * ltinv
 
@@ -1435,8 +1434,8 @@ def mapSplitStruct__(array, dist, splitCrit, densMax):
         ind2 = D.getDistantIndex(dist, 1, L[i]*ldt)
         ind1 = ind2-1
 
-        d1 = math.fabs(L[i]-ld[ind1])
-        d2 = math.fabs(L[i]-ld[ind2])
+        d1 = numpy.fabs(L[i]-ld[ind1])
+        d2 = numpy.fabs(L[i]-ld[ind2])
         if d1 < d2: indsplit = ind1
         else: indsplit = ind2
         # Split distribution with "split points"
@@ -1468,7 +1467,6 @@ def tetraMesher(a, maxh=-1., quality=1.2, grading=1.2, triangulateOnly=0,
         a = C.convertArray2Tetra(a)
         a = T.join(a)
     except: pass
-    import math
     if a[3] == 'BAR':
         p = fittingPlaster(a)
         b = gapfixer(a, p)
@@ -1478,7 +1476,7 @@ def tetraMesher(a, maxh=-1., quality=1.2, grading=1.2, triangulateOnly=0,
         if maxh == -1.: # auto maxh
             vol = getVolumeMap(a)
             maxh = C.getMeanValue(vol, 'vol')
-            maxh = math.sqrt(2*maxh)
+            maxh = numpy.sqrt(2*maxh)
         if algo == 0: # netgen
             if remeshBoundaries == 0:
                 if maxh < 0: maxh = 1.e6
@@ -1541,7 +1539,7 @@ def gapsmanager(components, mode=0, refine=0, coplanar=0):
 def front2Hexa(a, surf, h, hf, hext, density=50):
     """Generate an hexa grid starting from a front a, a surface surf,
     and h, hf, hext the height of the mesh, of the first and last cells."""
-    try: import Transform as T; import math
+    try: import Transform as T
     except: raise ImportError("front2Hexa: requires Transform module.")
 
     # projection de a sur la surface ortho
@@ -1553,7 +1551,7 @@ def front2Hexa(a, surf, h, hf, hext, density=50):
     for ind in range(npts):
         dx=a1[0,ind]-b1[0,ind]; dy=a1[1,ind]-b1[1,ind]; dz=a1[2,ind]-b1[2,ind]
         h0 = max(h0, dx*dx+dy*dy+dz*dz)
-    h0 = math.sqrt(h0)
+    h0 = numpy.sqrt(h0)
     h0 = max(h, h0) # hauteur max du maillage (sans extension)
     nk = int(h0*density)+1; nk = max(nk,5)
     distrib = cart((0.,0.,0.),(1./nk,1.,1.),(nk+1,1,1))

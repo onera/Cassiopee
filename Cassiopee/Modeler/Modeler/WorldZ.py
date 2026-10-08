@@ -1,7 +1,7 @@
 #
 # Cassiopee's world
 #
-import math
+import numpy
 import Converter
 import Generator
 import Transform
@@ -151,8 +151,8 @@ def turnLeft(zmap, pos, angle=5., unit=1., headStop=0.1):
     H = pos[2]
     deltaZ = pos[3]
     sn = 0.
-    vcos = math.cos(angle*math.pi/180.)
-    vsin = math.sin(angle*math.pi/180.)
+    vcos = numpy.cos(angle*numpy.pi/180.)
+    vsin = numpy.sin(angle*numpy.pi/180.)
     (deltax,deltay,deltaz) = (xe-x,ye-y,ze-z)
     px = vcos*deltax-vsin*deltay
     py = vsin*deltax+vcos*deltay
@@ -171,8 +171,8 @@ def turnRight(zmap, pos, angle=5., unit=1., headStop=0.1):
     H = pos[2]
     deltaZ = pos[3]
     sn = 0.
-    vcos = math.cos(angle*math.pi/180.)
-    vsin = math.sin(angle*math.pi/180.)
+    vcos = numpy.cos(angle*numpy.pi/180.)
+    vsin = numpy.sin(angle*numpy.pi/180.)
     (deltax,deltay,deltaz) = (xe-x,ye-y,ze-z)
     px = vcos*deltax+vsin*deltay
     py = -vsin*deltax+vcos*deltay

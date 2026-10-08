@@ -4,7 +4,7 @@ import Generator.PyTree as G
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import Post.Rotor as Rotor
-import math
+import numpy
 
 a = G.cylinder((0.,0.,0.), 0.5, 1., 360., 0., 10., (50,50,30))
 coordZ = Internal.getNodeFromName(a, 'CoordinateZ')[1]
@@ -16,8 +16,8 @@ axis_pnt = (0,0,0)
 axis_vct = [1,0,0]
 
 theta = 25.
-costheta = math.cos(math.radians(theta))
-sintheta = - math.sin(math.radians(theta))
+costheta = numpy.cos(numpy.radians(theta))
+sintheta = - numpy.sin(numpy.radians(theta))
 a = T.rotate(a, (0,0,0), (0.,theta,0.))
 a = T.rotate(a, (0,0,0), (0.,0.,theta))
 a = T.rotate(a, (0,0,0), (theta,0.,0.))

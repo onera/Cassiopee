@@ -1,6 +1,5 @@
 # - convertArrays2File (wav) -
 import Converter as C
-import math
 
 # Sampling time step
 Deltat = 5.e-5

@@ -16,7 +16,7 @@ try:
     from . import SurfaceWalk as SW
     import Dist2Walls as DTW
     import Geom as D
-    import math
+    import numpy
 except:
     raise ImportError("Collar: requires Converter, Generator, Post, Transform, Dist2Walls, Intersector modules.")
 
@@ -480,10 +480,10 @@ def getSurfaceConstraints__(iniSurf, boolSurf, edge, toldist, alphaRef=30.):
                 # calcul de l angle entre les deux contours au pt d intersection
                 xAB = xB-xA; yAB = yB-yA; zAB = zB-zA
                 xAC = xC-xA; yAC = yC-yA; zAC = zC-zA
-                nAB = math.sqrt(xAB**2+yAB**2+zAB**2)
-                nAC = math.sqrt(xAC**2+yAC**2+zAC**2)
+                nAB = numpy.sqrt(xAB**2+yAB**2+zAB**2)
+                nAC = numpy.sqrt(xAC**2+yAC**2+zAC**2)
                 ps = (xAB*xAC+yAB*yAC+zAB*zAC)/(nAB*nAC) # cos de l angle
-                if abs(ps) < math.cos(alphaRef*math.pi/180.):  constraints.append(e1)
+                if abs(ps) < numpy.cos(alphaRef*numpy.pi/180.):  constraints.append(e1)
     return constraints
 
 #=============================================================================
@@ -675,7 +675,7 @@ def generateCollarVolumeMesh1__(surf1, surf2, distribj, calpha, toldist):
         dx = coords1[0,iend]-coords1[0,istart]
         dy = coords1[1,iend]-coords1[1,istart]
         dz = coords1[2,iend]-coords1[2,istart]
-        l1inv = 1./math.sqrt(dx*dx+dy*dy+dz*dz)
+        l1inv = 1./numpy.sqrt(dx*dx+dy*dy+dz*dz)
         vect1[0,i1] = dx*l1inv
         vect1[1,i1] = dy*l1inv
         vect1[2,i1] = dz*l1inv
@@ -907,7 +907,7 @@ def orderContourForUnionSurface__(edge, s1, s2):
     yt = C.extractVars(edge,['y'])[1]; yA = yt[0,0]; yB = yt[0,1]
     zt = C.extractVars(edge,['z'])[1]; zA = zt[0,0]; zB = zt[0,1]
     ksix = xB-xA; ksiy = yB-yA; ksiz = zB-zA
-    ksin = 1./math.sqrt(ksix*ksix+ksiy*ksiy+ksiz*ksiz)
+    ksin = 1./numpy.sqrt(ksix*ksix+ksiy*ksiy+ksiz*ksiz)
     ksix = ksix*ksin;  ksiy = ksiy*ksin; ksiz = ksiz*ksin
     #
     ptA = C.array('x,y,z',1,1,1); ptA[1][0,0]=xA; ptA[1][1,0]=yA; ptA[1][2,0]=zA
@@ -917,7 +917,7 @@ def orderContourForUnionSurface__(edge, s1, s2):
     n1 = C.addVars([s1,n1])
     [n1x,n1y,n1z] = P.extractPoint([n1],(x1,y1,z1))
     etax1 = n1y*ksiz-n1z*ksiy; etay1 = n1z*ksix-n1x*ksiz; etaz1 = n1x*ksiy-n1y*ksix
-    normeta1 = max(1.e-12,math.sqrt(etax1*etax1+etay1*etay1+etaz1*etaz1)); normeta1 = 1./(normeta1)
+    normeta1 = max(1.e-12,numpy.sqrt(etax1*etax1+etay1*etay1+etaz1*etaz1)); normeta1 = 1./(normeta1)
     etax1 = etax1*normeta1; etay1 = etay1*normeta1; etaz1 = etaz1*normeta1
     #
     n2 = G.getSmoothNormalMap(s2,niter=0); n2 = C.normalize(n2, ['sx','sy','sz'])
@@ -925,7 +925,7 @@ def orderContourForUnionSurface__(edge, s1, s2):
     x2 = pt2[1][0,0]; y2 = pt2[1][1,0]; z2 = pt2[1][2,0]
     n2 = C.addVars([s2,n2])
     [n2x,n2y,n2z] = P.extractPoint([n2],(x2,y2,z2))
-    normn2 = max(1.e-12,math.sqrt(n2x*n2x+n2y*n2y+n2z*n2z)); normn2 = 1./normn2
+    normn2 = max(1.e-12,numpy.sqrt(n2x*n2x+n2y*n2y+n2z*n2z)); normn2 = 1./normn2
     n2x = n2x*normn2; n2y = n2y*normn2; n2z = n2z*normn2
     ps = etax1*n2x+etay1*n2y+etaz1*n2z
     #print(ps)
@@ -943,7 +943,7 @@ def orderContourForDifferenceSurface__(edge, s1, s2):
     yt = C.extractVars(edge,['y'])[1]; yA = yt[0,0]; yB = yt[0,1]
     zt = C.extractVars(edge,['z'])[1]; zA = zt[0,0]; zB = zt[0,1]
     ksix = xB-xA; ksiy = yB-yA; ksiz = zB-zA
-    ksin = 1./math.sqrt(ksix*ksix+ksiy*ksiy+ksiz*ksiz)
+    ksin = 1./numpy.sqrt(ksix*ksix+ksiy*ksiy+ksiz*ksiz)
     ksix = ksix*ksin;  ksiy = ksiy*ksin; ksiz = ksiz*ksin
     #
     ptA = C.array('x,y,z',1,1,1); ptA[1][0,0]=xA; ptA[1][1,0]=yA; ptA[1][2,0]=zA

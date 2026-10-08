@@ -10,7 +10,7 @@ import Geom.PyTree as D
 import Transform.PyTree as T
 import Generator.PyTree as G
 import KCore.Vector as Vector
-import math
+import numpy
 
 # local widgets list
 WIDGETS = {}; VARS = []
@@ -50,7 +50,7 @@ def createText(event=None):
     if lx*lx + ly*ly + lz*lz == 0.: lx = -1
     if dirCam[0]*dirCam[0] + dirCam[1]*dirCam[1] + dirCam[2]*dirCam[2] == 0.:
         dirCam = (0,0,1)
-    ll = math.sqrt(lx*lx + ly*ly + lz*lz)
+    ll = numpy.sqrt(lx*lx + ly*ly + lz*lz)
     a = T.homothety(a, (posEye[0], posEye[1], posEye[2]), 0.01*ll)
     ux = dirCam[1]*lz - dirCam[2]*ly
     uy = dirCam[2]*lx - dirCam[0]*lz

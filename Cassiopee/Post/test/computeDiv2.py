@@ -2,11 +2,11 @@
 import Converter as C
 import Post as P
 import Generator as G
-import math
+import numpy
 
 m = G.cartNGon((0,0,0), (1,1,1), (4,4,4))
 
-def Fu(a): return math.cos(a)
+def Fu(a): return numpy.cos(a)
 def Fv(a): return 4.*a
 def Fw(a,b,c): return b*(c**2)
 

@@ -19,7 +19,7 @@ WIDGETS = {}; VARS = []
 def getState():
     if CTK.t == []: return
 
-    import math
+    import numpy
     referenceState = []
     flowEquationSet = []
 
@@ -102,7 +102,7 @@ def getState():
     else: WInf = None
     if UInf is not None and VInf is not None and WInf is not None:
         Vit = UInf*UInf+VInf*VInf+WInf*WInf
-        Vit = math.sqrt(Vit)
+        Vit = numpy.sqrt(Vit)
         VARS[12].set(str(Vit))
     else: Vit = None
 
@@ -126,10 +126,10 @@ def getState():
 
     # Incidences
     if UInf is not None and VInf is not None and WInf is not None and abs(UInf) > 1.e-12:
-        aly = math.atan(WInf/UInf)
-        alz = math.atan(math.cos(aly)*VInf/UInf)
-        VARS[4].set(str(alz*180./math.pi))
-        VARS[5].set(str(aly*180./math.pi))
+        aly = numpy.arctan(WInf/UInf)
+        alz = numpy.arctan(numpy.cos(aly)*VInf/UInf)
+        VARS[4].set(str(alz*180./numpy.pi))
+        VARS[5].set(str(aly*180./numpy.pi))
 
     # Modele de turbulence
     node = Internal.getNodeFromName1(state, 'Density')
@@ -141,7 +141,7 @@ def getState():
 
     if (reynolds is not None and Density is not None and
             RokInf is not None and Vit is not None and Vit > 1.e-10):
-        TurbLevel = math.sqrt(2*RokInf/(3*Vit*Vit*Density))
+        TurbLevel = numpy.sqrt(2*RokInf/(3*Vit*Vit*Density))
         VARS[10].set(str(TurbLevel))
 
         MuInf = Density*Vit / max(reynolds,1.e-10) # L=1

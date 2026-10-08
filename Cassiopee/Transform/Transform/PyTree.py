@@ -401,7 +401,6 @@ def _patch(t1, t2, position=None, nodes=None, order=None):
 # oneovernBC
 #===============
 def _oneovernBC__(t, N):
-    import math
     C._rmBCOfType(t, 'BCMatch'); C._rmBCOfType(t, 'BCNearMatch')
     nodes = Internal.getZones(t)
     for z in nodes:
@@ -413,12 +412,12 @@ def _oneovernBC__(t, N):
             i1 = w0[0,0]; j1 = w0[1,0]; k1 = w0[2,0]
             i2 = w0[0,1]; j2 = w0[1,1]; k2 = w0[2,1]
             addi1=0; addi2=0; addj1=0; addj2=0; addk1=0; addk2=0
-            i1n = math.floor(1.*(i1-1)/N[0])+1
-            i2n = math.floor(1.*(i2-1)/N[0])+1
-            j1n = math.floor(1.*(j1-1)/N[1])+1
-            j2n = math.floor(1.*(j2-1)/N[1])+1
-            k1n = math.floor(1.*(k1-1)/N[2])+1
-            k2n = math.floor(1.*(k2-1)/N[2])+1
+            i1n = numpy.floor(1.*(i1-1)/N[0])+1
+            i2n = numpy.floor(1.*(i2-1)/N[0])+1
+            j1n = numpy.floor(1.*(j1-1)/N[1])+1
+            j2n = numpy.floor(1.*(j2-1)/N[1])+1
+            k1n = numpy.floor(1.*(k1-1)/N[2])+1
+            k2n = numpy.floor(1.*(k2-1)/N[2])+1
             if i1 - i1n*N[0] != 1-N[0]: addi1 = 1
             if i2 - i2n*N[0] != 1-N[0]: addi2 = 1
             if j1 - j1n*N[1] != 1-N[1]: addj1 = 1
@@ -439,12 +438,12 @@ def _oneovernBC__(t, N):
                 i1 = w0[0,0]; j1 = w0[1,0]; k1 = w0[2,0]
                 i2 = w0[0,1]; j2 = w0[1,1]; k2 = w0[2,1]
                 addi1=0; addi2=0; addj1=0; addj2=0;addk1=0; addk2=0
-                i1n = math.floor(1.*(i1-1)/N[0])+1
-                i2n = math.floor(1.*(i2-1)/N[0])+1
-                j1n = math.floor(1.*(j1-1)/N[1])+1
-                j2n = math.floor(1.*(j2-1)/N[1])+1
-                k1n = math.floor(1.*(k1-1)/N[2])+1
-                k2n = math.floor(1.*(k2-1)/N[2])+1
+                i1n = numpy.floor(1.*(i1-1)/N[0])+1
+                i2n = numpy.floor(1.*(i2-1)/N[0])+1
+                j1n = numpy.floor(1.*(j1-1)/N[1])+1
+                j2n = numpy.floor(1.*(j2-1)/N[1])+1
+                k1n = numpy.floor(1.*(k1-1)/N[2])+1
+                k2n = numpy.floor(1.*(k2-1)/N[2])+1
                 if i1 - i1n*N[0] != 1-N[0]: addi1 = 1
                 if i2 - i2n*N[0] != 1-N[0]: addi2 = 1
                 if j1 - j1n*N[1] != 1-N[1]: addj1 = 1

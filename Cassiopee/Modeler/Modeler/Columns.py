@@ -4,7 +4,7 @@ import Transform as T
 import Generator as G
 import Converter as C
 from . import Boxes
-import math
+import numpy
 
 #==============================================================================
 # Column avec tete et pied carre
@@ -22,7 +22,7 @@ def column(R=0.2, N=10, h=1.):
     c2 = C.convertArray2Tetra(c2)
     o = T.join([b,b2,c2])
     o = T.reorder(o, (-1,))
-    dh = R*math.sqrt(2.)
+    dh = R*numpy.sqrt(2.)
     box1 = Boxes.box((-dh,-dh,-R),(dh,dh,0), chamfer=0.05*R)
     box2 = Boxes.box((-dh,-dh,h), (dh,dh,h+R), chamfer=0.05*R)
     box1 = C.convertArray2Tetra(box1)

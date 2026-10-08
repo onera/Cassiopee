@@ -5,7 +5,6 @@ from . import Converter
 from . import converter
 from . import PyTree
 import numpy
-import math
 # global definition: coordinates name
 coordinate = ['CoordinateX', 'CoordinateY', 'CoordinateZ']
 
@@ -513,9 +512,9 @@ def getInfoForFillJoinsStruct__(prange, prangedonor, trirac, dim, dimdonor,
         nmratioFact = nmratio[0]*nmratio[1]*nmratio[2]
         if nmratioFact < 1:
             isFine = 1
-            iratio = int(math.ceil(1./nmratio[0]))
-            jratio = int(math.ceil(1./nmratio[1]))
-            kratio = int(math.ceil(1./nmratio[2]))
+            iratio = int(numpy.ceil(1./nmratio[0]))
+            jratio = int(numpy.ceil(1./nmratio[1]))
+            kratio = int(numpy.ceil(1./nmratio[2]))
         else:
             isFine = -1
             iratio = int(nmratio[0])
