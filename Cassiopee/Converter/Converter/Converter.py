@@ -1334,8 +1334,8 @@ def convertArray2Tetra1__(array, arrayC=[], split='simple'):
             if arrayC == []: arrayC = None
             return converter.convertStruct2TetraBary(array, arrayC)
         elif t == 'NGON':
-            if arrayC == []: return converter.convertNGon2TetraBary(array)
-            else: return converter.convertNGon2TetraBaryBoth(array, arrayC)
+            if arrayC == []: arrayC = None
+            return converter.convertNGon2TetraBary(array, arrayC)
         else:
             group1 = ['NODE', 'TRI', 'TETRA']
             group2 = ['BAR', 'QUAD', 'PYRA', 'PENTA', 'HEXA']
