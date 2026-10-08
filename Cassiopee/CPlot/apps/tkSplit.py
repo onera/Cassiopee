@@ -64,9 +64,9 @@ def zip():
 
 
 #==============================================================================
-# Join la selection
+# Join selection
 # IN: t, cplot.selectedZones
-# OUT: t modifie et affiche
+# OUT: t modified and displayed
 #==============================================================================
 def join():
     if CTK.t == []: return
@@ -273,7 +273,7 @@ def split():
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
         dims = Internal.getZoneDim(z)
-        try:
+        try: # beacause of potential invalid indices
             if dims[0] == 'Structured':
                 ni = dims[1]; nj = dims[2]; nk = dims[3]
                 if stype == 'i-indices':

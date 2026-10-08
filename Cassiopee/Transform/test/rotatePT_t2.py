@@ -16,9 +16,9 @@ vx = C.getField('centers:VelocityX', a)[0]
 vy = C.getField('centers:VelocityY', a)[0]
 
 nic = vx[2]; njc = vx[3]
-i0 = np.arange(nic) * np.pi / 180.
-vx[1][0,:] = np.tile(np.cos(i0), njc)
-vy[1][0,:] = np.tile(np.sin(i0), njc)
+i0 = numpy.arange(nic) * numpy.pi / 180.
+vx[1][0,:] = numpy.tile(numpy.cos(i0), njc)
+vy[1][0,:] = numpy.tile(numpy.sin(i0), njc)
 
 C.setFields([vx], a, loc='centers')
 C.setFields([vy], a, loc='centers')

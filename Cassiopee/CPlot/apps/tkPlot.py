@@ -63,7 +63,7 @@ def display1D(event=None):
     try:
         gridSize = VARS[1].get()
         grids = gridSize.split(';')
-        if (len(grids) == 1): gridSize = (int(grids[0]),1)
+        if len(grids) == 1: gridSize = (int(grids[0]),1)
         else: gridSize = (int(grids[0]), int(grids[1]))
     except: gridSize = (1,1)
     CPlot.setState(gridSize=gridSize)
@@ -129,37 +129,37 @@ def display1D(event=None):
     else: actives = zones
     if actives == []: return
 
-    if (dir == 'X (Y)'):
+    if dir == 'X (Y)':
         elts = P.isoSurfMC(actives, 'CoordinateY', point[1])
         if elts != []:
             elts2 = P.isoSurfMC(elts, 'CoordinateZ', point[2])
-            if (elts2 != []): elts = elts2
-    elif (dir == 'Y (X)'):
+            if elts2 != []: elts = elts2
+    elif dir == 'Y (X)':
         elts = P.isoSurfMC(actives, 'CoordinateX', point[0])
         if elts != []:
             elts2 = P.isoSurfMC(elts, 'CoordinateZ', point[2])
-            if (elts2 != []): elts = elts2
-    elif (dir == 'Z (X)'):
+            if elts2 != []: elts = elts2
+    elif dir == 'Z (X)':
         elts = P.isoSurfMC(actives, 'CoordinateX', point[0])
-        if (elts != []):
+        if elts != []:
             elts2 = P.isoSurfMC(elts, 'CoordinateY', point[1])
-            if (elts2 != []): elts = elts2
-    elif (dir == 'X (Z)'):
+            if elts2 != []: elts = elts2
+    elif dir == 'X (Z)':
         elts = P.isoSurfMC(actives, 'CoordinateZ', point[2])
         if elts != []:
             elts2 = P.isoSurfMC(elts, 'CoordinateY', point[1])
-            if (elts2 != []): elts = elts2
-    elif (dir == 'Y (Z)'):
+            if elts2 != []: elts = elts2
+    elif dir == 'Y (Z)':
         elts = P.isoSurfMC(actives, 'CoordinateZ', point[2])
         if elts != []:
             elts2 = P.isoSurfMC(elts, 'CoordinateX', point[0])
-            if (elts2 != []): elts = elts2
-    elif (dir == 'Z (Y)'):
+            if elts2 != []: elts = elts2
+    elif dir == 'Z (Y)':
         elts = P.isoSurfMC(actives, 'CoordinateY', point[1])
-        if (elts != []):
+        if elts != []:
             elts2 = P.isoSurfMC(elts, 'CoordinateX', point[0])
-            if (elts2 != []): elts = elts2
-    elif (dir == 'I'):
+            if elts2 != []: elts = elts2
+    elif dir == 'I':
         v = points[0]; ind = points[1]
         v = v.lstrip(); v = v.rstrip()
         sname = v.split('/', 1)
@@ -168,13 +168,13 @@ def display1D(event=None):
         if bases != []:
             zones = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in zones:
-                if (z[0] == sname[1]):
+                if z[0] == sname[1]:
                     try:
                         zp = C.center2Node(z, Internal.__FlowSolutionCenters__)
                         zp = T.subzone(zp, (1,ind[3],ind[4]), (-1,ind[3],ind[4]))
                         elts.append(zp)
                     except: pass
-    elif (dir == 'J'):
+    elif dir == 'J':
         v = points[0]; ind = points[1]
         v = v.lstrip(); v = v.rstrip()
         sname = v.split('/', 1)
@@ -183,13 +183,13 @@ def display1D(event=None):
         if bases != []:
             zones = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in zones:
-                if (z[0] == sname[1]):
+                if z[0] == sname[1]:
                     try:
                         zp = C.center2Node(z, Internal.__FlowSolutionCenters__)
                         zp = T.subzone(zp, (ind[2],1,ind[4]), (ind[2],-1,ind[4]))
                         elts.append(zp)
                     except: pass
-    elif (dir == 'K'):
+    elif dir == 'K':
         v = points[0]; ind = points[1]
         v = v.lstrip(); v = v.rstrip()
         sname = v.split('/', 1)
@@ -198,22 +198,22 @@ def display1D(event=None):
         if bases != []:
             zones = Internal.getNodesFromType1(bases[0], 'Zone_t')
             for z in zones:
-                if (z[0] == sname[1]):
+                if z[0] == sname[1]:
                     try:
                         zp = C.center2Node(z, Internal.__FlowSolutionCenters__)
                         zp = T.subzone(zp, (ind[2],ind[3],1), (ind[2],ind[3],-1))
                         elts.append(zp)
                     except: pass
-    elif (dir == 'Elements'):
+    elif dir == 'Elements':
         elts = []
         for v in points:
             v = v.lstrip(); v = v.rstrip()
             sname = v.split('/', 1)
             bases = Internal.getNodesFromName1(CTK.t, sname[0])
-            if (bases != []):
+            if bases != []:
                 zones = Internal.getNodesFromType1(bases[0], 'Zone_t')
                 for z in zones:
-                    if (z[0] == sname[1]): elts.append(z)
+                    if z[0] == sname[1]: elts.append(z)
     if elts == []:
         CTK.TXT.insert('START', 'Nothing to display.\n')
         CTK.TXT.insert('START', 'Error: ', 'Error'); return
@@ -230,7 +230,7 @@ def display1D(event=None):
 
     # active point localisation
     nz = CPlot.getSelectedZone()
-    if (nz != -1):
+    if nz != -1:
         ind = CPlot.getActivePointIndex()
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
@@ -420,9 +420,9 @@ def displayFrameMenu(event=None):
     WIDGETS['frameMenu'].tk_popup(event.x_root+50, event.y_root, 0)
 
 #==============================================================================
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     import sys
-    if (len(sys.argv) == 2):
+    if len(sys.argv) == 2:
         CTK.FILE = sys.argv[1]
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)

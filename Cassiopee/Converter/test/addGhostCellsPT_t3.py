@@ -28,17 +28,18 @@ test.testT(t,1)
 ni = 91; nj = 21; nk = 1
 alpha = 90.
 a = G.cylinder((0,0,0), 0.5, 1., 0., alpha, 1., (ni,nj,nk))
-C._initVars(a,'VelocityX', 0.)
-C._initVars(a,'VelocityY', 0.)
-C._initVars(a,'VelocityZ', 1.)
+C._initVars(a, 'VelocityX', 0.)
+C._initVars(a, 'VelocityY', 0.)
+C._initVars(a, 'VelocityZ', 1.)
 vx = C.getField('VelocityX', a)[0]
 vy = C.getField('VelocityY', a)[0]
 
 nic = vx[2]; njc = vx[3]
-i = np.arange(nic)
-i0 = i * np.pi / 180.
-vx[1][0,:] = np.cos(i0)
-vy[1][0,:] = np.sin(i0)
+i = numpy.arange(nic)
+i0 = i * numpy.pi / 180.
+for j in range(njc):
+    vx[1][0,j*nic:ni+j*nic] = numpy.cos(i0)
+    vy[1][0,j*nic:ni+j*nic] = numpy.sin(i0)
 
 C.setFields([vx], a, loc='nodes')
 C.setFields([vy], a, loc='nodes')

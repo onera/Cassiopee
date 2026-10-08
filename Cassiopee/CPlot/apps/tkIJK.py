@@ -98,16 +98,16 @@ def show(event=None):
         if exts is None: exts = []
         else: exts = exts[2]
 
-    # Subzone les zones actives
+    # Subzone active zones
     CTK.dt = C.newPyTree(['Base','Edges'])
     for z in Internal.getZones(temp):
-        try:
+        try: # because indices can be invalid
             zp = T.subzone(z, (imin,jmin,kmin), (imax,jmax,kmax)); zp[0] = z[0]
             CTK.dt[2][1][2].append(zp)
         except: pass
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp(CTK.dt)
 
-    # Ajoute les edges pour les grilles structurees
+    # Add edges for structured grids only
     if CTK.__MAINTREE__ == CTK.MAIN:
         exts = []
         for z in active:
@@ -116,16 +116,14 @@ def show(event=None):
                 zp = P.exteriorFacesStructured(z)
                 exts += zp
             else:
-                #zp = P.exteriorFaces(z)
-                #zp = P.sharpEdges(zp)
                 zp = []
                 exts += zp
     CTK.dt[2][2][2] += exts
 
-    # deactivate les zones exts
+    # deactivate exts zones
     lenZ = len(CTK.dt[2][1][2]); lenExts = len(CTK.dt[2][2][2])
     activeExt = [(i,1) for i in range(lenZ+lenExts)]
-    for i in range(lenZ): activeExt[i] = (i,1)
+    #for i in range(lenZ): activeExt[i] = (i,1)
     for i in range(lenExts): activeExt[i+lenZ] = (i+lenZ,0)
 
     CTK.display(CTK.dt, mainTree=CTK.SLICE)
@@ -133,7 +131,7 @@ def show(event=None):
     CPlot.setState(edgifyDeactivatedZones=1)
 
 #==============================================================================
-# extract : ajoute l'entite dans CTK.t/EXTRACT
+# extract: ajoute l'entite dans CTK.t/EXTRACT
 #==============================================================================
 def extract(event=None):
     if CTK.t == []: return
@@ -165,7 +163,7 @@ def extract(event=None):
 
     # Subzone les zones actives
     for z in Internal.getZones(temp):
-        try:
+        try: # because of potential invalid indices
             zp = T.subzone(z, (imin,jmin,kmin), (imax,jmax,kmax))
             zp[0] = C.getZoneName(z[0])
             base[2].append(zp)
