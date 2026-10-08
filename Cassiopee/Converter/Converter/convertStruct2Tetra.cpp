@@ -23,7 +23,7 @@
 using namespace K_FLD;
 
 // ============================================================================
-/* Convert  structured array to a tetraedrical mesh */
+/* Convert  structured array to a tetrahedral mesh */
 // ============================================================================
 PyObject* K_CONVERTER::convertStruct2Tetra(const char* varString, FldArrayF* f,
                                            E_Int ni, E_Int nj, E_Int nk)

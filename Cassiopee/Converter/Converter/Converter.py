@@ -1352,13 +1352,11 @@ def convertArray2Tetra1__(array, arrayC=[], split='simple'):
 
             if center:
                 tmp = center2Node(array)
-                tmp =  converter.convertArray2TetraBary(tmp)
+                tmp = converter.convertArray2TetraBary(tmp)
                 return node2Center(tmp)
             else:
-                if arrayC == []:
-                    return converter.convertArray2TetraBary(array)
-                else:
-                    return converter.convertArray2TetraBaryBoth(array, arrayC)
+                if arrayC == []: arrayC = None
+                return converter.convertArray2TetraBary(array, arrayC)
 
 # -- Convert array(s) to tetra
 def convertArray2Tetra(array, split='simple'):

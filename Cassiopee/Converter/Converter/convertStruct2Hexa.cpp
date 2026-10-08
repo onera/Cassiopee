@@ -23,7 +23,7 @@ using namespace K_FLD;
 using namespace std;
 
 // ============================================================================
-/* Convert  structured array to a tetraedrical mesh */
+/* Convert  structured array to a tetrahedral mesh */
 // ============================================================================
 PyObject* K_CONVERTER::convertStruct2Hexa(PyObject* self, PyObject* args)
 {

@@ -52,12 +52,12 @@ def cartr2(Xo, H, R, Xf, doubleLeft=(0,0,0), doubleRight=(0,0,0), api=1, skeleto
     return generator.cartr2(Xo, H, R, Xf, doubleLeft, doubleRight, api, skeleton)
 
 def cartHexa(Xo, H, N, api=1):
-    """Create a cartesian mesh defined by an hexaedrical array.
+    """Create a cartesian mesh defined by an hexahedral array.
     Usage: cartHexa((xo,yo,zo), (hi,hj,hk), (ni,nj,nk))"""
     return generator.cartHexa(Xo, H, N, api)
 
 def cartTetra(Xo, H, N, api=1):
-    """Create a cartesian mesh defined by a tetraedrical array.
+    """Create a cartesian mesh defined by a tetrahedral array.
     Usage: cartTetra((xo,yo,zo), (hi,hj,hk), (ni,nj,nk))"""
     return generator.cartTetra(Xo, H, N, api)
 

@@ -27,7 +27,7 @@ using namespace K_FUNC;
 using namespace K_FLD;
 
 // ============================================================================
-/* Convert array to a tetraedrical mesh */
+/* Convert array to a tetrahedral mesh */
 // ============================================================================
 PyObject* K_CONVERTER::convertArray2Tetra(PyObject* self, PyObject* args)
 {
