@@ -869,6 +869,17 @@ def chunk2part(dt):
             bcfields.append(dl)
             bcfieldNames.append(dn)
 
+    # keep BCFamilyTypes
+    bcFamilyTypes = {}
+    nodes = Internal.getNodesFromType2(dt, 'Family_t')
+    for n in nodes:
+        a1 = Internal.getNodeFromType1(n, 'FamilyBC_t')
+        if a1 is not None:
+            bcFamilyTypes[n[0]] = Internal.getValue(a1)
+
+    # keep ReferenceState if any
+    refState = Internal.getNodeFromType2(dt, 'ReferenceState_t')
+
     # bcs is a list of PL
     # bcdataset is a list of list of arrays
     arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs,bcfields])
@@ -894,6 +905,7 @@ def chunk2part(dt):
     # add bcs
     for i, bc in enumerate(bcs):
         if len(bc) != 0:
+            bc = bc.reshape((1,bc.size))
             cont = Internal.createUniqueChild(zo, 'ZoneBC', 'ZoneBC_t')
             val = bcTypes[bcNames[i]]
             if val not in BCType_l:
@@ -910,10 +922,22 @@ def chunk2part(dt):
                     node2 = Internal.newBCDataSet(parent=node, value='BCDirichlet', gridLocation='FaceCenter')
                     node2 = Internal.newBCData(parent=node2)
                     Internal.newDataArray(name, value=bcfield[j], parent=node2)
-
+        
     t = C.newPyTree(['Base', zo])
     Cmpi._setProc(t, Cmpi.rank)
     Internal._correctPyTree(t, level=7)
+
+    # add refState
+    if refState is not None: 
+        base = Internal.getNodeFromType1(t, 'CGNSBase_t')
+        base[2].append(refState)
+
+    # update BCfamily types
+    nodes = Internal.getNodesFromType2(t, 'Family_t')
+    for n in nodes:
+        if n[0] in bcFamilyTypes:
+            a1 = Internal.getNodeFromType1(n, 'FamilyBC_t')
+            Internal.setValue(a1, bcFamilyTypes[n[0]])
 
     return t, RES
 

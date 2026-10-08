@@ -44,7 +44,7 @@ def extractSurface(t_sol, t_pts=None, eq=(0.,0.,0.,0.), XC=(0.,0.,0.), AXIS=(1.,
     if t_pts is None:
         varc = '{'+cellNName2+'}'
         res = P.selectCells(t,"%s>0.2"%varc)
-        C._initVars(res,'{eq}=%g*{CoordinateX}+%g*{CoordinateY}+%g*{CoordinateZ}+%g'%(a,b,c,d))
+        C._initVars(res, '{eq}=%g*{CoordinateX}+%g*{CoordinateY}+%g*{CoordinateZ}+%g'%(a,b,c,d))
         res = P.isoSurfMC(res, 'eq',0.)
     else:
         if DTheta>1e-3:

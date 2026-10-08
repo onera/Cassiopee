@@ -271,15 +271,15 @@ def prepare(t_case, t, tskel, check=False):
             for var in varsn:
                 C._initVars(wallpts,'{%s}=%g*{%s}'%(var,he,var))
             imagepts = T.deform(wallpts, vector=varsn)
-            wallpts = C.getFields(Internal.__GridCoordinates__,wallpts, api=1)[0]
-            imagepts = C.getFields(Internal.__GridCoordinates__,imagepts, api=1)[0]
+            wallpts = C.getFields(Internal.__GridCoordinates__, wallpts, api=1)[0]
+            imagepts = C.getFields(Internal.__GridCoordinates__, imagepts, api=1)[0]
             ip_pts = Converter.extractVars(ip_pts,['CoordinateX','CoordinateY','CoordinateZ'])
             wallpts = Converter.extractVars(wallpts,['CoordinateX','CoordinateY','CoordinateZ'])
             imagepts = Converter.extractVars(imagepts,['CoordinateX','CoordinateY','CoordinateZ'])
             if check:
-                Converter.convertArrays2File(ip_pts,"targetPts_%s.plt"%zname)
-                Converter.convertArrays2File(wallpts,"wallPts_%s.plt"%zname)
-                Converter.convertArrays2File(imagepts,"imagePts_%s.plt"%zname)
+                Converter.convertArrays2File(ip_pts, "targetPts_%s.plt"%zname)
+                Converter.convertArrays2File(wallpts, "wallPts_%s.plt"%zname)
+                Converter.convertArrays2File(imagepts, "imagePts_%s.plt"%zname)
 
             allip_pts.append(ip_pts)
             allimage_pts.append(imagepts)
