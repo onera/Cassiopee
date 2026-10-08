@@ -26,8 +26,9 @@
 using namespace K_FLD;
 
 // ============================================================================
-//  Convert a structured array to a tetrahedral mesh with addition of points 
-//  (barycenter of elements and faces).
+// Convert a structured array to a tetrahedral mesh with addition of points 
+// (barycenter of elements and faces).
+// The method deals with fields located at nodes and centers.
 // ============================================================================
 PyObject* K_CONVERTER::convertStruct2TetraBary(PyObject* self, PyObject* args)
 {

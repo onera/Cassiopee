@@ -24,7 +24,7 @@
 using namespace K_FLD;
 
 // ============================================================================
-// Convert  polyhedral array to a tetraedrical mesh
+/* Convert  polyhedral array to a tetrahedral mesh */
 // ============================================================================
 PyObject* K_CONVERTER::convertNGon2TetraBary(PyObject* self, PyObject* args)
 {

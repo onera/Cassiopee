@@ -3568,7 +3568,7 @@ def _convertBAR2Struct(t):
 # split='withBarycenters': ajout de points aux centres des elements et des faces
 def convertArray2Tetra(t, split='simple'):
     """Convert a zone to an unstructured zone.
-    Unstructured array can be triangular in 2D and tetraedrical in 3D.
+    Unstructured array can be triangular in 2D and tetrahedral in 3D.
     Usage: convertArray2Tetra(t, split)"""
     tp = Internal.copyRef(t)
     _convertArray2Tetra(tp, split)
