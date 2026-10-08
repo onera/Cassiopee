@@ -260,6 +260,7 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_TypeError,
                     "subzoneUnstruct: 2nd argument must be an integer list or a numpy.");
     RELEASESHAREDU(arrayNodes, f, cn);
+    if (arrayCenters != NULL) RELEASESHAREDU(arrayCenters, fc, cnc);
     return NULL;
   }
   else if (indices.getSize() == 0)
@@ -278,6 +279,7 @@ PyObject* K_TRANSFORM::subzoneUnstruct(PyObject* self, PyObject* args)
       PyList_Append(l, tpln); Py_DECREF(tpln);
       PyList_Append(l, tplc); Py_DECREF(tplc);
       RELEASESHAREDU(arrayNodes, f, cn);
+      RELEASESHAREDU(arrayCenters, fc, cnc);
       return l;
     }
   }
@@ -893,6 +895,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_TypeError,
                     "subzone: argument must be a list of element indices (starting from 0).");
     RELEASESHAREDU(arrayNodes, f, cn);
+    if (arrayCenters != NULL) RELEASESHAREDU(arrayCenters, fc, cnc);
     return NULL;
   }
   else if (eltList.getSize() == 0)
@@ -911,6 +914,7 @@ PyObject* K_TRANSFORM::subzoneElements(PyObject* self, PyObject* args)
       PyList_Append(l, tpln); Py_DECREF(tpln);
       PyList_Append(l, tplc); Py_DECREF(tplc);
       RELEASESHAREDU(arrayNodes, f, cn);
+      RELEASESHAREDU(arrayCenters, fc, cnc);
       return l;
     }
   }
@@ -1265,7 +1269,8 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     {
       PyErr_SetString(PyExc_TypeError,
                       "subzoneFaces: cannot be used on a structured array.");
-      RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDS(arrayCenters, fc); return NULL;
+      RELEASESHAREDU(arrayNodes, f, cn); RELEASESHAREDS(arrayCenters, fc);
+      return NULL;
     }
     nfldc = fc->getNfld();
   }
@@ -1279,6 +1284,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
     PyErr_SetString(PyExc_TypeError,
                     "subzoneFaces: argument must be a list of face indices (starting from 1).");
     RELEASESHAREDU(arrayNodes, f, cn);
+    if (arrayCenters != NULL) RELEASESHAREDU(arrayCenters, fc, cnc);
     return NULL;
   }
   else if (faceList.getSize() == 0)
@@ -1297,6 +1303,7 @@ PyObject* K_TRANSFORM::subzoneFaces(PyObject* self, PyObject* args)
       PyList_Append(l, tpln); Py_DECREF(tpln);
       PyList_Append(l, tplc); Py_DECREF(tplc);
       RELEASESHAREDU(arrayNodes, f, cn);
+      RELEASESHAREDU(arrayCenters, fc, cnc);
       return l;
     }
   }
