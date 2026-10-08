@@ -198,7 +198,7 @@ def checkCAD(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
     print(f"INFO: i found {len(compounds)} compounds.")
     for c in compounds:
         print(f"INFO: compound {c} has {len(compounds[c])} / {nbFaces} faces.")
-    
+
     #=======================
     # check for face overlap
     #=======================
