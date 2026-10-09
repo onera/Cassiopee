@@ -343,21 +343,8 @@ def removeBlankedCells(t):
 
 # ===============================================================================================================================
 def getBCs(t, tb2, dim):
-    # Identity the BCTypes & BCNames in t
-    zbcs=[]; bctypes=[]; bcnames=[]
-    for bc in Internal.getNodesFromType(t, 'BC_t'):
-        bctype = Internal.getValue(bc)
-        bcname = Internal.getName(bc)
-        if bctype not in bctypes:
-            bctypes.append(bctype)
-            bcnames.append(bcname)
-
-    # Save the boundary conditions for later use
-    for bctype in bctypes:
-        zbc = C.extractBCOfType(t, bctype)
-        Internal._rmNodesByType(zbc, "FlowSolution_t")
-        zbc = T.join(zbc)
-        zbcs.append(zbc)
+    (zbcs, bcnames, bctypes) = C.getBCs(t)
+    for zbc in zbcs: Internal._rmNodesByType(zbc, "FlowSolution_t")
 
     # Blanking to check if the QuadNQuad BC is inside the geometry
     # Needed to avoid wrong BCs
@@ -399,7 +386,8 @@ def recoverBCs(t, frontIP, BCInfo):
     for elt_t in Internal.getNodesFromType(t_exteriorFaces, "Elements_t"):
         if not elt_t[0].startswith("GridElements"):
             Internal._rmNode(t_exteriorFaces, elt_t)
-    _recoverBCs__(tp, t_exteriorFaces, zbcs, bctypes, bcnames)
+    C._recoverBCs(tp, (zbcs, bcnames, bctypes))
+    _isolateExteriorFacesIBCs__(tp, t_exteriorFaces, zbcs)
     zibc, t_exteriorFaces = recoverIBCs__(t_exteriorFaces, frontIP)
 
     return tp, t_exteriorFaces, zibc
@@ -455,6 +443,30 @@ def _recoverBCs__(t, t_exteriorFaces, zbcs, bctypes, bcnames):
     #                   CODA needs this as it applies the IBC on this front.
     #                   This is the unmatched BC that will become the IBC
     if meshgen == "AMR" and f is not None: t_exteriorFaces[2][1][2] = [f]
+    return None
+
+def _isolateExteriorFacesIBCs__(t, t_exteriorFaces, zbcs, indicesExtFaces):
+    meshgen = "AMR"
+    f = None
+    for z in Internal.getZones(t):
+        if z is not None:
+            f = Internal.getZones(t_exteriorFaces)[0]
+            if Cmpi.master: print("Performing the 'identifyElements' function (it can be long.) - exterior faces IBCs", flush=True)
+            for nobc, zbc in enumerate(zbcs):
+                hook = C.createHook(f, "elementCenters")
+
+                ids = C.identifyElements(hook, zbc, tol=__TOL__)
+                len_ids = Internal.getValue(f)[0][1]
+                ids = ids[ids[:] > -1] - 1 # consider the positive numbers only & index starts at 0
+                ids = ids.tolist()
+                if len(ids) > 0:
+                    ids_all = list(range(len_ids))
+                    ids_new = list(set(ids_all)-set(ids))
+                    if len(ids_new) > 0:
+                        f = T.subzone(f, ids_new, type='elements')
+                C.freeHook(hook)
+
+    if f is not None: t_exteriorFaces[2][1][2] = [f]
     return None
 
 def recoverIBCs__(t_exteriorFaces, frontIP):
