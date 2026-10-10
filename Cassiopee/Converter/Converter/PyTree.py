@@ -2775,7 +2775,10 @@ def _initVars(t, varNameString, v1=None, v2=None, mode=0, isVectorized=False):
     #centerCoordNeeded = True # for DBX
     if centerCoordNeeded:
         if callable(v1):
-            # Initialisation(s) by function # Reg
+            # Initialisation(s) by function
+            if not isVectorized:
+                print("Warning: _initVars: not vectorizing a function may "
+                      "significantly affect performance")
             _TZAGC3(t, loc, loc, False, Converter.initVars,
                     Converter.initVars, varNames, v1, v2, mode, isVectorized)
         elif isinstance(v1, (int, float, numpy.float64)):
@@ -2796,6 +2799,9 @@ def _initVars(t, varNameString, v1=None, v2=None, mode=0, isVectorized=False):
             [_addVars(t, varName) for varName in varNameString]
             if callable(v1):
                 # ... by function
+                if not isVectorized:
+                    print("Warning: _initVars: not vectorizing a function may "
+                          "significantly affect performance")
                 __TZA3(t, loc, Converter._initVars, varNames, v1, v2, mode, isVectorized)
             else:
                 # ... by constant
