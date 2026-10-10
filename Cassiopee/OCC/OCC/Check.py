@@ -104,7 +104,9 @@ def getFaceOverlap(hook, tol=1.e-12, byOCAFLabels=True):
                     overlaps.append( (i+1,j+1) )
     return overlaps, intersectings
 
+#=====================================================================================
 # Check CAD
+#=====================================================================================
 def checkCAD(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
     """Check CAD quality for degenerated edges/faces, lonely/multiple edges, and face overlaps."""
     import numpy
@@ -178,6 +180,24 @@ def checkCAD(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
         if len(edgesm) > 0:
             print("ERROR: you must delete non manifold faces manually.")
 
+    #=============================
+    # Check small edges
+    #=============================
+    print("INFO: checking for small edges...", flush=True)
+    (hmin,hmax,hausd) = OCC.occ.analyseEdges(hook)
+    ne = OCC.getNbEdges(hook)
+    nd = len(degenEdges)
+    edgeLengths = []
+    for i in range(ne): edgeLengths.append(OCC.getEdgeLength(hook, [i+1]))
+    count = 0
+    for e in edgeLengths:
+        if e < hmin: count += 1 
+    print(f"INFO: CAD has {count-nd} edges lower than {hmin}.")
+    count = 0
+    for e in edgeLengths:
+        if e < hmin*10: count += 1 
+    print(f"INFO: CAD has {count-nd} edges lower than {10*hmin}.")
+        
     #==============================
     # Find compounds by OCAF labels
     #==============================
@@ -195,7 +215,7 @@ def checkCAD(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
         for no in found:
             if not found[no]: rest.append(no)
         compounds['noLabels'] = rest
-    print(f"INFO: i found {len(compounds)} compounds.")
+    print(f"INFO: found {len(compounds)} compounds.")
     for c in compounds:
         print(f"INFO: compound {c} has {len(compounds[c])} / {nbFaces} faces.")
 
@@ -226,12 +246,15 @@ def checkCAD(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
     if score < 2: return False
     else: return True
 
+#=====================================================================================
 # check CAD through meshing (coarse)
 # generate:
 # surface mesh: surface.cgns
 # surface components; component.cgns
 # internal mesh: mesh.cgns
-def checkMesh(hook, t=None, tol=1.e-9, byOCAFLabels=True, repair=False, zipTol=None):
+# mtype: type of mesh (0: Cassiopee local, 1: OCC)
+#=====================================================================================
+def checkMesh(hook, t=None, tol=1.e-9, byOCAFLabels=True, repair=False, zipTol=None, mtype=0):
     """Check CAD quality through coarse meshing, including watertightness, reorder stability, and mesh quality."""
     import Transform.PyTree as T
     import Converter.PyTree as C
@@ -255,9 +278,11 @@ def checkMesh(hook, t=None, tol=1.e-9, byOCAFLabels=True, repair=False, zipTol=N
     if t is None:
         print("INFO: meshing...", flush=True)
         (hmin,hmax,hausd) = OCC.occ.analyseEdges(hook)
-        #t = OCC.meshAll(hook, hmin=hmax, hmax=hmax, hausd=hausd) # constant hmax
-        t = OCC.meshAll(hook, hmin=hmin, hmax=hmax*2., hausd=hausd*0.1) # variable h
-        #t = OCC.meshAllOCC(hook, hausd=hausd*0.1, angularDeflection=10.)
+        if mtype == 0:
+            #t = OCC.meshAll(hook, hmin=hmax, hmax=hmax, hausd=hausd) # constant hmax
+            t = OCC.meshAll(hook, hmin=hmin, hmax=hmax*2., hausd=hausd*0.1) # variable h
+        else:
+            t = OCC.meshAllOCC(hook, hausd=hausd*0.1, angularDeflection=10.)
         C.convertPyTree2File(t, 'surface.cgns')
 
     #==============

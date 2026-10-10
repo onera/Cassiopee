@@ -60,13 +60,12 @@ E_Int K_IO::GenIO::stlread(
   if (ret < 80) { fclose(ptrFile); return 1; }
 
   // Nombre de noeuds
-  int nd = 0;
-  ret = fread(&nd, sizeof(int), 1, ptrFile);
+  uint32_t nd = 0;
+  ret = fread(&nd, sizeof(uint32_t), 1, ptrFile);
   if (ret != 1) { fclose(ptrFile); return 1; }
   if (nd < 0) 
   { fclose(ptrFile); return 1;} // cette valeur est arbitraire
   
-
   // Champ des vertex
   float buf[12];
   short count;
@@ -90,21 +89,19 @@ E_Int K_IO::GenIO::stlread(
     fz[3*i+1] = buf[8];
     fx[3*i+2] = buf[9];
     fy[3*i+2] = buf[10];
-    fz[3*i+2] = buf[11];
+    fz[3*i+2] = buf[11];    
   }
 
   // Connectivite
   eltType.push_back(2);
   FldArrayI* cp = new FldArrayI(nd, 3);
+  FldArrayI& cx = *cp;
   connect.push_back(cp);
-  E_Int* c1 = cp->begin(1);
-  E_Int* c2 = cp->begin(2);
-  E_Int* c3 = cp->begin(3);
   for (E_Int i = 0; i < nd; i++)
   {
-    c1[i] = 3*i+1;
-    c2[i] = 3*i+2;
-    c3[i] = 3*i+3;
+    cx(i,1) = 3*i+1;
+    cx(i,2) = 3*i+2;
+    cx(i,3) = 3*i+3;
   }
 
   K_CONNECT::cleanConnectivity(1, 2, 3, 

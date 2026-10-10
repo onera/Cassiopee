@@ -2326,29 +2326,32 @@ class Part:
                 size += k.size
             self.iter = itertools.product(*ranges)
         # iterate
-        try:
-            p = next(self.iter)
-        except:
-            return None # end of DOE
-        # compute parametric point
-        pt = {}
-        for c, s in enumerate(self.freeParams):
-            pt[self.scalars[s.name].name] = p[c]
-        # instantiate
-        st = "DOE: Checking point: { "
-        for k in pt: st += k+' = %g '%pt[k]
-        st += ' }'
-        print(st, flush=True)
-        valid = self.instantiate(pt)
-        if valid:
-            if self.db is not None:
-                exist = self.db.exist(pt)
-                if not exist: return pt
-                else:
-                    print("DOE: => Already in db. Skipped.")
-                    return self.walkDOE()
-            else: return pt
-        else: return self.walkDOE()
+        p = None
+        while p is None:
+            try: p = next(self.iter)
+            except:
+                # reach end
+                return None
+            if p is not None:
+                # compute parametric point
+                pt = {}
+                for c, s in enumerate(self.freeParams):
+                    pt[self.scalars[s.name].name] = p[c]
+                # instantiate
+                st = "DOE: Checking point: { "
+                for k in pt: st += k+' = %g '%pt[k]
+                st += ' }'
+                print(st, flush=True)
+                valid = self.instantiate(pt)
+                if valid:
+                    if self.db is not None:
+                        exist = self.db.exist(pt)
+                        if not exist: return pt
+                        else:
+                            print("DOE: => Already in db. Skipped.")
+                            p = None
+                    else: return pt
+                else: p = None
 
     # Walk DOE1, instantiate, parallel CFD but sequential on parameters
     # OUT: dict of free parameter values (valid point) or None if DOE is exhausted

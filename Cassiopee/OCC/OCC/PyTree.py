@@ -1622,7 +1622,7 @@ def getComponents(t, tol=1.e-12, byOCAFLabels=False):
             print(f"INFO: building component {c}...", flush=True)
             zs = compounds[c]
             if zs == []: continue
-            G._zip(zs, tol) # deliberately in place, maybe useless
+            G._zip(zs, 10*tol) # deliberately in place, maybe useless
             b = T.join(zs, tol=tol) # for self closing not done by zip
             #b = T.splitConnexity(b)
             b = T.splitManifold(b)
@@ -1630,7 +1630,7 @@ def getComponents(t, tol=1.e-12, byOCAFLabels=False):
         for c, z in enumerate(a): z[0] = f"component{c}"
     else:
         # join all zones
-        G._zip(zones, tol) # deliberately in place, maybe useless
+        G._zip(zones, 10*tol) # deliberately in place, maybe useless
         a = T.join(zones, tol=tol) # for self closing not done by zip
         #a = T.splitConnexity(a)
         a = T.splitManifold(a)

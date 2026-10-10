@@ -486,7 +486,7 @@ def createApp(win):
             tol = Internal.getNodeFromName1(CAD, 'hmax')
             tol = Internal.getValue(tol)
             power = numpy.floor(numpy.log10(abs(tol)))
-            tol = round(tol, -power)
+            tol = round(tol, -int(power))
 
     # -0- CAD file name -
     V = TK.StringVar(win); V.set(fileName); VARS.append(V)
