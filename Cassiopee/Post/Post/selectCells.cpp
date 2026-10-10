@@ -32,10 +32,10 @@ using namespace K_FUNC;
 PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
 {
   PyObject* arrayNodes; PyObject* tag;
-  PyObject* arrayCenters = NULL; 
+  PyObject* arrayCenters = NULL;
   PyObject* PE;
   E_Int strict; E_Int cleanConnectivity;
-  
+
   // Check different signatures
   Py_ssize_t nargs = PyTuple_GET_SIZE(args);
   if (nargs == 5)
@@ -51,8 +51,8 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
                        &cleanConnectivity))
       return NULL;
   }
-  
-  // Extract array
+
+  // Extract arrayNodes
   char* varString; char* eltType;
   FldArrayF* f; FldArrayI* cnp;
   E_Int ni, nj, nk;
@@ -67,449 +67,232 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
   }
 
   // Extract arrayCenters 
-  char* varStringC; char* eltTypeC;
-  FldArrayF* fC = NULL; FldArrayI* cnpC;
-  E_Int resC = -1, niC = 0, njC = 0, nkC = 0, nfldC = 0;
+  char* varStringc; char* eltTypec;
+  FldArrayF* fc = NULL; FldArrayI* cnpc;
+  E_Int resc = -1, nic = 0, njc = 0, nkc = 0, nfldc = 0;
   if (arrayCenters != NULL)
   {
-    resC = K_ARRAY::getFromArray3(arrayCenters, varStringC, fC,
-  				                        niC, njC, nkC, cnpC, eltTypeC);
+    resc = K_ARRAY::getFromArray3(arrayCenters, varStringc, fc,
+                                  nic, njc, nkc, cnpc, eltTypec);
 
-    if (resC != 1 && resC != 2)
+    if (resc != 1 && resc != 2)
     {
-      RELEASESHAREDB(res, arrayNodes, f, cnp);
       PyErr_SetString(PyExc_TypeError,
                       "selectCells: arrayCenters is invalid.");
-  	  return NULL;
+      RELEASESHAREDB(res, arrayNodes, f, cnp);
+      return NULL;
     }
 
-    nfldC = fC->getNfld();  // nombre de champs en centres
+    nfldc = fc->getNfld();  // nombre de champs en centres
   }
 
   // Extract tag
-  char* varString2; char* eltType2;
-  FldArrayF* f2; FldArrayI* cnp2;
-  E_Int ni2, nj2, nk2;
-  E_Int res2 = K_ARRAY::getFromArray3(tag, varString2, f2,
-                                      ni2, nj2, nk2, cnp2, eltType2);
+  char* varStringa; char* eltTypea;
+  FldArrayF* fa; FldArrayI* cnpa;
+  E_Int nia, nja, nka;
+  E_Int resa = K_ARRAY::getFromArray3(tag, varStringa, fa,
+                                      nia, nja, nka, cnpa, eltTypea);
 
-  if (res2 != 1 && res2 != 2)
+  if (resa != 1 && resa != 2)
   {
     PyErr_SetString(PyExc_TypeError,
                     "selectCells: tag array is invalid.");
-    RELEASESHAREDB(res, arrayNodes, f, cnp); 
+    RELEASESHAREDB(res, arrayNodes, f, cnp);
     return NULL;
   }
-  if (res != res2)
+  if (res != resa)
   {  
     PyErr_SetString(PyExc_TypeError,
                     "selectCells: tag and array must represent the same grid.");
     RELEASESHAREDB(res, arrayNodes, f, cnp);
-    RELEASESHAREDB(res2, tag, f2, cnp2);
+    RELEASESHAREDB(resa, tag, fa, cnpa);
     return NULL;
   }
-  if (f->getSize() != f2->getSize())
+
+  E_Int api = f->getApi();
+  E_Int nfld = f->getNfld();
+  E_Int npts = f->getSize();
+
+  if (npts != fa->getSize())
   {
     RELEASESHAREDB(res, arrayNodes, f, cnp);
-    RELEASESHAREDB(res2, tag, f2, cnp2);
+    RELEASESHAREDB(resa, tag, fa, cnpa);
     PyErr_SetString(PyExc_TypeError,
                     "selectCells: tag and array must represent the same grid.");
     return NULL;
   }
 
-  if (res == 2 && (cnp->getSize() != cnp2->getSize() ||
-                   cnp->getNfld() != cnp2->getNfld())) 
+  if (res == 2 && (cnp->getSize() != cnpa->getSize() ||
+                   cnp->getNfld() != cnpa->getNfld())) 
   {
     RELEASESHAREDU(arrayNodes, f, cnp); 
-    RELEASESHAREDB(res2, tag, f2, cnp2);
+    RELEASESHAREDB(resa, tag, fa, cnpa);
     PyErr_SetString(PyExc_TypeError,
                     "selectCells: tag and array must represent the same grid.");
     return NULL;  
   }
 
-  if (f2->getNfld() != 1) 
+  if (fa->getNfld() != 1) 
   {
     RELEASESHAREDB(res, arrayNodes, f, cnp);
-    RELEASESHAREDB(res2, tag, f2, cnp2);
+    RELEASESHAREDB(resa, tag, fa, cnpa);
     PyErr_SetString(PyExc_TypeError,
                     "selectCells: tag must have one variable only.");
     return NULL;
   }
 
   E_Float oneEps = 1.-1.e-10;
-  E_Int vertex;
   // no check of coordinates
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString); posx++;
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString); posy++;
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString); posz++;
-  if (res == 1) // Create connectivity cnp (HEXA or QUAD)
+
+  if (res == 1)
   {
-    E_Int dim0 = 3;
-    if (ni == 1 || nj == 1 || nk == 1) dim0 = 2;
-    if (nj == 1 && nk == 1) dim0 = 1;
-    else if (ni == 1 && nk == 1) dim0 = 1;
-    else if (ni == 1 && nj == 1) dim0 = 1;
-    eltType = new char [128];
-    if (dim0 == 3) strcpy(eltType, "HEXA");
-    else if (dim0 == 2) strcpy(eltType, "QUAD");
-    else strcpy(eltType, "BAR");
-    E_Int ni1 = E_max(1, E_Int(ni)-1);
-    E_Int nj1 = E_max(1, E_Int(nj)-1);
-    E_Int nk1 = E_max(1, E_Int(nk)-1);
+    // Create BE connectivity
+    E_Int dim0 = 0;
+    if (ni > 1) dim0 += 1;
+    if (nj > 1) dim0 += 1;
+    if (nk > 1) dim0 += 1;
+    E_Int nvpe;
+    eltType = new char [K_ARRAY::VARSTRINGLENGTH];
+    if (dim0 == 3) { strcpy(eltType, "HEXA"); nvpe = 8; }
+    else if (dim0 == 2) { strcpy(eltType, "QUAD"); nvpe = 4; }
+    else { strcpy(eltType, "BAR"); nvpe = 2; }
+
+    E_Int ni1 = K_FUNC::E_max(1, ni-1);
+    E_Int nj1 = K_FUNC::E_max(1, nj-1);
+    E_Int nk1 = K_FUNC::E_max(1, nk-1);
     E_Int ninj = ni*nj;
     E_Int ncells = ni1*nj1*nk1; // nb de cellules structurees
-    cnp = new FldArrayI();
-    FldArrayI& cn = *cnp;
-    E_Int nelts; // nb d'elements non structures
-    
-    switch (dim0)
+
+    cnp = new FldArrayI(ncells, nvpe);
+    FldArrayI& cm = *(cnp->getConnect(0));
+
+    if (dim0 == 1)
     {
-      case 1:
+      E_Int ind1, ind2;
+      if (nj1 == 1 && nk1 == 1)
       {
-        nelts = ncells;
-        cn.malloc(nelts, 2);
-        E_Int* cn1 = cn.begin(1);
-        E_Int* cn2 = cn.begin(2);
-        E_Int ind1, ind2;
-        if (nk1 == 1 && nj1 == 1)
+        for (E_Int i = 0; i < ni1; i++)
         {
+          ind1 = i + 1;     // (i,1,1)
+          ind2 = ind1 + 1;  // (i+1,1,1)
+          cm(i,1) = ind1; cm(i,2) = ind2;
+        }
+      }
+      else if (ni1 == 1 && nj1 == 1)
+      {
+        for (E_Int k = 0; k < nk1; k++)
+        {
+          ind1 = 1 + k*ninj;   // (1,1,k)
+          ind2 = ind1 + ninj;  // (1,1,k+1)
+          cm(k,1) = ind1; cm(k,2) = ind2;
+        }
+      }
+      else  // ni1 == 1 && nk1 == 1
+      {
+        for (E_Int j = 0; j < nj1; j++)
+        {
+          ind1 = j*ni + 1;   // (1,j,1)
+          ind2 = ind1 + ni;  // (1,j+1,1)
+          cm(j,1) = ind1; cm(j,2) = ind2;
+        }
+      }
+    }
+    else if (dim0 == 2)
+    {
+      if (nk1 == 1)
+      {
+        #pragma omp parallel if (nj1 > __MIN_SIZE_MEAN__)
+        {
+          E_Int c, ind1, ind2, ind3, ind4;
+          #pragma omp for collapse(2)
+          for (E_Int j = 0; j < nj1; j++)
           for (E_Int i = 0; i < ni1; i++)
           {
-            ind1 = i + 1;
-            ind2 = ind1 + 1;
-            cn1[i] = ind1; cn2[i] = ind2;
+            ind1 = i + j*ni + 1; // (i,j,1)
+            ind2 = ind1 + 1;     // (i+1,j,1)
+            ind3 = ind2 + ni;    // (i+1,j+1,1)
+            ind4 = ind3 - 1;     // (i,j+1,1)
+            c = i + j*ni1;
+            cm(c,1) = ind1; cm(c,2) = ind2;
+            cm(c,3) = ind3; cm(c,4) = ind4;
           }
         }
-        else if (ni1 == 1 && nj1 == 1)
+      }
+      else if (nj1 == 1)
+      {
+        #pragma omp parallel if (nk1 > __MIN_SIZE_MEAN__)
         {
+          E_Int c, ind1, ind2, ind3, ind4;
+          #pragma omp for collapse(2)
           for (E_Int k = 0; k < nk1; k++)
+          for (E_Int i = 0; i < ni1; i++)
           {
-            ind1 = k*ni*nj + 1;
-            ind2 = ind1 + ni*nj;
-            cn1[k] = ind1; cn2[k] = ind2;
+            ind1 = i + k*ninj + 1;  // (i,1,k)
+            ind2 = ind1 + ninj;     // (i,1,k+1)
+            ind3 = ind2 + 1;        // (i+1,1,k+1)
+            ind4 = ind3 - 1;        // (i,1,k+1)
+            c = i + k*ni1;
+            cm(c,1) = ind1; cm(c,2) = ind2;
+            cm(c,3) = ind3; cm(c,4) = ind4;
           }
         }
-        else if (ni1 == 1 && nk1 == 1)
+      }
+      else // i1 = 1 
+      {
+        #pragma omp parallel if (nk1 > __MIN_SIZE_MEAN__)
         {
+          E_Int c, ind1, ind2, ind3, ind4;
+          #pragma omp for collapse(2)
+          for (E_Int k = 0; k < nk1; k++)
           for (E_Int j = 0; j < nj1; j++)
           {
-            ind1 = j*ni + 1;
-            ind2 = ind1 + ni;
-            cn1[j] = ind1; cn2[j] = ind2;
+            ind1 = 1 + j*ni + k*ninj; // (1,j,k)
+            ind2 = ind1 + ni;         // (1,j+1,k)
+            ind3 = ind2 + ninj;       // (1,j+1,k+1)
+            ind4 = ind3 - ni;         // (1,j,k+1)
+            c = j+k*nj1;
+            cm(c,1) = ind1; cm(c,2) = ind2;
+            cm(c,3) = ind3; cm(c,4) = ind4;
           }
         }
       }
-      break;
-    
-      case 2:
+    }
+    else  // dim0 = 3
+    {
+      #pragma omp parallel if (nk1 > __MIN_SIZE_MEAN__)
       {
-        nelts = ncells;
-        cn.malloc(nelts, 4);
-        E_Int* cn1 = cn.begin(1);
-        E_Int* cn2 = cn.begin(2);
-        E_Int* cn3 = cn.begin(3);
-        E_Int* cn4 = cn.begin(4);
-
-        if (nk1 == 1)
+        E_Int c, ind1, ind2, ind3, ind4, ind5, ind6, ind7, ind8;
+        #pragma omp for collapse(3)
+        for (E_Int k = 0; k < nk1; k++)
+        for (E_Int j = 0; j < nj1; j++)
+        for (E_Int i = 0; i < ni1; i++)
         {
-#pragma omp parallel default(shared) if (nj1 > __MIN_SIZE_MEAN__)
-          {
-            E_Int ind, ind1, ind2, ind3, ind4;
-#pragma omp for
-            for (E_Int j = 0; j < nj1; j++)
-              for (E_Int i = 0; i < ni1; i++)
-              {
-                //starts from 1
-                ind1 = i + j*ni + 1; //(i,j,1)
-                ind2 = ind1 + 1;  //(i+1,j,1)
-                ind3 = ind2 + ni; //(i+1,j+1,1)
-                ind4 = ind3 - 1;  //(i,j+1,1)
-                ind = i + j*ni1;
-                cn1[ind] = ind1; cn2[ind] = ind2;
-                cn3[ind] = ind3; cn4[ind] = ind4;
-              }
-          }
+          ind1 = 1 + i + j*ni + k*ninj; // A(  i,  j,k)
+          ind2 = ind1 + 1;              // B(i+1,  j,k)
+          ind3 = ind2 + ni;             // C(i+1,j+1,k)
+          ind4 = ind3 - 1;              // D(  i,j+1,k)
+          ind5 = ind1 + ninj;           // E(  i,  j,k+1)
+          ind6 = ind2 + ninj;           // F(i+1,  j,k+1)
+          ind7 = ind3 + ninj;           // G(i+1,j+1,k+1)
+          ind8 = ind4 + ninj;           // H(  i,j+1,k+1) 
+          c = i+j*ni1+k*ni1*nj1;
+          cm(c,1) = ind1; cm(c,2) = ind2;
+          cm(c,3) = ind3; cm(c,4) = ind4;
+          cm(c,5) = ind5; cm(c,6) = ind6;
+          cm(c,7) = ind7; cm(c,8) = ind8;
         }
-        else if (nj1 == 1)
-        {
-#pragma omp parallel default(shared) if (nk1 > __MIN_SIZE_MEAN__)
-          {
-            E_Int ind, ind1, ind2, ind3, ind4;
-#pragma omp for
-            for (E_Int k = 0; k < nk1; k++)
-              for (E_Int i = 0; i < ni1; i++)
-              {
-                ind1 = i + k*ninj + 1;  //(i,1,k)
-                ind2 = ind1 + ninj; //(i,1,k+1)
-                ind3 = ind2 + 1;    //(i+1,1,k+1)
-                ind4 = ind3 - 1;    //(i,1,k+1)
-                ind = i + k*ni1;
-                cn1[ind] = ind1; cn2[ind] = ind2;
-                cn3[ind] = ind3; cn4[ind] = ind4;      
-              }
-          }
-        }
-        else // i1 = 1 
-        {
-#pragma omp parallel default(shared) if (nk1 > __MIN_SIZE_MEAN__)
-          {
-            E_Int ind, ind1, ind2, ind3, ind4;
-#pragma omp for   
-            for (E_Int k = 0; k < nk1; k++)
-              for (E_Int j = 0; j < nj1; j++)
-              {
-                ind1 = 1 + j*ni + k*ninj; //(1,j,k)
-                ind2 = ind1 + ni;   //(1,j+1,k)
-                ind3 = ind2 + ninj; //(1,j+1,k+1)
-                ind4 = ind3 - ni;   //(1,j,k+1)
-                ind = j+k*nj1;
-                cn1[ind] = ind1; cn2[ind] = ind2;
-                cn3[ind] = ind3; cn4[ind] = ind4;
-              }
-          }
-        }// i1 = 1
       }
-      break;
-
-      case 3:
-      { 
-        nelts = ncells;
-        cn.malloc(nelts,8);
-        E_Int* cn1 = cn.begin(1);
-        E_Int* cn2 = cn.begin(2);
-        E_Int* cn3 = cn.begin(3);
-        E_Int* cn4 = cn.begin(4);
-        E_Int* cn5 = cn.begin(5);
-        E_Int* cn6 = cn.begin(6);
-        E_Int* cn7 = cn.begin(7);
-        E_Int* cn8 = cn.begin(8);
-#pragma omp parallel default(shared) if (nk1 > __MIN_SIZE_MEAN__)
-        {
-          E_Int ind, ind1, ind2, ind3, ind4, ind5, ind6, ind7, ind8;
-#pragma omp for
-            for (E_Int k = 0; k < nk1; k++)
-              for (E_Int j = 0; j < nj1; j++)
-                for (E_Int i = 0; i < ni1; i++)
-                {
-                  ind1 = 1 + i + j*ni + k*ninj; //A(  i,  j,k)
-                  ind2 = ind1 + 1;              //B(i+1,  j,k)
-                  ind3 = ind2 + ni;            //C(i+1,j+1,k)
-                  ind4 = ind3 - 1;              //D(  i,j+1,k)
-                  ind5 = ind1 + ninj;           //E(  i,  j,k+1)
-                  ind6 = ind2 + ninj;           //F(i+1,  j,k+1)
-                  ind7 = ind3 + ninj;           //G(i+1,j+1,k+1)
-                  ind8 = ind4 + ninj;           //H(  i,j+1,k+1) 
-                  ind = i+j*ni1+k*ni1*nj1;
-                  cn1[ind] = ind1; cn2[ind] = ind2;
-                  cn3[ind] = ind3; cn4[ind] = ind4;
-                  cn5[ind] = ind5; cn6[ind] = ind6;
-                  cn7[ind] = ind7; cn8[ind] = ind8;
-                }
-          }
-      }
-      break;
     }
   }
 
-  PyObject* l = PyList_New(0);
-
-  // Infos sur le type d'element
-  E_Int isNGon = 1; E_Int isNode = 1;
-  isNGon = strcmp(eltType, "NGON"); // vaut 0 si l'elmt est un NGON
-  isNode = strcmp(eltType, "NODE"); // vaut 0 si l'elmt est un NODE
-    
   // Selection
-  PyObject* tpln;
-  PyObject* tplc = NULL;
-  E_Int api = f->getApi();
-  if (isNGon != 0 && isNode != 0) // tous les elements sauf NGON et NODE
-  {
-    E_Int nfld = f->getNfld();
-    E_Int nt = cnp->getNfld();
-    E_Int csize = cnp->getSize();
-    FldArrayF* an = new FldArrayF();
-    FldArrayF& coord = *an;
-    FldArrayI* acn = new FldArrayI();
-    FldArrayI& cn = *acn;
+  PyObject* l = PyList_New(0);
+  PyObject* tpln; PyObject* tplc = NULL;
 
-    // Selection des vertex
-    FldArrayI selected(f->getSize(), 2);
-    selected.setAllValuesAtNull();
-    E_Int* selected1 = selected.begin(1);
-    E_Int* selected2 = selected.begin(2);
-    E_Float* tagp = f2->begin();
-    E_Int isSel = 0;
-
-    // Selection des champs aux centres 
-    FldArrayF* foutC = NULL;
-    if (arrayCenters != NULL) foutC = new FldArrayF(*fC);
-    E_Int ii = 0;
-   
-    if (strict == 0) // cell selectionnee des qu'un sommet est tag=1
-    {
-      for (E_Int i = 0; i < csize; i++)
-      {
-        for (E_Int nv = 1; nv <= nt; nv++)
-        {
-          vertex = (*cnp)(i, nv);
-          if (tagp[vertex-1] >= oneEps) 
-          {  
-            for (E_Int nv = 1; nv <= nt; nv++)
-            {
-              vertex = (*cnp)(i, nv);
-              selected1[vertex-1] = 1;
-            }
-	          // champs en centres
-            for (E_Int k = 1; k <= nfldC; k++) (*foutC)(ii,k) = (*fC)(i,k);
-            ii++;
-            break; 
-          }
-        }
-      }
-    }
-    else // cell selectionnee si tous les sommets sont tag=1
-    {
-      for (E_Int i = 0; i < csize; i++)
-      {
-        isSel = 0;
-        for (E_Int nv = 1; nv <= nt; nv++)
-        {
-          vertex = (*cnp)(i, nv);
-          if (tagp[vertex-1] >= oneEps) isSel++;
-        }
-        if (isSel == nt)
-        {
-          for (E_Int nv = 1; nv <= nt; nv++)
-          {
-            vertex = (*cnp)(i, nv);
-            selected1[vertex-1] = 1;
-          }
-	       // champs en centres
-	       for (E_Int k = 1; k <= nfldC; k++) (*foutC)(ii,k) = (*fC)(i,k); 
-	       ii++;
-        }
-      }    
-    }
-
-    // Tableau des champs en centre
-    if (foutC != NULL) foutC->reAllocMat(ii, nfldC);
-
-    E_Int cprev = 0;
-    selected2[0] = cprev;
-    for (E_Int i = 1; i < selected.getSize(); i++)
-    {
-      if (selected1[i-1] == 1) selected2[i] = cprev+1; // real position
-      else selected2[i] = cprev;
-      cprev = selected2[i];
-    }
-
-    // Tableau des vertex
-    if (selected1[selected.getSize()-1] == 1) cprev++;
-    coord.malloc(cprev, nfld);
-
-    for (E_Int n = 1; n <= nfld; n++)
-    {
-      E_Float* coordp = coord.begin(n);
-      E_Float* fp = f->begin(n);
-      cprev = 0;
-      for (E_Int i = 0; i < f->getSize(); i++)
-      {
-        if (selected1[i] == 1)
-        {
-          coordp[cprev] = fp[i]; cprev++;
-        }
-      }
-    }
-  
-    // Tableau des connectivites
-    cn.malloc(csize, nt);
-  
-    cprev = 0;
-    E_Int p;
-    for (E_Int i = 0; i < csize; i++)
-    {
-      p = 1;
-      for (E_Int n = 1; n <= nt; n++)
-      {
-        p = p*selected1[(*cnp)(i,n)-1];
-      }
-      if (p == 1)
-      {
-        for (E_Int n = 1; n <= nt; n++)
-        {
-          vertex = (*cnp)(i, n);
-          cn(cprev,n) = selected2[vertex-1]+1;
-        }
-        cprev++;
-      }
-    }
-
-    RELEASESHAREDB(res2, tag, f2, cnp2);
-    if (res == 1) delete cnp;
-   
-    cn.reAllocMat(cprev, nt);
-    if (cprev == 0) an->reAllocMat(0,nfld);
-    else 
-    {
-      if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
-        K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, *an, *acn);
-    }
-    tpln = K_ARRAY::buildArray3(*an, varString, *acn, eltType, api);
-    if (arrayCenters != NULL)
-    {
-      tplc = K_ARRAY::buildArray3(*foutC, varStringC, *acn, eltType, api);
-      delete foutC;
-    }
-    delete an; delete acn;
-    if (res == 1) delete[] eltType;
-  }
-  else if (isNode == 0) // NODE
-  {
-    E_Int nfld = f->getNfld();
-    FldArrayF* an = new FldArrayF();
-    FldArrayF& coord = *an;
-
-    // Selection des vertex
-    FldArrayI selected(f->getSize(), 2);
-    selected.setAllValuesAtNull();
-    E_Int* selectedp = selected.begin();
-    E_Float* tagp = f2->begin();
-    E_Int count = 0;
-    for (E_Int i = 0; i < f->getSize(); i++)
-    {
-      if (tagp[i] >= oneEps) { selectedp[i] = 1; count++; }
-    }
-
-    // Tableau des vertex
-    coord.malloc(count, nfld);
-
-    for (E_Int n = 1; n <= nfld; n++)
-    {
-      count = 0;
-      E_Float* coordn = coord.begin(n);
-      E_Float* fn = f->begin(n);
-      for (E_Int i = 0; i < f->getSize(); i++)
-      {
-        if (selectedp[i] == 1)
-        {
-          coordn[count] = fn[i];
-          count++;
-        }
-      }
-    }
-  
-    // Tableau des connectivites
-    FldArrayI* acn = new FldArrayI();
-    FldArrayI& cn = *acn; cn.malloc(0, 1);
-  
-    RELEASESHAREDB(res2, tag, f2, cnp2);
-    if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
-      K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, *an, *acn);
-    tpln = K_ARRAY::buildArray3(*an, varString, *acn, eltType, api);
-    if (arrayCenters != NULL) tplc = tpln;
-    delete an; delete acn;
-  }
-  else // elements NGON
+  if (K_STRING::cmp(eltType, "NGON") == 0)
   {
     FldArrayF* fout = new FldArrayF(*f);
     // Algo: 
@@ -521,13 +304,13 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     // Au final, on reconstruit une connectivite complete en ajoutant l'ancienne connectivite Face/Noeuds 
     // Et on apelle cleanConnectivity
     // ----------------------------
-    E_Float* tagp = f2->begin();   // champ indiquant le critere de selection
+    E_Float* tagp = fa->begin();   // champ indiquant le critere de selection
     E_Int* cnpp = cnp->begin();    // pointeur sur l ancienne connectivite
     E_Int nbFaces = cnpp[0];       // nombre de faces de l'ancienne connectivite
     E_Int sizeFN = cnpp[1];        // taille de l'ancienne connectivite Face/Noeuds
     E_Int nbElements = cnpp[sizeFN+2]; // nombre d'elts de l'ancienne connectivite
     E_Int sizeEF = cnpp[sizeFN+3];     // taille de l'ancienne connectivite Elmt/Faces
-    E_Int* cnEFp = cnpp + 4+sizeFN;  // pointeur sur l'ancienne connectivite Elmt/Faces
+    E_Int* cnEFp = cnpp+4+sizeFN;  // pointeur sur l'ancienne connectivite Elmt/Faces
     FldArrayI cn2 = FldArrayI(sizeEF); // nouvelle connectivite Elmt/Faces
     E_Int* cn2p = cn2.begin();       // pointeur sur la nouvelle connectivite
     E_Int size2 = 0;                 // compteur pour la nouvelle connectivite
@@ -535,11 +318,11 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     FldArrayI selectedFaces(nbFaces);  // tableau indiquant les faces valides 
     E_Int* selectedFacesp = selectedFaces.begin();
     E_Int nbfaces, nbnodes;
-    E_Int isSel;
+    E_Int cnt;
 
     // Champs en centre
-    FldArrayF* foutC = NULL;
-    if (arrayCenters != NULL) foutC = new FldArrayF(*fC);
+    FldArrayF* foutc = NULL;
+    if (arrayCenters != NULL) foutc = new FldArrayF(*fc);
     E_Int ii = 0;
 
     // Selection des faces valides
@@ -584,7 +367,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     keep_pg = -1;
 
     if (PE != Py_None)
-    {   
+    {
       new_pg_ids.malloc(nbFaces);    // Tableau d'indirection des faces (pour maj PE)
       keep_pg.malloc(nbFaces);       // Flag de conservation des faces 
       new_ph_ids.malloc(nbElements); // Tableau d'indirection des elmts (pour maj PE)
@@ -612,7 +395,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
               }
               size2 += nbfaces; cn2p += nbfaces+1; next++;
 
-              for (E_Int k = 1; k <= nfldC; k++) (*foutC)(ii,k) = (*fC)(i,k);
+              for (E_Int k = 1; k <= nfldc; k++) (*foutc)(ii,k) = (*fc)(i,k);
 
               new_ph_ids[i] = ii;
               ii++;
@@ -626,14 +409,14 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
       {
         for (E_Int i = 0; i < nbElements; i++)
         {
-          isSel = 0;
+          cnt = 0;
           new_ph_ids[i] = -1;
           nbfaces = cnEFp[0];
           for (E_Int n = 1; n <= nbfaces; n++)
           {
-            if (selectedFacesp[cnEFp[n]-1] == 1) isSel++;
+            if (selectedFacesp[cnEFp[n]-1] == 1) cnt++;
           }
-          if (isSel == nbfaces) //cell selectionnee si tous les sommets sont tag
+          if (cnt == nbfaces) //cell selectionnee si tous les sommets sont tag
           {
             cn2p[0] = nbfaces; size2 +=1;
             for (E_Int n = 1; n <= nbfaces; n++)
@@ -643,16 +426,14 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
             }
             size2 += nbfaces; cn2p += nbfaces+1; next++;
       
-            for (E_Int k = 1; k <= nfldC; k++) (*foutC)(ii,k) = (*fC)(i,k);
+            for (E_Int k = 1; k <= nfldc; k++) (*foutc)(ii,k) = (*fc)(i,k);
   
             new_ph_ids[i] = ii;
             ii++;
           }
-          cnEFp += nbfaces+1; 
-        } 
+          cnEFp += nbfaces+1;
+        }
       }
-      cn2.reAlloc(size2);
-      if (foutC != NULL) foutC->reAllocMat(ii, nfldC);
 
       E_Int nn = 0; 
       for (E_Int n = 0; n<new_pg_ids.getSize(); n++)
@@ -676,7 +457,7 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
               for (E_Int n = 1; n <= nbfaces; n++) cn2p[n] = cnEFp[n];
               size2 += nbfaces; cn2p += nbfaces+1; next++;
 
-              for (E_Int k = 1; k <= nfldC; k++) (*foutC)(ii,k) = (*fC)(i,k);
+              for (E_Int k = 1; k <= nfldc; k++) (*foutc)(ii,k) = (*fc)(i,k);
               ii++;
 
               break; 
@@ -689,28 +470,29 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
       {
         for (E_Int i = 0; i < nbElements; i++)
         {
-          isSel = 0;
+          cnt = 0;
           nbfaces = cnEFp[0];
           for (E_Int n = 1; n <= nbfaces; n++)
           {
-            if (selectedFacesp[cnEFp[n]-1] == 1) isSel++;
+            if (selectedFacesp[cnEFp[n]-1] == 1) cnt++;
           }
-          if (isSel == nbfaces) //cell selectionnee si tous les sommets sont tag
+          if (cnt == nbfaces) //cell selectionnee si tous les sommets sont tag
           {
             cn2p[0] = nbfaces; size2 +=1;
             for (E_Int n = 1; n <= nbfaces; n++) cn2p[n] = cnEFp[n];
             size2 += nbfaces; cn2p += nbfaces+1; next++;
 
-            for (E_Int k = 1; k <= nfldC; k++) (*foutC)(ii,k) = (*fC)(i,k);
+            for (E_Int k = 1; k <= nfldc; k++) (*foutc)(ii,k) = (*fc)(i,k);
             ii++;
           }
           cnEFp += nbfaces+1; 
         } 
       }
-      cn2.reAlloc(size2);
-      if (foutC != NULL) foutC->reAllocMat(ii, nfldC);
     }
 
+    cn2.reAlloc(size2);
+    if (arrayCenters != NULL) foutc->reAllocMat(ii, nfldc);
+    
     // Cree la nouvelle connectivite complete
     E_Int coutsize = sizeFN+4+size2;
     FldArrayI* cout = new FldArrayI(coutsize);
@@ -721,8 +503,6 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     coutp[0] = next;
     coutp[1] = size2; coutp += 2;
     for (E_Int i = 0; i < size2; i++) coutp[i] = cn2p[i];
-
-    RELEASESHAREDB(res2, tag, f2, cnp2);
 
     if (PE != Py_None)
     {
@@ -753,32 +533,33 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
 
       for (E_Int pgi = 0; pgi < nbFaces; pgi++)
       {
-	      if (new_pg_ids[pgi]>=0)
-	      {
-	        old_ph_1 = cFEl_old[pgi]-1;
-	        old_ph_2 = cFEr_old[pgi]-1;
+        if (new_pg_ids[pgi]>=0)
+        {
+          old_ph_1 = cFEl_old[pgi]-1;
+          old_ph_2 = cFEr_old[pgi]-1;
 
-	        if (old_ph_1 >= 0) // l'elmt gauche existe 
-	        {
-	          cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_1]+1;
+          if (old_ph_1 >= 0) // l'elmt gauche existe 
+          {
+            cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_1]+1;
  
-	          if (old_ph_2 >= 0) // l'elmt droit existe 
-	            cFEr[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1; 
-	          else
-	            cFEr[new_pg_ids[pgi]] = 0;
-	        }
-	        else // l'elmt gauche a disparu - switch droite/gauche
-	        {
-	          cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1;
-	          cFEr[new_pg_ids[pgi]] = 0;
-	          // reverse
-	          E_Int s = ng.PGs.stride(pgi);
-	          E_Int* p = ng.PGs.get_facets_ptr(pgi);
-	          std::reverse(p, p + s);
-	        }
-	        
-	      }
-      } // boucle pgi
+            if (old_ph_2 >= 0) // l'elmt droit existe
+            {
+              cFEr[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1;
+            }
+            else
+              cFEr[new_pg_ids[pgi]] = 0;
+          } 
+          else // l'elmt gauche a disparu - switch droite/gauche
+          {
+            cFEl[new_pg_ids[pgi]] = new_ph_ids[old_ph_2]+1;
+            cFEr[new_pg_ids[pgi]] = 0;
+            // reverse
+            E_Int s = ng.PGs.stride(pgi);
+            E_Int* p = ng.PGs.get_facets_ptr(pgi);
+            std::reverse(p, p + s);
+          }
+        }
+      } // boucle pgi      
       
       // export ngon
       ng.export_to_array(*cout);
@@ -792,26 +573,276 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
       RELEASESHAREDN(PE, cFE);
     }
 
-
     // close
     if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
       K_CONNECT::cleanConnectivityNGon(posx, posy, posz, 1.e-10, *fout, *cout);
-    
+
     cout->setNGonType(1);
     tpln = K_ARRAY::buildArray3(*fout, varString, *cout, eltType, api);
     if (arrayCenters != NULL)
     {
-      tplc = K_ARRAY::buildArray3(*foutC, varStringC, *cout, eltType, api);
-      delete foutC;
+      tplc = K_ARRAY::buildArray3(*foutc, varStringc, *cout, eltType, api);
+      delete foutc;
     }
     delete fout; delete cout;
   }
+  else if (K_STRING::cmp(eltType, "NODE") == 0)
+  {
+    FldArrayF* an = new FldArrayF();
+    FldArrayF& coord = *an;
 
+    // Selection des vertex
+    FldArrayI selected(npts, 2);
+    selected.setAllValuesAtNull();
+    E_Int* selectedp = selected.begin();
+    E_Float* tagp = fa->begin();
+    E_Int count = 0;
+    for (E_Int i = 0; i < npts; i++)
+    {
+      if (tagp[i] >= oneEps) { selectedp[i] = 1; count++; }
+    }
+
+    // Tableau des vertex
+    coord.malloc(count, nfld);
+
+    for (E_Int n = 1; n <= nfld; n++)
+    {
+      count = 0;
+      E_Float* coordn = coord.begin(n);
+      E_Float* fn = f->begin(n);
+      for (E_Int i = 0; i < npts; i++)
+      {
+        if (selectedp[i] == 1)
+        {
+          coordn[count] = fn[i];
+          count++;
+        }
+      }
+    }
+  
+    // Tableau des connectivites
+    FldArrayI* acn = new FldArrayI();
+    FldArrayI& cn = *acn; cn.malloc(0, 1);
+  
+    if (cleanConnectivity == 1 && posx > 0 && posy > 0 && posz > 0)
+      K_CONNECT::cleanConnectivity(posx, posy, posz, 1.e-10, eltType, *an, *acn);
+    tpln = K_ARRAY::buildArray3(*an, varString, *acn, eltType, api);
+    if (arrayCenters != NULL) tplc = tpln;
+    delete an; delete acn;
+  }
+  else  // other BE/ME
+  {
+    E_Float* tagp = fa->begin();
+
+    // Number of elements per connectivity and cumulative offsets
+    E_Int nc = cnp->getNConnect();
+    std::vector<E_Int> nepc(nc);
+    std::vector<E_Int> cumnepc(nc+1); cumnepc[0] = 0;
+    for (E_Int ic = 0; ic < nc; ic++)
+    {
+      FldArrayI& cm = *(cnp->getConnect(ic));
+      nepc[ic] = cm.getSize();
+      cumnepc[ic+1] = cumnepc[ic] + nepc[ic];
+    }
+    E_Int ntotElts = cumnepc[nc];
+
+    std::vector<char*> eltTypes;
+    K_ARRAY::extractVars(eltType, eltTypes);
+
+    // In a first pass, tag selected elements and their vertices
+    std::vector<E_Int> vindir(npts, 0);
+    std::vector<E_Int> eindir(ntotElts, 0);
+
+    #pragma omp parallel
+    {
+      E_Int indv, nvpe, eidx;
+      E_Bool selected;
+
+      for (E_Int ic = 0; ic < nc; ic++)
+      {
+        FldArrayI& cm = *(cnp->getConnect(ic));
+        nvpe = cm.getNfld();
+
+        if (strict == 0)  // selected if at least one vertex is tagged with 1
+        {
+          #pragma omp for nowait schedule(static)
+          for (E_Int i = 0; i < nepc[ic]; i++)
+          {
+            selected = false;
+            for (E_Int j = 1; j <= nvpe; j++)
+            {
+              indv = cm(i,j) - 1;
+              if (tagp[indv] >= oneEps) { selected = true; break; }
+            }
+
+            if (selected)
+            {
+              // cell selected, tag all vertices
+              eidx = cumnepc[ic] + i;
+              eindir[eidx] = 1;
+              for (E_Int j = 1; j <= nvpe; j++)
+              {
+                indv = cm(i,j) - 1;
+                vindir[indv] = 1;
+              }
+            }
+          }
+        }
+        else  // selected if all vertices are tagged with 1
+        {
+          #pragma omp for nowait schedule(static)
+          for (E_Int i = 0; i < nepc[ic]; i++)
+          {
+            selected = true;
+            for (E_Int j = 1; j <= nvpe; j++)
+            {
+              indv = cm(i,j) - 1;
+              if (tagp[indv] < oneEps) { selected = false; break; }
+            }
+
+            if (selected)
+            {
+              // cell selected, tag all vertices
+              eidx = cumnepc[ic] + i;
+              eindir[eidx] = 1;
+              for (E_Int j = 1; j <= nvpe; j++)
+              {
+                indv = cm(i,j) - 1;
+                vindir[indv] = 1;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Transform the masks into maps from old to new numbering.
+    // eindir is renumbered per connectivity (bucket), vindir globally
+    std::vector<E_Int> tmp_nepc2 = K_CONNECT::mask2Indir(eindir, nepc);
+    E_Int npts2 = K_CONNECT::mask2Indir(vindir);
+
+    // Nothing selected: return an empty NODE connectivity
+    if (npts2 == 0)
+    {
+      tpln = K_ARRAY::buildArray3(nfld, varString, 0, 0, "NODE", false, api);
+      if (arrayCenters != NULL) tplc = tpln;
+    }
+    else
+    {
+      // Build new eltType and nepc2 from conns with at least one element
+      // ('tmp_' is uncompressed: same number of connectivities as the input)
+      E_Int nc2 = 0;
+      char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
+      eltType2[0] = '\0';
+      std::vector<E_Int> nepc2;
+      for (E_Int ic = 0; ic < nc; ic++)
+      {
+        if (tmp_nepc2[ic] <= 0) continue;
+        nc2++;
+        nepc2.push_back(tmp_nepc2[ic]);
+        if (eltType2[0] == '\0') strcpy(eltType2, eltTypes[ic]);
+        else { strcat(eltType2, ","); strcat(eltType2, eltTypes[ic]); }
+      }
+
+      // Cumulative number of selected elements, uncompressed (offset of each
+      // connectivity in the output center fields)
+      std::vector<E_Int> cumnepc2(nc+1); cumnepc2[0] = 0;
+      for (E_Int ic = 0; ic < nc; ic++)
+        cumnepc2[ic+1] = cumnepc2[ic] + tmp_nepc2[ic];
+
+      // Build new ME connectivity
+      tpln = K_ARRAY::buildArray3(nfld, varString, npts2, nepc2,
+                                  eltType2, false, api);
+      FldArrayF* f2; FldArrayI* cn2;
+      K_ARRAY::getFromArray3(tpln, f2, cn2);
+
+      #pragma omp parallel
+      {
+        E_Int indv, nvpe, ind, ic2;
+
+        // Copy fields at nodes
+        for (E_Int n = 1; n <= nfld; n++)
+        {
+          E_Float* fp = f->begin(n);
+          E_Float* f2p = f2->begin(n);
+          #pragma omp for nowait
+          for (E_Int i = 0; i < npts; i++)
+          {
+            indv = vindir[i];
+            if (indv > 0) f2p[indv-1] = fp[i];
+          }
+        }
+
+        // Connectivity
+        ic2 = 0;
+        for (E_Int ic = 0; ic < nc; ic++)
+        {
+          if (tmp_nepc2[ic] == 0) continue;  // no selected elements in this conn
+          FldArrayI& cm = *(cnp->getConnect(ic));
+          FldArrayI& cm2 = *(cn2->getConnect(ic2));
+          nvpe = cm.getNfld();
+
+          #pragma omp for nowait schedule(static)
+          for (E_Int i = 0; i < nepc[ic]; i++)
+          {
+            ind = eindir[cumnepc[ic] + i];
+            if (ind > 0)
+            {
+              for (E_Int j = 1; j <= nvpe; j++)
+              {
+                indv = cm(i,j) - 1;
+                cm2(ind-1, j) = vindir[indv];
+              }
+            }
+          }
+          ic2++;
+        }
+      }
+
+      // Free memory
+      std::vector<E_Int>().swap(vindir);
+
+      FldArrayF* fc2 = NULL;
+      if (arrayCenters != NULL)
+      {
+        tplc = K_ARRAY::buildArray3(nfldc, varStringc, npts2,
+                                    *cn2, eltType2, true, api, true);
+        K_ARRAY::getFromArray3(tplc, fc2);
+
+        // Copy fields at centers
+        #pragma omp parallel
+        {
+          E_Int eidx, ind;
+          for (E_Int n = 1; n <= nfldc; n++)
+          {
+            E_Float* fcp = fc->begin(n);
+            E_Float* fc2p = fc2->begin(n);
+            for (E_Int ic = 0; ic < nc; ic++)
+            {
+              #pragma omp for nowait
+              for (E_Int i = 0; i < nepc[ic]; i++)
+              {
+                eidx = cumnepc[ic] + i;
+                ind = eindir[eidx];
+                if (ind > 0) fc2p[cumnepc2[ic] + ind-1] = fcp[eidx];
+              }
+            }
+          }
+        }
+      }
+
+      for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
+      if (res == 1) { delete cnp; delete[] eltType; }
+      if (arrayCenters != NULL) RELEASESHAREDS(tplc, fc2);
+    }
+  }
+
+  RELEASESHAREDB(resa, tag, fa, cnpa);
   RELEASESHAREDB(res, arrayNodes, f, cnp);
-  PyList_Append(l, tpln) ; Py_DECREF(tpln);
+  PyList_Append(l, tpln); Py_DECREF(tpln);
   if (arrayCenters != NULL)
   {
-    RELEASESHAREDB(resC, arrayCenters, fC, cnpC);
+    RELEASESHAREDB(resc, arrayCenters, fc, cnpc);
     PyList_Append(l, tplc); Py_DECREF(tplc);
   }
   return l;
@@ -826,22 +857,18 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
 PyObject* K_POST::selectCells3(PyObject* self, PyObject* args)
 {
   PyObject* tag; E_Int flag;
-  if (!PYPARSETUPLE_(args, O_ I_, &tag, &flag))
-  {
-    return NULL;
-  }
+  if (!PYPARSETUPLE_(args, O_ I_, &tag, &flag)) return NULL;
 
   // Extract tag (centers)
-  char* varString2; char* eltType2;
-  FldArrayF* f2; FldArrayI* cn2;
-  E_Int ni2, nj2, nk2;
-  E_Int res2;
+  char* varStringa; char* eltTypea;
+  FldArrayF* fa; FldArrayI* cna;
+  E_Int resa, nia, nja, nka;
 
   if (flag == 0) // array
   {
-    res2 = K_ARRAY::getFromArray3(tag, varString2, f2,
-                                  ni2, nj2, nk2, cn2, eltType2);
-    if (res2 != 1 && res2 != 2)
+    resa = K_ARRAY::getFromArray3(tag, varStringa, fa,
+                                  nia, nja, nka, cna, eltTypea);
+    if (resa != 1 && resa != 2)
     {
       PyErr_SetString(PyExc_TypeError,
                       "selectCells3: tag array is invalid.");
@@ -850,8 +877,8 @@ PyObject* K_POST::selectCells3(PyObject* self, PyObject* args)
   }
   else // numpy
   {
-    res2 = K_NUMPY::getFromNumpyArray(tag, f2);
-    if (res2 == 0)
+    resa = K_NUMPY::getFromNumpyArray(tag, fa);
+    if (resa == 0)
     {
       PyErr_SetString(PyExc_TypeError,
                       "selectCells3: tag numpy is invalid.");
@@ -859,8 +886,8 @@ PyObject* K_POST::selectCells3(PyObject* self, PyObject* args)
     }
   }
 
-  E_Int nelts = f2->getSize();
-  E_Float* tagp = f2->begin(); 
+  E_Int nelts = fa->getSize();
+  E_Float* tagp = fa->begin(); 
   E_Float oneEps = 1.-1.e-10;
 
   // Compte les tag > 1-eps
@@ -900,9 +927,9 @@ PyObject* K_POST::selectCells3(PyObject* self, PyObject* args)
     }
   }
 
-  delete [] nb; delete [] pos;
-  
-  if (flag == 0) { RELEASESHAREDB(res2, tag, f2, cn2); }
-  else { RELEASESHAREDN(tag, f2); }
+  delete[] nb; delete[] pos;
+
+  if (flag == 0) { RELEASESHAREDB(resa, tag, fa, cna); }
+  else RELEASESHAREDN(tag, fa);
   return o;
 }
