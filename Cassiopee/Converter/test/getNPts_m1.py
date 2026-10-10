@@ -21,6 +21,6 @@ C._initVars(t, 'Density', F, ['CoordinateX', 'CoordinateY', 'CoordinateZ'], isVe
 if Cmpi.size > 1:
     Cmpi._convert2PartialTree(t, Cmpi.rank)
 
-npts = Cmpi.getNPts(t, 'Density')
+npts = Cmpi.getNPts(t)
 if Cmpi.master:
     test.testO(npts, 1)
