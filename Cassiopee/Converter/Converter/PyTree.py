@@ -3594,10 +3594,10 @@ def _convertArray2Tetra(t, split='simple'):
             fieldn = getAllFields(z, 'nodes', api=1)[0]
             fieldc = getAllFields(z, 'centers', api=1)[0]
             if fieldc == []:
-                res = Converter.convertArray2Tetra1__(fieldn, split='withBarycenters')
+                res = Converter.convertArray2Tetra__(fieldn, split='withBarycenters')
                 z = setFields([res], z, 'nodes', writeDim=True)
             else:
-                res = Converter.convertArray2Tetra1__(fieldn, fieldc, split='withBarycenters')
+                res = Converter.convertArray2Tetra__(fieldn, fieldc, split='withBarycenters')
                 z = setFields([res[0]], z, 'nodes', writeDim=True)
                 z = setFields([res[1]], z, 'centers', writeDim=False)
     return None
@@ -3606,7 +3606,7 @@ def _convertArray2Tetra(t, split='simple'):
 def convertArray2Hexa(t):
     """Convert a structured zone to an unstructured quad/hexa zone.
     Convert an unstructured zone to a quad/hexa zone. If the original
-    zone is a TRI,TETRA or PENTA zone, return a QUAD/HEXA/HEXA zone with
+    zone is a TRI, TETRA or PENTA zone, return a QUAD/HEXA/HEXA zone with
     degenerated edges.
     Usage: convertArray2Hexa(t)"""
     tp = Internal.copyRef(t)

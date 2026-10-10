@@ -1301,7 +1301,7 @@ def adaptSurfaceNGon(array):
         return converter.adaptSurfaceNGon(array)
 
 # -- Internal --
-def convertArray2Tetra1__(array, arrayC=[], split='simple'):
+def convertArray2Tetra__(array, arrayC=[], split='simple'):
     try: sub = array[3]
     except: raise TypeError("convertArray2Tetra: arg must be an array.")
     if isinstance(sub, str): t = sub
@@ -1314,9 +1314,9 @@ def convertArray2Tetra1__(array, arrayC=[], split='simple'):
             tmp = T.breakElements(array)
             brd = []
             for i in tmp:
-                if i[3] != 'NGON': brd.append(convertArray2Tetra1__(i))
+                if i[3] != 'NGON': brd.append(convertArray2Tetra__(i))
                 else:
-                    brd.append(convertArray2Tetra1__(i, split="withBarycenters"))
+                    brd.append(convertArray2Tetra__(i, split="withBarycenters"))
             brd = T.join(brd)
             return brd
         else:
@@ -1366,12 +1366,12 @@ def convertArray2Tetra(array, split='simple'):
     if isinstance(array[0], list):
         b = []
         for i in array:
-            b.append(convertArray2Tetra1__(i, split=split))
+            b.append(convertArray2Tetra__(i, split=split))
         return b
-    else: return convertArray2Tetra1__(array, split=split)
+    else: return convertArray2Tetra__(array, split=split)
 
 # -- Internal --
-def convertArray2Hexa1__(array):
+def convertArray2Hexa__(array):
     try: sub = array[3]
     except: raise TypeError("convertArray2Hexa: arg must be an array.")
     if isinstance(sub, str): t = sub
@@ -1384,7 +1384,7 @@ def convertArray2Hexa1__(array):
         tmp = T.reorder(tmp)
         brd = []
         for i in tmp:
-            if i[3] != 'NGON': brd.append(convertArray2Hexa1__(i))
+            if i[3] != 'NGON': brd.append(convertArray2Hexa__(i))
         brd = T.join(brd)
         return brd
     else:
@@ -1402,15 +1402,15 @@ def convertArray2Hexa1__(array):
 
 # -- convert arrays(s) to hexa
 def convertArray2Hexa(array):
-    """Convert a array in an unstructured hexa array.
+    """Convert an array in an unstructured hexa array.
     Unstructured array can be quad in 2D and hexa in 3D.
     Usage: convertArray2Hexa(array)"""
     if isinstance(array[0], list):
         b = []
         for i in array:
-            b.append(convertArray2Hexa1__(i))
+            b.append(convertArray2Hexa__(i))
         return b
-    else: return convertArray2Hexa1__(array)
+    else: return convertArray2Hexa__(array)
 
 def mergeByEltType(array):
     """Merge an unstructured array by element type."""

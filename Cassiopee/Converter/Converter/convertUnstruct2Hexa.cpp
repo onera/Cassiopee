@@ -18,7 +18,6 @@
 */
 #include "converter.h"
 
-using namespace K_FUNC;
 using namespace K_FLD;
 
 // ============================================================================
