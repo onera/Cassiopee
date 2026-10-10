@@ -191,13 +191,13 @@ def checkCAD(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
     for i in range(ne): edgeLengths.append(OCC.getEdgeLength(hook, [i+1]))
     count = 0
     for e in edgeLengths:
-        if e < hmin: count += 1 
+        if e < hmin: count += 1
     print(f"INFO: CAD has {count-nd} edges lower than {hmin}.")
     count = 0
     for e in edgeLengths:
-        if e < hmin*10: count += 1 
+        if e < hmin*10: count += 1
     print(f"INFO: CAD has {count-nd} edges lower than {10*hmin}.")
-        
+
     #==============================
     # Find compounds by OCAF labels
     #==============================
