@@ -254,6 +254,18 @@ def getMeanValue(t, varName):
     npts = allreduce(npts, op=SUM)
     return val/npts
 
+def getArgMin(t, varName):
+    """Get field values where the variable defined by varName is minimum."""
+    val = C.getArgMin(t, varName)
+    vals = allgather(val)
+    return min(vals, key=lambda v: v[3])
+
+def getArgMax(t, varName):
+    """Get field values where the variable defined by varName is maximum."""
+    val = C.getArgMax(t, varName)
+    vals = allgather(val)
+    return max(vals, key=lambda v: v[3])
+
 def isFinite(t, var=None):
     """Return true if all fields in a have no NAN or INF values."""
     val = C.isFinite(t, var)
