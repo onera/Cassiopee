@@ -12,21 +12,20 @@ C._initVars(a, 'Fy=2.')
 C._initVars(a, 'Fz=3.')
 C._initVars(a[1], 'toto=0.')
 
-noz = 0
-for z in Internal.getZones(a):
+for noz, z in enumerate(Internal.getZones(a)):
     if noz != 1:
-        C._initVars(z,'{centers:Gx}=2.')
-        C._initVars(z,'{centers:Gy}=1.')
+        C._initVars(z, '{centers:Gx}=2.')
+        C._initVars(z, '{centers:Gy}=1.')
     else:
-        C._initVars(z,'{centers:Gy}=1.')
-        C._initVars(z,'{centers:Gx}=2.')
+        C._initVars(z, '{centers:Gy}=1.')
+        C._initVars(z, '{centers:Gx}=2.')
     GC = Internal.getNodeFromType1(z, 'GridCoordinates_t')
-    Internal._rmNodesFromName(z,GC[0])
+    Internal._rmNodesFromName(z, GC[0])
     if noz == 1:
         XA = Internal.getNodeFromName1(GC, 'CoordinateX')
         Internal._rmNodesFromName(GC, 'CoordinateX')
         GC[2].append(XA)
     z[2].append(GC)
-    noz += 1
+
 res = T.join(a[0:2])
 test.testT(res, 1)
