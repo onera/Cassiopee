@@ -831,12 +831,14 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
         }
       }
 
+      delete[] eltType2;
       for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
-      if (res == 1) { delete cnp; delete[] eltType; }
+      RELEASESHAREDU(tpln, f2, cn2);
       if (arrayCenters != NULL) RELEASESHAREDS(tplc, fc2);
     }
   }
 
+  if (res == 1) { delete cnp; delete[] eltType; }
   RELEASESHAREDB(resa, tag, fa, cnpa);
   RELEASESHAREDB(res, arrayNodes, f, cnp);
   PyList_Append(l, tpln); Py_DECREF(tpln);
