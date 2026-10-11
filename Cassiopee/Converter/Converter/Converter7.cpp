@@ -25,7 +25,8 @@ using namespace K_FUNC;
 using namespace K_FLD;
 
 //=============================================================================
-/* Get array value where one of its variables is minimum */
+// Get array values where one of its variables is minimum
+// In case of ties, keep the lowest index
 //=============================================================================
 PyObject* K_CONVERTER::getArgMin(PyObject* self, PyObject* args)
 {
@@ -69,17 +70,18 @@ PyObject* K_CONVERTER::getArgMin(PyObject* self, PyObject* args)
     E_Int ind = 0;
     E_Float minVal = K_CONST::E_MAX_FLOAT;
 
-#pragma omp parallel default(shared)
+    #pragma omp parallel default(shared)
     {
       E_Float minValLoc = K_CONST::E_MAX_FLOAT; E_Int indLoc = 0;
-#pragma omp for nowait
+      #pragma omp for nowait
       for (E_Int i = 0; i < fsize; i++)
       {
         if (fp[i] < minValLoc) { minValLoc = fp[i]; indLoc = i; }
       }
-#pragma omp critical
+      #pragma omp critical
       {
-        if (minValLoc < minVal) { minVal = minValLoc; ind = indLoc; }
+        if (minValLoc < minVal || (minValLoc == minVal && indLoc < ind))
+        { minVal = minValLoc; ind = indLoc; }
       }
     }
 
@@ -109,7 +111,8 @@ PyObject* K_CONVERTER::getArgMin(PyObject* self, PyObject* args)
 }
 
 //=============================================================================
-/* Get array value where one of its variables is maximum */
+// Get array values where one of its variables is maximum
+// In case of ties, keep the lowest index
 //=============================================================================
 PyObject* K_CONVERTER::getArgMax(PyObject* self, PyObject* args)
 {
@@ -154,17 +157,18 @@ PyObject* K_CONVERTER::getArgMax(PyObject* self, PyObject* args)
     E_Int ind = 0;
     E_Float maxVal = -K_CONST::E_MAX_FLOAT;
 
-#pragma omp parallel default(shared)
+    #pragma omp parallel default(shared)
     {
       E_Float maxValLoc = -K_CONST::E_MAX_FLOAT; E_Int indLoc = 0;
-#pragma omp for nowait
+      #pragma omp for nowait
       for (E_Int i = 0; i < fsize; i++)
       {
         if (fp[i] > maxValLoc) { maxValLoc = fp[i]; indLoc = i; }
       }
-#pragma omp critical
+      #pragma omp critical
       {
-        if (maxValLoc > maxVal) { maxVal = maxValLoc; ind = indLoc; }
+        if (maxValLoc > maxVal || (maxValLoc == maxVal && indLoc < ind))
+        { maxVal = maxValLoc; ind = indLoc; }
       }
     }
 

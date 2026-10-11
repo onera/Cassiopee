@@ -1095,7 +1095,7 @@ def setValue(array, ind, values):
     return None
 
 def getArgMin(array, varName):
-    """Get array value where the variable defined by varName is minimum.
+    """Get array values where the variable defined by varName is minimum.
     Usage: getArgMin(array, varName)"""
     if isinstance(array[0], list):
         pos1 = KCore.isNamePresent(array[0], varName)
@@ -1124,7 +1124,7 @@ def getMinValue(array, varName):
     else: return out
 
 def getArgMax(array, varName):
-    """Get array value where the variable defined by varName is maximum.
+    """Get array values where the variable defined by varName is maximum.
     Usage: getArgMax(array, varName)"""
     if isinstance(array[0], list):
         pos1 = KCore.isNamePresent(array[0], varName)
