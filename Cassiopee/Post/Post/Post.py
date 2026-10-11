@@ -1031,33 +1031,55 @@ def computeIndicatorFieldForBounds(indicator, indicatorValues, valMin, valMax, i
     points controlled by bounds epsMin and epsMax. Indicator values greater
     than epsMax are refined (indicator=1), those lower than epsMin are
     coarsened (indicator=-1), and 0 between bounds."""
-    valt = indicatorValues[1]; nelts = indicator[1][0].shape[0]
+    nelts = indicator[1][0].shape[0]
+    valt = indicatorValues[1][0]
     indicator2 = Converter.copy(indicator)
-    indict = indicator2[1]
-    for i in range(nelts):
-        if indict[0,i] == -1000.: # enforce near bodies
-            if isAMR:
-                indict[0,i] = 0.
+    indict = indicator2[1][0]
+
+    # maskNB = indict == -1000.  # enforce near bodies
+    # maskR = indict == -2000.  # no refinement of finest level
+    # maskC = indict == -3000.  # coarsening of coarsest level
+    # mask0 = ~(maskNB | maskR | maskC)
+    # valHigher = valt >= valMax
+    # valLower = valt <= valMin
+
+    # indict[:] = 0.
+    # if isAMR:
+    #     valHigher &= valt <= 1.
+    #     indict[(maskR | mask0) & valLower] = -1.
+    #     indict[maskC] = -1.
+    #     indict[(maskC | mask0) & valHigher] = 1.
+    # else:
+    #     indict[mask0 & valLower] = -1.
+    #     indict[maskC] = -1.
+    #     indict[(maskNB | mask0) & valHigher] = 1.
+
+    if isAMR:
+        for i in range(nelts):
+            if indict[i] == -1000.: # enforce near bodies
+                indict[i] = 0.
+            elif indict[i] == -2000.: # no refinement of finest level
+                if valt[i] <= valMin: indict[i] = -1.
+            elif indict[i] == -3000.: # coarsening of coarsest level
+                if valt[i] >= valMax and valt[i] <=1: indict[i] = 1.
             else:
-                if valt[0,i] >= valMax: indict[0,i] = 1.
-                else: indict[0,i] = 0.
-        elif indict[0,i] == -2000.: # no refinement of finest level
-            indict[0,i] = 0.
-            if isAMR:
-                if valt[0,i] <= valMin: indict[0,i] = -1.
-        elif indict[0,i] == -3000.: # coarsening of coarsest level
-            indict[0,i] = -1.
-            if isAMR:
-                if valt[0,i] >= valMax and valt[0,i] <=1: indict[0,i] = 1.
-        else:
-            if isAMR:
-                if valt[0,i] >= valMax and valt[0,i] <=1: indict[0,i] = 1.
-                elif valt[0,i] <= valMin: indict[0,i] = -1.
-                else: indict[0,i] = 0.
+                if valt[i] >= valMax and valt[i] <=1: indict[i] = 1.
+                elif valt[i] <= valMin: indict[i] = -1.
+                else: indict[i] = 0.
+    else:
+        for i in range(nelts):
+            if indict[i] == -1000.: # enforce near bodies
+                if valt[i] >= valMax: indict[i] = 1.
+                else: indict[i] = 0.
+            elif indict[i] == -2000.: # no refinement of finest level
+                indict[i] = 0.
+            elif indict[i] == -3000.: # coarsening of coarsest level
+                indict[i] = -1.
             else:
-                if valt[0,i] >= valMax: indict[0,i] = 1.
-                elif valt[0,i] <= valMin: indict[0,i] = -1.
-                else: indict[0,i] = 0.
+                if valt[i] >= valMax: indict[i] = 1.
+                elif valt[i] <= valMin: indict[i] = -1.
+                else: indict[i] = 0.
+
     return indicator2
 
 def computeIndicatorValue(octreeHexa, zones, indicField):
