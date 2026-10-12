@@ -45,7 +45,7 @@ extensions = [
 
 # Setup ======================================================================
 setup(
-    name="Dist2Walls",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "Dist2Walls",
     version="4.2",
     description="Computation of distance to walls.",
     author="ONERA",

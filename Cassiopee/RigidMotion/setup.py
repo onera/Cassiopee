@@ -48,7 +48,7 @@ listExtensions.append(
 
 # Setup ======================================================================
 setup(
-    name="RigidMotion",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "RigidMotion",
     version="4.2",
     description="Compute/define rigid motion.",
     author="ONERA",

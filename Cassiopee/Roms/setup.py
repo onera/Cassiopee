@@ -44,7 +44,7 @@ listExtensions.append(
 
 # setup ======================================================================
 setup(
-    name="Roms",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "Roms",
     version="4.2",
     description="Roms module.",
     author="ONERA",

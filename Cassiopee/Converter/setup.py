@@ -103,7 +103,7 @@ if srcs.EXPRESSION:
 
 # setup ======================================================================
 setup(
-    name="Converter",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "Converter",
     version="4.2",
     description="Converter for *Cassiopee* modules.",
     author="ONERA",

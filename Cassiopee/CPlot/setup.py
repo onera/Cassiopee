@@ -114,7 +114,7 @@ if OSMesa:
 
 # Setup ======================================================================
 setup(
-    name="CPlot",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "CPlot",
     version="4.2",
     description="A plotter for *Cassiopee* Modules.",
     author="ONERA",
