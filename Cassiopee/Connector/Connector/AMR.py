@@ -412,19 +412,20 @@ def recoverBCs(t, frontIP, BCInfo):
 
         #Join the separate BCs
         for zName in bcNames:
-            zbcs = C.extractBCOfType(tp, zName)
-            if zbcs != []:
+            zbcsTmp = C.extractBCOfType(tp, zName)
+            if zbcsTmp != []:
                 Internal._rmNodesByName(tp, zName+'*')
-                zbc = T.join(zbcs)
+                zbc = T.join(zbcsTmp)
                 zbc[0] = zName
                 C._addBC2Zone(tp, zName, zName, subzone=zbc)
 
-        #Clean the name of the Bcs
+        #Clean the name of the BCs & add grid location
         bcNodes = Internal.getNodesFromType(tp, 'BC_t')
         for bc in bcNodes:
             zbcName = Internal.getName(bc)
             zbcName = zbcName.split('.')
             bc[0] = zbcName[0]
+            Internal.createUniqueChild(bc, 'GridLocation', 'GridLocation_t', value='FaceCenter')
         _isolateExteriorFacesIBCs__(tp, t_exteriorFaces, zbcs)
 
 
