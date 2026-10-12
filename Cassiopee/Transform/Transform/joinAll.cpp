@@ -81,7 +81,7 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  char* eltRef = NULL;
+  const char* eltRef = NULL;
   E_Int missed = 0;
   E_Int nuref = 0;
   E_Int nc = 0, dimRef = -1, dim = -1;
@@ -148,19 +148,35 @@ PyObject* K_TRANSFORM::joinAll(PyObject* self, PyObject* args)
   E_Int nfld = unstructF[nuref]->getNfld();
   E_Int api = (nc > 1) ? 3 : unstructF[nuref]->getApi();
 
-  if (npts == 0)  // all input arrays are empty, create an empty NODE conn.
+  if (npts == 0)  // all input arrays are empty, create an empty conn.
   {
+    printf("Warning: joinAll: all arrays are empty.\n");
+
     for (E_Int k = 0; k < nu; k++) RELEASESHAREDU(obju[k], unstructF[k], cn[k]);
     for (E_Int k = 0; k < nuc; k++) RELEASESHAREDU(objuc[k], unstructFc[k], cnc[k]);
 
+    // The eltType of the output empty conn. is conserved if all input eltTypes
+    // are the same, otherwise NODE is chosen.
+    const char* eltType2 = NULL;
+    eltRef = eltType[0];
+    if (K_STRING::cmp(eltRef, "NGON") == 0) eltType2 = "NODE";
+    else
+    {
+      for (E_Int k = 1; k < nu; k++)
+      {
+        if (K_STRING::cmp(eltType[k], eltRef) != 0) { eltType2 = "NODE"; break; }
+      }
+      if (eltType2 == NULL) eltType2 = eltRef;
+    }
+
     tpln = K_ARRAY::buildArray3(nfld, unstructVarString[nuref],
-                                0, 0, "NODE", false, api);
+                                0, 0, eltType2, false, api);
     if (arraysc == NULL) return tpln;
     else
     {
       PyObject* l = PyList_New(0);
       PyObject* tplc = K_ARRAY::buildArray3(nfldc, unstructVarStringc[nuref],
-                                            0, 0, "NODE", false, api);
+                                            0, 0, eltType2, false, api);
       PyList_Append(l, tpln); Py_DECREF(tpln);
       PyList_Append(l, tplc); Py_DECREF(tplc);
       return l;

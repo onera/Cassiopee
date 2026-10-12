@@ -511,7 +511,7 @@ def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
         for test in deletedTests:
             compStr += stringify(test)
         if baseState == 'OK': baseState = 'DELETIONS'
-        elif baseState == 'ADDITIONS': baseState += ' & DELETIONS'
+        elif baseState == 'ADDITIONS': baseState = 'ADDS & DELS'
     else: compStr += deletedTestsHeader + "[none]\n"
 
     failedTestsHeader = "\nReminder - Failed tests:\n{}\n".format('-'*23)

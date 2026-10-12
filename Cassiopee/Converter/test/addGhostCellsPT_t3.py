@@ -35,11 +35,9 @@ vx = C.getField('VelocityX', a)[0]
 vy = C.getField('VelocityY', a)[0]
 
 nic = vx[2]; njc = vx[3]
-i = numpy.arange(nic)
-i0 = i * numpy.pi / 180.
-for j in range(njc):
-    vx[1][0,j*nic:ni+j*nic] = numpy.cos(i0)
-    vy[1][0,j*nic:ni+j*nic] = numpy.sin(i0)
+i0 = numpy.arange(nic) * numpy.pi / 180.
+vx[1][0,:] = numpy.tile(numpy.cos(i0), njc)
+vy[1][0,:] = numpy.tile(numpy.sin(i0), njc)
 
 C.setFields([vx], a, loc='nodes')
 C.setFields([vy], a, loc='nodes')
