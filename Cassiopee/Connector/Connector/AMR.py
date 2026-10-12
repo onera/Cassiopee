@@ -409,19 +409,22 @@ def recoverBCs(t, frontIP, BCInfo):
         _recoverBCs__(tp, t_exteriorFaces, zbcs, bctypes, bcnames)
     else:
         C._recoverBCs(tp, (zbcs, bcnames, bctypes))
+
         #Join the separate BCs
         for zName in bcNames:
             zbcs = C.extractBCOfType(tp, zName)
-            Internal._rmNodesByName(tp, zName+'*')
-            zbc = T.join(zbcs)
-            zbc[0] = zName
-            C._addBC2Zone(tp, zName, zName, subzone=zbc)
-        #Clean the name
-        for bc in Internal.getNodesFromType(tp, 'BC_t'):
+            if zbcs != []:
+                Internal._rmNodesByName(tp, zName+'*')
+                zbc = T.join(zbcs)
+                zbc[0] = zName
+                C._addBC2Zone(tp, zName, zName, subzone=zbc)
+
+        #Clean the name of the Bcs
+        bcNodes = Internal.getNodesFromType(tp, 'BC_t')
+        for bc in bcNodes:
             zbcName = Internal.getName(bc)
             zbcName = zbcName.split('.')
             bc[0] = zbcName[0]
-        Internal.printTree(tp)
         _isolateExteriorFacesIBCs__(tp, t_exteriorFaces, zbcs)
 
 
