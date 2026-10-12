@@ -242,7 +242,7 @@ def checkCAD(hook, tol=1.e-9, byOCAFLabels=True, repair=False):
             if len(overlaps) > 0:
                 print("ERROR: you must remove overlap faces manually: ", overlaps)
 
-    print(f"INFO: score: {score}/2")
+    print(f"INFO: score: {score}/2", flush=True)
     if score < 2: return False
     else: return True
 
@@ -357,14 +357,14 @@ def checkMesh(hook, t=None, tol=1.e-9, byOCAFLabels=True, repair=False, zipTol=N
     for c, z in enumerate(zones):
         ret = G.checkMesh(z)
         vmin = ret['vmin']
-        if vmin < tol:
-            print(f"Warning: face {c+1} contains small cells.")
+        if vmin < tol*tol:
+            print(f"Warning: face {c+1} contains small cells (vol<{tol*tol}).")
         rmin = ret['rmin']; rmax = ret['rmax']; rcrit = ret['rcrit'] # regularity
         if rmax > rcrit:
-            print(f"Warning: regularity of face {c+1} is critical: {rmax}.")
+            print(f"Warning: regularity of face {c+1} is critical ({rmax}).")
         omin = ret['omin']; omax = ret['omax']; ocrit = ret['ocrit'] # cell skewness
         if omax > ocrit:
-            print(f"Warning: cell skewness of face {c+1} is critical: {omax}.")
+            print(f"Warning: cell skewness of face {c+1} is critical ({omax}).")
 
     #=====================
     # quality by component
@@ -374,7 +374,7 @@ def checkMesh(hook, t=None, tol=1.e-9, byOCAFLabels=True, repair=False, zipTol=N
     for c, i in enumerate(a):
         ret = G.checkMesh(i)
         vmin = ret['vmin']
-        if vmin < tol: volmin[c] = False
+        if vmin < tol*tol: volmin[c] = False
         else: volmin[c] = True
 
     # inside mesher by component

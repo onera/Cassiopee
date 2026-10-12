@@ -160,7 +160,7 @@ else # parallel run forced
         x86_r8) # eos
             # intelMpi
             mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l $PYTHONEXE $SCRIPT
-            [ $? != 0 ] && exit 1;
+            [ $? -ne 0 ] && exit 1;
             ;;
         ld|ld_*) # localhost
             # openMpi    
@@ -170,17 +170,17 @@ else # parallel run forced
             else
                 mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
             fi
-            [ $? != 0 ] && exit 1;
+            [ $? -ne 0 ] && exit 1;
             ;;
         visung|visung_*) # visung
             # openMpi
             mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
-            [ $? != 0 ] && exit 1;
+            [ $? -ne 0 ] && exit 1;
             ;;
         sator_cas|sator_cas_*|sator_sky|sator_sky_*|sator_sph|sator_sph_*) # sator intel
             # intelMpi
             mpirun $ARGS -n $NPROCS -l -ordered-output $PYTHONEXE $SCRIPT
-            [ $? != 0 ] && exit 1;
+            [ $? -ne 0 ] && exit 1;
             ;;
         sator_gcc|sator_gcc_*) # sator gcc
             # openMpi
@@ -190,7 +190,7 @@ else # parallel run forced
             else
                 mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
             fi
-            [ $? != 0 ] && exit 1;
+            [ $? -ne 0 ] && exit 1;
             ;;
         sator_coda|sator_coda[_,2]*) # sator coda
             # openMpi
@@ -200,12 +200,12 @@ else # parallel run forced
             else
                 mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS --bind-to core --map-by socket:PE=$NTHREADS $PYTHONEXE $SCRIPT  #--report-bindings
             fi
-            [ $? != 0 ] && exit 1;
+            [ $? -ne 0 ] && exit 1;
             ;;
         spiro|spiro_*) # spiro
             # intelMpi
             mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT
-            [ $? != 0 ] && exit 1;
+            [ $? -ne 0 ] && exit 1;
             ;;
         juno_gcc|juno_gcc_*) # juno gcc, to list before juno
             # openMpi
@@ -215,7 +215,7 @@ else # parallel run forced
             else
                 mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS $PYTHONEXE $SCRIPT
             fi
-            [ $? != 0 ] && exit 1;  
+            [ $? -ne 0 ] && exit 1;  
             ;;
         juno_coda|juno_coda[_,2]*) # juno coda, to list before juno
             # openMpi
@@ -225,26 +225,26 @@ else # parallel run forced
             else
                 mpirun $ARGS -x OMP_NUM_THREADS=$NTHREADS -np $NPROCS --bind-to core --map-by socket:PE=$NTHREADS $PYTHONEXE $SCRIPT  #--report-bindings
             fi
-            [ $? != 0 ] && exit 1;  
+            [ $? -ne 0 ] && exit 1;  
             ;;
         juno|juno_*) # juno
             # intelMpi
             mpirun $ARGS -n $NPROCS -genv OMP_NUM_THREADS=$NTHREADS -l -ordered-output $PYTHONEXE $SCRIPT
-            [ $? != 0 ] && exit 1;
+            [ $? -ne 0 ] && exit 1;
             ;;
         cobalt) # cobalt
             export OMP_NUM_THREADS=$NTHREADS
             ccc_mprun -n $NPROCS $PYTHONEXE $SCRIPT
-            [ $? != 0 ] && exit 1;
+            [ $? -ne 0 ] && exit 1;
             ;;
         win64) # MSYS 2 With Win64 production
             # MSMPI
             mpiexec $ARGS -np $NPROCS $PYTHONEXE $SCRIPT
-            [ $? != 0 ] && exit 1;
+            [ $? -ne 0 ] && exit 1;
             ;;
         *) # default
             mpirun $ARGS -np $NPROCS $PYTHONEXE $SCRIPT
-            [ $? != 0 ] && exit 1;
+            [ $? -ne 0 ] && exit 1;
     esac
     unset MPIRUN
     export OMP_NUM_THREADS=$OMPNUMTHREADSINIT

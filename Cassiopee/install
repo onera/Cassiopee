@@ -81,12 +81,12 @@ do
       cd $mod
       if [ "$INSTALL_MODS" -eq 1 ]; then
           ./install $INSTALLPATH
-          [ $? != 0 ] && exit 1;
+          [ $? -ne 0 ] && exit 1;
       fi
       if [ "$INSTALL_DOCS" -eq 1 ]; then
           cd doc
           ./install
-          [ $? != 0 ] && exit 1;
+          [ $? -ne 0 ] && exit 1;
           cd ..
       fi
       cd ..
@@ -99,7 +99,7 @@ done
 if [ "$INSTALL_DOCS" -eq 1 ]; then
     cd KCore/doc
     ./install
-    [ $? != 0 ] && exit 1;
+    [ $? -ne 0 ] && exit 1;
     cd ../..
 fi
 

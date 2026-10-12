@@ -39,6 +39,7 @@
 
 //=====================================================================
 // Loft
+// input profile must be done of a single edge
 //=====================================================================
 PyObject* K_OCC::loft(PyObject* self, PyObject* args)
 {

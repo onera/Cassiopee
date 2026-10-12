@@ -731,14 +731,12 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
     {
       // Build new eltType and nepc2 from conns with at least one element
       // ('tmp_' is uncompressed: same number of connectivities as the input)
-      E_Int nc2 = 0;
       char* eltType2 = new char[K_ARRAY::VARSTRINGLENGTH];
       eltType2[0] = '\0';
       std::vector<E_Int> nepc2;
       for (E_Int ic = 0; ic < nc; ic++)
       {
         if (tmp_nepc2[ic] <= 0) continue;
-        nc2++;
         nepc2.push_back(tmp_nepc2[ic]);
         if (eltType2[0] == '\0') strcpy(eltType2, eltTypes[ic]);
         else { strcat(eltType2, ","); strcat(eltType2, eltTypes[ic]); }
