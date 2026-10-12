@@ -19,7 +19,7 @@ from Converter.Internal import E_NpyInt as E_NpyInt
 from .QuadratureDG import *
 
 __TOL__ = 1e-9
-
+isCasFunction = True
 def outputTime(startTime,functionName='FunctionName'):
     endTime     = time.perf_counter()
     elapsedTime = endTime-startTime
@@ -343,8 +343,25 @@ def removeBlankedCells(t):
 
 # ===============================================================================================================================
 def getBCs(t, tb2, dim):
-    (zbcs, bcnames, bctypes) = C.getBCs(t)
-    for zbc in zbcs: Internal._rmNodesByType(zbc, "FlowSolution_t")
+    if not isCasFunction:
+        # Identity the BCTypes & BCNames in t
+        zbcs=[]; bctypes=[]; bcnames=[]
+        for bc in Internal.getNodesFromType(t, 'BC_t'):
+            bctype = Internal.getValue(bc)
+            bcname = Internal.getName(bc)
+            if bctype not in bctypes:
+                bctypes.append(bctype)
+                bcnames.append(bcname)
+
+        # Save the boundary conditions for later use
+        for bctype in bctypes:
+            zbc = C.extractBCOfType(t, bctype)
+            Internal._rmNodesByType(zbc, "FlowSolution_t")
+            zbc = T.join(zbc)
+            zbcs.append(zbc)
+    else:
+        (zbcs, bcnames, bctypes) = C.getBCs(t)
+        for zbc in zbcs: Internal._rmNodesByType(zbc, "FlowSolution_t")
 
     # Blanking to check if the QuadNQuad BC is inside the geometry
     # Needed to avoid wrong BCs
@@ -379,6 +396,7 @@ def getBCs(t, tb2, dim):
 
 # ===============================================================================================================================
 def recoverBCs(t, frontIP, BCInfo):
+    bcNames = ['BCSymmetryPlane', 'BCFarfield']
     tp = Internal.copyRef(t)
     t_exteriorFaces = P.exteriorFaces(tp)
 
@@ -386,8 +404,27 @@ def recoverBCs(t, frontIP, BCInfo):
     for elt_t in Internal.getNodesFromType(t_exteriorFaces, "Elements_t"):
         if not elt_t[0].startswith("GridElements"):
             Internal._rmNode(t_exteriorFaces, elt_t)
-    C._recoverBCs(tp, (zbcs, bcnames, bctypes))
-    _isolateExteriorFacesIBCs__(tp, t_exteriorFaces, zbcs)
+
+    if not isCasFunction:
+        _recoverBCs__(tp, t_exteriorFaces, zbcs, bctypes, bcnames)
+    else:
+        C._recoverBCs(tp, (zbcs, bcnames, bctypes))
+        #Join the separate BCs
+        for zName in bcNames:
+            zbcs = C.extractBCOfType(tp, zName)
+            Internal._rmNodesByName(tp, zName+'*')
+            zbc = T.join(zbcs)
+            zbc[0] = zName
+            C._addBC2Zone(tp, zName, zName, subzone=zbc)
+        #Clean the name
+        for bc in Internal.getNodesFromType(tp, 'BC_t'):
+            zbcName = Internal.getName(bc)
+            zbcName = zbcName.split('.')
+            bc[0] = zbcName[0]
+        Internal.printTree(tp)
+        _isolateExteriorFacesIBCs__(tp, t_exteriorFaces, zbcs)
+
+
     zibc, t_exteriorFaces = recoverIBCs__(t_exteriorFaces, frontIP)
 
     return tp, t_exteriorFaces, zibc
@@ -445,7 +482,7 @@ def _recoverBCs__(t, t_exteriorFaces, zbcs, bctypes, bcnames):
     if meshgen == "AMR" and f is not None: t_exteriorFaces[2][1][2] = [f]
     return None
 
-def _isolateExteriorFacesIBCs__(t, t_exteriorFaces, zbcs, indicesExtFaces):
+def _isolateExteriorFacesIBCs__(t, t_exteriorFaces, zbcs):
     meshgen = "AMR"
     f = None
     for z in Internal.getZones(t):
