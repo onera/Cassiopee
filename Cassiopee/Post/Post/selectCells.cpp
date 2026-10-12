@@ -832,10 +832,10 @@ PyObject* K_POST::selectCells(PyObject* self, PyObject* args)
       }
 
       delete[] eltType2;
-      for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
       RELEASESHAREDU(tpln, f2, cn2);
       if (arrayCenters != NULL) RELEASESHAREDS(tplc, fc2);
     }
+    for (size_t ic = 0; ic < eltTypes.size(); ic++) delete [] eltTypes[ic];
   }
 
   if (res == 1) { delete cnp; delete[] eltType; }
