@@ -869,13 +869,16 @@ def chunk2part(dt):
             bcfields.append(dl)
             bcfieldNames.append(dn)
 
-    # keep BCFamilyTypes
+    # keep BCFamilyTypes and familyZone nodes
     bcFamilyTypes = {}
+    familyZones = []
     nodes = Internal.getNodesFromType2(dt, 'Family_t')
     for n in nodes:
         a1 = Internal.getNodeFromType1(n, 'FamilyBC_t')
         if a1 is not None:
             bcFamilyTypes[n[0]] = Internal.getValue(a1)
+        else: # familyZone
+            familyZones.append(n)
 
     # keep ReferenceState if any
     refState = Internal.getNodeFromType2(dt, 'ReferenceState_t')
@@ -938,6 +941,13 @@ def chunk2part(dt):
         if n[0] in bcFamilyTypes:
             a1 = Internal.getNodeFromType1(n, 'FamilyBC_t')
             Internal.setValue(a1, bcFamilyTypes[n[0]])
+
+    # add familyZones
+    b = Internal.getBases(t)[0]
+    z = Internal.getZones(t)[0]
+    for fz in familyZones:
+        Internal.addChild(b, fz, -1)
+        Internal._createUniqueChild(z, 'FamilyName', 'FamilyName_t', value=fz[0], pos=-1)
 
     return t, RES
 
