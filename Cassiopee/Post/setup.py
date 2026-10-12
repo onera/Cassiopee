@@ -55,7 +55,7 @@ listExtensions.append(
 
 # setup ======================================================================
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "Post",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "Post",
     version="4.2",
     description="Post-processing of CFD solutions.",
     author="ONERA",

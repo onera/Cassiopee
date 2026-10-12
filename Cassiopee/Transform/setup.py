@@ -48,7 +48,7 @@ listExtensions.append(
 
 # setup ======================================================================
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "Transform",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "Transform",
     version="4.2",
     description="Transformations of arrays/pyTrees for *Cassiopee* modules.",
     author="ONERA",

@@ -10,7 +10,7 @@ prod = os.getenv("ELSAPROD") or "xx"
 
 # setup ======================================================================
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "Apps",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "Apps",
     version="4.2",
     description="Application modules",
     author="ONERA",

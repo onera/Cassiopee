@@ -128,7 +128,7 @@ else:
 
 # setup ======================================================================
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "XCore",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "XCore",
     version="4.2",
     description="XCore for *Cassiopee* modules.",
     author="ONERA",

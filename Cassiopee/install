@@ -1,14 +1,15 @@
 #! /bin/sh
 # Print help message
 usage() {
-  echo -e "Usage: $0                                             : Install all modules"
-  echo -e "       $0 --all, -a                                   : Install modules and docs"
-  echo -e "       $0 --doc, -d                                   : Install docs only"
-  echo -e "       $0 --cassiopee=<path_to_cassiopee_root_dir>    : Set env. var. CASSIOPEE"
-  echo -e "       $0 --elsaprod=<production_name>                : Set env. var. ELSAPROD"
-  echo -e "       $0 --prefix=<installation_path>                : Change default installation path"
-  echo -e "       $0 --help, -h                                  : Print help message"
-  exit 1
+  cat <<EOF
+Usage: $0                                             : Install all modules
+       $0 --all, -a                                   : Install modules and docs
+       $0 --doc, -d                                   : Install docs only
+       $0 --cassiopee=<path_to_cassiopee_root_dir>    : Set env. var. CASSIOPEE
+       $0 --elsaprod=<production_name>                : Set env. var. ELSAPROD
+       $0 --prefix=<installation_path>                : Change default installation path
+       $0 --help, -h                                  : Print help message
+EOF
 }
 
 # Parse command-line arguments
@@ -35,11 +36,11 @@ while [ "$1" != "" ]; do
       export PREFIX="${1#*=}"
       ;;
     --help | -h)
-      usage
+      usage; exit 0
       ;;
     *)
       echo "Invalid argument: $1"
-      usage
+      usage >&2; exit 1
       ;;
   esac
   shift
@@ -49,7 +50,7 @@ done
 if [ "$CASSIOPEE" = "" ]; then
     echo "You must specify a CASSIOPEE variable in your environment."
     echo "This variable specifies the installation path of *Cassiopee*."
-    usage
+    usage >&2; exit 1
 fi
 
 if [ "$INSTALL_MODS" -eq 1 ]; then
@@ -57,7 +58,7 @@ if [ "$INSTALL_MODS" -eq 1 ]; then
     if [ "$ELSAPROD" = "" ]; then
         echo "You must specify a ELSAPROD in your environment."
         echo "This variable identifies the processor type."
-        usage
+        usage >&2; exit 1
     fi
     if [ -z $PREFIX ]; then
         INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
