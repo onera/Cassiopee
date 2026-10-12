@@ -54,15 +54,15 @@ def createPart(name):
     P5 = T1.Point('P5', (0,0,0))
     P6 = T1.Point('P6', (0,0,0))
     T1.Eq(P6.y, chord2)
-    
+
     P7 = T1.Point('P7', (0,0,0))
     T1.Eq(P7.y, 0.5*chord2)
     T1.Eq(P7.z, 0.5*thickness2)
-        
+
     P8 = T1.Point('P8', (0,0,0))
     T1.Eq(P8.y, 0.5*chord2)
     T1.Eq(P8.z, -0.5*thickness2)
-    
+
     line5 = T1.Line('line5', P5, P7)
     line6 = T1.Line('line6', P7, P6)
     line7 = T1.Line('line7', P6, P8)
