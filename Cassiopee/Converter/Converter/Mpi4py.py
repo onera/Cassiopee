@@ -13,7 +13,7 @@ from .Distributed import (
 
 __all__ = [
     'rank', 'size', 'master',
-    'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX', 'LAND',
+    'KCOMM', 'COMM_WORLD', 'SUM', 'MIN', 'MAX', 'LAND', 'LOR',
     'setCommunicator', 'abort', 'barrier',
     'send', 'isend', 'recv', 'requestWaitall', 'sendRecv', 'sendRecvC',
     'bcast', 'Bcast', 'gather', 'Gather',
@@ -47,6 +47,7 @@ SUM = MPI.SUM
 MAX = MPI.MAX
 MIN = MPI.MIN
 LAND = MPI.LAND
+LOR = MPI.LOR
 
 # version collective
 def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):

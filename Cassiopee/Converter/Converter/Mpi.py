@@ -16,7 +16,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
     else:
         rank = 0; size = 1; KCOMM = None; COMM_WORLD = None
         master = True
-        SUM = 0; MAX = 0; MIN = 0; LAND = 0
+        SUM = 0; MAX = 0; MIN = 0; LAND = 0; LOR = 0
         from .Distributed import (
             setProc, _setProc, getProc, getProcDict,
             getProperty, getPropertyDict, convertFile2SkeletonTree,
@@ -73,7 +73,7 @@ else: # try import (may fail - core or hang)
     except:
         rank = 0; size = 1; KCOMM = None; COMM_WORLD = None
         master = True
-        SUM = 0; MAX = 0; MIN = 0; LAND = 0
+        SUM = 0; MAX = 0; MIN = 0; LAND = 0; LOR = 0
         from .Distributed import (
             setProc, _setProc, getProc, getProcDict,
             getProperty, getPropertyDict, convertFile2SkeletonTree,
