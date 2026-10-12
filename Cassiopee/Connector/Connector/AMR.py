@@ -426,8 +426,7 @@ def recoverBCs(t, frontIP, BCInfo):
             zbcName = zbcName.split('.')
             bc[0] = zbcName[0]
             Internal.createUniqueChild(bc, 'GridLocation', 'GridLocation_t', value='FaceCenter')
-        _isolateExteriorFacesIBCs__(tp, t_exteriorFaces, zbcs)
-
+        #_isolateExteriorFacesIBCs__(tp, t_exteriorFaces, zbcs)
 
     zibc, t_exteriorFaces = recoverIBCs__(t_exteriorFaces, frontIP)
 
