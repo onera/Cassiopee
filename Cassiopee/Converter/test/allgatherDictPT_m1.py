@@ -78,5 +78,5 @@ if Cmpi.master: test.testO(d, 9)
 
 # Values are an iterable (list)
 d = Cmpi.allgatherDict(bcNamesDict, method=3)
-if Cmpi.master: test.testO(d, 9)
+if Cmpi.master: test.testO(d, 10)
 # {'inlet': [1.0, 3.0], 'wall': [5.0, 6.0, 10.0], 'outlet': [], 'symmetry': [20.0, 21.0]}
