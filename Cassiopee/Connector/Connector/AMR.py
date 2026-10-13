@@ -463,30 +463,6 @@ def _recoverBCs__(t, t_exteriorFaces, zbcs, bctypes, bcnames):
     if meshgen == "AMR" and f is not None: t_exteriorFaces[2][1][2] = [f]
     return None
 
-def _isolateExteriorFacesIBCs__(t, t_exteriorFaces, zbcs):
-    meshgen = "AMR"
-    f = None
-    for z in Internal.getZones(t):
-        if z is not None:
-            f = Internal.getZones(t_exteriorFaces)[0]
-            if Cmpi.master: print("Performing the 'identifyElements' function (it can be long.) - exterior faces IBCs", flush=True)
-            for nobc, zbc in enumerate(zbcs):
-                hook = C.createHook(f, "elementCenters")
-
-                ids = C.identifyElements(hook, zbc, tol=__TOL__)
-                len_ids = Internal.getValue(f)[0][1]
-                ids = ids[ids[:] > -1] - 1 # consider the positive numbers only & index starts at 0
-                ids = ids.tolist()
-                if len(ids) > 0:
-                    ids_all = list(range(len_ids))
-                    ids_new = list(set(ids_all)-set(ids))
-                    if len(ids_new) > 0:
-                        f = T.subzone(f, ids_new, type='elements')
-                C.freeHook(hook)
-
-    if f is not None: t_exteriorFaces[2][1][2] = [f]
-    return None
-
 def recoverIBCs__(t_exteriorFaces, frontIP):
     # Here:
     # t_exteriorFaces - is ONLY the exteriorFaces of the integration front on which CODA applies the IBCs
