@@ -832,7 +832,7 @@ def chunk2part(dt):
         print(fsol[0])
         loc = Internal.getNodeFromType1(fsol, 'GridLocation_t')
         if loc is not None and Internal.getValue(loc) == 'CellCenter':
-            solcNames[fsol[0]] = []        
+            solcNames[fsol[0]] = []
             for f in fsol[2]:
                 if f[3] == 'DataArray_t':
                     solc.append(f[1]); solcNames[fsol[0]].append(f[0])
