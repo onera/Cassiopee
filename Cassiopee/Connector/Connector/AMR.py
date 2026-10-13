@@ -128,7 +128,7 @@ def prepareAMRDataFV__(t_case, t, IBM_parameters=None, check=False, dim=3, local
     # STEP 7: Determine DP points on DPfront & Add IBC Dataset to the PyTree
     #===================================================================================
     Cmpi.trace(" Getting DP IBM points and adding IBC Dataset [start]", master=True, cpu=False)
-    _setIBCData(t, t_exteriorFaces, tb2, zibc, frontDP, bbo, IBM_parameters, check, forceAlignment, localDir, different_front_flag)
+    _setIBCData(t, frontIP, tb2, zibc, frontDP, bbo, IBM_parameters, check, forceAlignment, localDir, different_front_flag)
     Cmpi.trace(" Getting DP IBM points and adding IBC Dataset [end]  ", master=True, cpu=False)
 
     return t
@@ -858,7 +858,7 @@ def localOffset__(tbLocal, dim, dir_sym, minSnear, distIP):
     return iso
 
 # ===============================================================================================================================
-def _setIBCData(t, t_exteriorFaces, tb, zibc, frontDP, bbo, IBM_parameters, check, forceAlignment, localDir, different_front_flag):
+def _setIBCData(t, frontIP, tb, zibc, frontDP, bbo, IBM_parameters, check, forceAlignment, localDir, different_front_flag):
     ncellsIP = C.getNCells(zibc)
 
     if ncellsIP > 0:
@@ -874,7 +874,7 @@ def _setIBCData(t, t_exteriorFaces, tb, zibc, frontDP, bbo, IBM_parameters, chec
         Cmpi.trace(" Extracting IBM Points [end]"  , master=False, cpu=False)
 
         Cmpi.trace(" Adding IBCDatasets [start]", master=False, cpu=False)
-        _addIBCData__(t, t_exteriorFaces, donorPts, wallPts, integrationPts, IBM_parameters)
+        _addIBCData__(t, frontIP, donorPts, wallPts, integrationPts, IBM_parameters)
         Cmpi.trace(" Adding IBCDatasets [end]  ", master=False, cpu=False)
 
     C._rmVars(t, ['cellNFront'])
@@ -1166,7 +1166,7 @@ def isDPinDomain__(bbox, coords):
 
     return out, list_ids_outside_box
 
-def _addIBCData__(t, t_exteriorFaces, donorPts, wallPts, integrationPts, IBM_parameters):
+def _addIBCData__(t, frontIP, donorPts, wallPts, integrationPts, IBM_parameters):
 
     if IBM_parameters["spatial discretization"]["type"]=="FV":
         N_IP_per_face = 1
@@ -1183,7 +1183,7 @@ def _addIBCData__(t, t_exteriorFaces, donorPts, wallPts, integrationPts, IBM_par
     list_suffix_datasets.extend(range(1, N_IP_per_face))
 
     for z in Internal.getZones(t):
-        hook = C.createHook(t_exteriorFaces, 'elementCenters')
+        hook = C.createHook(frontIP, 'elementCenters')
         if IBM_parameters["spatial discretization"]["type"] == "FV":
             for nobc,ibc in enumerate(list(integrationPts.values())):
                 if ibc!=[[]]:
@@ -1199,7 +1199,7 @@ def _addIBCData__(t, t_exteriorFaces, donorPts, wallPts, integrationPts, IBM_par
                     ids = ids[ids[:] > -1]
                     ids = ids.tolist()
                     ids = [ids[i]-1 for i in range(len(ids))]
-                    zoneIBC = T.subzone(t_exteriorFaces,ids, type='elements')
+                    zoneIBC = T.subzone(frontIP, ids, type='elements')
                     G_AMR._addBC2Zone__(z, "IBMWall%d" %nobc, "FamilySpecified:IBMWall", zoneIBC)
 
         #C.freeHook(hook)
