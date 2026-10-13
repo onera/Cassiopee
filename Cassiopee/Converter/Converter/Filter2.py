@@ -826,19 +826,26 @@ def chunk2part(dt):
     nfacec = Internal.getNodeFromName1(nface, 'ElementConnectivity')[1]
     nfaceso = Internal.getNodeFromName1(nface, 'ElementStartOffset')[1]
 
-    fsolc = Internal.getNodeFromName1(z, Internal.__FlowSolutionCenters__)
-    solc = []; solcNames = []
-    if fsolc is not None:
-        for f in fsolc[2]:
-            if f[3] == 'DataArray_t':
-                solc.append(f[1]); solcNames.append(f[0])
+    solc = []; solcNames = {}
+    fsols = Internal.getNodesFromType1(z, 'FlowSolution_t')
+    for fsol in fsols:
+        print(fsol[0])
+        loc = Internal.getNodeFromType1(fsol, 'GridLocation_t')
+        if loc is not None and Internal.getValue(loc) == 'CellCenter':
+            solcNames[fsol[0]] = []        
+            for f in fsol[2]:
+                if f[3] == 'DataArray_t':
+                    solc.append(f[1]); solcNames[fsol[0]].append(f[0])
 
-    fsol = Internal.getNodeFromName1(z, Internal.__FlowSolutionNodes__)
-    soln = []; solNames = []
-    if fsol is not None:
-        for f in fsol[2]:
-            if f[3] == 'DataArray_t':
-                soln.append(f[1]); solNames.append(f[0])
+    soln = []; solNames = {}
+    fsols = Internal.getNodesFromType1(z, 'FlowSolution_t')
+    for fsol in fsols:
+        loc = Internal.getNodeFromType1(fsol, 'GridLocation_t')
+        if loc is None or Internal.getValue(loc) == 'Vertex':
+            solNames[fsol[0]] = []
+            for f in fsol[2]:
+                if f[3] == 'DataArray_t':
+                    soln.append(f[1]); solNames[fsol[0]].append(f[0])
 
     # extract bcNames and bcTypes from chunked zone
     zonebc = Internal.getNodeFromType1(z, 'ZoneBC_t')
@@ -870,18 +877,18 @@ def chunk2part(dt):
             bcfieldNames.append(dn)
 
     # keep BCFamilyTypes and familyZone nodes
-    bcFamilyTypes = {}
-    familyZones = []
-    nodes = Internal.getNodesFromType2(dt, 'Family_t')
-    for n in nodes:
-        a1 = Internal.getNodeFromType1(n, 'FamilyBC_t')
-        if a1 is not None:
-            bcFamilyTypes[n[0]] = Internal.getValue(a1)
-        else: # familyZone
-            familyZones.append(n)
+    #bcFamilyTypes = {}
+    #familyZones = []
+    #nodes = Internal.getNodesFromType2(dt, 'Family_t')
+    #for n in nodes:
+    #    a1 = Internal.getNodeFromType1(n, 'FamilyBC_t')
+    #    if a1 is not None:
+    #        bcFamilyTypes[n[0]] = Internal.getValue(a1)
+    #    else: # familyZone
+    #        familyZones.append(n)
 
     # keep ReferenceState if any
-    refState = Internal.getNodeFromType2(dt, 'ReferenceState_t')
+    #refState = Internal.getNodeFromType2(dt, 'ReferenceState_t')
 
     # bcs is a list of PL
     # bcdataset is a list of list of arrays
@@ -895,15 +902,19 @@ def chunk2part(dt):
     zo = Internal.createZoneNode('Zone_' + '%d'%Cmpi.rank, mesh)
 
     # add solution in nodes
-    for n, name in enumerate(solNames):
-        cont = Internal.createUniqueChild(zo, Internal.__FlowSolutionNodes__, 'FlowSolution_t')
-        Internal.newDataArray(name, value=sol[n], parent=cont)
+    n = 0
+    for name in solNames:
+        cont = Internal.createUniqueChild(zo, name, 'FlowSolution_t')
+        for a in solNames[name]:
+            Internal.newDataArray(a, value=sol[n], parent=cont); n += 1
 
     # add solution in centers
-    for n, name in enumerate(solcNames):
-        cont = Internal.createUniqueChild(zo, Internal.__FlowSolutionCenters__, 'FlowSolution_t')
+    n = 0
+    for name in solcNames:
+        cont = Internal.createUniqueChild(zo, name, 'FlowSolution_t')
         Internal._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter')
-        Internal.newDataArray(name, value=solc[n], parent=cont)
+        for a in solcNames[name]:
+            Internal.newDataArray(a, value=solc[n], parent=cont)
 
     # add bcs
     for i, bc in enumerate(bcs):
@@ -931,23 +942,36 @@ def chunk2part(dt):
     Internal._correctPyTree(t, level=7)
 
     # add refState
-    if refState is not None:
-        base = Internal.getNodeFromType1(t, 'CGNSBase_t')
-        base[2].append(refState)
+    #if refState is not None:
+    #    base = Internal.getNodeFromType1(t, 'CGNSBase_t')
+    #    base[2].append(refState)
 
     # update BCfamily types
-    nodes = Internal.getNodesFromType2(t, 'Family_t')
-    for n in nodes:
-        if n[0] in bcFamilyTypes:
-            a1 = Internal.getNodeFromType1(n, 'FamilyBC_t')
-            Internal.setValue(a1, bcFamilyTypes[n[0]])
+    #nodes = Internal.getNodesFromType2(t, 'Family_t')
+    #for n in nodes:
+    #    if n[0] in bcFamilyTypes:
+    #        a1 = Internal.getNodeFromType1(n, 'FamilyBC_t')
+    #        Internal.setValue(a1, bcFamilyTypes[n[0]])
 
     # add familyZones
-    b = Internal.getBases(t)[0]
-    z = Internal.getZones(t)[0]
-    for fz in familyZones:
-        Internal.addChild(b, fz, -1)
-        Internal._createUniqueChild(z, 'FamilyName', 'FamilyName_t', value=fz[0], pos=-1)
+    #b = Internal.getBases(t)[0]
+    #z = Internal.getZones(t)[0]
+    #for fz in familyZones:
+    #    Internal.addChild(b, fz, -1)
+    #    Internal._createUniqueChild(z, 'FamilyName', 'FamilyName_t', value=fz[0], pos=-1)
+
+    # copy extra nodes from dt
+    adds = []
+    for node in dt[2]:
+        if node[3] != 'CGNSBase_t': adds.append(node)
+    t[2] += adds
+    b = Internal.getBases(dt)[0]
+    adds = []
+    for node in b[2]:
+        if node[3] != 'Zone_t': adds.append(node)
+    b2 = Internal.getBases(t)[0]
+    b2[0] = b[0]
+    b2[2] += adds
 
     return t, RES
 
