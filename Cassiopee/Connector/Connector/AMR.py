@@ -19,7 +19,6 @@ from Converter.Internal import E_NpyInt as E_NpyInt
 from .QuadratureDG import *
 
 __TOL__ = 1e-9
-isCasFunction = True
 def outputTime(startTime,functionName='FunctionName'):
     endTime     = time.perf_counter()
     elapsedTime = endTime-startTime
@@ -343,25 +342,8 @@ def removeBlankedCells(t):
 
 # ===============================================================================================================================
 def getBCs(t, tb2, dim):
-    if not isCasFunction:
-        # Identity the BCTypes & BCNames in t
-        zbcs=[]; bctypes=[]; bcnames=[]
-        for bc in Internal.getNodesFromType(t, 'BC_t'):
-            bctype = Internal.getValue(bc)
-            bcname = Internal.getName(bc)
-            if bctype not in bctypes:
-                bctypes.append(bctype)
-                bcnames.append(bcname)
-
-        # Save the boundary conditions for later use
-        for bctype in bctypes:
-            zbc = C.extractBCOfType(t, bctype)
-            Internal._rmNodesByType(zbc, "FlowSolution_t")
-            zbc = T.join(zbc)
-            zbcs.append(zbc)
-    else:
-        (zbcs, bcnames, bctypes) = C.getBCs(t)
-        for zbc in zbcs: Internal._rmNodesByType(zbc, "FlowSolution_t")
+    (zbcs, bcnames, bctypes) = C.getBCs(t)
+    for zbc in zbcs: Internal._rmNodesByType(zbc, "FlowSolution_t")
 
     # Blanking to check if the QuadNQuad BC is inside the geometry
     # Needed to avoid wrong BCs
@@ -405,28 +387,24 @@ def recoverBCs(t, frontIP, BCInfo):
         if not elt_t[0].startswith("GridElements"):
             Internal._rmNode(t_exteriorFaces, elt_t)
 
-    if not isCasFunction:
-        _recoverBCs__(tp, t_exteriorFaces, zbcs, bctypes, bcnames)
-    else:
-        C._recoverBCs(tp, (zbcs, bcnames, bctypes))
+    C._recoverBCs(tp, (zbcs, bcnames, bctypes))
 
-        #Join the separate BCs
-        for zName in bcNames:
-            zbcsTmp = C.extractBCOfType(tp, zName)
-            if zbcsTmp != []:
-                Internal._rmNodesByName(tp, zName+'*')
-                zbc = T.join(zbcsTmp)
-                zbc[0] = zName
-                C._addBC2Zone(tp, zName, zName, subzone=zbc)
+    #Join the separate BCs
+    for zName in bcNames:
+        zbcsTmp = C.extractBCOfType(tp, zName)
+        if zbcsTmp != []:
+            Internal._rmNodesByName(tp, zName+'*')
+            zbc = T.join(zbcsTmp)
+            zbc[0] = zName
+            C._addBC2Zone(tp, zName, zName, subzone=zbc)
 
-        #Clean the name of the BCs & add grid location
-        bcNodes = Internal.getNodesFromType(tp, 'BC_t')
-        for bc in bcNodes:
-            zbcName = Internal.getName(bc)
-            zbcName = zbcName.split('.')
-            bc[0] = zbcName[0]
-            Internal.createUniqueChild(bc, 'GridLocation', 'GridLocation_t', value='FaceCenter')
-        #_isolateExteriorFacesIBCs__(tp, t_exteriorFaces, zbcs)
+    #Clean the name of the BCs & add grid location
+    bcNodes = Internal.getNodesFromType(tp, 'BC_t')
+    for bc in bcNodes:
+        zbcName = Internal.getName(bc)
+        zbcName = zbcName.split('.')
+        bc[0] = zbcName[0]
+        Internal.createUniqueChild(bc, 'GridLocation', 'GridLocation_t', value='FaceCenter')
 
     zibc, t_exteriorFaces = recoverIBCs__(t_exteriorFaces, frontIP)
 
@@ -1200,7 +1178,6 @@ def _addIBCData__(t, frontIP, donorPts, wallPts, integrationPts, IBM_parameters)
                     ids = ids.tolist()
                     zoneIBC = T.subzone(frontIP, ids, type='elements')
                     zoneIBC[0] = "IBMWall%d"%nobc
-                    #G_AMR._addBC2Zone__(z, "IBMWall%d" %nobc, "FamilySpecified:IBMWall", zoneIBC)
                     C._addBC2Zone(z, "IBMWall%d"%nobc, "FamilySpecified:IBMWall", subzone=zoneIBC)
                     bcNodes = Internal.getNodesFromType(z, 'BC_t')
                     for bc in bcNodes:
