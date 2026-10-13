@@ -1166,7 +1166,7 @@ def isDPinDomain__(bbox, coords):
 
     return out, list_ids_outside_box
 
-def _addIBCData__(t, f, donorPts, wallPts, integrationPts, IBM_parameters):
+def _addIBCData__(t, t_exteriorFaces, donorPts, wallPts, integrationPts, IBM_parameters):
 
     if IBM_parameters["spatial discretization"]["type"]=="FV":
         N_IP_per_face = 1
@@ -1183,7 +1183,7 @@ def _addIBCData__(t, f, donorPts, wallPts, integrationPts, IBM_parameters):
     list_suffix_datasets.extend(range(1, N_IP_per_face))
 
     for z in Internal.getZones(t):
-        hook = C.createHook(f, 'elementCenters')
+        hook = C.createHook(t_exteriorFaces, 'elementCenters')
         if IBM_parameters["spatial discretization"]["type"] == "FV":
             for nobc,ibc in enumerate(list(integrationPts.values())):
                 if ibc!=[[]]:
@@ -1199,8 +1199,8 @@ def _addIBCData__(t, f, donorPts, wallPts, integrationPts, IBM_parameters):
                     ids = ids[ids[:] > -1]
                     ids = ids.tolist()
                     ids = [ids[i]-1 for i in range(len(ids))]
-                    zf = T.subzone(f,ids, type='elements')
-                    G_AMR._addBC2Zone__(z, "IBMWall%d" %nobc, "FamilySpecified:IBMWall", zf)
+                    zoneIBC = T.subzone(t_exteriorFaces,ids, type='elements')
+                    G_AMR._addBC2Zone__(z, "IBMWall%d" %nobc, "FamilySpecified:IBMWall", zoneIBC)
 
         #C.freeHook(hook)
         for bc in Internal.getNodesFromType2(z, 'BC_t'):
@@ -1332,16 +1332,16 @@ def checkDPtoIPDistance__(integrationPts, donorPts):
 # ===============================================================================================================================
 # DG-related functions
 # ===============================================================================================================================
-def _addIBC2Zone__(t, f, frontIP):
+def _addIBC2Zone__(t, t_exteriorFaces, frontIP):
     for z in Internal.getZones(t):
-        hook = C.createHook(f, 'elementCenters')
+        hook = C.createHook(t_exteriorFaces, 'elementCenters')
         ids = C.identifyElements(hook, frontIP, tol=__TOL__)
         ids = ids[ids[:] > -1]
         ids = ids.tolist()
         ids = [ids[i]-1 for i in range(len(ids))]
         #C.freeHook(hook)
-        zf = T.subzone(f, ids, type='elements')
-        G_AMR._addBC2Zone(z, "IBMWall", "FamilySpecified:IBMWall", zf)
+        zoneIBC = T.subzone(t_exteriorFaces, ids, type='elements')
+        G_AMR._addBC2Zone(z, "IBMWall", "FamilySpecified:IBMWall", zoneIBC)
     return None
 
 def computeSurfaceQuadraturePoints__(t, IBM_parameters, frontIP):
