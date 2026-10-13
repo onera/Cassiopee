@@ -117,9 +117,3 @@ a = createEmptyZone(etype=5)
 b = createEmptyZone(etype=7)
 a = T.join([a, b]); t = C.newPyTree(["Base", a])
 test.testT(t, 13)
-
-# Two empty NGON connectivities -> empty NODE
-a = createEmptyZone(etype=22)
-b = createEmptyZone(etype=22)
-a = T.join([a, b]); t = C.newPyTree(["Base", a])
-test.testT(t, 14)

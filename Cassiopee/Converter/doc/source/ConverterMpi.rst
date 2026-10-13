@@ -90,6 +90,7 @@ List of functions
     Converter.Mpi.setCommunicator
     Converter.Mpi.addXZones
     Converter.Mpi.rmXZones
+    Converter.Mpi.allgatherDict
     Converter.Mpi.allgatherTree
 
 **-- Actions**
@@ -175,7 +176,7 @@ Input/output
     and returns None.
 
     :param t: input data
-    :type t: [pyTree]
+    :type t: pyTree
     :param fileName: file name to read from
     :type fileName: string
     :param format: bin_cgns, bin_adf, bin_hdf (optional)
@@ -202,7 +203,7 @@ Input/output
     Distributor2.distribute or setProc. 
 
     :param t: input data
-    :type t: [pyTree]
+    :type t: pyTree
     :param fileName: file name to write to
     :type fileName: string
     :param format: bin_cgns, bin_adf, bin_hdf (optional)
@@ -226,7 +227,7 @@ Input/output
    partial tree (**P**) to a file (adf or hdf).
 
    :param t: input data
-   :type t: [pyTree]
+   :type t: pyTree
    :param fileName: file name to write to
    :type fileName: string
    :param format: bin_cgns, bin_adf, bin_hdf (optional)
@@ -396,10 +397,10 @@ Graphs
     :param t2: optional second tree for type='bbox3'
     :type t2: pyTree
     :param procDict: if provided, used for zone affectation
-    :type procDict: dictionary
+    :type procDict: dict
     :param intersectionDict: dictionary of intersections
-    :type intersectionDict: python dictionary
-    :rtype: python dictionary of communications
+    :type intersectionDict: dict
+    :rtype: dict of communications
 
     *Example of use:*
 
@@ -431,9 +432,9 @@ Exchanges
     Exists also as in place version (_addXZones) that modifies t and returns None.
 
     :param t: input tree
-    :type t: [pyTree]
+    :type t: pyTree
     :param graph: communication graph as defined by computeGraph
-    :type graph: dictionary
+    :type graph: dict
     :return: modified reference copy of t
     :rtype: tree with connected zones added
 
@@ -452,7 +453,7 @@ Exchanges
     Exists also as in place version (_rmXZones) that modifies t and returns None.
 
     :param t: input tree
-    :type t: [pyTree]
+    :type t: pyTree
     :rtype: tree with connected zones suppressed
 
     *Example of use:*
@@ -463,13 +464,46 @@ Exchanges
 
 ---------------------------------------------------------------------------
 
+.. py:function:: Converter.Mpi.allgatherDict(data, method=0, fillValue=None)
+
+    Gather a distributed dict on all processors.
+    All processors then see the same dict.
+    There are four ways to build the gathered dict:
+      - method 0 (default) - Unique values: for a given key, the gathered data
+        is a single list containing unique values only.
+      - method 1 - All values found: for a given key, the gathered data is a
+        list containing all values.
+      - method 2 - All values, fill missing with fillValue: for a given key, the
+        gathered data is a list containing all values. If the key is not found
+        on one rank, add fillValue (default None).
+      - method 3 - Single value: for a given key, the gathered data is a single
+        value. If a key is found multiple times, choose the corresponding value
+        in the lowest rank.
+
+    :param data: input dict
+    :type data: dict
+    :param method: method index (0, 1, 2, or 3)
+    :type method: int
+    :param fillValue: fill value when a key is not present on a rank
+    :type fillValue: [int, float, bool, list, NoneType]
+    :rtype: merged and gathered dict (identical on all processors)
+
+    *Example of use:*
+
+    * `Gather a distributed dict (pyTree) <Examples/Converter/allgatherDictPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/allgatherDictPT.py
+
+
+---------------------------------------------------------------------------
+
 .. py:function:: Converter.Mpi.allgatherTree(t)
 
     Gather a distributed tree on all processors.
     All processors then see the same tree.
 
     :param t: input tree
-    :type t: [pyTree]
+    :type t: pyTree
     :rtype: merged and gathered tree (identical on all processors)
 
     *Example of use:*
@@ -522,7 +556,7 @@ Actions
     Otherwise, the zone with its coordinates is moved to node.
 
     :param t: input tree
-    :type t: [pyTree]
+    :type t: pyTree
     :rtype: merged and gathered tree (identical on all processors)
 
     *Example of use:*

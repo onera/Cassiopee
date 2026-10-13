@@ -19,7 +19,7 @@ __all__ = [
     'bcast', 'Bcast', 'gather', 'Gather',
     'reduce', 'Reduce', 'allreduce', 'Allreduce',
     'bcastZone', 'gatherZones', 'allgatherZones',
-    'allgatherDict', 'allgatherDict2', 'allgatherTree',
+    'allgatherDict', 'allgatherTree',
     'allgather', 'passPrevious', 'passNext', 'allgatherNext',
     'getSizeOf',
     'readZones', 'writeZones', 'convert2PartialTree', 'convert2SkeletonTree',
@@ -254,45 +254,56 @@ def allgather(data):
     else: return allgatherNext(data)
 
 #==============================================================================
-# gather data in a list identical on all processors
+# gather a dictionary identical on all procs
+# Method 0 (default) - Unique values:
+#   For a given key, the gathered data is a single list containing unique values
+#       only.
+#   return dict[key] = [all unique values]
+# Method 1 - All values found:
+#   For a given key, the gathered data is a list containing all values.
+#   return dict[key] = [all values found]
+# Method 2 - All values, fill missing with fillValue:
+#   For a given key, the gathered data is a list containing all values. If the
+#     key is not found on one rank, add fillValue (default None).
+#   return dict[key] = [all values, with fillValue when key is missing]
+# Method 3 - Single value:
+#   For a given key, the gathered data is a single value. If a key is found
+#       multiple times, choose the corresponding value in the lowest rank.
+#   return dict[key] = value
 #==============================================================================
-#def allgather(data):
-#    ret = KCOMM.allgather(data)
-#    return ret
-
-#==============================================================================
-# gather a dictionary identical on all procs when: dict[key] = [value]
-# return dict[key] = [all values]
-# all values in a single list (rejete les doublons de keys et doublons de values)
-#==============================================================================
-def allgatherDict(data):
+def allgatherDict(data, method=0, fillValue=None):
     ret = KCOMM.allgather(data)
     if not isinstance(data, dict): return ret
     out = {}
-    for r in ret: # all proc return
-        for k in r: # for each key in dict
-            if k not in out:
-                out[k] = []
-                for data in r[k]:
+    if method == 0:
+        for r in ret:  # all proc return
+            for k, v in r.items():  # for each (key, value) pair in dict
+                if k not in out: out[k] = []
+                if not isinstance(v, (list, tuple, set)): v = [v]
+                for data in v:
                     if data not in out[k]: out[k].append(data)
-            else:
-                for data in r[k]:
-                    if data not in out[k]: out[k].append(data)
-    return out
-
-#==============================================================================
-# gather a dict identical on all procs
-# if: dict[key] = value,
-# return dict[key] = value (en choisi une value si doublon de key)
-#==============================================================================
-def allgatherDict2(data):
-    ret = KCOMM.allgather(data)
-    if not isinstance(data, dict): return ret
-    out = {}
-    for r in ret: # all proc return
-        for k in r: # for each key in dict
-            if k not in out: out[k] = r[k]
-    return out
+        return out
+    elif method == 1:
+        for r in ret:
+            for k, v in r.items():
+                if k not in out: out[k] = []
+                if not isinstance(v, (list, tuple, set)): v = [v]
+                for data in v: out[k].append(data)
+        return out
+    elif method == 2:
+        out = {k: [] for r in ret for k in r}
+        for r in ret:
+            for k in out:
+                if k in r:
+                    if not isinstance(r[k], (list, tuple, set)): r[k] = [r[k]]
+                    for data in r[k]: out[k].append(data)
+                else: out[k].append(fillValue)
+        return out
+    else:  # method 3
+        for r in ret:
+            for k, v in r.items():
+                if k not in out: out[k] = v
+        return out
 
 #==============================================================================
 # gather tree in a single tree identical on all processors
