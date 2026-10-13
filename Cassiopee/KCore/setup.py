@@ -66,7 +66,7 @@ listExtensions = [
 ]
 
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "KCore",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "KCore",
     version="4.2",
     description="Core for *Cassiopee* modules.",
     author="ONERA",

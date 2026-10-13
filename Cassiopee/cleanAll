@@ -1,18 +1,58 @@
-#! /bin/sh
-# cleanAll: enleve tous les .o, ...
+#! /bin/bash
+# Print help message
+usage() {
+  cat <<EOF
+Usage: $0                                             : Remove build/ and .sconsign.dblite for all modules listed in MODULES
+       $0 --force, -f                                 : Also uninstall the modules listed in MODULES (package directories and .dist-info
+                                                         metadata) from Cassiopee's site-packages directory
+       $0 --help, -h                                  : Print help message
+EOF
+}
+
+# Parse command-line arguments
+REMOVE_DIST=0
+while [ "$1" != "" ]; do
+  case "$1" in
+    --force | -f)
+      REMOVE_DIST=1
+      ;;
+    --help | -h)
+      usage; exit 0
+      ;;
+    *)
+      echo "Invalid argument: $1"
+      usage >&2; exit 1
+      ;;
+  esac
+  shift
+done
+
 . ./MODULES
+
+DIST_PYSITE=""
+if [ "$REMOVE_DIST" -eq 1 ]; then
+    DIST_PYSITE=$(echo "$PYTHONPATHL" | cut -d: -f2)
+    [ -n "$DIST_PYSITE" ] && [ -d "$DIST_PYSITE" ] || { echo "Malformed site-packages directory"; exit 1; }
+fi
 
 for mod in $FULLMODULES
 do
   if test -e $mod
   then
       cd $mod
-      if [ "$ELSAPROD" = "" ]; then
-          rm -fr build
+      if [ -z "$ELSAPROD" ]; then
+          rm -rf build
       else
-          rm -fr build/$ELSAPROD
+          rm -rf "build/$ELSAPROD"
+          if [ "$REMOVE_DIST" -eq 1 ]; then
+              shopt -s nocaseglob
+              rm -rf "$DIST_PYSITE/$mod" \
+                 "$DIST_PYSITE/cassiopee_${mod}-"*.dist-info \
+                 "$DIST_PYSITE/${mod}-"*.dist-info
+              shopt -u nocaseglob
+          fi
       fi
-      rm -fr .sconsign.dblite
+      rm -rf .sconsign.dblite
       cd ..
   fi
 done

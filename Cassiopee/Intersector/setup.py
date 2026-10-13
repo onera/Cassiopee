@@ -54,7 +54,7 @@ libraryDirs += paths; libraries += libs
 
 # setup ======================================================================
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "Intersector",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "Intersector",
     version="4.2",
     description="Mesh-intersection-based services in *Cassiopee*.",
     author="ONERA",

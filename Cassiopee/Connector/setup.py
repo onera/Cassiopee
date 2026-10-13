@@ -49,7 +49,7 @@ listExtensions.append(
 
 # setup ======================================================================
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "Connector",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "Connector",
     version="4.2",
     description="Connector for *Cassiopee* modules.",
     author="ONERA",

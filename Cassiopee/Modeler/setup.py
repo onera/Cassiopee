@@ -75,7 +75,7 @@ listExtensions.append(
 
 # setup ======================================================================
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "Modeler",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "Modeler",
     version="4.2",
     description="Modeler module.",
     author="ONERA",

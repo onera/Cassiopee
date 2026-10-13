@@ -46,7 +46,7 @@ listExtensions.append(
 
 # setup =======================================================================
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX") else "") + "Generator",
+    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "Generator",
     version="4.2",
     description="*Cassiopee* module of mesh generation.",
     author="ONERA",
