@@ -1196,12 +1196,16 @@ def _addIBCData__(t, frontIP, donorPts, wallPts, integrationPts, IBM_parameters)
                     Internal.newDataArray('CoordinateY', value=coords_IBC_y, parent=gc)
                     Internal.newDataArray('CoordinateZ', value=coords_IBC_z, parent=gc)
                     ids = C.identifyNodes(hook, zibc, tol=__TOL__)
-                    ids = ids[ids[:] > -1]
+                    ids = ids[ids[:] > -1] - 1
                     ids = ids.tolist()
-                    ids = [ids[i]-1 for i in range(len(ids))]
                     zoneIBC = T.subzone(frontIP, ids, type='elements')
-                    G_AMR._addBC2Zone__(z, "IBMWall%d" %nobc, "FamilySpecified:IBMWall", zoneIBC)
-
+                    zoneIBC[0] = "IBMWall%d"%nobc
+                    #G_AMR._addBC2Zone__(z, "IBMWall%d" %nobc, "FamilySpecified:IBMWall", zoneIBC)
+                    C._addBC2Zone(z, "IBMWall%d"%nobc, "FamilySpecified:IBMWall", subzone=zoneIBC)
+                    bcNodes = Internal.getNodesFromType(z, 'BC_t')
+                    for bc in bcNodes:
+                        if 'IBMWall' in Internal.getName(bc):
+                            Internal.createUniqueChild(bc, 'GridLocation', 'GridLocation_t', value='FaceCenter')
         #C.freeHook(hook)
         for bc in Internal.getNodesFromType2(z, 'BC_t'):
             famName = Internal.getNodeFromName(bc, 'FamilyName')
