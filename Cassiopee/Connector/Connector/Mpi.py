@@ -113,7 +113,7 @@ def connectMatchPeriodic(a, rotationCenter=[0.,0.,0.],
 #==============================================================================
 # connect match NGON for only one zone per process
 #==============================================================================
-def _connectMatchNGon(z, tol=1.e-6):
+def _connectMatchNGon(z, tol=1.e-11):
     """Connect one ngon zone."""
     import Post.PyTree as P
     import Transform.PyTree as T
