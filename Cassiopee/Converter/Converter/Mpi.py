@@ -34,7 +34,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def allgather(a): return [a]
         def allgatherZones(a, coord=True, variables=[]): return a
         def allgatherTree(a): return a
-        def allgatherDict(a, method=0): return a
+        def allgatherDict(a, method=0, fillValue=None): return a
         def allgatherNext(a): return [a]
         def send(a, dest=0, tag=0): return None
         def isend(a, dest=0, tag=0): return None
@@ -46,6 +46,7 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def Reduce(a, b, op=None, root=0): return a
         def allreduce(a, op=None): return a
         def Allreduce(a, b, op=None): b[...] = a; return None
+        def allreduceDict(a, method=0, fillValue=None, op=None): return a
         def getSizeOf(a): return Internal.getSizeOf(a)
         def passPrevious(a): return a
         def passNext(a): return a
@@ -90,7 +91,7 @@ else: # try import (may fail - core or hang)
         def allgather(a): return [a]
         def allgatherZones(a, coord=True, variables=[]): return a
         def allgatherTree(a): return a
-        def allgatherDict(a, method=0): return a
+        def allgatherDict(a, method=0, fillValue=None): return a
         def allgatherNext(a): return [a]
         def send(a, dest=0, tag=0): return None
         def isend(a, dest=0, tag=0): return None
@@ -102,6 +103,7 @@ else: # try import (may fail - core or hang)
         def Reduce(a, b, op=None, root=0): return a
         def allreduce(a, op=None): return a
         def Allreduce(a, b, op=None): b[...] = a; return None
+        def allreduceDict(a, method=0, fillValue=None, op=None): return a
         def getSizeOf(a): return Internal.getSizeOf(a)
         def passPrevious(a): return a
         def passNext(a): return a

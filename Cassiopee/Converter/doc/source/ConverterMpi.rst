@@ -92,6 +92,7 @@ List of functions
     Converter.Mpi.rmXZones
     Converter.Mpi.allgatherDict
     Converter.Mpi.allgatherTree
+    Converter.Mpi.allreduceDict
 
 **-- Actions**
 
@@ -511,6 +512,39 @@ Exchanges
     * `Gather a distributed tree (pyTree) <Examples/Converter/allgatherTreePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/allgatherTreePT.py
+
+
+---------------------------------------------------------------------------
+
+.. py:function:: Converter.Mpi.allreduceDict(data, method=0, fillValue=None, op=Cmpi.SUM)
+
+    Reduce a distributed dict to all procs (using pickle, small data) applying op.
+    All processors then see the same dict.
+    There are three ways to build the gathered dict:
+      - method 0 (default) - Unique values: for a given key, the gathered data
+        is a single list containing unique values only.
+      - method 1 - All values found: for a given key, the gathered data is a
+        list containing all values.
+      - method 2 - All values, fill missing with fillValue: for a given key, the
+        gathered data is a list containing all values. If the key is not found
+        on one rank, add fillValue (default None).
+    Valid reduce ops to apply to the gathered dict are Cmpi.SUM, Cmpi.MIN, Cmpi.MAX, Cmpi.LOR, and Cmpi.LAND.
+
+    :param data: input dict
+    :type data: dict
+    :param method: method index (0, 1, or 2)
+    :type method: int
+    :param fillValue: fill value when a key is not present on a rank
+    :type fillValue: [int, float, bool, list, NoneType]
+    :param op: reduce operator
+    :type op: MPI object
+    :rtype: reduced dict (identical on all processors)
+
+    *Example of use:*
+
+    * `Gather a distributed dict (pyTree) <Examples/Converter/allreduceDictPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/allreduceDictPT.py
 
 
 ---------------------------------------------------------------------------

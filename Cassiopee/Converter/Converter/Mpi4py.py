@@ -17,7 +17,7 @@ __all__ = [
     'setCommunicator', 'abort', 'barrier',
     'send', 'isend', 'recv', 'requestWaitall', 'sendRecv', 'sendRecvC',
     'bcast', 'Bcast', 'gather', 'Gather',
-    'reduce', 'Reduce', 'allreduce', 'Allreduce',
+    'reduce', 'Reduce', 'allreduce', 'Allreduce', 'allreduceDict',
     'bcastZone', 'gatherZones', 'allgatherZones',
     'allgatherDict', 'allgatherTree',
     'allgather', 'passPrevious', 'passNext', 'allgatherNext',
@@ -125,11 +125,11 @@ def reduce(data, op=MPI.SUM, root=0):
 # dataIn and dataOut must be numpys of same size and type
 # or buffer specified [data,count,MPI_DOUBLE]
 #==============================================================================
-def Reduce(dataIn, dataOut, op=MPI.SUM):
-    return KCOMM.Reduce(dataIn, dataOut, op=op)
+def Reduce(dataIn, dataOut, op=MPI.SUM, root=0):
+    return KCOMM.Reduce(dataIn, dataOut, op=op, root=root)
 
 #==============================================================================
-# Reduce to all  procs (using pickle, small data)
+# Reduce to all procs (using pickle, small data)
 #==============================================================================
 def allreduce(data, op=MPI.SUM):
     return KCOMM.allreduce(data, op=op)
@@ -141,6 +141,32 @@ def allreduce(data, op=MPI.SUM):
 #==============================================================================
 def Allreduce(dataIn, dataOut, op=MPI.SUM):
     return KCOMM.Allreduce(dataIn, dataOut, op=op)
+
+#==============================================================================
+# Reduce a dict to all procs (using pickle, small data) applying op
+# Method 0 (default) - Unique values
+# Method 1 - All values found
+# Method 2 - All values, fill missing with fillValue
+# See allgatherDict for more info on the methods used to gather data
+#==============================================================================
+def allreduceDict(data, method=0, fillValue=None, op=MPI.SUM):
+    if method not in [0, 1, 2]:
+        raise ValueError(f"allreduceDict: method can either be 0, 1 or 2, not {method}.")
+    ret = allgatherDict(data, method=method, fillValue=fillValue)
+    if op == MPI.SUM:
+        return {k: sum(v) for k, v in ret.items()}
+    elif op == MPI.MIN:
+        return {k: min(v) for k, v in ret.items()}
+    elif op == MPI.MAX:
+        return {k: max(v) for k, v in ret.items()}
+    elif op == MPI.LOR:
+        return {k: any(v) for k, v in ret.items()}
+    elif op == MPI.LAND:
+        return {k: all(v) for k, v in ret.items()}
+    else:
+        raise ValueError(f"allreduceDict: unsupported operation, {op}. Options "
+                         "are: Cmpi.SUM, Cmpi.MIN, Cmpi.MAX, Cmpi.LOR, and "
+                         "Cmpi.LAND.")
 
 #==============================================================================
 # Send and receive with a graph
@@ -272,6 +298,8 @@ def allgather(data):
 #   return dict[key] = value
 #==============================================================================
 def allgatherDict(data, method=0, fillValue=None):
+    if method not in [0, 1, 2, 3]:
+        raise ValueError(f"allgatherDict: method can either be 0, 1, 2 or 3, not {method}.")
     ret = KCOMM.allgather(data)
     if not isinstance(data, dict): return ret
     out = {}
