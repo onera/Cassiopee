@@ -41,7 +41,6 @@ D_IBM._setSnear(b, 0.008)
 tbox = C.newPyTree(["tbox1", a, "tbox2", b])
 
 ##
-isRunMeshGen = False
 dim = dimPb
 check = False
 levelMax = 0
@@ -76,18 +75,7 @@ if Cmpi.master:
     test.testO(snears, 12)
     test.testO(dfars, 13)
 
-if isRunMeshGen:
-    if Cmpi.master: C.convertPyTree2File(o, LOCAL+'/skeleton.cgns')
-    Cmpi.barrier()
-
 toffset = G_AMR.generateOffset__(tb_tbox, nbases, dfars, vmins, snears, dim, False, nboxes, tbExtSym, 'xray', tCartIn)
 if Cmpi.master:
     test.testT(toffset, 14)
-
-if isRunMeshGen:
-    Cmpi.barrier()
-    hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
-    hmin = hmin_skel * 2 ** (-levelMax)
-    o = G_AMR.adaptMesh__(LOCAL+'/skeleton.cgns', hmin, tb_noSym, toffset=toffset, dim=dim, nboxes=nboxes)
-    Cmpi.convertPyTree2File(o, 'check_t.cgns')
 

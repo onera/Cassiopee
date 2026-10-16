@@ -16,7 +16,6 @@ tb = C.convertFile2PyTree('m6cleanDouble.cgns')
 tbox = C.convertFile2PyTree('m6tbox.cgns')
 
 ##
-isRunMeshGen = False
 dim = dimPb
 check = False
 levelMax = 0
@@ -57,16 +56,3 @@ if Cmpi.master:
     test.testO(vmins, 11)
     test.testO(snears, 12)
     test.testO(dfars, 13)
-
-if isRunMeshGen:
-    if Cmpi.master: C.convertPyTree2File(o, LOCAL+'/skeleton.cgns')
-    Cmpi.barrier()
-   
-if isRunMeshGen:
-    toffset = G_AMR.generateOffset__(tb_tbox, nbases, dfars, vmins, snears, dim, False, nboxes, tbExtSym, 'xray', tCartIn)
-    Cmpi.barrier()
-    hmin_skel = (C.getMinValue(o,"centers:vol"))**(1/dim)
-    hmin = hmin_skel * 2 ** (-levelMax)
-    o = G_AMR.adaptMesh__(LOCAL+'/skeleton.cgns', hmin, tb_noSym, toffset=toffset, dim=dim, nboxes=nboxes)
-    Cmpi.convertPyTree2File(o, 'check_t.cgns')
-

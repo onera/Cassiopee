@@ -20,4 +20,3 @@ test.testT(tb,1)
 tbExtSym = G_AMR.createExtension__(tb)
 test.testT(tbExtSym,2)
 
-#C.convertPyTree2File(tbExtSym, 'check_tbExtSym.cgns')
