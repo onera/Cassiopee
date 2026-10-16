@@ -8,5 +8,16 @@ import KCore.test as test
 LOCAL = test.getLocal()
 
 tb = C.convertFile2PyTree('tSymExtrude.cgns')
-tbv2 = G_AMR.createExtension__(tb)
-test.testT(t,1)
+dictExtension = {
+    "midPlane": -1
+}
+dictTolerance= {
+    "midPlane": 1e-05
+}
+G_AMR._addExtensionInfo(tb, dictExtension, dictTolerance=dictTolerance)
+test.testT(tb,1)
+
+tbExtSym = G_AMR.createExtension__(tb)
+test.testT(tbExtSym,2)
+
+#C.convertPyTree2File(tbExtSym, 'check_tbExtSym.cgns')
