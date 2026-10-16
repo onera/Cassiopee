@@ -785,7 +785,7 @@ def checkSnearsVmins__(tb_noSym, tbox, snears, vmins, levelMax):
     # Needed for G.octree
     snearsTb = copy.deepcopy(snears)
 
-    return snears, snearsTb, vmins, nbases 
+    return snears, snearsTb, vmins, nbases
 
 def checkTbox__ (tb, tb_noSym, tbox, vmins, snears, nbases, vminsTbox, levelMax):
     # create tb & tb_noSym that include the tbox
@@ -832,8 +832,8 @@ def checkMultiSnears__(tb_noSym, tb_tboxIn, tb_tbox_noSymIn, vmins, snears, nbas
         snearsNew.extend(snearsTboxSnear)
         nbases += nboxesSnear
         nboxes += nboxesSnear
-   
-    return tb_tbox, tb_tbox_noSym, vminsNew, snearsNew, nbases, nboxes 
+
+    return tb_tbox, tb_tbox_noSym, vminsNew, snearsNew, nbases, nboxes
 
 def generateCoarseGrid__(tb, tIn, snears, snearsTb, nbases, vmins, dfars, dim, levelMax, octreeMode):
     # use tIn (background grid) or automatically generate octree skeleton
@@ -950,7 +950,7 @@ def generateOffset__(tb_tbox, nbases, dfars, vmins, snears, dim, opt, nboxes, tb
             if offsetLocal < 0.99*dfarmaxLocal: # old: if offsetLocal < 0.99*dfarmax:
                 offsetValuesBase.append(offsetLocal)
                 offsetPrev = offsetLocal
-    
+
         if not offsetValuesBase:
             if tCartIn:
                 hminLocal = snears[nob][0]
@@ -961,14 +961,14 @@ def generateOffset__(tb_tbox, nbases, dfars, vmins, snears, dim, opt, nboxes, tb
                 offsetLocal = offsetPrev + hminLocal*(2**level)*vmins[nob][level]
                 raise ValueError('Base #%d has no offset values. The first offset (closest to the body) is at a distance of %g which is larger than the max allowable distance of %g. Exiting...'%(nob, offsetLocal, 0.99*dfarmaxLocal))
                 Cmpi.abort(errorcode=1)
-    
+
         offsetValues.append(offsetValuesBase)
-    
+
     # generate list of offsets
     # tb & tbox
     if Cmpi.master: print("Generate list of offsets for rank ", Cmpi.rank, flush=True)
     toffset = generateListOfOffsets__(tb_tbox, snears, offsetValues=offsetValues, dim=dim, opt=opt, nboxes=nboxes, tbExtSym=tbExtSym, blankCellsAlgo=blankCellsAlgo)
-    
+
     return toffset
 
 #==================================================================
@@ -1836,8 +1836,8 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         #print('WARNING:: Debug - after Step 4 check multi snears - nboxesSnear=', nboxesSnear, flush=True)
         print('WARNING:: Debug - after Step 4 check multi snears - nbases=', nbases, flush=True)
         print('WARNING:: Debug - after Step 4 check multi snears - nboxes=', nboxes, flush=True)
-        print('===========================================================', flush=True) 
-    
+        print('===========================================================', flush=True)
+
     #============================
     # STEP 5: Generate back. grid
     #============================
@@ -1846,20 +1846,20 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         print('WARNING:: Debug - begining of  Step 5 - snearMin=', snearMin, flush=True)
         print('===========================================================', flush=True)
     # tIn is deleted in generateCoarseGrid__
-    
+
     o, tCartIn, extrude, levelMax, vmins = generateCoarseGrid__(tb, tIn, snears, snearsTb, nbases, vmins, dfars,
                                                                 dim, levelMax, octreeMode)
     # mandatory save file for loadAndSplit for adaptation
     if Cmpi.master: C.convertPyTree2File(o, pathSkeleton)
     Cmpi.barrier()
-    
+
     # Leaving here for now just in case we decided to reactive this option in the future. The chosen option is to reduce the cell size (increase the # of cells) of the octree skeleton grid.
     if False:
         Ncells = C.getNCells(o)
         if Ncells < Cmpi.size:
             raise ValueError('There are more MPI processes (Nmpi) [%d] than number of cells in the background skeleton/octree mesh (Ncells) [%d]. Note: Nmpi ≤ Ncells. Exiting...'%(Cmpi.size, Ncells))
             Cmpi.abort(errorcode=1)
-    
+
     #============================
     # STEP 6: Update snears
     #============================
@@ -1871,7 +1871,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     if Cmpi.master and isDebuggingPrint:
         print('WARNING:: Debug - end of  Step 6 - snears=', snears, flush=True)
         print('===========================================================', flush=True)
-        
+
     #============================
     # STEP 7: Update dfars
     #============================
@@ -1879,7 +1879,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     # The min of this becomes the dfar max. Need to consider the tbox also as cannot have hanging nodes @ BC
     # is per base so there are no cross-contamination constraints (e.g. tbox constaining tb)
     dfars = updateDfars__(o, tb_tbox_noSym, dim, dir_sym, tCartIn, extrude, NumMinDxLarge)
-    
+
     #============================
     # STEP 8: Generate offsets
     #============================
@@ -1984,5 +1984,3 @@ def _addExtensionInfo(tb, dictExtension, dictTolerance=None):
         Internal._createUniqueChild(n, 'isAddKplane', 'DataArray_t', dictExtension[zoneNameTmp])
         if dictTolerance: Internal._createUniqueChild(n, 'tolerancePlane', 'DataArray_t', list(dictTolerance.values())[i])
     return None
-
-
