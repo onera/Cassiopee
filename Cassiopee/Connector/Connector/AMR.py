@@ -109,7 +109,7 @@ def prepareAMRDataFV__(t_case, t, IBM_parameters=None, check=False, dim=3, local
     # STEP 5: Recover BCs - Add IBCs
     #===============================
     Cmpi.trace(" Recovering Boundary Conditions [start]", master=True, cpu=False)
-    t, t_exteriorFaces, zibc = recoverBCs(t, frontIP, BCInfo)
+    t, zibc = recoverBCs(t, frontIP, BCInfo)
     Cmpi.trace(" Recovering Boundary Conditions [end]  ", master=True, cpu=False)
 
     #===================================================================================
@@ -205,7 +205,7 @@ def prepareAMRDataDG__(t_case, t, IBM_parameters=None, check=False, dim=3, local
     # STEP 5: Recover BCs - Add IBCs
     #===============================
     Cmpi.trace(" Recovering Boundary Conditions [start]", master=True, cpu=False)
-    t, t_exteriorFaces, zibc = recoverBCs(t, frontIP, BCInfo)
+    t, zibc = recoverBCs(t, frontIP, BCInfo)
     Cmpi.trace(" Recovering Boundary Conditions [end]  ", master=True, cpu=False)
 
     #===================================================================================
@@ -378,7 +378,7 @@ def getBCs(t, tb2, dim):
 
 # ===============================================================================================================================
 def recoverBCs(t, frontIP, BCInfo):
-    bcNames = ['BCSymmetryPlane', 'BCFarfield']
+    bcNamesDomain = ['BCSymmetryPlane', 'BCFarfield']
     tp = Internal.copyRef(t)
     t_exteriorFaces = P.exteriorFaces(tp)
 
@@ -390,7 +390,7 @@ def recoverBCs(t, frontIP, BCInfo):
     C._recoverBCs(tp, (zbcs, bcnames, bctypes))
 
     #Join the separate BCs
-    for zName in bcNames:
+    for zName in bcNamesDomain:
         zbcsTmp = C.extractBCOfType(tp, zName)
         if zbcsTmp != []:
             Internal._rmNodesByName(tp, zName+'*')
@@ -406,9 +406,9 @@ def recoverBCs(t, frontIP, BCInfo):
         bc[0] = zbcName[0]
         Internal.createUniqueChild(bc, 'GridLocation', 'GridLocation_t', value='FaceCenter')
 
-    zibc, t_exteriorFaces = recoverIBCs__(t_exteriorFaces, frontIP)
+    zibc = recoverIBCs__(t_exteriorFaces, frontIP)
 
-    return tp, t_exteriorFaces, zibc
+    return tp, zibc
 
 def _recoverBCs__(t, t_exteriorFaces, zbcs, bctypes, bcnames):
     meshgen = "AMR"
@@ -489,7 +489,7 @@ def recoverIBCs__(t_exteriorFaces, frontIP):
     outputTime(startTime,functionName='identifyElementsPrt2')
     Cmpi.trace(" Adding the IBC BC tag (per processor) for CFD solver [end]", master=True, cpu=False)
 
-    return zibc, t_exteriorFaces
+    return zibc
 
 # ===============================================================================================================================
 def blankingIBM(t, tb):
@@ -1155,8 +1155,8 @@ def _addIBCData__(t, frontIP, donorPts, wallPts, integrationPts, IBM_parameters)
                     zoneIBC = T.subzone(frontIP, ids, type='elements')
                     zoneIBC[0] = "IBMWall%d"%nobc
                     C._addBC2Zone(z, "IBMWall%d"%nobc, "FamilySpecified:IBMWall", subzone=zoneIBC)
-                    bcNodes = Internal.getNodesFromType(z, 'BC_t')
-                    for bc in bcNodes:
+                    bcs = Internal.getNodesFromType(z, 'BC_t')
+                    for bc in bcs:
                         if 'IBMWall' in Internal.getName(bc):
                             Internal.createUniqueChild(bc, 'GridLocation', 'GridLocation_t', value='FaceCenter')
         #C.freeHook(hook)
