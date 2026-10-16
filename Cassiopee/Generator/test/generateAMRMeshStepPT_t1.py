@@ -52,7 +52,8 @@ snears = 1e-03
 vminsTbox = 3
 dfars = 10
 
-tb_noSym, tbExtSym, dir_sym = G_AMR.checkBaseSym(tb, None, dim, check, LOCAL)
+#Note: the 3 next checks are inside G_AMR.checkInputIBM__
+tb_noSym, tbExtSym, dir_sym = G_AMR.checkBaseSym__(tb, None, dim, check, LOCAL)
 if Cmpi.master:
     test.testT(tb_noSym,1)
 snears, snearsTb, vmins, nbases  = G_AMR.checkSnearsVmins__(tb_noSym, tbox, snears, vmins, levelMax)

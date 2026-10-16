@@ -750,7 +750,7 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
 # Makes the MAIN FUNCTION more legible & easier for non-regression tests
 # Input Checks & Modifs if needed
 #==================================================================
-def checkBaseSym(tb, tbExtSym, dim, check, localDir):
+def checkBaseSym__(tb, tbExtSym, dim, check, localDir):
     # Check if tb has a symmetry plane
     dir_sym = getSymmetryPlaneInfo__(tb, dim=dim)
     baseSYM = Internal.getNodesFromName1(tb, "SYM")
@@ -836,11 +836,11 @@ def checkMultiSnears__(tb_noSym, tb_tboxIn, tb_tbox_noSymIn, vmins, snears, nbas
    
     return tb_tbox, tb_tbox_noSym, vminsNew, snearsNew, nbases, nboxes 
 
-def checkInputIBM(tb, tbox, tbExtSym, snears, vmins, vminsTbox, levelMax, dim, check, localDir, isDebuggingPrint):
+def checkInputIBM__(tb, tbox, tbExtSym, snears, vmins, vminsTbox, levelMax, dim, check, localDir, isDebuggingPrint):
     #============================
     # STEP 1.1: Check baseSYM
     #============================
-    tb_noSym, tbExtSym, dir_sym = checkBaseSym(tb, tbExtSym, dim, check, localDir)
+    tb_noSym, tbExtSym, dir_sym = checkBaseSym__(tb, tbExtSym, dim, check, localDir)
 
     #============================
     # STEP 1.2: Check snears/vmins
@@ -1866,7 +1866,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     #============================================
     # STEP 1: Check input & make modifs if needed
     #============================================
-    tb_noSym, tb_tbox, tb_tbox_noSym, tbExtSym, snears, snearsTb, vmins, nbases, nboxes, dir_sym  = checkInputIBM(tb, tbox, tbExtSym, snears, vmins, vminsTbox, levelMax, dim, check, localDir, isDebuggingPrint)
+    tb_noSym, tb_tbox, tb_tbox_noSym, tbExtSym, snears, snearsTb, vmins, nbases, nboxes, dir_sym  = checkInputIBM__(tb, tbox, tbExtSym, snears, vmins, vminsTbox, levelMax, dim, check, localDir, isDebuggingPrint)
     
     #============================
     # STEP 2: Generate back. grid
