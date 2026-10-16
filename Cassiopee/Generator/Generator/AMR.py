@@ -749,7 +749,7 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
 # Intermediate Functions for each Mesh Gen. Step
 # Makes the MAIN FUNCTION more legible & easier for non-regression tests
 #==================================================================
-def checkBaseSym(tb, tbExtSym, dim, check):
+def checkBaseSym(tb, tbExtSym, dim, check, localDir):
     # Check if tb has a symmetry plane
     dir_sym = getSymmetryPlaneInfo__(tb, dim=dim)
     baseSYM = Internal.getNodesFromName1(tb, "SYM")
@@ -1794,7 +1794,7 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
     #============================
     # STEP 1: Check baseSYM
     #============================
-    tb_noSym, tbExtSym, dir_sym = checkBaseSym(tb, tbExtSym, dim, check)
+    tb_noSym, tbExtSym, dir_sym = checkBaseSym(tb, tbExtSym, dim, check, localDir)
 
     #============================
     # STEP 2: Check snears/vmins
