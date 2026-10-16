@@ -936,7 +936,7 @@ def chunk2part(dt):
                     node2 = Internal.newBCDataSet(parent=node, value='BCDirichlet', gridLocation='FaceCenter')
                     node2 = Internal.newBCData(parent=node2)
                     Internal.newDataArray(name, value=bcf, parent=node2)
-        
+
     t = C.newPyTree(['Base', zo])
     Cmpi._setProc(t, Cmpi.rank)
     Internal._correctPyTree(t, level=7)
