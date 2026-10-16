@@ -748,6 +748,7 @@ def generateSkeletonMeshCart__(tb, dictGridCart, snearsFlat, dim, levelSkel):
 #==================================================================
 # Intermediate Functions for each Mesh Gen. Step
 # Makes the MAIN FUNCTION more legible & easier for non-regression tests
+# Input Checks & Modifs if needed
 #==================================================================
 def checkBaseSym(tb, tbExtSym, dim, check, localDir):
     # Check if tb has a symmetry plane
@@ -835,7 +836,59 @@ def checkMultiSnears__(tb_noSym, tb_tboxIn, tb_tbox_noSymIn, vmins, snears, nbas
    
     return tb_tbox, tb_tbox_noSym, vminsNew, snearsNew, nbases, nboxes 
 
-def generateCoarseGrid__(tb, tIn, snears, snearsTb, nbases, vmins, dfars, dim, levelMax, octreeMode):
+def checkInputIBM(tb, tbox, tbExtSym, snears, vmins, vminsTbox, levelMax, dim, check, localDir, isDebuggingPrint):
+    #============================
+    # STEP 1.1: Check baseSYM
+    #============================
+    tb_noSym, tbExtSym, dir_sym = checkBaseSym(tb, tbExtSym, dim, check, localDir)
+
+    #============================
+    # STEP 1.2: Check snears/vmins
+    #============================
+    # See comments in checkSnearsVmins__ for snears vs. snearsTb
+    snears, snearsTb, vmins, nbases  = checkSnearsVmins__(tb_noSym, tbox, snears, vmins, levelMax)
+    if Cmpi.master and isDebuggingPrint:
+        print('WARNING:: Debug - after Step 1.2 check snears/vmins - snears=', snears, flush=True)
+        print('WARNING:: Debug - after Step 1.2 check snears/vmins - snearsTb=', snearsTb, flush=True)
+        print('WARNING:: Debug - after Step 1.2 check snears/vmins - vmins=', vmins, flush=True)
+        print('WARNING:: Debug - after Step 1.2 check snears/vmins - nbases=', nbases, flush=True)
+        print('===========================================================', flush=True)
+
+    #============================
+    # STEP 1.3: Check tbox
+    #============================
+    tb_tbox, tb_tbox_noSym, vmins, snears, nbases, nboxes = checkTbox__ (tb, tb_noSym, tbox, vmins, snears, nbases, vminsTbox, levelMax)
+    if Cmpi.master and isDebuggingPrint:
+        print('WARNING:: Debug - after Step 1.3 check tbox - snears=', snears, flush=True)
+        print('WARNING:: Debug - after Step 1.3 check tbox - vmins=', vmins, flush=True)
+        print('WARNING:: Debug - after Step 1.3 check tbox - nbases=', nbases, flush=True)
+        print('WARNING:: Debug - after Step 1.3 check tbox - nboxes=', nboxes, flush=True)
+        print('===========================================================', flush=True)
+
+    #============================
+    # STEP 1.4: Check multi. snears
+    #============================
+    # Behavior for vmins to variable snear zones
+    # 1) snear zone has a specific vmin in #Solver.define--> use that vmin
+    # 2) snear zone doesnt have a specific vmin in #Solver.define --> use the default vmin of 5
+    tb_tbox, tb_tbox_noSym, vmins, snears, nbases, nboxes  = checkMultiSnears__(tb_noSym, tb_tbox, tb_tbox_noSym,
+                                                                                vmins, snears, nbases, nboxes,
+                                                                                dim, levelMax, check, localDir)
+    if Cmpi.master and isDebuggingPrint:
+        print('WARNING:: Debug - after Step 1.4 check multi snears - snears=', snears, flush=True)
+        print('WARNING:: Debug - after Step 1.4 check multi snears - vmins=', vmins, flush=True)
+        #print('WARNING:: Debug - after Step 1.4 check multi snears - snearsTboxSnear=', snearsTboxSnear, flush=True)
+        #print('WARNING:: Debug - after Step 1.4 check multi snears - vminsTboxSnear=', vminsTboxSnear, flush=True)
+        #print('WARNING:: Debug - after Step 1.4 check multi snears - nboxesSnear=', nboxesSnear, flush=True)
+        print('WARNING:: Debug - after Step 1.4 check multi snears - nbases=', nbases, flush=True)
+        print('WARNING:: Debug - after Step 1.4 check multi snears - nboxes=', nboxes, flush=True)
+        print('===========================================================', flush=True)
+
+    return tb_noSym, tb_tbox, tb_tbox_noSym, tbExtSym, snears, snearsTb, vmins, nbases, nboxes, dir_sym
+#==================================================================
+# 
+#==================================================================
+def generateCoarseGrid__(tb, tb_tbox_noSym, tIn, snears, snearsTb, nbases, vmins, dfars, dim, dir_sym, levelMax, octreeMode, NumMinDxLarge):
     # use tIn (background grid) or automatically generate octree skeleton
     # tIn is deleted at the end of this function
     tCartIn = False
@@ -887,7 +940,24 @@ def generateCoarseGrid__(tb, tIn, snears, snearsTb, nbases, vmins, dfars, dim, l
             print("============== 2.5D Test Case: Extrusion in Y-direction  ==============", flush=True)
             print("=======================================================================", flush=True)
 
-    return o, tCartIn, extrude, levelMax, vmins
+    #============================
+    # STEP 2.2: Update snears
+    #============================
+    # Modifies the snears such that they are always a multiple of the smallest snear
+    # Needed to quarantee a smooth transition of the flow field
+    # If octree=0, this guarantees that the min snear previous obtained is propagated to the other snears
+    o = G.getVolumeMap(o)
+    snears = updateSnears__(o, snears, dim, levelMax, nbases)
+        
+    #============================
+    # STEP 2.3: Update dfars
+    #============================
+    # New calc. of dfar max. This is done based on the distance between the IBM & the domain edges.
+    # The min of this becomes the dfar max. Need to consider the tbox also as cannot have hanging nodes @ BC
+    # is per base so there are no cross-contamination constraints (e.g. tbox constaining tb)
+    dfars = updateDfars__(o, tb_tbox_noSym, dim, dir_sym, tCartIn, extrude, NumMinDxLarge)
+    
+    return o, tCartIn, levelMax, snears, dfars, vmins
 
 def updateSnears__(o, snearsIn, dim, levelMax, nbases):
     snears = copy.deepcopy(snearsIn)
@@ -935,6 +1005,9 @@ def updateDfars__(o, tb_tbox_noSym, dim, dir_sym, tCartIn, extrude, NumMinDxLarg
 
     return dfars
 
+#==================================================================
+# Update Snear & Dfar
+#==================================================================
 def generateOffset__(tb_tbox, nbases, dfars, vmins, snears, dim, opt, nboxes, tbExtSym,
                      blankCellsAlgo, tCartIn):
     # modify the offsetvalues - this will determine how many offsets will finally be generated
@@ -1790,68 +1863,27 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         if Cmpi.master: print("NumMinDxLarge - the min. num. of cells in any direction for the max. Dx - cannot be less than 1. Setting NumMinDxLarge to at least 1.", flush=True)
         NumMinDxLarge = 1
     NumMinDxLarge += 1 # we add one as the check later on is on nodes & not cells.
-
-    #============================
-    # STEP 1: Check baseSYM
-    #============================
-    tb_noSym, tbExtSym, dir_sym = checkBaseSym(tb, tbExtSym, dim, check, localDir)
-
-    #============================
-    # STEP 2: Check snears/vmins
-    #============================
-    # See comments in checkSnearsVmins__ for snears vs. snearsTb
-    snears, snearsTb, vmins, nbases  = checkSnearsVmins__(tb_noSym, tbox, snears, vmins, levelMax)
-    if Cmpi.master and isDebuggingPrint:
-        print('WARNING:: Debug - after Step 2 check snears/vmins - snears=', snears, flush=True)
-        print('WARNING:: Debug - after Step 2 check snears/vmins - snearsTb=', snearsTb, flush=True)
-        print('WARNING:: Debug - after Step 2 check snears/vmins - vmins=', vmins, flush=True)
-        print('WARNING:: Debug - after Step 2 check snears/vmins - nbases=', nbases, flush=True)
-        print('===========================================================', flush=True)
-
-    #============================
-    # STEP 3: Check tbox
-    #============================
-    tb_tbox, tb_tbox_noSym, vmins, snears, nbases, nboxes = checkTbox__ (tb, tb_noSym, tbox, vmins, snears, nbases, vminsTbox, levelMax)
-    if Cmpi.master and isDebuggingPrint:
-        print('WARNING:: Debug - after Step 3 check tbox - snears=', snears, flush=True)
-        print('WARNING:: Debug - after Step 3 check tbox - vmins=', vmins, flush=True)
-        print('WARNING:: Debug - after Step 3 check tbox - nbases=', nbases, flush=True)
-        print('WARNING:: Debug - after Step 3 check tbox - nboxes=', nboxes, flush=True)
-        print('===========================================================', flush=True)
-
-    #============================
-    # STEP 4: Check multi. snears
-    #============================
-    # Behavior for vmins to variable snear zones
-    # 1) snear zone has a specific vmin in #Solver.define--> use that vmin
-    # 2) snear zone doesnt have a specific vmin in #Solver.define --> use the default vmin of 5
-    tb_tbox, tb_tbox_noSym, vmins, snears, nbases, nboxes  = checkMultiSnears__(tb_noSym, tb_tbox, tb_tbox_noSym,
-                                                                                vmins, snears, nbases, nboxes,
-                                                                                dim, levelMax, check, localDir)
-    if Cmpi.master and isDebuggingPrint:
-        print('WARNING:: Debug - after Step 4 check multi snears - snears=', snears, flush=True)
-        print('WARNING:: Debug - after Step 4 check multi snears - vmins=', vmins, flush=True)
-        #print('WARNING:: Debug - after Step 4 check multi snears - snearsTboxSnear=', snearsTboxSnear, flush=True)
-        #print('WARNING:: Debug - after Step 4 check multi snears - vminsTboxSnear=', vminsTboxSnear, flush=True)
-        #print('WARNING:: Debug - after Step 4 check multi snears - nboxesSnear=', nboxesSnear, flush=True)
-        print('WARNING:: Debug - after Step 4 check multi snears - nbases=', nbases, flush=True)
-        print('WARNING:: Debug - after Step 4 check multi snears - nboxes=', nboxes, flush=True)
-        print('===========================================================', flush=True) 
+    #============================================
+    # STEP 1: Check input & make modifs if needed
+    #============================================
+    tb_noSym, tb_tbox, tb_tbox_noSym, tbExtSym, snears, snearsTb, vmins, nbases, nboxes, dir_sym  = checkInputIBM(tb, tbox, tbExtSym, snears, vmins, vminsTbox, levelMax, dim, check, localDir, isDebuggingPrint)
     
     #============================
-    # STEP 5: Generate back. grid
+    # STEP 2: Generate back. grid
     #============================
     if Cmpi.master and isDebuggingPrint:
         snearMin = min(item for sub in snears for item in sub)
-        print('WARNING:: Debug - begining of  Step 5 - snearMin=', snearMin, flush=True)
+        print('WARNING:: Debug - begining of  Step 2 - snearMin=', snearMin, flush=True)
         print('===========================================================', flush=True)
     # tIn is deleted in generateCoarseGrid__
-    
-    o, tCartIn, extrude, levelMax, vmins = generateCoarseGrid__(tb, tIn, snears, snearsTb, nbases, vmins, dfars,
-                                                                dim, levelMax, octreeMode)
+    o, tCartIn, levelMax, snears, dfars, vmins = generateCoarseGrid__(tb, tb_tbox_noSym, tIn, snears, snearsTb, nbases, vmins, dfars,
+                                                                      dim, dir_sym, levelMax, octreeMode, NumMinDxLarge)
     # mandatory save file for loadAndSplit for adaptation
     if Cmpi.master: C.convertPyTree2File(o, pathSkeleton)
     Cmpi.barrier()
+    if Cmpi.master and isDebuggingPrint:
+        print('WARNING:: Debug - end of  Step 2 - snears=', snears, flush=True)
+        print('===========================================================', flush=True)
     
     # Leaving here for now just in case we decided to reactive this option in the future. The chosen option is to reduce the cell size (increase the # of cells) of the octree skeleton grid.
     if False:
@@ -1859,36 +1891,16 @@ def generateAMRMesh(tb, toffset=None, levelMax=0, vmins=11, snears=0.01, dfars=1
         if Ncells < Cmpi.size:
             raise ValueError('There are more MPI processes (Nmpi) [%d] than number of cells in the background skeleton/octree mesh (Ncells) [%d]. Note: Nmpi ≤ Ncells. Exiting...'%(Cmpi.size, Ncells))
             Cmpi.abort(errorcode=1)
-    
-    #============================
-    # STEP 6: Update snears
-    #============================
-    # Modifies the snears such that they are always a multiple of the smallest snear
-    # Needed to quarantee a smooth transition of the flow field
-    # If octree=0, this guarantees that the min snear previous obtained is propagated to the other snears
-    G._getVolumeMap(o)
-    snears = updateSnears__(o, snears, dim, levelMax, nbases)
-    if Cmpi.master and isDebuggingPrint:
-        print('WARNING:: Debug - end of  Step 6 - snears=', snears, flush=True)
-        print('===========================================================', flush=True)
         
     #============================
-    # STEP 7: Update dfars
-    #============================
-    # New calc. of dfar max. This is done based on the distance between the IBM & the domain edges.
-    # The min of this becomes the dfar max. Need to consider the tbox also as cannot have hanging nodes @ BC
-    # is per base so there are no cross-contamination constraints (e.g. tbox constaining tb)
-    dfars = updateDfars__(o, tb_tbox_noSym, dim, dir_sym, tCartIn, extrude, NumMinDxLarge)
-    
-    #============================
-    # STEP 8: Generate offsets
+    # STEP 3: Generate offsets
     #============================
     if toffset == None:
         toffset = generateOffset__(tb_tbox, nbases, dfars, vmins, snears, dim, opt, nboxes, tbExtSym, blankCellsAlgo, tCartIn)
         if check and Cmpi.master: C.convertPyTree2File(toffset, os.path.join(localDir, "offset.cgns"))
 
     #============================
-    # STEP 9: Mesh adaptation
+    # STEP 4: Mesh adaptation
     #============================
     # adaptation of the mesh wrt to the bodies (finest level) and offsets
     # only a part is returned per processor

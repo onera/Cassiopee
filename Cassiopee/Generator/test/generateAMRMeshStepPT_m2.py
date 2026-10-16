@@ -49,23 +49,18 @@ if Cmpi.master:
     test.testO(snears, 7)
     test.testO(snearsTb, 8)
     test.testO(vmins, 9)
-o, tCartIn, extrude, levelMax, vmins = G_AMR.generateCoarseGrid__(tb, None, snears, snearsTb, nbases, vmins, dfars,
-                                                                dim, levelMax, octreeMode)
+o, tCartIn, levelMax, snears, dfars, vmins = G_AMR.generateCoarseGrid__(tb, tb_tbox_noSym, None, snears, snearsTb, nbases, vmins, dfars,
+                                                                        dim, dir_sym, levelMax, octreeMode, NumMinDxLarge)
 if Cmpi.master:
     test.testT(o, 10)
     test.testO(vmins, 11)
+    test.testO(snears, 12)
+    test.testO(dfars, 13)
 
 if isRunMeshGen:
     if Cmpi.master: C.convertPyTree2File(o, LOCAL+'/skeleton.cgns')
     Cmpi.barrier()
-
-G._getVolumeMap(o)
-snears = G_AMR.updateSnears__(o, snears, dim, levelMax, nbases)
-dfars = G_AMR.updateDfars__(o, tb_tbox_noSym, dim, dir_sym, tCartIn, extrude, NumMinDxLarge)
-if Cmpi.master:
-    test.testO(snears, 12)
-    test.testO(dfars, 13)
-    
+   
 if isRunMeshGen:
     toffset = G_AMR.generateOffset__(tb_tbox, nbases, dfars, vmins, snears, dim, False, nboxes, tbExtSym, 'xray', tCartIn)
     Cmpi.barrier()
