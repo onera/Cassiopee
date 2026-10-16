@@ -827,25 +827,25 @@ def chunk2part(dt):
     nfaceso = Internal.getNodeFromName1(nface, 'ElementStartOffset')[1]
 
     solc = []; solcNames = {}
+    sol = []; solNames = {}
     fsols = Internal.getNodesFromType1(z, 'FlowSolution_t')
     for fsol in fsols:
-        print(fsol[0])
         loc = Internal.getNodeFromType1(fsol, 'GridLocation_t')
         if loc is not None and Internal.getValue(loc) == 'CellCenter':
             solcNames[fsol[0]] = []
             for f in fsol[2]:
                 if f[3] == 'DataArray_t':
                     solc.append(f[1]); solcNames[fsol[0]].append(f[0])
-
-    soln = []; solNames = {}
-    fsols = Internal.getNodesFromType1(z, 'FlowSolution_t')
-    for fsol in fsols:
-        loc = Internal.getNodeFromType1(fsol, 'GridLocation_t')
-        if loc is None or Internal.getValue(loc) == 'Vertex':
+        elif loc is None or Internal.getValue(loc) == 'Vertex':
             solNames[fsol[0]] = []
             for f in fsol[2]:
                 if f[3] == 'DataArray_t':
-                    soln.append(f[1]); solNames[fsol[0]].append(f[0])
+                    sol.append(f[1]); solNames[fsol[0]].append(f[0])
+
+    # extract familyZone nodes
+    fnameNodes = []
+    nodes = Internal.getNodesFromType1(z, 'FamilyName_t')
+    for n in nodes: fnameNodes.append(n)
 
     # extract bcNames and bcTypes from chunked zone
     zonebc = Internal.getNodeFromType1(z, 'ZoneBC_t')
@@ -892,7 +892,7 @@ def chunk2part(dt):
 
     # bcs is a list of PL
     # bcdataset is a list of list of arrays
-    arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,soln,bcs,bcfields])
+    arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,sol,bcs,bcfields])
 
     RES = XCore.xcore.chunk2partNGon(arrays)
     (mesh, commData, solc, sol, bcs, bcfields, cells, faces, points) = RES
@@ -914,7 +914,7 @@ def chunk2part(dt):
         cont = Internal.createUniqueChild(zo, name, 'FlowSolution_t')
         Internal._createUniqueChild(cont, 'GridLocation', 'GridLocation_t', value='CellCenter')
         for a in solcNames[name]:
-            Internal.newDataArray(a, value=solc[n], parent=cont)
+            Internal.newDataArray(a, value=solc[n], parent=cont); n += 1
 
     # add bcs
     for i, bc in enumerate(bcs):
@@ -935,8 +935,8 @@ def chunk2part(dt):
                     name = bcfieldNames[i][j]
                     node2 = Internal.newBCDataSet(parent=node, value='BCDirichlet', gridLocation='FaceCenter')
                     node2 = Internal.newBCData(parent=node2)
-                    Internal.newDataArray(name, value=bcfield[j], parent=node2)
-
+                    Internal.newDataArray(name, value=bcf, parent=node2)
+        
     t = C.newPyTree(['Base', zo])
     Cmpi._setProc(t, Cmpi.rank)
     Internal._correctPyTree(t, level=7)
@@ -959,6 +959,11 @@ def chunk2part(dt):
     #for fz in familyZones:
     #    Internal.addChild(b, fz, -1)
     #    Internal._createUniqueChild(z, 'FamilyName', 'FamilyName_t', value=fz[0], pos=-1)
+
+    # add familyName_t nodes (removed during chunk2partNGon)
+    z = Internal.getZones(t)[0]
+    for n in fnameNodes:
+        Internal.addChild(z, n, -1)
 
     # copy extra nodes from dt
     adds = []
