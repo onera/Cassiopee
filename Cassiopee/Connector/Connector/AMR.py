@@ -390,13 +390,13 @@ def recoverBCs(t, frontIP, BCInfo):
     C._recoverBCs(tp, (zbcs, bcnames, bctypes))
 
     #Join the separate BCs
-    for zName in bcNamesDomain:
-        zbcsTmp = C.extractBCOfType(tp, zName)
+    for zname in bcNamesDomain:
+        zbcsTmp = C.extractBCOfType(tp, zname)
         if zbcsTmp != []:
-            Internal._rmNodesByName(tp, zName+'*')
+            Internal._rmNodesByName(tp, zname+'*')
             zbc = T.join(zbcsTmp)
-            zbc[0] = zName
-            C._addBC2Zone(tp, zName, zName, subzone=zbc)
+            zbc[0] = zname
+            C._addBC2Zone(tp, zname, zname, subzone=zbc)
 
     #Clean the name of the BCs & add grid location
     bcNodes = Internal.getNodesFromType(tp, 'BC_t')
