@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 PREFIX="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE}"
 
 if test -e "$PREFIX/Dist/tkCassiopee.py"

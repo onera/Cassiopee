@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 # *Cassiopee* machine specific (local) variables
 
 # Preliminary checks
