@@ -307,7 +307,9 @@ import platform, re, os
 a = platform.uname()
 system = a[0] # Linux, Windows
 host = a[1]   # host name
-prod = os.getenv("ELSAPROD") or 'xx'
+prod = os.getenv("ELSAPROD")
+if prod is None:
+    raise ValueError("Environment variable ELSAPROD must be set.")
 
 #==============================================================================
 master = TK.Tk()
