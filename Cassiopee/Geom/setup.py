@@ -48,12 +48,12 @@ if adolc:
 listExtensions = [
     Extension(
         'Geom.geom',
-         sources=["Geom/geom.cpp"],
-         include_dirs=["Geom"]+additionalIncludePaths+includeDirs,
-         library_dirs=additionalLibPaths+libraryDirs,
-         libraries=libraries+additionalLibs,
-         extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
-         extra_link_args=Dist.getLinkArgs()+ADDITIONALCPPFLAGS
+        sources=["Geom/geom.cpp"],
+        include_dirs=["Geom"]+additionalIncludePaths+includeDirs,
+        library_dirs=additionalLibPaths+libraryDirs,
+        libraries=libraries+additionalLibs,
+        extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
+        extra_link_args=Dist.getLinkArgs()+ADDITIONALCPPFLAGS
     )
 ]
 
