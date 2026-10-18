@@ -1,34 +1,35 @@
 #! /bin/sh
-if [ "$PYTHONEXE" = "" ]; then
+PREFIX="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE}"
+if [ -z "$PYTHONEXE" ]; then
     export PYTHONEXE=python
 fi
 export MPIRUN=0
 
 if ! command -v xdpyinfo > /dev/null; then
-    if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
+    if test -e "$PREFIX/Dist/bin/$ELSAPROD/tkCassiopee.py"
     then
-        $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
+        $PYTHONEXE "$PREFIX/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
     else
-        $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
+        $PYTHONEXE "$PREFIX/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
     fi
     exit
 fi
 
 xdpyinfo | grep VNC > /dev/null
 if [ $? -eq 0 ]; then
-    if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
+    if test -e "$PREFIX/Dist/bin/$ELSAPROD/tkCassiopee.py"
     then
-        vglrun $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
+        vglrun $PYTHONEXE "$PREFIX/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
     else
-        vglrun $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
+        vglrun $PYTHONEXE "$PREFIX/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
     fi
     exit
 else
-    if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py"
+    if test -e "$PREFIX/Dist/bin/$ELSAPROD/tkCassiopee.py"
     then
-        $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
+        $PYTHONEXE "$PREFIX/Dist/bin/$ELSAPROD/tkCassiopee.py" "$@"
     else
-        $PYTHONEXE "$CASSIOPEE/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
+        $PYTHONEXE "$PREFIX/Dist/bin/$ELSAPROD/tkCassiopee.pyc" "$@"
     fi
     exit
 fi

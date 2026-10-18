@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 # Print help message
 usage() {
   cat <<EOF

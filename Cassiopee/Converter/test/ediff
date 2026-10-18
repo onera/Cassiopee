@@ -1,2 +1,12 @@
 #! /bin/sh
-python $CASSIOPEE/Dist/bin/$ELSAPROD/ediff.py $1 $2
+PREFIX="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE}"
+if [ -n "$PYTHONEXE" ]; then
+    alias python=$PYTHONEXE
+fi
+
+if test -e "$PREFIX/Dist/bin/$ELSAPROD/ediff.py"
+then
+    python "$PREFIX/Dist/bin/$ELSAPROD/ediff.py" "$@"
+else
+    python "$PREFIX/Dist/bin/$ELSAPROD/ediff.pyc" "$@"
+fi
