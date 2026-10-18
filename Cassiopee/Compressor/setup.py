@@ -31,7 +31,9 @@ Dist.writeSetupCfg()
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 # Setting libraryDirs and libraries ===========================================
-prod = os.getenv("ELSAPROD") or "xx"
+prod = os.getenv("ELSAPROD")
+if prod is None:
+    raise ValueError("Environment variable ELSAPROD must be set.")
 libraryDirs = ['build/'+prod, kcoreLibDir]
 libraries = ["compressor", "kcore"]
 (ok, libs, paths) = Dist.checkCppLibs()
@@ -74,12 +76,5 @@ if srcs.ZFP:
 
 # Setup ======================================================================
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "Compressor",
-    version="4.2",
-    description="Compress CFD solutions.",
-    author="ONERA",
-    url="https://cassiopee.onera.fr",
-    package_dir={"":"."},
-    packages=['Compressor', 'Compressor.sz', 'Compressor.zfp'],
     ext_modules=extensions
 )

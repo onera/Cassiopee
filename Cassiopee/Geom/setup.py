@@ -23,8 +23,9 @@ Dist.writeSetupCfg()
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
-# Compilation des fortrans ===================================================
-prod = os.getenv("ELSAPROD") or "xx"
+prod = os.getenv("ELSAPROD")
+if prod is None:
+    raise ValueError("Environment variable ELSAPROD must be set.")
 
 # Setting includeDirs, libraryDirs and libraries ===========================================
 ADDITIONALCPPFLAGS = []
@@ -44,20 +45,18 @@ if adolc:
     libraries.append(adolcLib)
 
 # setup ======================================================================
+listExtensions = [
+    Extension(
+        'Geom.geom',
+         sources=["Geom/geom.cpp"],
+         include_dirs=["Geom"]+additionalIncludePaths+includeDirs,
+         library_dirs=additionalLibPaths+libraryDirs,
+         libraries=libraries+additionalLibs,
+         extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
+         extra_link_args=Dist.getLinkArgs()+ADDITIONALCPPFLAGS
+    )
+]
+
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "Geom",
-    version="4.2",
-    description="Geometry definition for *Cassiopee* modules.",
-    author="ONERA",
-    url="https://onera.github.io/Cassiopee/",
-    packages=['Geom'],
-    package_dir={"":"."},
-    ext_modules=[Extension('Geom.geom',
-                           sources=["Geom/geom.cpp"],
-                           include_dirs=["Geom"]+additionalIncludePaths+includeDirs,
-                           library_dirs=additionalLibPaths+libraryDirs,
-                           libraries=libraries+additionalLibs,
-                           extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
-                           extra_link_args=Dist.getLinkArgs()+ADDITIONALCPPFLAGS
-                           )]
+    ext_modules=listExtensions
 )

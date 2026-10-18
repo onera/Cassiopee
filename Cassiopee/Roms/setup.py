@@ -21,7 +21,9 @@ Dist.writeSetupCfg()
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
-prod = os.getenv("ELSAPROD") or "xx"
+prod = os.getenv("ELSAPROD")
+if prod is None:
+    raise ValueError("Environment variable ELSAPROD must be set.")
 
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]
@@ -31,25 +33,19 @@ libraries = ["kcore", "roms"]
 libraryDirs += paths; libraries += libs
 
 # Extensions ==================================================================
-listExtensions = []
-listExtensions.append(
-    Extension('Roms.roms',
-              sources=['Roms/roms.cpp'],
-              include_dirs=["Roms"]+additionalIncludePaths+includeDirs,
-              library_dirs=additionalLibPaths+libraryDirs,
-              libraries=libraries+additionalLibs,
-              extra_compile_args=Dist.getCppArgs(),
-              extra_link_args=Dist.getLinkArgs()
-              ) )
+listExtensions = [
+    Extension(
+        'Roms.roms',
+        sources=['Roms/roms.cpp'],
+        include_dirs=["Roms"]+additionalIncludePaths+includeDirs,
+        library_dirs=additionalLibPaths+libraryDirs,
+        libraries=libraries+additionalLibs,
+        extra_compile_args=Dist.getCppArgs(),
+        extra_link_args=Dist.getLinkArgs()
+    )
+]
 
 # setup ======================================================================
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "Roms",
-    version="4.2",
-    description="Roms module.",
-    author="ONERA",
-    url="https://onera.github.io/Cassiopee/",
-    packages=['Roms', 'Roms.DB', 'Roms.LA', 'Roms.Models', 'Roms.Optim', 'Roms.Parts'],
-    package_dir={"":"."},
     ext_modules=listExtensions
 )

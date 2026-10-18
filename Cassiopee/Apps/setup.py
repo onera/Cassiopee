@@ -6,15 +6,9 @@
 import os
 from setuptools import setup
 
-prod = os.getenv("ELSAPROD") or "xx"
+prod = os.getenv("ELSAPROD")
+if prod is None:
+    raise ValueError("Environment variable ELSAPROD must be set.")
 
 # setup ======================================================================
-setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "Apps",
-    version="4.2",
-    description="Application modules",
-    author="ONERA",
-    url="https://onera.github.io/Cassiopee/",
-    packages=['Apps', 'Apps.Chimera', 'Apps.Fast', 'Apps.Mesh', 'Apps.Coda'],
-    package_dir={"":"."}
-)
+setup()

@@ -39,7 +39,9 @@ if srcs.TIGL and not OCCPresent:
     print("Warning: open cascade not found on your system. Modeler.Tigl not installed.")
     os._exit(0)
 
-prod = os.getenv("ELSAPROD") or "xx"
+prod = os.getenv("ELSAPROD")
+if prod is None:
+    raise ValueError("Environment variable ELSAPROD must be set.")
 
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]
@@ -62,25 +64,19 @@ if srcs.TIGL: libraries += ["boost_system", "boost_filesystem", "boost_date_time
 #if srcs.TIGL: libraries += ["boost_filesystem-mt", "boost_date_time-mt"]
 
 # Extensions ==================================================================
-listExtensions = []
-listExtensions.append(
-    Extension('Modeler.modeler',
-              sources=['Modeler/modeler.cpp'],
-              include_dirs=["Modeler"]+additionalIncludePaths+includeDirs,
-              library_dirs=additionalLibPaths+libraryDirs,
-              libraries=libraries+additionalLibs,
-              extra_compile_args=Dist.getCppArgs(),
-              extra_link_args=Dist.getLinkArgs()
-              ) )
+listExtensions = [
+    Extension(
+        'Modeler.modeler',
+        sources=['Modeler/modeler.cpp'],
+        include_dirs=["Modeler"]+additionalIncludePaths+includeDirs,
+        library_dirs=additionalLibPaths+libraryDirs,
+        libraries=libraries+additionalLibs,
+        extra_compile_args=Dist.getCppArgs(),
+        extra_link_args=Dist.getLinkArgs()
+    )
+]
 
 # setup ======================================================================
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "Modeler",
-    version="4.2",
-    description="Modeler module.",
-    author="ONERA",
-    url="https://onera.github.io/Cassiopee/",
-    packages=['Modeler', 'Modeler.CPACS'],
-    package_dir={"":"."},
     ext_modules=listExtensions
 )

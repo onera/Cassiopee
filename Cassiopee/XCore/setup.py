@@ -44,7 +44,9 @@ Dist.writeSetupCfg()
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi()
 (mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py()
 
-prod = os.getenv("ELSAPROD") or "xx"
+prod = os.getenv("ELSAPROD")
+if prod is None:
+    raise ValueError("Environment variable ELSAPROD must be set.")
 
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]+fortranLibDir
@@ -83,14 +85,16 @@ libraryDirs += paths; libraries += libs
 # Extensions ==================================================================
 listExtensions = []
 listExtensions.append(
-    Extension('XCore.xcore',
-              sources=['XCore/xcore.cpp'],
-              include_dirs=["XCore"]+additionalIncludePaths+includeDirs,
-              library_dirs=additionalLibPaths+libraryDirs,
-              libraries=libraries+additionalLibs,
-              extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
-              extra_link_args=Dist.getLinkArgs()
-              ) )
+    Extension(
+        'XCore.xcore',
+        sources=['XCore/xcore.cpp'],
+        include_dirs=["XCore"]+additionalIncludePaths+includeDirs,
+        library_dirs=additionalLibPaths+libraryDirs,
+        libraries=libraries+additionalLibs,
+        extra_compile_args=Dist.getCppArgs() + ADDITIONALCPPFLAGS,
+        extra_link_args=Dist.getLinkArgs()
+    )
+)
 
 listExtensionsPyx = []
 cython = Dist.checkCython()
@@ -110,15 +114,17 @@ if cython and mpi and mpi4py:
             names = name.split('/')
             name = names[0]+'.'+names[-1]
             listExtensionsPyx.append(
-                Extension(name,
-                          sources=[c],
-                          include_dirs=["XCore","%s"%PPATH,"%s/ppart"%PPATH,"%s/struct"%PPATH,"%s/pario"%PPATH,"%s/mesh"%PPATH,"%s/meshgen"%PPATH,"%s/mpi_wrapper"%PPATH, "%s/util"%PPATH]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
-                          library_dirs=additionalLibPaths+libraryDirs,
-                          libraries=libraries+additionalLibs,
-                          extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
-                          extra_link_args=[],
-                          language='c++'
-                          ) )
+                Extension(
+                    name,
+                    sources=[c],
+                    include_dirs=["XCore","%s"%PPATH,"%s/ppart"%PPATH,"%s/struct"%PPATH,"%s/pario"%PPATH,"%s/mesh"%PPATH,"%s/meshgen"%PPATH,"%s/mpi_wrapper"%PPATH, "%s/util"%PPATH]+additionalIncludePaths+[numpyIncDir, kcoreIncDir, mpiIncDir, mpi4pyIncDir, pythonIncDir],
+                    library_dirs=additionalLibPaths+libraryDirs,
+                    libraries=libraries+additionalLibs,
+                    extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
+                    extra_link_args=[],
+                    language='c++'
+                )
+            )
     else:
         def cythonize(srcs, include_path): return []
         paradigmaDir = ''
@@ -128,12 +134,5 @@ else:
 
 # setup ======================================================================
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "XCore",
-    version="4.2",
-    description="XCore for *Cassiopee* modules.",
-    author="ONERA",
-    url="https://onera.github.io/Cassiopee/",
-    packages=['XCore'],
-    package_dir={"":"."},
-    ext_modules=listExtensions+cythonize(listExtensionsPyx,include_path=[paradigmaDir])
+    ext_modules=listExtensions+cythonize(listExtensionsPyx, include_path=[paradigmaDir])
 )
