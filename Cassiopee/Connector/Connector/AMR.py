@@ -1139,7 +1139,7 @@ def _addIBCData__(t, frontIP, donorPts, wallPts, integrationPts, IBM_parameters)
     for z in Internal.getZones(t):
         hook = C.createHook(frontIP, 'elementCenters')
         if IBM_parameters["spatial discretization"]["type"] == "FV":
-            for nobc,ibc in enumerate(list(integrationPts.values())):
+            for nobc, ibc in enumerate(list(integrationPts.values())):
                 if ibc!=[[]]:
                     coords_IBC_x = Converter.extractVars(ibc,["CoordinateX"])[0][1][0]
                     coords_IBC_y = Converter.extractVars(ibc,["CoordinateY"])[0][1][0]
@@ -1157,14 +1157,15 @@ def _addIBCData__(t, frontIP, donorPts, wallPts, integrationPts, IBM_parameters)
                     C._addBC2Zone(z, "IBMWall%d"%nobc, "FamilySpecified:IBMWall", subzone=zoneIBC)
                     bcs = Internal.getNodesFromType(z, 'BC_t')
                     for bc in bcs:
-                        if 'IBMWall' in Internal.getName(bc):
+                        if "IBMWall%d"%nobc in Internal.getName(bc):
                             Internal.createUniqueChild(bc, 'GridLocation', 'GridLocation_t', value='FaceCenter')
+                            Internal.setName(bc, "IBMWall%d"%nobc)
         #C.freeHook(hook)
         for bc in Internal.getNodesFromType2(z, 'BC_t'):
             famName = Internal.getNodeFromName(bc, 'FamilyName')
             if famName is not None:
                 if Internal.getValue(famName) == 'IBMWall':
-                    namebc = bc[0]
+                    namebc = bc[0] # add the split.
                     ibcdataset = Internal.createNode('BCDataSet','BCDataSet_t', parent=bc,value='Null')
                     for i in range(N_IP_per_face):
                         dnrPts = Internal.createNode("DonorPointCoordinates"+str(list_suffix_datasets[i]), 'BCData_t', parent=ibcdataset)
