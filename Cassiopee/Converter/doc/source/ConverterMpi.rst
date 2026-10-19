@@ -32,7 +32,7 @@ to the current rank fully loaded and no skeleton zones.
 It can be viewed as a *loaded skeleton tree* with skeleton zones suppressed.
 
 Generally, Cassiopee functions will operate seamlessly on
-a partial tree, if the function doesn't requires data exchanges.
+a partial tree, if the function doesn't require data exchanges.
 If the function requires exchanges, then a specific version exists
 in the Module.Mpi module. For instance, for Converter, only center2Node
 requires exchanges and is redefined in Converter.Mpi.
@@ -122,7 +122,7 @@ Input/output
     :type fileName: string
     :param format: bin_cgns, bin_adf, bin_hdf (optional)
     :type format: string
-    :param maxFloatSize: the maxSize of float array to load
+    :param maxFloatSize: the maximum size of float arrays to load
     :type maxFloatSize: int
     :param maxDepth: max depth of load
     :type maxDepth: int
@@ -253,14 +253,14 @@ Conversions
 .. py:function:: Converter.Mpi.convert2SkeletonTree(t, maxSize=6)
 
     Convert a tree (**LS** or **P**) to a skeleton tree (S). In a skeleton tree,
-    numpys in DataArray_t nodes are replaced by None.
+    numpy arrays in DataArray_t nodes are replaced by None.
 
     Exists also as in place version (_convert2SkeletonTree) that modifies t
     and returns None.
 
     :param t: input data
     :type t: [pyTree, base, zone, list of zones]
-    :param maxSize: numpy bigger than maxSize are remplace by None
+    :param maxSize: numpy arrays larger than maxSize are replaced by None
     :type maxSize: int
     :rtype: Identical to t
 
@@ -297,7 +297,7 @@ Conversions
 .. py:function:: Converter.Mpi.createBBoxTree(t, method='AABB', keepOldNodes=True)
 
     From a partial tree (**P**) or a loaded skeleton tree (**LS**), create a full tree containing 
-    the bbox of zones. A bbox is a structured grid made of 8 points englobing
+    the bbox of zones. A bbox is a structured grid made of 8 points surrounding a
     zone. The returned tree is identical on all processors. 
     Argument method can be 'AABB' (axis aligned bbox) or 'OBB' (oriented bbox). 
 
@@ -399,8 +399,8 @@ Graphs
     :type t2: pyTree
     :param procDict: if provided, used for zone affectation
     :type procDict: dict
-    :param intersectionDict: dictionary of intersections
-    :type intersectionDict: dict
+    :param intersectionsDict: dictionary of intersections
+    :type intersectionsDict: dict
     :rtype: dict of communications
 
     *Example of use:*
@@ -557,7 +557,7 @@ Actions
 
     Enable to monitor CPU usage and memory usage for each node/process.
     If fileName="stdout", information is written to standard output with the processor number. 
-    If fileName is another name, information is written in "filenameXXX" files, one for each process. If filename does not have a format for the process number and/or an file extension, it is appended "%03d" and ".out", respectively.
+    If fileName is another name, information is written in "filenameXXX" files, one for each process. If filename does not have a format for the process number and/or a file extension, it is appended "%03d" and ".out", respectively.
     If cpu=True, time elapsed since the previous call to "trace" by this node is written.
     If mem=True, the current usage of memory of each process is written.
     Method used to find memory: 0: Rss in smaps, 1: tracemalloc.
