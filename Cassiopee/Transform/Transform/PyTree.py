@@ -1741,12 +1741,13 @@ def _reorderStruct__(t, order, topTree):
         else: # toptree fourni
             _reorderBC__(t, order)
             _reorderBCOverlap__(t, order)
-            C._TZA3(t, loc, loc, True, Transform.reorder, order)
             zones = Internal.getZones(t)
             zoneNames = []
             for z in zones: zoneNames.append(z[0])
+            # update match ranges before reorder: they need the old zone dims
             _reorderBCMatch__(topTree, order, zoneNames)
             _reorderBCNearMatch__(topTree, order, zoneNames)
+            C._TZA3(t, loc, loc, True, Transform.reorder, order)
             return None
 
 def _reorderUnstruct__(t, order):
