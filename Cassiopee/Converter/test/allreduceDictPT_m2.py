@@ -45,15 +45,15 @@ else:
 
 # -- method 0: Return all unique values, then reduce with op
 d = Cmpi.allreduceDict(bcNamesDict, op=Cmpi.MAX)
-if Cmpi.master: print(d); #test.testO(d, 1)
+if Cmpi.master: test.testO(d, 1)
 # {'inlet': 3.0, 'wall': {'flap1': {'upper': 10.0, 'lower': 10.2}, 'flap2': 10.5}, 'outlet': 11.0, 'symmetry': 22.0}
 
 # -- method 1: Return all values, then reduce with op
 d = Cmpi.allreduceDict(bcNamesDict, method=1, op=Cmpi.SUM)
-if Cmpi.master: print(d); #test.testO(d, 2)
+if Cmpi.master: test.testO(d, 2)
 # {'inlet': 7.0, 'wall': {'flap1': {'upper': 45.0, 'lower': 46.2}, 'flap2': 48.0}, 'outlet': 11.0, 'symmetry': 104.0}
 
 # -- method 2: Return all values, add fillValue if missing, then reduce with op
 d = Cmpi.allreduceDict(bcNamesDict, method=2, fillValue=-1., op=Cmpi.SUM)
-if Cmpi.master: print(d); #test.testO(d, 3)
+if Cmpi.master: test.testO(d, 3)
 # {'inlet': 6.0, 'wall': {'flap1': {'upper': 45.0, 'lower': 46.2}, 'flap2': 48.0}, 'outlet': 10.0, 'symmetry': 103.0}

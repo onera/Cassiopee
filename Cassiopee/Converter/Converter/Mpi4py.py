@@ -154,18 +154,21 @@ def allreduceDict(data, method=0, fillValue=None, op=MPI.SUM):
     if method not in [0, 1, 2]:
         raise ValueError(f"allreduceDict: method can either be 0, 1 or 2, not {method}.")
     ret = allgatherDict(data, method=method, fillValue=fillValue)
-    def reduceDict__(d):
-        if isinstance(d, dict):
-            return {k: reduceDict__(v) for k, v in d.items()}
-        if op == MPI.SUM: return sum(d)
-        elif op == MPI.MIN: return min(d)
-        elif op == MPI.MAX: return max(d)
-        elif op == MPI.LOR: return any(d)
-        elif op == MPI.LAND: return all(d)
+    def reduceDict__(data):
+        if isinstance(data, dict):
+            return {k: reduceDict__(v) for k, v in data.items()}
+        if op == MPI.SUM: return sum(data)
+        elif op == MPI.MIN: return min(data)
+        elif op == MPI.MAX: return max(data)
+        elif op == MPI.LOR: return any(data)
+        elif op == MPI.LAND: return all(data)
+        elif op == set:
+            v = set(data)
+            return v.pop() if len(v) == 1 else sorted(v)
         else:
             raise ValueError(f"allreduceDict: unsupported operation, {op}. "
                              "Options are: Cmpi.SUM, Cmpi.MIN, Cmpi.MAX, "
-                             "Cmpi.LOR, and Cmpi.LAND.")
+                             "Cmpi.LOR, Cmpi.LAND, and set for strings.")
     return reduceDict__(ret)
 
 #==============================================================================
