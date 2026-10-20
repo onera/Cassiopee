@@ -17,7 +17,8 @@ __all__ = [
     'setCommunicator', 'abort', 'barrier',
     'send', 'isend', 'recv', 'requestWaitall', 'sendRecv', 'sendRecvC',
     'bcast', 'Bcast', 'gather', 'Gather',
-    'reduce', 'Reduce', 'allreduce', 'Allreduce', 'allreduceDict',
+    'reduce', 'Reduce', 'allreduce', 'Allreduce',
+    'allreduceDict', 'allreduceSet',
     'bcastZone', 'gatherZones', 'allgatherZones',
     'allgatherDict', 'allgatherTree',
     'allgather', 'passPrevious', 'passNext', 'allgatherNext',
@@ -166,6 +167,13 @@ def allreduceDict(data, method=0, fillValue=None, op=MPI.SUM):
                              "Options are: Cmpi.SUM, Cmpi.MIN, Cmpi.MAX, "
                              "Cmpi.LOR, and Cmpi.LAND.")
     return reduceDict__(ret)
+
+#==============================================================================
+# Reduce a set to all procs
+#==============================================================================
+def allreduceSet(data):
+    ret = KCOMM.allgather(data)
+    return set().union(*ret)
 
 #==============================================================================
 # Send and receive with a graph
