@@ -128,7 +128,7 @@ PyObject* K_CONVERTER::identifyNodes(PyObject* self, PyObject* args)
   #pragma omp parallel
   {
     E_Float pt[3];
-    E_Float xf, yf, zf, dx, dy, dz, dist;
+    E_Float xf, yf, zf, dx, dy, dz, distSqr;
     E_Int ind;
 
     #pragma omp for schedule(dynamic)
@@ -144,8 +144,8 @@ PyObject* K_CONVERTER::identifyNodes(PyObject* self, PyObject* args)
       pt[0] = xf; pt[1] = yf; pt[2] = zf;
       ind = globalKdt->getClosest(pt); // closest pt
       dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
-      dist = dx*dx + dy*dy + dz*dz;
-      if (dist*dist < etol*etol) nptr[i] = ind+1;
+      distSqr = dx*dx + dy*dy + dz*dz;
+      if (distSqr < etol*etol) nptr[i] = ind+1;
       else nptr[i] = -1;
     }
   }
@@ -246,7 +246,7 @@ PyObject* K_CONVERTER::identifyFaces(PyObject* self, PyObject* args)
 #pragma omp parallel default(shared)
   {
     E_Int v1, v2, nv, ind;
-    E_Float inv, xf, yf, zf, dx, dy, dz, len, lmax, dist, etol;
+    E_Float inv, xf, yf, zf, dx, dy, dz, len, lmax, distSqr, etol;
     E_Float pt[3];
 #ifdef QUADDOUBLE
     quad_double qxf, qyf, qzf, qdx, qdy, qdz, qlen;
@@ -340,8 +340,8 @@ PyObject* K_CONVERTER::identifyFaces(PyObject* self, PyObject* args)
       pt[0] = xf; pt[1] = yf; pt[2] = zf;
       ind = globalKdt->getClosest(pt); // closest pt
       dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
-      dist = dx*dx + dy*dy + dz*dz;
-      if (dist*dist < etol*etol) nptr[i] = ind+1; 
+      distSqr = dx*dx + dy*dy + dz*dz;
+      if (distSqr < etol*etol) nptr[i] = ind+1; 
       else nptr[i] = -1;
     }
   }
@@ -435,7 +435,7 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
 
 #pragma omp parallel default(shared)
     {
-      E_Float xf, yf, zf, dx, dy, dz, dist, lmax, len, etol;
+      E_Float xf, yf, zf, dx, dy, dz, distSqr, lmax, len, etol;
       E_Int ind, ind1, ind2, ind3, ind4, ind5, ind6, ind7, ind8;
       E_Float pt[3];
       E_Int ic = 0;
@@ -535,8 +535,8 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
 
         ind = globalKdt->getClosest(pt); // closest pt
         dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
-        dist = dx*dx + dy*dy + dz*dz;
-        if (dist*dist < etol*etol) nptr[ic] = ind+1;
+        distSqr = dx*dx + dy*dy + dz*dz;
+        if (distSqr < etol*etol) nptr[ic] = ind+1;
         else nptr[ic] = -1;
       }
     }
@@ -563,7 +563,7 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
       E_Float pt[3];
       E_Int nf, c, nv, ind, v1, v2;
       E_Float xf, yf, zf, inv, dx, dy, dz;
-      E_Float lmax, len, dist, etol;
+      E_Float lmax, len, distSqr, etol;
 
 #ifdef QUADDOUBLE
       quad_double qxf, qyf, qzf, qdx, qdy, qdz, qlen;
@@ -649,8 +649,8 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
         pt[0] = xf; pt[1] = yf; pt[2] = zf;
         ind = globalKdt->getClosest(pt); // closest pt
         dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
-        dist = dx*dx + dy*dy + dz*dz;
-        if (dist*dist < etol*etol) nptr[i] = ind+1;
+        distSqr = dx*dx + dy*dy + dz*dz;
+        if (distSqr < etol*etol) nptr[i] = ind+1;
         else nptr[i] = -1;
       }
     }
@@ -723,7 +723,7 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
 #endif
 
         E_Float pt[3];
-        E_Float xf, yf, zf, dx, dy, dz, lmax, len, dist, etol;
+        E_Float xf, yf, zf, dx, dy, dz, lmax, len, distSqr, etol;
         E_Int ind, v1, v2;
 #ifdef QUADDOUBLE
         quad_double qxf, qyf, qzf, qdx, qdy, qdz, qlen;
@@ -813,8 +813,8 @@ PyObject* K_CONVERTER::identifyElements(PyObject* self, PyObject* args)
           pt[0] = xf; pt[1] = yf; pt[2] = zf;
           ind = globalKdt->getClosest(pt); // closest pt
           dx = xt[ind]-xf; dy = yt[ind]-yf; dz = zt[ind]-zf;
-          dist = dx*dx + dy*dy + dz*dz;
-          if (dist*dist < etol*etol) nptr[offset+i] = ind+1;
+          distSqr = dx*dx + dy*dy + dz*dz;
+          if (distSqr < etol*etol) nptr[offset+i] = ind+1;
           else nptr[offset+i] = -1;
         }
       }
