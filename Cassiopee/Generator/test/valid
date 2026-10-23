@@ -1,5 +1,5 @@
 #! /bin/sh
-if [ "$PYTHONEXE" != "" ]; then
+if [ -n "$PYTHONEXE" ]; then
     alias python=$PYTHONEXE
 fi
 echo '======================================================================='
