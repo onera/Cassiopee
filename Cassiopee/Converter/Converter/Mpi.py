@@ -52,6 +52,8 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def passPrevious(a): return a
         def passNext(a): return a
         def seq(F, *args): F(*args)
+        print0 = print
+        printA = print
         def convertFile2PyTree(fileName, format=None, proc=None):
             return C.convertFile2PyTree(fileName, format)
         def convertPyTree2File(t, fileName, format=None, links=[], isize=8, rsize=8, ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format=format, links=links, isize=isize, rsize=rsize)
@@ -110,6 +112,8 @@ else: # try import (may fail - core or hang)
         def passPrevious(a): return a
         def passNext(a): return a
         def seq(F, *args): F(*args)
+        print0 = print
+        printA = print
         def convertFile2PyTree(fileName, format=None, proc=None):
             return C.convertFile2PyTree(fileName, format)
         def convertPyTree2File(t, fileName, format=None, links=[], isize=8, rsize=8, ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format=format, links=links, isize=isize, rsize=rsize)
