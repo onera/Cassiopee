@@ -1,17 +1,14 @@
 # - IBM specific post-processing -
 from . import PyTree as P
+from . import Mpi as Pmpi
 import Connector.OversetData as XOD
 import Connector.PyTree as X
 import Connector.Mpi as Xmpi
-import Connector.IBM as X_IBM
-import Connector.connector as connector
-import Converter
 import Converter.Distributed as Distributed
 import Converter.Internal as Internal
 import Converter.Mpi as Cmpi
 import Converter.PyTree as C
 import Generator.PyTree as G
-import Geom.PyTree as D
 import Transform.PyTree as T
 import copy
 import math
@@ -1182,7 +1179,6 @@ def computeAerodynamicLoads(ts, ts2=None, dimPb=3, famZones=[], Pref=None, cente
     """Computes the aerodynamic loads at the wall."""
 
     import Post.ExtraVariables2 as PE
-    import Connector.IBM as X_IBM
     import Distributor2.PyTree as D2
 
     tw = Internal.copyTree(ts)
@@ -1219,9 +1215,11 @@ def computeAerodynamicLoads(ts, ts2=None, dimPb=3, famZones=[], Pref=None, cente
 
     if dimPb == 2:
         C._initVars(tw, '{CoordinateZ}=0.')
+        # add a plan in the z direction: zmin, zmax = 0, 1
         T._addkplane(tw)
         C._convertArray2Tetra(tw)
         T._reorder(tw, (-1,))
+        center = (center[0], center[1], 0.5) # shift the center of integration in the z direction
     else:
         C._convertArray2Tetra(tw)
 
@@ -1274,8 +1272,9 @@ def computeAerodynamicLoads(ts, ts2=None, dimPb=3, famZones=[], Pref=None, cente
     if dimPb == 2: # reextrait en 2D
         for b in Internal.getBases(tw):
             zones = Internal.getZones(b)
-            zones = P.isoSurfMC(zones, "CoordinateZ", 0.)
-            b[2] = zones
+            zones = P.isoSurfMC(zones, 'CoordinateZ', 0.)
+            Internal._rmNodesByType(b, 'Zone_t')
+            b[2] += zones
 
     return tw, [forcePressure, forceFriction, momentPressure, momentFriction]
 
@@ -1331,11 +1330,16 @@ def computeAerodynamicCoefficients(ts, aeroLoads, dimPb=3, Sref=None, Lref=None,
 
     if Sref is None:
         C._initVars(tw, '__ONE__',1.)
-        Sref = P.integ(tw, '__ONE__')[0]
+        Sref = Pmpi.integ(tw, '__ONE__')[0]
         C._rmVars(tw, ['__ONE__', 'centers:vol'])
 
     if Lref is None:
         Lref = 1.
+
+    if verbose and Cmpi.rank == 0:
+        print('computeAerodynamicCoefficients: Sref = %f'%Sref)
+        print('computeAerodynamicCoefficients: Lref = %f'%Lref)
+        print('computeAerodynamicCoefficients: Qref = %f'%Qref)
 
     # Normalize Cp & Cf
     if dimPb == 2:
@@ -1348,8 +1352,8 @@ def computeAerodynamicCoefficients(ts, aeroLoads, dimPb=3, Sref=None, Lref=None,
     forcePressure = [i/(Qref*Sref) for i in fromBodyFrameToWindFrame__(forcePressure, dimPb, alpha, beta)]
     forceFriction = [i/(Qref*Sref) for i in fromBodyFrameToWindFrame__(forceFriction, dimPb, alpha, beta)]
 
-    momentPressure = [-i/(Qref*Sref*Lref) for i in fromBodyFrameToWindFrame__(momentPressure, dimPb, alpha, beta)]
-    momentFriction = [-i/(Qref*Sref*Lref) for i in fromBodyFrameToWindFrame__(momentFriction, dimPb, alpha, beta)]
+    momentPressure = [i/(Qref*Sref*Lref) for i in fromBodyFrameToWindFrame__(momentPressure, dimPb, alpha, beta)]
+    momentFriction = [i/(Qref*Sref*Lref) for i in fromBodyFrameToWindFrame__(momentFriction, dimPb, alpha, beta)]
 
     if verbose and Cmpi.rank == 0:
         print("Vector of adimensionalized pressure forces in the wind frame:  (Fx_P,Fy_P,Fz_P) = ({:.4e}, {:.4e}, {:.4e})".format(*forcePressure))
