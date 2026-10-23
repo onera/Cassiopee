@@ -24,8 +24,9 @@ Dist.writeSetupCfg()
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
-# Compilation des fortrans ===================================================
-prod = os.getenv("ELSAPROD") or "xx"
+prod = os.getenv("ELSAPROD")
+if prod is None:
+    raise ValueError("Environment variable ELSAPROD must be set.")
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ["build/"+prod, kcoreLibDir]
@@ -36,23 +37,19 @@ libraryDirs += paths; libraries += libs
 libraryDirs += paths; libraries += libs
 
 # setup =======================================================================
-listExtensions = []
-listExtensions.append(
-    Extension('Template.template',
-              sources=['Template/template.cpp'],
-              include_dirs=["Template"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
-              library_dirs=additionalLibPaths+libraryDirs,
-              libraries=libraries+additionalLibs,
-              extra_compile_args=Dist.getCppArgs(),
-              extra_link_args=Dist.getLinkArgs()
-              ) )
+listExtensions = [
+    Extension(
+        'Template.template',
+        sources=['Template/template.cpp'],
+        include_dirs=["Template"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+        library_dirs=additionalLibPaths+libraryDirs,
+        libraries=libraries+additionalLibs,
+        extra_compile_args=Dist.getCppArgs(),
+        extra_link_args=Dist.getLinkArgs()
+    )
+]
 
 # setup ======================================================================
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "Template",
-    version="2.0",
-    description="Template module.",
-    author="You",
-    packages=['Template'],
-    package_dir={"":"."},
-    ext_modules=listExtensions)
+    ext_modules=listExtensions
+)

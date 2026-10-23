@@ -39,7 +39,10 @@ Dist.writeSetupCfg()
 # Test if numpy exists
 numpyVersion, numpyIncDir, numpyLibDir = Dist.checkNumpy()
 
-prod = os.getenv("ELSAPROD") or "xx"
+prod = os.getenv("ELSAPROD")
+if prod is None:
+    raise ValueError("Environment variable ELSAPROD must be set.")
+
 # Setting libraries path
 libraryDirs = ["build/" + prod]
 libraries = ["kcore"]
@@ -66,11 +69,5 @@ listExtensions = [
 ]
 
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "KCore",
-    version="4.2",
-    description="Core for *Cassiopee* modules.",
-    author="ONERA",
-    url="https://onera.github.io/Cassiopee/",
-    packages=['KCore'],
     ext_modules=listExtensions
 )

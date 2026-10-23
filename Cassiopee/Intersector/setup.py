@@ -30,8 +30,9 @@ Dist.writeSetupCfg()
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi()
 (mpi4py, mpi4pyIncDir, mpi4pyLibDir) = Dist.checkMpi4py()
 
-# Compilation des fortrans ====================================================
-prod = os.getenv("ELSAPROD") or "xx"
+prod = os.getenv("ELSAPROD")
+if prod is None:
+    raise ValueError("Environment variable ELSAPROD must be set.")
 
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLibDir]
@@ -53,20 +54,18 @@ libraryDirs += paths; libraries += libs
 libraryDirs += paths; libraries += libs
 
 # setup ======================================================================
+listExtensions = [
+    Extension(
+        'Intersector.intersector',
+        sources=["Intersector/intersector.cpp"],
+        include_dirs=["Intersector"]+additionalIncludePaths+includeDirs,
+        library_dirs=additionalLibPaths+libraryDirs,
+        libraries=libraries+additionalLibs,
+        extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
+        extra_link_args=Dist.getLinkArgs()
+    )
+]
+
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "Intersector",
-    version="4.2",
-    description="Mesh-intersection-based services in *Cassiopee*.",
-    author="ONERA",
-    url="https://onera.github.io/Cassiopee/",
-    packages=['Intersector'],
-    package_dir={"":"."},
-    ext_modules=[Extension('Intersector.intersector',
-                           sources=["Intersector/intersector.cpp"],
-                           include_dirs=["Intersector"]+additionalIncludePaths+includeDirs,
-                           library_dirs=additionalLibPaths+libraryDirs,
-                           libraries=libraries+additionalLibs,
-                           extra_compile_args=Dist.getCppArgs()+ADDITIONALCPPFLAGS,
-                           extra_link_args=Dist.getLinkArgs()
-                           )]
+    ext_modules=listExtensions
 )

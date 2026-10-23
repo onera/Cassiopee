@@ -23,7 +23,9 @@ Dist.writeSetupCfg()
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLib) = Dist.checkModuleCassiopee("KCore")
 
-prod = os.getenv("ELSAPROD") or "xx"
+prod = os.getenv("ELSAPROD")
+if prod is None:
+    raise ValueError("Environment variable ELSAPROD must be set.")
 
 # Setting libraryDirs, include dirs and libraries =============================
 libraryDirs = ["build/"+prod, kcoreLib]
@@ -35,25 +37,19 @@ libraryDirs += paths; libraries += libs
 libraryDirs += paths; libraries += libs
 
 # Extensions ==================================================================
-listExtensions = []
-listExtensions.append(
-    Extension('Transform.transform',
-              sources=['Transform/transform.cpp'],
-              include_dirs=["Transform"]+additionalIncludePaths+includeDirs,
-              library_dirs=additionalLibPaths+libraryDirs,
-              libraries=libraries+additionalLibs,
-              extra_compile_args=Dist.getCppArgs(),
-              extra_link_args=Dist.getLinkArgs()
-              ) )
+listExtensions = [
+    Extension(
+        'Transform.transform',
+        sources=['Transform/transform.cpp'],
+        include_dirs=["Transform"]+additionalIncludePaths+includeDirs,
+        library_dirs=additionalLibPaths+libraryDirs,
+        libraries=libraries+additionalLibs,
+        extra_compile_args=Dist.getCppArgs(),
+        extra_link_args=Dist.getLinkArgs()
+    )
+]
 
 # setup ======================================================================
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "Transform",
-    version="4.2",
-    description="Transformations of arrays/pyTrees for *Cassiopee* modules.",
-    author="ONERA",
-    url="https://onera.github.io/Cassiopee/",
-    package_dir={"":"."},
-    packages=['Transform'],
     ext_modules=listExtensions
 )

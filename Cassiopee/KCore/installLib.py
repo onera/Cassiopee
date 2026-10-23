@@ -22,7 +22,9 @@ else:
 try: import KCore.installPath as K
 except ImportError: import installPath as K
 libPath = K.libPath
-prod = os.getenv("ELSAPROD") or 'xx'
+prod = os.getenv("ELSAPROD")
+if prod is None:
+    raise ValueError("Environment variable ELSAPROD must be set.")
 installPathLocal = 'build/'+prod
 
 # La librarie statique existe?

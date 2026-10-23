@@ -1,0 +1,32 @@
+#!/bin/bash
+# Print help message
+usage() {
+  cat <<EOF
+Usage: $0                                             : Remove build/ and .sconsign.dblite for all modules listed in MODULES
+       $0 --force, -f                                 : Also uninstall the modules listed in MODULES from Cassiopee's site-packages 
+                                                                  directory (package directories and .dist-info metadata) 
+       $0 --help, -h                                  : Print help message
+EOF
+}
+
+# Parse command-line arguments
+while [ -n "$1" ]; do
+  case "$1" in
+    --help | -h)
+      usage; exit 0
+      ;;
+    *)
+      ;;
+  esac
+  shift
+done
+
+. ./MODULES
+
+for mod in $FULLMODULES
+do
+  if test -e $mod; then
+      cd $mod
+      ./clean "$@"
+  fi
+done

@@ -1,7 +1,7 @@
-#! /bin/bash
-if [ "$CASSIOPEE" = "" ]; then
-    echo "You must specify a CASSIOPEE variable in your environment."
-    echo "This variable specifies the installation path of *Cassiopee*."
+#!/bin/bash
+if [ -z "$CASSIOPEE" ]; then
+    echo "Environment variable CASSIOPEE must be set."
+    echo "CASSIOPEE identifies the root directory of the Cassiopee repository."
     exit
 fi
 

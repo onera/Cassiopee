@@ -1,2 +1,0 @@
-#! /bin/sh
-python "$CASSIOPEE/Dist/bin/$ELSAPROD/validFast.py"
