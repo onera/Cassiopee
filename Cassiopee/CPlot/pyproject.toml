@@ -1,8 +1,85 @@
 [build-system]
 requires = [
   "setuptools>=61",
-  "wheel",
   "numpy>=1.23.3",
   "scons>=4.4.0"
 ]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "cassiopee-cplot"
+dynamic = ["version"]
+dependencies = [
+#  "setuptools>=61",
+#  "numpy>=1.23.3",
+#  "mpi4py>=3.1.3",
+#  "scons>=4.4.0"
+]
+requires-python = ">=3.8"
+authors = [
+  {name = "ONERA"},
+  {name = "Francesca Basile"},
+  {name = "Clément Benazet"},
+  {name = "Christophe Benoit", email = "christophe.benoit@onera.fr"},
+  {name = "Luis Bernardos"},
+  {name = "Sébastien Bourasseau"},
+  {name = "Vincent Casseau", email = "vincent.casseau@onera.fr"},
+  {name = "Benjamin Constant", email = "benjamin.constant@onera.fr"},
+  {name = "Alexis Dorange"},
+  {name = "Imad Hammani"},
+  {name = "Gaelle Jeanfaivre"},
+  {name = "Guillaume Jeanmasson"},
+  {name = "Antoine Jost", email = "antoine.jost@onera.fr"},
+  {name = "Xavier Juvigny"},
+  {name = "Sâm Landier"},
+  {name = "Ivan Mary", email = "ivan.mary@onera.fr"},
+  {name = "Bruno Maugars"},
+  {name = "Baptiste Méral"},
+  {name = "Bertrand Michel"},
+  {name = "Francesca Pelerin"},
+  {name = "Stéphanie Peron", email = "stephanie.peron@onera.fr"},
+  {name = "Pascal Raud"},
+  {name = "Thomas Renaud"},
+  {name = "Benoit Rodriguez"},
+  {name = "Matthieu Soismier"},
+  {name = "Alexandre Suss"},
+  {name = "Simon Verley"},
+  {name = "Christelle Wervaecke"}
+]
+maintainers = [
+  {name = "Christophe Benoit", email = "christophe.benoit@onera.fr"},
+  {name = "Vincent Casseau", email = "vincent.casseau@onera.fr"}
+]
+description = "Computational Fluid Dynamics pre- and post-processing python modules"
+readme = "README.md"
+license = {text = "LGPLv3"}
+#license = "LGPL-3.0-or-later"
+#license-files = ["LICENSE"]
+keywords = []
+classifiers = [
+  "Programming Language :: Python",
+  "Operating System :: Unix",
+  "Operating System :: Microsoft :: Windows",
+  "Topic :: Scientific/Engineering :: Physics"
+]
+
+[project.urls]
+Homepage = "https://github.com/onera/Cassiopee"
+Documentation = "https://onera.github.io/Cassiopee/"
+Repository = "https://github.com/onera/Cassiopee.git"
+Issues = "https://github.com/onera/Cassiopee/issues"
+Changelog = "https://onera.github.io/Cassiopee/current/ReleaseNotes.html"
+
+[project.gui-scripts]
+validCassiopee = "apps.validCassiopee:main"
+
+[tool.setuptools]
+package-dir = {"" = "."}
+packages = ["CPlot"]
+script-files = [
+  "apps/kcgnsview",
+  "apps/cassiopee"
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "CPlot.CPlot.__version__"}
