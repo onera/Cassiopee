@@ -1,13 +1,18 @@
 if ($?CASSIOPEE == 0) then
-    echo "You must specify a CASSIOPEE variable in your environment."
-    echo "This variable specifies the installation path of *Cassiopee*."
+    echo "Environment variable CASSIOPEE must be set."
+    echo "CASSIOPEE identifies the root directory of the Cassiopee repository."
     exit
 endif
 # source env from bash env
 if (-e $CASSIOPEE/Cassiopee/Envs/env_Cassiopee_local) then
    bash $CASSIOPEE/Cassiopee/Envs/env_Cassiopee_local
 else
-   bash $CASSIOPEE/Dist/env_Cassiopee_local
+    if ( $?CASSIOPEE_INSTALL_PREFIX ) then
+        set PREFIX = "$CASSIOPEE_INSTALL_PREFIX"
+    else
+        set PREFIX = "$CASSIOPEE"
+    endif
+    bash $PREFIX/Dist/env_Cassiopee_local
 endif
 chmod +x $HOME/.vars.csh
 source $HOME/.vars.csh
