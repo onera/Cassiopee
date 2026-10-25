@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 if [ -z "$CASSIOPEE" ]; then
     echo "Environment variable CASSIOPEE must be set."
     echo "CASSIOPEE identifies the root directory of the Cassiopee repository."
