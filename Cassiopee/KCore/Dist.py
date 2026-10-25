@@ -1,7 +1,10 @@
 # Functions used in *Cassiopee* modules setup.py
-import os, sys, platform, glob, subprocess, shutil
-from setuptools._distutils import sysconfig
-from setuptools import Extension
+import os
+import sys
+import platform
+import glob
+import subprocess
+import shutil
 
 # Toggle to True for compiling for debug (valgrind, inspector, sanitizer)
 _DEBUG = False
@@ -220,6 +223,7 @@ def checkAll(summary=True):
 # Check python includes / libs
 #==============================================================================
 def checkPython():
+    from setuptools._distutils import sysconfig
     pythonVersion = sysconfig.get_python_version()
 
     pythonIncDir = sysconfig.get_python_inc()
@@ -520,6 +524,7 @@ def writeSetupCfg():
 # ou dans installBase.py / installBaseUser.py
 #==============================================================================
 def getDistUtilsCompilers():
+    from setuptools._distutils import sysconfig
     Cppcompiler = getCppCompiler()
 
     vars = sysconfig.get_config_vars('CC', 'CXX', 'OPT',
@@ -2244,6 +2249,7 @@ def runMakeFortran(forCompiler, opt, wdir):
 # Retourne (True, [librairies utiles a cpp], [paths des librairies])
 #=============================================================================
 def checkCppLibs():
+    from setuptools._distutils import sysconfig
     additionalLibs = getAdditionalLibs()
     additionalLibPaths = getAdditionalLibPaths()
     Cppcompiler = getCppCompiler()
@@ -2687,6 +2693,7 @@ def symLinks():
 #==============================================================================
 def createExtensions(module, srcs, includeDirs, libraryDirs, libraries,
                      extraCompileArgs=[], extraLinkArgs=[]):
+    from setuptools import Extension
     listExtensions = []
     minor = module.lower()
     # C/Api module
