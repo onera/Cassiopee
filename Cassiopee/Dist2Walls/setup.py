@@ -22,7 +22,9 @@ Dist.writeSetupCfg()
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 # Setting libraryDirs and libraries ===========================================
-prod = os.getenv("ELSAPROD") or "xx"
+prod = os.getenv("ELSAPROD")
+if prod is None:
+    raise ValueError("Environment variable ELSAPROD must be set.")
 libraryDirs = [kcoreLibDir, 'build/'+prod]
 libraries = ["dist2walls", "kcore"]
 
@@ -32,25 +34,19 @@ libraryDirs += paths; libraries += libs
 libraryDirs += paths; libraries += libs
 
 # Extensions =================================================================
-extensions = [
-    Extension('Dist2Walls.dist2walls',
-              sources=["Dist2Walls/dist2walls.cpp"],
-              include_dirs=["Dist2Walls"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
-              library_dirs=additionalLibPaths+libraryDirs,
-              libraries=libraries+additionalLibs,
-              extra_compile_args=Dist.getCppArgs(),
-              extra_link_args=Dist.getLinkArgs()
-              )
+listExtensions = [
+    Extension(
+        'Dist2Walls.dist2walls',
+        sources=["Dist2Walls/dist2walls.cpp"],
+        include_dirs=["Dist2Walls"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+        library_dirs=additionalLibPaths+libraryDirs,
+        libraries=libraries+additionalLibs,
+        extra_compile_args=Dist.getCppArgs(),
+        extra_link_args=Dist.getLinkArgs()
+    )
 ]
 
 # Setup ======================================================================
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "Dist2Walls",
-    version="4.2",
-    description="Computation of distance to walls.",
-    author="ONERA",
-    url="https://onera.github.io/Cassiopee/",
-    packages=['Dist2Walls'],
-    package_dir={"":"."},
-    ext_modules=extensions
+    ext_modules=listExtensions
 )

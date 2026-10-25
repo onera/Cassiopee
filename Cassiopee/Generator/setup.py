@@ -24,7 +24,9 @@ Dist.writeSetupCfg()
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 # Setting libraryDirs and libraries ===========================================
-prod = os.getenv("ELSAPROD") or "xx"
+prod = os.getenv("ELSAPROD")
+if prod is None:
+    raise ValueError("Environment variable ELSAPROD must be set.")
 libraryDirs = ["build/"+prod, kcoreLibDir]
 libraries = ["generator", "generator2", "generator3", "kcore"]
 (ok, libs, paths) = Dist.checkFortranLibs()
@@ -33,25 +35,19 @@ libraryDirs += paths; libraries += libs
 libraryDirs += paths; libraries += libs
 
 # Extensions =================================================================
-listExtensions = []
-listExtensions.append(
-    Extension('Generator.generator',
-              sources=["Generator/generator.cpp"],
-              include_dirs=["Generator"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
-              library_dirs=additionalLibPaths+libraryDirs,
-              libraries=libraries+additionalLibs,
-              extra_compile_args=Dist.getCppArgs(),
-              extra_link_args=Dist.getLinkArgs()
-              ) )
+listExtensions = [
+    Extension(
+        'Generator.generator',
+        sources=["Generator/generator.cpp"],
+        include_dirs=["Generator"]+additionalIncludePaths+[numpyIncDir, kcoreIncDir],
+        library_dirs=additionalLibPaths+libraryDirs,
+        libraries=libraries+additionalLibs,
+        extra_compile_args=Dist.getCppArgs(),
+        extra_link_args=Dist.getLinkArgs()
+    )
+]
 
 # setup =======================================================================
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "Generator",
-    version="4.2",
-    description="*Cassiopee* module of mesh generation.",
-    author="ONERA",
-    url="https://onera.github.io/Cassiopee/",
-    packages=['Generator'],
-    package_dir={"":"."},
     ext_modules=listExtensions
 )
