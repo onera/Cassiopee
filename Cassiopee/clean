@@ -28,5 +28,6 @@ do
   if test -e $mod; then
       cd $mod
       ./clean "$@"
+      cd ..
   fi
 done
