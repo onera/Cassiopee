@@ -17,7 +17,8 @@ __all__ = [
     'setCommunicator', 'abort', 'barrier',
     'send', 'isend', 'recv', 'requestWaitall', 'sendRecv', 'sendRecvC',
     'bcast', 'Bcast', 'gather', 'Gather',
-    'reduce', 'Reduce', 'allreduce', 'Allreduce', 'allreduceDict',
+    'reduce', 'Reduce', 'allreduce', 'Allreduce',
+    'allreduceDict', 'allreduceSet',
     'bcastZone', 'gatherZones', 'allgatherZones',
     'allgatherDict', 'allgatherTree',
     'allgather', 'passPrevious', 'passNext', 'allgatherNext',
@@ -153,20 +154,29 @@ def allreduceDict(data, method=0, fillValue=None, op=MPI.SUM):
     if method not in [0, 1, 2]:
         raise ValueError(f"allreduceDict: method can either be 0, 1 or 2, not {method}.")
     ret = allgatherDict(data, method=method, fillValue=fillValue)
-    if op == MPI.SUM:
-        return {k: sum(v) for k, v in ret.items()}
-    elif op == MPI.MIN:
-        return {k: min(v) for k, v in ret.items()}
-    elif op == MPI.MAX:
-        return {k: max(v) for k, v in ret.items()}
-    elif op == MPI.LOR:
-        return {k: any(v) for k, v in ret.items()}
-    elif op == MPI.LAND:
-        return {k: all(v) for k, v in ret.items()}
-    else:
-        raise ValueError(f"allreduceDict: unsupported operation, {op}. Options "
-                         "are: Cmpi.SUM, Cmpi.MIN, Cmpi.MAX, Cmpi.LOR, and "
-                         "Cmpi.LAND.")
+    def reduceDict__(data):
+        if isinstance(data, dict):
+            return {k: reduceDict__(v) for k, v in data.items()}
+        if op == MPI.SUM: return sum(data)
+        elif op == MPI.MIN: return min(data)
+        elif op == MPI.MAX: return max(data)
+        elif op == MPI.LOR: return any(data)
+        elif op == MPI.LAND: return all(data)
+        elif op == set:
+            v = set(data)
+            return v.pop() if len(v) == 1 else sorted(v)
+        else:
+            raise ValueError(f"allreduceDict: unsupported operation, {op}. "
+                             "Options are: Cmpi.SUM, Cmpi.MIN, Cmpi.MAX, "
+                             "Cmpi.LOR, Cmpi.LAND, and set for strings.")
+    return reduceDict__(ret)
+
+#==============================================================================
+# Reduce a set to all procs
+#==============================================================================
+def allreduceSet(data):
+    ret = KCOMM.allgather(data)
+    return set().union(*ret)
 
 #==============================================================================
 # Send and receive with a graph
@@ -302,36 +312,62 @@ def allgatherDict(data, method=0, fillValue=None):
         raise ValueError(f"allgatherDict: method can either be 0, 1, 2 or 3, not {method}.")
     ret = KCOMM.allgather(data)
     if not isinstance(data, dict): return ret
-    out = {}
-    if method == 0:
-        for r in ret:  # all proc return
-            for k, v in r.items():  # for each (key, value) pair in dict
-                if k not in out: out[k] = []
-                if not isinstance(v, (list, tuple, set)): v = [v]
-                for data in v:
-                    if data not in out[k]: out[k].append(data)
-        return out
-    elif method == 1:
-        for r in ret:
-            for k, v in r.items():
-                if k not in out: out[k] = []
-                if not isinstance(v, (list, tuple, set)): v = [v]
-                for data in v: out[k].append(data)
-        return out
-    elif method == 2:
-        out = {k: [] for r in ret for k in r}
-        for r in ret:
-            for k in out:
-                if k in r:
-                    if not isinstance(r[k], (list, tuple, set)): r[k] = [r[k]]
-                    for data in r[k]: out[k].append(data)
-                else: out[k].append(fillValue)
-        return out
-    else:  # method 3
-        for r in ret:
-            for k, v in r.items():
-                if k not in out: out[k] = v
-        return out
+    def keys__(dicts):
+        return dict.fromkeys(k for d in dicts for k in d)
+    def values__(v):
+        return v if isinstance(v, (list, tuple, set)) else [v]
+    def gatherDict__(dicts):
+        out = {}
+        if method == 0:  # Unique values
+            for k in keys__(dicts):
+                vals = [d[k] for d in dicts if k in d]
+                if any(isinstance(v, dict) for v in vals):
+                    out[k] = gatherDict__([
+                        d[k] if k in d and isinstance(d[k], dict) else {}
+                        for d in dicts
+                    ])
+                else:
+                    out[k] = []
+                    for v in vals:
+                        for vi in values__(v):
+                            if vi not in out[k]: out[k].append(vi)
+            return out
+        elif method == 1:  # All values
+            for k in keys__(dicts):
+                vals = [d[k] for d in dicts if k in d]
+                if any(isinstance(v, dict) for v in vals):
+                    out[k] = gatherDict__([
+                        d[k] if k in d and isinstance(d[k], dict) else {}
+                        for d in dicts
+                    ])
+                else:
+                    out[k] = []
+                    for v in vals: out[k].extend(values__(v))
+            return out
+        elif method == 2:  # All values, fill missing keys
+            for k in keys__(dicts):
+                vals = [d.get(k, None) for d in dicts]
+                if any(isinstance(v, dict) for v in vals if v is not None):
+                    out[k] = gatherDict__([
+                        v if isinstance(v, dict) else {} for v in vals
+                    ])
+                else:
+                    out[k] = []
+                    for v in vals:
+                        if v is None: out[k].append(fillValue)
+                        else: out[k].extend(values__(v))
+            return out
+        else:  # Value from the lowest rank
+            for k in keys__(dicts):
+                vals = [d[k] for d in dicts if k in d]
+                if isinstance(vals[0], dict):
+                    out[k] = gatherDict__([
+                        d[k] if k in d and isinstance(d[k], dict) else {}
+                        for d in dicts
+                    ])
+                else: out[k] = vals[0]
+            return out
+    return gatherDict__(ret)
 
 #==============================================================================
 # gather tree in a single tree identical on all processors
