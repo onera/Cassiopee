@@ -21,11 +21,12 @@ FUNCTIONBLACKLIST = ['send']
 def getCassiopeeSourceDir():
     try:
         # Check buildInfo
-        import KCore.buildInfo
-        cassiopeeIncDir = KCore.buildInfo.includePath
+        import KCore.Dist as Dist
+        buildInfo = Dist.getBuildInfoDict()
+        cassiopeeIncDir = buildInfo["includePath"]
         cassiopeeIncDir = os.path.dirname(cassiopeeIncDir)
     except ImportError:
-        raise SystemError("Error: KCore module is required to use this script.")
+        raise ImportError("Error: KCore module is required to use this script.")
     return cassiopeeIncDir
 
 # get the module list

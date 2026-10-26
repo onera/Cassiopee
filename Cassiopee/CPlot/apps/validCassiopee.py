@@ -1,5 +1,10 @@
 # *Cassiopee* GUI for validation and tests
-import os, sys, re, glob, signal, platform
+import os
+import sys
+import re
+import glob
+import signal
+import platform
 import socket
 import json
 import numpy
@@ -196,11 +201,11 @@ def isDBAdmin():
 def getInstallPaths():
     try:
         # Check installPath
-        import KCore.buildInfo
-        cassiopeeIncDir = KCore.buildInfo.includePath
+        buildInfo = Dist.getBuildInfoDict()
+        cassiopeeIncDir = buildInfo["includePath"]
         cassiopeeIncDir = os.path.dirname(cassiopeeIncDir)
     except ImportError:
-        raise SystemError("Error: KCore module is required to use this script.")
+        raise ImportError("Error: KCore module is required to use this script.")
     try:
         import FastC.installPath
         fastIncDir = FastC.installPath.includePath

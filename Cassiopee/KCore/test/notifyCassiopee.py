@@ -100,8 +100,8 @@ def readGitInfo(filename):
 def findLogs(prodname, findRef=True, sessionSuffix=""):
     validDataFolder = f"/stck/cassiope/git/Cassiopee/Cassiopee/ValidData_{prodname}"
     if not os.access(validDataFolder, os.R_OK):
-        import KCore.buildInfo as K
-        validDataFolder = os.path.join(K.includePath, "..", f"ValidData_{prodname}")
+        buildInfo = Dist.getBuildInfoDict()
+        validDataFolder = os.path.join(buildInfo["includePath"], "..", f"ValidData_{prodname}")
         if not os.access(validDataFolder, os.R_OK):
             raise Exception("Session logs can't be retrieved in {}".format(validDataFolder))
 
@@ -219,8 +219,8 @@ def getTestLogs(prodname, testList, sessionSuffix="Cassiopee"):
     testNames = [test.split('/')[1] for test in testList]
     validDataFolder = f"/stck/cassiope/git/Cassiopee/Cassiopee/ValidData_{prodname}"
     if not os.access(validDataFolder, os.R_OK):
-        import KCore.buildInfo as K
-        validDataFolder = os.path.join(K.includePath, "..", f"ValidData_{prodname}")
+        buildInfo = Dist.getBuildInfoDict()
+        validDataFolder = os.path.join(buildInfo["includePath"], "..", f"ValidData_{prodname}")
         if not os.access(validDataFolder, os.R_OK):
             raise Exception(f"Session logs can't be retrieved in {validDataFolder}")
 
@@ -261,8 +261,8 @@ def checkInstallStatus():
     # Get git info
     cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
     if not os.access(cassiopeeIncDir, os.R_OK):
-        import KCore.buildInfo as K
-        cassiopeeIncDir = os.path.join(K.includePath, "..")
+        buildInfo = Dist.getBuildInfoDict()
+        cassiopeeIncDir = os.path.join(buildInfo["includePath"], "..")
     gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
     gitInfo = "Git origin: {}".format(gitOrigin)
 
@@ -303,8 +303,8 @@ def parseInstallLogs(userProd):
     # Get git info
     cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
     if not os.access(cassiopeeIncDir, os.R_OK):
-        import KCore.buildInfo as K
-        cassiopeeIncDir = os.path.join(K.includePath, "..")
+        buildInfo = Dist.getBuildInfoDict()
+        cassiopeeIncDir = os.path.join(buildInfo["includePath"], "..")
     gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
     gitInfo = "Git origin: {}".format(gitOrigin)
 
@@ -374,8 +374,8 @@ def checkCheckoutStatus(sendEmail=False):
     # Get git info
     cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
     if not os.access(cassiopeeIncDir, os.R_OK):
-        import KCore.buildInfo as K
-        cassiopeeIncDir = os.path.join(K.includePath, "..")
+        buildInfo = Dist.getBuildInfoDict()
+        cassiopeeIncDir = os.path.join(buildInfo["includePath"], "..")
     gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
     gitBranch = Dist.getGitBranch(cassiopeeIncDir)
     gitHash = Dist.getGitHash(cassiopeeIncDir)[:7]
@@ -416,8 +416,8 @@ def checkValidStatus(sessionSuffix=""):
     # Get git info
     cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
     if not os.access(cassiopeeIncDir, os.R_OK):
-        import KCore.buildInfo as K
-        cassiopeeIncDir = os.path.join(K.includePath, "..")
+        buildInfo = Dist.getBuildInfoDict()
+        cassiopeeIncDir = os.path.join(buildInfo["includePath"], "..")
     gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
     gitInfo = "Git origin: {}".format(gitOrigin)
 

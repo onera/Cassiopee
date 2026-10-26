@@ -50,7 +50,7 @@ shutil.copyfile("test/notify.py", installPath+"/notify.py")
 
 # Ecrit les infos d'install
 Dist.writeBuildInfo()
-shutil.copyfile("buildInfo.py", installPath+"/buildInfo.py")
+shutil.copyfile("buildInfo.json", installPath+"/buildInfo.json")
 
 # Ecrit les fichiers d'environnement
 Dist.writeEnvs(installPath, libPath)
