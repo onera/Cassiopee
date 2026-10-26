@@ -25,7 +25,7 @@ except:
         'machine settings.'
     )
 
-import Dist
+import KCore.Dist as Dist
 import os.path
 import json
 
