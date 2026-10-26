@@ -8,9 +8,7 @@ import KCore.Dist as Dist
 #Fortran compiler: defined in config.py
 #==============================================================================
 
-# Get prefix from command line
-prefix = ARGUMENTS.get('prefix', '')
-installPath = Dist.getInstallPath(prefix)
+installPath = Dist.getInstallPath()
 f77compiler = Dist.getf77Compiler()
 additionalIncludePaths = Dist.getAdditionalIncludePaths()
 additionalLibPaths = Dist.getAdditionalLibPaths()

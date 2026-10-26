@@ -259,20 +259,45 @@ def checkNumpy():
     return (numpyVersion, numpyIncDir, '')
 
 #=============================================================================
-# Retourne le chemin d'installation des modules comme cree par distUtils
-# if type=0, return full install path
-# else return dict {'lib': 'lib', 'pyversion': 'python3.12', 'site': 'site-packages'}
+# Retourne le chemin d'installation des modules
 #=============================================================================
-def getInstallPath(prefix, type=0):
+def getInstallPath():
+    from pathlib import Path
+    return str(Path(__file__).resolve().parents[1])
+
+def getLibPath():
+    from pathlib import Path
+    return str(Path(__file__).resolve().parents[3])
+
+def parseInstallPathPrefix(*args):
+    import re
+    prefix = sys.prefix # default
+    for c, i in enumerate(args):
+        if re.compile('--prefix=').search(i) is not None:
+            prefix = i[9:] # setup
+            break
+        elif re.compile('prefix=').search(i) is not None:
+            prefix = i[7:] # setup
+            break
+        elif re.compile('--prefix').search(i) is not None:
+            prefix = args[c+1] # pip
+            break
+    return prefix
+
+def getInstallPathSuffix(type=0):
+    # if type=0, return a string, else a dict
     import site
     a = site.getsitepackages()[0].split('/')[-4:]
     if type == 0:
         if a[0] != 'local':
-            installPath = os.path.join(prefix, *a[1:4])  # 'prefix/lib/python3.12/site-packages'
+            # lib/python3.12/site-packages'
+            installPath = os.path.join(*a[1:4])
         else:
-            installPath = os.path.join(prefix, *a[:4])  # 'prefix/local/lib/python3.12/site-packages'
+            # local/lib/python3.12/site-packages'
+            installPath = os.path.join(*a[:4])
     else:
-        installPath = {'lib': a[1], 'pyversion': a[2], 'site': a[3]}  # {'lib': 'lib', 'pyversion': 'python3.12', 'site': 'site-packages'}
+        # {'lib': 'lib', 'pyversion': 'python3.12', 'site': 'site-packages'}
+        installPath = {'lib': a[1], 'pyversion': a[2], 'site': a[3]}
     return installPath
 
 #==============================================================================
@@ -326,50 +351,11 @@ def getEggModuleDirName(moduleName, version):
     fullName = moduleName+'-'+version+'-py%d.%d'%(pversion[0],pversion[1])+'-'+platform.system().lower()+'-'+platform.processor()+'.egg'
     return fullName
 
-#=============================================================================
-# Write installPath, the installation path of Cassiopee to installPath.py
-#=============================================================================
-def writeInstallPath():
-    import re
-    prefix = sys.prefix
-    a = sys.argv
-    for c, i in enumerate(a):
-        if re.compile('--prefix=').search(i) is not None: prefix = i[9:] # setup
-        elif re.compile('prefix=').search(i) is not None: prefix = i[7:] # setup
-        elif re.compile('--prefix').search(i) is not None: prefix = a[c+1] # pip
-
-    installPath = getInstallPath(prefix)
-
-    p = open('installPath.py', 'w')
-    if p is None:
-        raise SystemError("Error: can not open file installPath.py for writing.")
-    p.write('installPath = \'%s\'\n'%installPath)
-
-    import site
-    a = site.getsitepackages()[0].split('/')[-4:]
-    if a[0] != 'local': libPath = '%s/%s'%(prefix, a[1])  # 'prefix/lib'
-    else: libPath = '%s/%s/%s'%(prefix, a[0], a[1])  # 'prefix/local/lib'
-    p.write('libPath = \'%s\'\n'%libPath)
-
-    cwd = os.getcwd()
-    p.write('includePath = \'%s\'\n'%(cwd))
-    gitOrigin = getGitOrigin(cwd)
-    gitBranch = getGitBranch(cwd)
-    gitHash = getGitHash(cwd)[:7]
-    p.write('gitOrigin = \'%s\'\n'%(gitOrigin))
-    p.write('gitBranch = \'%s\'\n'%(gitBranch))
-    p.write('gitHash = \'%s\'\n'%(gitHash))
-    p.close()
-
 #==============================================================================
 # Write env files
 # Directement dans le repertoire d'installation
 #==============================================================================
-def writeEnvs():
-    try: import KCore.installPath as K
-    except: import installPath as K
-    libPath = K.libPath
-    installPathLocal = K.installPath
+def writeEnvs(installPath, libPath):
     env = os.environ
     cassiopee = env.get('CASSIOPEE', '')
     elsaprod = env.get('ELSAPROD', '')
@@ -392,9 +378,9 @@ def writeEnvs():
         p.write("export OMP_NUM_THREADS=%d\n"%mt)
         p.write("export PATH=%s:%s/bin:$PATH\n"%(cmdPath,cmdPath))
         p.write("if [ \"$PYTHONPATH\" = \"\" ]; then\n")
-        p.write("      export PYTHONPATH=%s\n"%installPathLocal)
+        p.write("      export PYTHONPATH=%s\n"%installPath)
         p.write("else\n")
-        p.write("      export PYTHONPATH=%s:$PYTHONPATH\n"%installPathLocal)
+        p.write("      export PYTHONPATH=%s:$PYTHONPATH\n"%installPath)
         p.write("fi\n")
         if installLD is None:
             p.write("if [ \"$LD_LIBRARY_PATH\" = \"\" ]; then\n")
@@ -418,9 +404,9 @@ def writeEnvs():
         p.write("setenv OMP_NUM_THREADS %d\n"%mt)
         p.write("set path=(%s %s/bin $path)\n"%(cmdPath,cmdPath))
         p.write("if ($?PYTHONPATH == 0) then\n")
-        p.write("     setenv PYTHONPATH %s\n"%installPathLocal)
+        p.write("     setenv PYTHONPATH %s\n"%installPath)
         p.write("else\n")
-        p.write("     setenv PYTHONPATH %s:$PYTHONPATH\n"%installPathLocal)
+        p.write("     setenv PYTHONPATH %s:$PYTHONPATH\n"%installPath)
         p.write("endif\n")
         if installLD is None:
             p.write("if ($?LD_LIBRARY_PATH == 0) then\n")
@@ -438,7 +424,7 @@ def writeEnvs():
     # bat
     with open(envPath+"env_Cassiopee.bat", 'w') as p:
         p.write("path = "+libPath+";"+cmdPath+"%PATH%\n")
-        p.write("set PYTHONPATH="+installPathLocal+";%PYTHONPATH%\n")
+        p.write("set PYTHONPATH="+installPath+";%PYTHONPATH%\n")
         p.write("set OMP_NUM_THREADS=%NUMBER_OF_PROCESSORS%\n")
 
     # module
@@ -455,7 +441,7 @@ def writeEnvs():
         p.write("setenv OMP_NUM_THREADS %d\n"%mt)
         p.write("prepend-path PATH %s\n"%cmdPath)
         p.write("prepend-path PATH %s/bin\n"%cmdPath)
-        p.write("prepend-path PYTHONPATH %s\n"%installPathLocal)
+        p.write("prepend-path PYTHONPATH %s\n"%installPath)
         if installLD is not None:
             p.write("prepend-path LD_LIBRARY_PATH %s\n"%installLD)
         p.write("prepend-path LD_LIBRARY_PATH %s\n"%libPath)
@@ -1198,34 +1184,20 @@ def getLinkArgs():
 # Check PYTHONPATH
 # Verifie que installPath est dans PYTHONPATH
 #=============================================================================
-def checkPythonPath(installPathDict=None):
+def checkPythonPath(installPath):
     import re
-    if installPathDict is None:
-        try: import KCore.installPath as K
-        except: import installPath as K
-        installPathLocal = K.installPath
-    else:
-        installPathLocal = installPathDict.get("installPath", "")
-
     a = os.getenv("PYTHONPATH")
     if a is None:
-        print('Warning: to use the module, please add: %s to your PYTHONPATH.'%installPathLocal)
+        print('Warning: to use the module, please add: %s to your PYTHONPATH.'%installPath)
     else:
-        if re.compile(installPathLocal).search(a) is None:
-            print('Warning: to use the module, please add: %s to your PYTHONPATH.'%installPathLocal)
+        if re.compile(installPath).search(a) is None:
+            print('Warning: to use the module, please add: %s to your PYTHONPATH.'%installPath)
 
 #=============================================================================
 # Check LD_LIBRARY_PATH
 #=============================================================================
-def checkLdLibraryPath(installPathDict=None):
+def checkLdLibraryPath(libPath):
     import re
-    if installPathDict is None:
-        try: import KCore.installPath as K
-        except: import installPath as K
-        libPath = K.libPath
-    else:
-        libPath = installPathDict.get("libPath", "")
-
     a = os.getenv("LD_LIBRARY_PATH")
     b = os.getenv("LIBRARY_PATH")
     if a is None and b is None:
@@ -1243,11 +1215,11 @@ def checkModuleCassiopee(modname):
     try:
         import importlib
         module = importlib.import_module(modname)
-        import KCore.installPath
-        modIncDir = KCore.installPath.includePath
+        import KCore.buildInfo
+        modIncDir = KCore.buildInfo.includePath
         modIncDir = os.path.dirname(modIncDir)
         modIncDir = os.path.join(modIncDir, modname, modname)
-        modLibDir = KCore.installPath.libPath
+        modLibDir = getLibPath()
         version = getattr(module, "__version__", None)
         return version, modIncDir, modLibDir
 
@@ -1813,7 +1785,7 @@ def checkMpi():
 # additionalPaths: chemins d'installation non standards : ['/home/toto',...]
 # Retourne: (True/False, chemin des includes, chemin de la librairie)
 #=============================================================================
-def checkMpi4py():
+def checkMpi4py(installPath=None):
     #print("INFO: dependance to MPI STUBED.")
     #return (False, None, None, None)
     additionalIncludePaths = getAdditionalIncludePaths()
@@ -1824,9 +1796,8 @@ def checkMpi4py():
         return (False, '', '')
 
     incPaths = []
-    try: import KCore.installPath as K
-    except: import installPath as K
-    incPaths += [K.installPath+'/mpi4py/include']
+    if installPath is None: installPath = getInstallPath()
+    incPaths += [installPath+'/mpi4py/include']
     fileN = mpi4py.__file__
     incPaths += [os.path.dirname(fileN)+'/include']
     i = checkIncFile__('mpi4py/mpi4py.MPI.h', additionalIncludePaths+incPaths)
@@ -2566,55 +2537,55 @@ def checkIncFile__(file, additionalIncludePaths):
 # Ecrit les infos de build dans un fichier buildInfo.py
 #==============================================================================
 def writeBuildInfo():
-    p = open("buildInfo.py", 'w')
-    if p is None:
-        raise SystemError("Error: can not open file buildInfo.py for writing.")
+    if not os.access("buildInfo.py", os.W_OK):
+        raise SystemError("Error: cannot write file buildInfo.py, check permissions.")
 
-    dict = {}
-    # Date
     import time
+    # Date
+    d = {}
     execTime = time.strftime('%d/%m/%y %Hh%M', time.localtime())
-    dict['date'] = execTime
+    d['date'] = execTime
 
     # Check python
-    (pythonVersion, pythonIncDir, pythonLibDir, pythonLibs) = checkPython()
-    if pythonVersion != False: dict['python'] = pythonVersion
-    else: dict['numpy'] = "None"
+    pythonVersion, pythonIncDir, pythonLibDir, pythonLibs = checkPython()
+    d['python'] = pythonVersion if pythonVersion != False else "None"
 
     # Check numpy
-    (numpyVersion, numpyIncDir, numpyLibDir) = checkNumpy()
-    if numpyVersion != False: dict['numpy'] = numpyVersion
-    else: dict['numpy'] = "None"
+    numpyVersion, numpyIncDir, numpyLibDir = checkNumpy()
+    d['numpy'] = numpyVersion if numpyVersion != False else "None"
 
     # Check ffmpeg
-    (mpeg, mpegIncDir, mpegLib) = checkMpeg()
-    if mpeg: dict['mpeg'] = mpegLib
-    else: dict['mpeg'] = "None"
+    mpeg, mpegIncDir, mpegLib = checkMpeg()
+    d['mpeg'] = mpegLib if mpeg else "None"
 
     # Check hdf5
-    (hdf, hdfIncDir, hdfLib, hdflibnames) = checkHdf()
-    if hdf: dict['hdf'] = hdfLib
-    else: dict['hdf'] = "None"
+    hdf, hdfIncDir, hdfLib, hdflibnames = checkHdf()
+    d['hdf'] = hdfLib if hdf else "None"
 
     # Check netcdf
-    (netcdf, netcdfIncDir, netcdfLib, netcdflibnames) = checkNetcdf()
-    if netcdf: dict['netcdf'] = netcdfLib
-    else: dict['netcdf'] = "None"
+    netcdf, netcdfIncDir, netcdfLib, netcdflibnames = checkNetcdf()
+    d['netcdf'] = netcdfLib if netcdf else "None"
 
     # Check mpi
-    (mpi, mpiIncDir, mpiLib, mpiLibs) = checkMpi()
-    if mpi: dict['mpi'] = mpiLib
-    else: dict['mpi'] = "None"
+    mpi, mpiIncDir, mpiLib, mpiLibs = checkMpi()
+    d['mpi'] = mpiLib if mpi else "None"
 
     # Check cuda
-    (cuda, cudaIndDir, cudaLib, cudalibNames, cudaexec) = checkCuda()
-    if cuda: dict['cuda'] = cudaLib
-    else: dict['cuda'] = "None"
+    cuda, cudaIndDir, cudaLib, cudalibNames, cudaexec = checkCuda()
+    d['cuda'] = cudaLib if cuda else "None"
 
     # Write dictionnary
-    p.write("# This file is generated by Cassiopee installer.\n")
-    p.write("buildDict = "+str(dict))
-    p.close()
+    cwd = os.getcwd()
+    gitOrigin = getGitOrigin(cwd)
+    gitBranch = getGitBranch(cwd)
+    gitHash = getGitHash(cwd)[:7]
+    with open("buildInfo.py", "w") as p:
+        p.write("# This file is generated by the Cassiopee installer.\n")
+        p.write(f"buildDict = {d}\n")
+        p.write(f"includePath = '{cwd}'\n")
+        p.write(f"gitOrigin = '{gitOrigin}'\n")
+        p.write(f"gitBranch = '{gitBranch}'\n")
+        p.write(f"gitHash = '{gitHash}'\n")
 
 #==============================================================================
 # Ecrit la base d'installation dans le fichier installBaseUser.py
@@ -2656,13 +2627,11 @@ def writeInstallBase(config):
 # Sur certains unix, le chemin d'installation contient un lib64
 # Cree le symlink pour que lib et lib64 soit equivalent
 #==============================================================================
-def symLinks():
-    system = getSystem()[0]
-    bits = getSystem()[1]
+def symLinks(prefix):
+    system, bits = getSystem()[:2]
     if bits == '64':
-        try: import KCore.installPath as K
-        except: import installPath as K
-        libPath1 = K.libPath
+        installPath = os.path.join(prefix, getInstallPathSuffix())
+        libPath1 = os.path.dirname(os.path.dirname(installPath))
         spls = libPath1.rsplit('/',1)
         if spls[1] == 'lib': libPath2 = spls[0]+'/lib64'
         elif spls[1] == 'lib64': libPath2 = spls[0]+'/lib'
@@ -2697,25 +2666,29 @@ def createExtensions(module, srcs, includeDirs, libraryDirs, libraries,
     listExtensions = []
     minor = module.lower()
     # C/Api module
-    Extension(module+'.'+minor,
-              sources=[module+'/'+minor+'.cpp'],
-              include_dirs=[module]+includeDirs,
-              library_dirs=libraryDirs,
-              libraries=libraries,
-              extra_compile_args=extraCompileArgs,
-              extra_link_args=extraLinkArgs)
+    Extension(
+        module+'.'+minor,
+        sources=[module+'/'+minor+'.cpp'],
+        include_dirs=[module]+includeDirs,
+        library_dirs=libraryDirs,
+        libraries=libraries,
+        extra_compile_args=extraCompileArgs,
+        extra_link_args=extraLinkArgs
+    )
     # Cython extensions
     try: pyx_srcs = srcs.pyx_srcs
     except: pyx_srcs = []
     for i in pyx_srcs:
         f = i.replace('.pyx', '')
-        Extension(module+'.'+f,
-                  sources=[module+'/'+f+'.cpp'],
-                  include_dirs=[module]+includeDirs,
-                  library_dirs=libraryDirs,
-                  libraries=libraries,
-                  extra_compile_args=extraCompileArgs,
-                  extra_link_args=extraLinkArgs)
+        Extension(
+            module+'.'+f,
+            sources=[module+'/'+f+'.cpp'],
+            include_dirs=[module]+includeDirs,
+            library_dirs=libraryDirs,
+            libraries=libraries,
+            extra_compile_args=extraCompileArgs,
+            extra_link_args=extraLinkArgs
+        )
     return listExtensions
 
 #==============================================================================
@@ -2724,12 +2697,14 @@ def createExtensions(module, srcs, includeDirs, libraryDirs, libraries,
 #==============================================================================
 def getEnvForScons():
     #return dict(os.environ) # for adastra
-    return {'PATH': getenv('PATH'),
-            'LD_LIBRARY_PATH': getenv('LD_LIBRARY_PATH'),
-            'LM_LICENSE_FILE': getenv('LM_LICENSE_FILE'),
-            'INTEL_LICENSE_FILE': getenv('INTEL_LICENSE_FILE'),
-            'TMP':getenv('TMP'),
-            'TEMP':getenv('TEMP')}
+    return {
+        'PATH': getenv('PATH'),
+        'LD_LIBRARY_PATH': getenv('LD_LIBRARY_PATH'),
+        'LM_LICENSE_FILE': getenv('LM_LICENSE_FILE'),
+        'INTEL_LICENSE_FILE': getenv('INTEL_LICENSE_FILE'),
+        'TMP':getenv('TMP'),
+        'TEMP':getenv('TEMP')
+    }
 
 #==============================================================================
 # Fortran builder
@@ -2737,7 +2712,6 @@ def getEnvForScons():
 # Ajoute le fortran builder a env
 # IN: dirs: include paths
 def createFortranBuilder(env, dirs=[], additionalPPArgs='', additionalFortranArgs=[]):
-    import SCons
     from SCons.Builder import Builder
     # Pre-processing
     path = ''

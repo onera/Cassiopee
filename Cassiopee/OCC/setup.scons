@@ -10,9 +10,7 @@ import KCore.Dist as Dist
 # Generator library
 #==============================================================================
 
-# Get prefix from command line
-prefix = ARGUMENTS.get('prefix', '')
-installPath = Dist.getInstallPath(prefix)
+installPath = Dist.getInstallPath()
 additionalIncludePaths = Dist.getAdditionalIncludePaths()
 additionalLibPaths = Dist.getAdditionalLibPaths()
 additionalLibs = Dist.getAdditionalLibs()
@@ -38,8 +36,8 @@ additionalLibs = Dist.getAdditionalLibs()
 if not OCCPresent:
     # Utilise la version installee dans OCC (non fonctionnel)
     # Hack: To make a full path name for the OCC include dir (the relative path to build/... doesn't contain everything, e.g fff is not copied
-    #import KCore.installPath
-    #OCCIncDir = KCore.installPath.includePath
+    #import KCore.buildInfo
+    #OCCIncDir = KCore.buildInfo.includePath
     #OCCIncDir = os.path.dirname(OCCIncDir)
     #OCCIncDir = os.path.join(OCCIncDir, 'OCC/OCC/occ_inc')
     print("Warning: open cascade not found on your system. OCC not installed.")

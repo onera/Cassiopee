@@ -68,7 +68,6 @@ else: OSMesa = False
 # Extensions =================================================================
 import srcs
 
-import KCore.installPath
 EXTRA = ['-D__SHADERS__']
 if OSMesa: EXTRA += ['-D__MESA__']
 
@@ -99,7 +98,7 @@ setup(
 )
 
 # Install shaders + textures ==================================================
-dest = os.path.join(KCore.installPath.installPath, "CPlot")
+dest = os.path.join(Dist.getInstallPath(), "CPlot")
 os.makedirs(dest, exist_ok=True)
 for src in glob("CPlot/Shaders/*.vert"): shutil.copy(src, dest)
 for src in glob("CPlot/Shaders/*.frag"): shutil.copy(src, dest)

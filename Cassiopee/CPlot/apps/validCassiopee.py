@@ -196,8 +196,8 @@ def isDBAdmin():
 def getInstallPaths():
     try:
         # Check installPath
-        import KCore.installPath
-        cassiopeeIncDir = KCore.installPath.includePath
+        import KCore.buildInfo
+        cassiopeeIncDir = KCore.buildInfo.includePath
         cassiopeeIncDir = os.path.dirname(cassiopeeIncDir)
     except ImportError:
         raise SystemError("Error: KCore module is required to use this script.")

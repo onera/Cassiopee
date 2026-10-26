@@ -17,9 +17,6 @@ additionalIncludePaths = Dist.getAdditionalIncludePaths()
 additionalLibPaths = Dist.getAdditionalLibPaths()
 additionalLibs = Dist.getAdditionalLibs()
 
-# Write KCore installation path to installPath.py
-Dist.writeInstallPath()
-
 # Write setup.cfg file
 Dist.writeSetupCfg()
 

@@ -331,8 +331,8 @@ def submitKey(event=None):
     if len(key) == 2: name = key[0]; key = key[1]
     else: name = '0'; key = key[0]
 
-    import KCore.installPath
-    path = KCore.installPath.libPath
+    import KCore.Dist as Dist
+    path = Dist.getLibPath()
     # Try in installPath/.CassiopeeKey
     file = path+'/.CassiopeeKey'
     d = readKeyFile(file)

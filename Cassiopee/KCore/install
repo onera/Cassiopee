@@ -45,12 +45,12 @@ if [ $PRODMODE -ge 0 ]; then
     [ $? -ne 0 ] && exit 1;
     rm -f build/lib.*/KCore/kcore.*
     rm -f build/lib.*/KCore/kcore-*.*
-    python -c "import Dist; Dist.symLinks()"
+    python -c 'import sys, Dist; Dist.symLinks(sys.argv[1])' "$INSTALLPATH"
     if [ $PRODMODE -eq 0 ]; then # setup
         python setup.py install --prefix="$INSTALLPATH"
         [ $? -ne 0 ] && exit 1;
-    elif [ $PRODMODE -eq 1 ]; then # pip
-        python -m pip install --no-build-isolation --ignore-installed --upgrade --prefix="$INSTALLPATH" .
+    elif [ $PRODMODE -eq 1 ]; then # pip --ignore-installed --upgrade
+        python -m pip install --no-build-isolation  --prefix="$INSTALLPATH" .
         [ $? -ne 0 ] && exit 1;
     elif [ $PRODMODE -eq 2 ]; then # pip+wheel
         TMPDIR=$INSTALLPATH python -m pip install --no-build-isolation --ignore-installed --upgrade --prefix="$INSTALLPATH" --no-clean .
@@ -65,7 +65,7 @@ else
 fi
 
 # Install libkcore
-python installLib.py
+python installLib.py --prefix="$INSTALLPATH"
 
 # Copie les scripts de notifications utilisateur
 cp test/notifyCassiopee.py test/notifyCassiopee "$INSTALLPATH"

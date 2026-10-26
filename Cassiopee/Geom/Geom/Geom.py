@@ -57,13 +57,12 @@ def naca(e, N=101, sharpte=True):
 def profile(name=None):
     """Create a wing profile mesh."""
     import os
+    import KCore.Dist as Dist
     import Converter.PyTree as C
     import Converter.Internal as Internal
-    import KCore.installPath
-    prodname = os.getenv("ELSAPROD")
-    libpath = KCore.installPath.libPath
-    pos = libpath.rfind(prodname)
-    filepath = os.path.join(libpath[:pos], prodname, "UIUCAirfoils.cgns")
+    libpath = Dist.getLibPath()
+    libpath = os.path.dirname(os.path.dirname(libpath))
+    filepath = os.path.join(libpath, "UIUCAirfoils.cgns")
     t = C.convertFile2PyTree(filepath)
     bases = Internal.getBases(t)
     if name is None:
