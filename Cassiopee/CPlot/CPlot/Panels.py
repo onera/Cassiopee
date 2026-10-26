@@ -43,7 +43,7 @@ WIDGETS = {}
 #==============================================================================
 def about():
     """About panel."""
-    import KCore.buildInfo
+    import KCore.Dist as Dist
     logoImg = TK.PhotoImage(data="""
 R0lGODlhLAFWAOf8AAoGDAkLBw8MEBIQFBUQDhESDxITGhUTFhcVGBUWHRYXFRoWHhgXGhoYGxwa
 IhocGR0bHiEfIh8hHiUjJiknKi4sLzAxLzMxNDY1Mzc1OTo4PDo8OT48QABLpABMnkFDQURCRklH
@@ -214,7 +214,7 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
 
     textWidget.insert(TK.END, myText)
     textWidget.insert(TK.END, "\n")
-    buildInfo = KCore.buildInfo.buildDict
+    buildInfo = Dist.getBuildInfoDict()["buildDict"]
     myText = " Built on %s.\n"%buildInfo['date']
     textWidget.insert(TK.END, myText)
     myText = " Python: %s.\n"%buildInfo['python']

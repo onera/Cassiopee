@@ -818,7 +818,7 @@ def updateTestMetadata(module, test, CPUtime='...'):
     else: hashFast = None
     refEntry = newRefMetadata(
         date=time.strftime('%d/%m/%y %Hh%M', time.localtime()),
-        hashCassiopee=Dist.getGitHash(cassiopeeIncDir)[:7],
+        hashCassiopee=Dist.getGitHash()[:7],
         hashFast=hashFast
     )
     if not isinstance(CPUtime, str):
@@ -1445,9 +1445,9 @@ def createEmptySessionLog():
 
 def writeSessionLog():
     cassiopeeIncDir = getInstallPaths()[0]
-    gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
-    gitBranch = Dist.getGitBranch(cassiopeeIncDir)
-    gitHash = Dist.getGitHash(cassiopeeIncDir)[:7]
+    gitOrigin = Dist.getGitOrigin()
+    gitBranch = Dist.getGitBranch()
+    gitHash = Dist.getGitHash()[:7]
     gitInfo = "Git origin: {}\nGit branch: {}, commit hash: {}\n".format(
         gitOrigin, gitBranch, gitHash)
 
@@ -1467,9 +1467,9 @@ def writeSessionLog():
 #==============================================================================
 def notifyValidOK():
     cassiopeeIncDir = getInstallPaths()[0]
-    gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
-    gitBranch = Dist.getGitBranch(cassiopeeIncDir)
-    gitHash = Dist.getGitHash(cassiopeeIncDir)[:7]
+    gitOrigin = Dist.getGitOrigin()
+    gitBranch = Dist.getGitBranch()
+    gitHash = Dist.getGitHash()[:7]
     gitInfo = "Git origin: {}\nGit branch: {}, commit hash: {}\n".format(
         gitOrigin, gitBranch, gitHash)
 
@@ -1758,8 +1758,7 @@ def setGUITitleBar(loc='GLOBAL'):
     machine = socket.gethostname()
     title = '*Cassiopee* valid {} : {} @ {}'.format(loc, os.getenv("ELSAPROD"),
                                                     machine)
-    cassiopeeIncDir = getInstallPaths()[0]
-    gitBranch = Dist.getGitBranch(cassiopeeIncDir)
+    gitBranch = Dist.getGitBranch()
     if gitBranch and gitBranch != "main":
         title += " (branch {})".format(gitBranch)
     Master.title(title)

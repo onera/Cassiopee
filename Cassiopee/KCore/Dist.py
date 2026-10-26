@@ -228,7 +228,7 @@ def checkPython():
 
     pythonIncDir = sysconfig.get_python_inc()
     if not os.path.exists(pythonIncDir):
-        raise SystemError("Error: Python includes are required for the compilation of Cassiopee modules.")
+        raise OSError("Error: Python includes are required for the compilation of Cassiopee modules.")
 
     pythonLibDir = sysconfig.get_python_lib()
     try:
@@ -251,23 +251,25 @@ def checkNumpy():
         numpyIncDir = numpy.get_include()
         numpyVersion = numpy.__version__
     except ImportError:
-        raise SystemError("Error: numpy is required for the compilation of Cassiopee modules.")
+        raise ImportError("Error: numpy is required for the compilation of Cassiopee modules.")
 
     if not os.path.exists(numpyIncDir):
-        raise SystemError("Error: numpy includes are required for the compilation of Cassiopee modules.")
+        raise ImportError("Error: numpy includes are required for the compilation of Cassiopee modules.")
 
     return (numpyVersion, numpyIncDir, '')
 
 #=============================================================================
 # Retourne le chemin d'installation des modules
 #=============================================================================
-def getInstallPath():
+def getInstallPath(moduleFilePath=None):
     from pathlib import Path
-    return str(Path(__file__).resolve().parents[1])
+    if moduleFilePath is None: moduleFilePath = __file__
+    return str(Path(moduleFilePath).resolve().parents[1])
 
-def getLibPath():
+def getLibPath(moduleFilePath=None):
     from pathlib import Path
-    return str(Path(__file__).resolve().parents[3])
+    if moduleFilePath is None: moduleFilePath = __file__
+    return str(Path(moduleFilePath).resolve().parents[3])
 
 def parseInstallPathPrefix(*args):
     import re
@@ -300,46 +302,71 @@ def getInstallPathSuffix(type=0):
         installPath = {'lib': a[1], 'pyversion': a[2], 'site': a[3]}
     return installPath
 
+#=============================================================================
+# Return the buildInfo dictionary
+#=============================================================================
+def getBuildInfoDict():
+    import json
+    installPath = getInstallPath()
+    buildInfoFilename = os.path.join(installPath, "KCore", "buildInfo.json")
+    try:
+        with open(buildInfoFilename, "r", encoding="utf-8") as f:
+            buildInfo = json.load(f)
+    except OSError as e:
+        raise OSError("Cannot read file buildInfo.json.") from e
+    return buildInfo
+
 #==============================================================================
 # Functions returning the names of the remote repo & branch and the commit hash
 #==============================================================================
-def getGitOrigin(cassiopeeIncDir):
-    if not shutil.which("git"):
-        return "unknown"
-    try:
-        return subprocess.check_output(
-            ["git", "-C", cassiopeeIncDir,
-             "config", "--get", "remote.origin.url"],
-            stderr=subprocess.DEVNULL,
-            text=True
-        ).strip()
-    except Exception:
-        return "unknown"
+def getGitOrigin(cassiopeeIncDir=None):
+    if cassiopeeIncDir is None:
+        buildInfo = getBuildInfoDict()
+        return buildInfo.get("gitOrigin", "unknown")
+    else:
+        if not shutil.which("git"):
+            return "unknown"
+        try:
+            return subprocess.check_output(
+                ["git", "-C", cassiopeeIncDir,
+                    "config", "--get", "remote.origin.url"],
+                stderr=subprocess.DEVNULL,
+                text=True
+            ).strip()
+        except Exception:
+            return "unknown"
 
-def getGitBranch(cassiopeeIncDir):
-    if not shutil.which("git"):
-        return "unknown"
-    try:
-        return subprocess.check_output(
-            ["git", "-C", cassiopeeIncDir, "rev-parse", "--abbrev-ref", "HEAD"],
-            stderr=subprocess.DEVNULL,
-            text=True
-        ).strip()
-    except Exception:
-        return "unknown"
+def getGitBranch(cassiopeeIncDir=None):
+    if cassiopeeIncDir is None:
+        buildInfo = getBuildInfoDict()
+        return buildInfo.get("gitBranch", "unknown")
+    else:
+        if not shutil.which("git"):
+            return "unknown"
+        try:
+            return subprocess.check_output(
+                ["git", "-C", cassiopeeIncDir, "rev-parse", "--abbrev-ref", "HEAD"],
+                stderr=subprocess.DEVNULL,
+                text=True
+            ).strip()
+        except Exception:
+            return "unknown"
 
-
-def getGitHash(cassiopeeIncDir):
-    if not shutil.which("git"):
-        return "unknown"
-    try:
-        return subprocess.check_output(
-            ["git", "-C", cassiopeeIncDir, "rev-parse", "--short", "HEAD"],
-            stderr=subprocess.DEVNULL,
-            text=True
-        ).strip()
-    except Exception:
-        return "unknown"
+def getGitHash(cassiopeeIncDir=None):
+    if cassiopeeIncDir is None:
+        buildInfo = getBuildInfoDict()
+        return buildInfo.get("gitHash", "unknown")
+    else:
+        if not shutil.which("git"):
+            return "unknown"
+        try:
+            return subprocess.check_output(
+                ["git", "-C", cassiopeeIncDir, "rev-parse", "--short", "HEAD"],
+                stderr=subprocess.DEVNULL,
+                text=True
+            ).strip()
+        except Exception:
+            return "unknown"
 
 #=============================================================================
 # nom de l'egg cree par setup tools
@@ -1224,7 +1251,7 @@ def checkModuleCassiopee(modname):
         return version, modIncDir, modLibDir
 
     except ImportError as e:
-        raise SystemError(
+        raise ImportError(
             f"Error: {modname.lower()} library is required for the compilation "
             "of this module."
         ) from e
@@ -1242,7 +1269,7 @@ def checkModuleFast(modname):
         return version, modIncDir, modLibDir
 
     except ImportError as e:
-        raise SystemError(
+        raise ImportError(
             f"Error: {modname.lower()} library is required for the compilation "
             "of this module."
         ) from e
@@ -2534,58 +2561,56 @@ def checkIncFile__(file, additionalIncludePaths):
     return None
 
 #==============================================================================
-# Ecrit les infos de build dans un fichier buildInfo.py
+# Ecrit les infos de build dans le fichier buildInfo.json
 #==============================================================================
 def writeBuildInfo():
-    if not os.access("buildInfo.py", os.W_OK):
-        raise SystemError("Error: cannot write file buildInfo.py, check permissions.")
-
     import time
-    # Date
+    import json
     d = {}
+    # Date
     execTime = time.strftime('%d/%m/%y %Hh%M', time.localtime())
     d['date'] = execTime
-
     # Check python
     pythonVersion, pythonIncDir, pythonLibDir, pythonLibs = checkPython()
     d['python'] = pythonVersion if pythonVersion != False else "None"
-
     # Check numpy
     numpyVersion, numpyIncDir, numpyLibDir = checkNumpy()
     d['numpy'] = numpyVersion if numpyVersion != False else "None"
-
     # Check ffmpeg
     mpeg, mpegIncDir, mpegLib = checkMpeg()
     d['mpeg'] = mpegLib if mpeg else "None"
-
     # Check hdf5
     hdf, hdfIncDir, hdfLib, hdflibnames = checkHdf()
     d['hdf'] = hdfLib if hdf else "None"
-
     # Check netcdf
     netcdf, netcdfIncDir, netcdfLib, netcdflibnames = checkNetcdf()
     d['netcdf'] = netcdfLib if netcdf else "None"
-
     # Check mpi
     mpi, mpiIncDir, mpiLib, mpiLibs = checkMpi()
     d['mpi'] = mpiLib if mpi else "None"
-
     # Check cuda
     cuda, cudaIndDir, cudaLib, cudalibNames, cudaexec = checkCuda()
     d['cuda'] = cudaLib if cuda else "None"
-
     # Write dictionnary
     cwd = os.getcwd()
     gitOrigin = getGitOrigin(cwd)
     gitBranch = getGitBranch(cwd)
     gitHash = getGitHash(cwd)[:7]
-    with open("buildInfo.py", "w") as p:
-        p.write("# This file is generated by the Cassiopee installer.\n")
-        p.write(f"buildDict = {d}\n")
-        p.write(f"includePath = '{cwd}'\n")
-        p.write(f"gitOrigin = '{gitOrigin}'\n")
-        p.write(f"gitBranch = '{gitBranch}'\n")
-        p.write(f"gitHash = '{gitHash}'\n")
+    try:
+        with open("buildInfo.json", "w", encoding="utf-8") as f:
+            json.dump(
+                {
+                    "buildDict": d,
+                    "includePath": cwd,
+                    "gitOrigin": gitOrigin,
+                    "gitBranch": gitBranch,
+                    "gitHash": gitHash
+                },
+                f,
+                indent=4
+            )
+    except OSError as e:
+        raise OSError("Cannot write file buildInfo.json; check permissions.") from e
 
 #==============================================================================
 # Ecrit la base d'installation dans le fichier installBaseUser.py
