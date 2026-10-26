@@ -17,8 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Authors : Sam Landier (sam.landier@onera.fr)
-
 #ifndef NUGA_CONSERVATIVE_CHIMERA_HXX
 #define NUGA_CONSERVATIVE_CHIMERA_HXX
 

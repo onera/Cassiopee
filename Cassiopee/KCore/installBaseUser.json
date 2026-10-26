@@ -1,0 +1,17 @@
+{
+    "juno_me": {
+        "description": "Machine dev Juno rocky8 (ONERA)",
+        "f77compiler": "ifort",
+        "f90compiler": "ifort",
+        "Cppcompiler": "icc",
+        "CppAdditionalOptions": [],
+        "f77AdditionalOptions": [],
+        "useOMP": true,
+        "useStatic": false,
+        "additionalIncludePaths": [],
+        "additionalLibs": [],
+        "additionalLibPaths": [],
+        "useCuda": false,
+        "NvccAdditionalOptions": []
+    }
+}

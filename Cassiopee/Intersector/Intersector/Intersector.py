@@ -1,10 +1,8 @@
 """Intersections module.
 """
 __version__ = "4.2"
-__author__ = "Sam Landier"
-#
+
 # Python Interface to create arrays defining meshes
-#
 from . import intersector
 import Generator as G
 import Converter as C

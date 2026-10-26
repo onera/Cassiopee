@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_INTERSECT_HXX
 #define NUGA_INTERSECT_HXX
@@ -286,7 +285,6 @@ namespace NUGA
 #endif
       
       E_Int nb_tris0 = cT3.cols();
-      //medith::write("/home/slandier/projects/xcelln/CRM2/conferr.mesh", crd, cT3, "TRI");
 //      std::cout << "abstol : " << abstol << std::endl;
 //      std::cout << "nb_tris1 : " << nb_tris1 << std::endl;
 //      std::cout << "iso : 9" << std::endl;

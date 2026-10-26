@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef __BAR_BOOLEANOPERATOR_H__
 #define	__BAR_BOOLEANOPERATOR_H__

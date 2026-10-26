@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef __PREDICATES_H__
 #define	__PREDICATES_H__
@@ -37,8 +36,6 @@ inline void fooX(const E_Float* P0, const E_Float* P1, const E_Float* P2,
   K_FLD::IntArray crd(3,2);
   crd(0,0)=0; crd(1,0)=1;crd(2,0)=2;
   crd(0,1)=3;crd(1,1)=4;crd(2,1)=5;
-  
-  meshIO::write("/home/slandier/tmp/x.mesh", pos, crd);
 }
 #endif
 

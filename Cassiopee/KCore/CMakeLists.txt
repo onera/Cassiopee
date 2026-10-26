@@ -98,7 +98,7 @@ install_python_modules(${PROJECT_NAME})
 # TODO DEL: will not be useful once using CMake only
 install(
   FILES
-    "${PROJECT_SOURCE_DIR}/Dist.py"
+    "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/Dist.py"
     "${PROJECT_SOURCE_DIR}/config.py"
   DESTINATION "${SITE_PACKAGES_OUTPUT_DIRECTORY}/${PROJECT_NAME}"
   COMPONENT   "python installation utils"
@@ -106,7 +106,7 @@ install(
 install(
   FILES
     "${PROJECT_SOURCE_DIR}/config.py"
-    "${PROJECT_SOURCE_DIR}/installBase.py"
+    "${PROJECT_SOURCE_DIR}/installBase.json"
     "${PROJECT_SOURCE_DIR}/print_source_filenames.py"
   DESTINATION "${SITE_PACKAGES_OUTPUT_DIRECTORY}"
   COMPONENT   "python installation utils"

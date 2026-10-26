@@ -15,34 +15,7 @@ dependencies = [
 ]
 requires-python = ">=3.8"
 authors = [
-  {name = "ONERA"},
-  {name = "Francesca Basile"},
-  {name = "Clément Benazet"},
-  {name = "Christophe Benoit", email = "christophe.benoit@onera.fr"},
-  {name = "Luis Bernardos"},
-  {name = "Sébastien Bourasseau"},
-  {name = "Vincent Casseau", email = "vincent.casseau@onera.fr"},
-  {name = "Benjamin Constant", email = "benjamin.constant@onera.fr"},
-  {name = "Alexis Dorange"},
-  {name = "Imad Hammani"},
-  {name = "Gaelle Jeanfaivre"},
-  {name = "Guillaume Jeanmasson"},
-  {name = "Antoine Jost", email = "antoine.jost@onera.fr"},
-  {name = "Xavier Juvigny"},
-  {name = "Sâm Landier"},
-  {name = "Ivan Mary", email = "ivan.mary@onera.fr"},
-  {name = "Bruno Maugars"},
-  {name = "Baptiste Méral"},
-  {name = "Bertrand Michel"},
-  {name = "Francesca Pelerin"},
-  {name = "Stéphanie Peron", email = "stephanie.peron@onera.fr"},
-  {name = "Pascal Raud"},
-  {name = "Thomas Renaud"},
-  {name = "Benoit Rodriguez"},
-  {name = "Matthieu Soismier"},
-  {name = "Alexandre Suss"},
-  {name = "Simon Verley"},
-  {name = "Christelle Wervaecke"}
+  {name = "ONERA"}
 ]
 maintainers = [
   {name = "Christophe Benoit", email = "christophe.benoit@onera.fr"},

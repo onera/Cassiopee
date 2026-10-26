@@ -1,7 +1,6 @@
 """Do something cool with arrays.
 """
-__version__ = '2.2'
-__author__ = "You"
+__version__ = "4.2"
 
 import numpy
 import Converter.Array3D

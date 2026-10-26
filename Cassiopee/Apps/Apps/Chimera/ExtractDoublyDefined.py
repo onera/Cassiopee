@@ -127,7 +127,6 @@ class ExtractDoublyDefined(App):
     def __init__(self):
         App.__init__(self)
         self.__version__ = "0.0"
-        self.authors = ["ash@onera.fr"]
         self.requires(['dataIn', 'dataOut', 'bcType', 'compute'])
         # default values
         self.set(bcType='BCWall')

@@ -6,7 +6,7 @@
 import os
 import sys
 import shutil
-import Dist
+import KCore.Dist as Dist
 
 system = Dist.getSystem()[0]
 if system == 'Windows':
@@ -42,10 +42,17 @@ else: # Essai en dynamique
 
 # Copie aussi les .py
 installPath = os.path.join(installPath, "KCore")
+<<<<<<< Updated upstream
 shutil.copyfile("Dist.py", installPath+"/Dist.py")
+shutil.copyfile("installBase.json", installPath+"/installBase.json")
+if os.access("installBaseUser.json", os.R_OK):
+    shutil.copyfile("installBaseUser.json", installPath+"/installBaseUser.json")
+=======
+shutil.copyfile("Dist.py", installPath+"/KCore/Dist.py")
 shutil.copyfile("installBase.py", installPath+"/installBase.py")
 if os.access("installBaseUser.py", os.R_OK):
     shutil.copyfile("installBaseUser.py", installPath+"/installBaseUser.py")
+>>>>>>> Stashed changes
 shutil.copyfile("test/notify.py", installPath+"/notify.py")
 
 # Ecrit les infos d'install

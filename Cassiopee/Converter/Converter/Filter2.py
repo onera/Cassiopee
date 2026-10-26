@@ -939,7 +939,6 @@ def chunk2part(dt):
 
     t = C.newPyTree(['Base', zo])
     Cmpi._setProc(t, Cmpi.rank)
-    Internal._correctPyTree(t, level=7)
 
     # add refState
     #if refState is not None:

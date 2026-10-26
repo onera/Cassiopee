@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-//Author : Sâm Landier (sam.landier@onera.fr)
 
 #ifndef __MASKGEN_CPP__
 #define __MASKGEN_CPP__
@@ -142,13 +141,7 @@ namespace K_CONNECTOR
     //std::cout << "init : tree creation" << std::endl;
     // build the tree.
     _tree = new K_SEARCH::BbTree3D(_boxes, _tolerance);
-    
-    //std::cout << "init : reorient" << std::endl;
-    /*{
-    K_FLD::FloatArray pos(_coordT4.array());
-    K_FLD::IntArray connect(_connT4->array(), _connT4->shift());
-    meshIO::write("/home/slandier/tmp/incorrect.mesh", pos, connect);
-    }*/
+
      // reorient
     if (_ELType == TH4)
       _reoriented = __reorient<K_MESH::Tetrahedron>();
@@ -157,7 +150,6 @@ namespace K_CONNECTOR
     
     //K_FLD::FloatArray pos(_coordT4.array());
     //K_FLD::IntArray connect(_connT4->array(), _connT4->shift());
-    //meshIO::write("/home/slandier/tmp/correct.mesh", pos, connect);
     
     if (_ELType == TRI)
     {
@@ -195,82 +187,14 @@ namespace K_CONNECTOR
       
         K_MESH::Triangle::normal(Q0,Q1,Q2, _normals.col(i));
         K_FUNC::normalize<3>(_normals.col(i));
-      }
-      
+      } 
     }
-    
-#ifdef DEBUG_MASK
-    /*std::ofstream f("/home/slandier/tmp/MASK/tree.txt");
-    std::cout << " ze tree " << std::endl;
-    f << _tree->_tree << std::endl;
-    f.close();*/
-#endif
   }
-  
- /* ///
-  void maskGen::__create_boxes(Vector_t<K_SEARCH::BBox3D*>& boxes)
-  {
-    size_t nb_elts(_connT4->size());
-    const E_Int NB_NODES = _connT4->stride();
-    
-#ifdef DEBUG_MASK
-    std::cout << "__create_boxes : nb of elements : " << nb_elts <<std::endl;
-    std::cout << "__create_boxes : NB_NODES : " << NB_NODES <<std::endl;
-    
-    std::ofstream fc("/home/slandier/tmp/MASK/coordT4.txt");
-    fc << _coordT4.array() << std::endl;
-    fc.close();
-    
-    std::ofstream ft("/home/slandier/tmp/MASK/connectT4.txt");
-    ft << _connT4->array() << std::endl;
-    ft.close();
-    
-#endif
-    
-    E_Int* elt = new E_Int[NB_NODES];
-    
-    for (size_t i = 0; i < nb_elts; ++i)
-    {
-      _connT4->getEntry(i, elt);
-      
-      K_SEARCH::BBox3D* box = new K_SEARCH::BBox3D(_coordT4, elt, NB_NODES);
-      boxes.push_back(box);
-    }
-    
-    delete [] elt;
-    
-#ifdef DEBUG_MASK
-    std::ofstream f("/home/slandier/tmp/MASK/boxes.txt");
-    for (size_t i = 0; i < nb_elts; ++i)
-    {
-      f <<boxes[i]->minB[0] << " " << boxes[i]->minB[1] << " " << boxes[i]->minB[2] << std::endl;
-      f <<boxes[i]->maxB[0] << " " << boxes[i]->maxB[1] << " " << boxes[i]->maxB[2] << std::endl;
-      f << std::endl;
-    }
-    f.close();
-#endif
-  }*/
   
   ///
   inline void maskGen::__create_boxes(Vector_t<K_SEARCH::BBox3D*>& boxes)
   {
     size_t nb_elts(_connT4->size());
-    
-#ifdef DEBUG_MASK
-    const E_Int NB_NODES = _connT4->stride();
-    std::cout << "__create_boxes : nb of elements : " << nb_elts <<std::endl;
-    std::cout << "__create_boxes : NB_NODES : " << NB_NODES <<std::endl;
-    
-    std::ofstream fc("/home/slandier/tmp/MASK/coordT4.txt");
-    fc << _coordT4.array() << std::endl;
-    fc.close();
-    
-    std::ofstream ft("/home/slandier/tmp/MASK/connectT4.txt");
-    ft << _connT4->array() << std::endl;
-    ft.close();
-    
-#endif
-    
     boxes.resize(nb_elts);// liste des bbox de ts les elements de a2
     K_FLD::FldArrayF bbox(nb_elts,6);// xmin, ymin, zmin, xmax, ymax, zmax
     K_FLD::FldArrayF& arr = const_cast<K_FLD::FldArrayF&>(_coordT4.array());
@@ -289,17 +213,6 @@ namespace K_CONNECTOR
       maxB[0] = xmaxp[et]; maxB[1] = ymaxp[et]; maxB[2] = zmaxp[et]; 
       boxes[et] = new K_SEARCH::BBox3D(minB, maxB);
     }
-    
-#ifdef DEBUG_MASK
-    /*std::ofstream f("/home/slandier/tmp/MASK/boxes.txt");
-    for (size_t i = 0; i < nb_elts; ++i)
-    {
-      f <<boxes[i]->minB[0] << " " << boxes[i]->minB[1] << " " << boxes[i]->minB[2] << std::endl;
-      f <<boxes[i]->maxB[0] << " " << boxes[i]->maxB[1] << " " << boxes[i]->maxB[2] << std::endl;
-      f << std::endl;
-    }
-    f.close();*/
-#endif
   }
 }
 #endif

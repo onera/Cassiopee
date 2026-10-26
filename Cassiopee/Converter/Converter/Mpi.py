@@ -47,10 +47,13 @@ if 'MPIRUN' in os.environ: # si MPIRUN=0, force sequentiel
         def allreduce(a, op=None): return a
         def Allreduce(a, b, op=None): b[...] = a; return None
         def allreduceDict(a, method=0, fillValue=None, op=None): return a
+        def allreduceSet(a): return a
         def getSizeOf(a): return Internal.getSizeOf(a)
         def passPrevious(a): return a
         def passNext(a): return a
         def seq(F, *args): F(*args)
+        print0 = print
+        printA = print
         def convertFile2PyTree(fileName, format=None, proc=None):
             return C.convertFile2PyTree(fileName, format)
         def convertPyTree2File(t, fileName, format=None, links=[], isize=8, rsize=8, ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format=format, links=links, isize=isize, rsize=rsize)
@@ -104,10 +107,13 @@ else: # try import (may fail - core or hang)
         def allreduce(a, op=None): return a
         def Allreduce(a, b, op=None): b[...] = a; return None
         def allreduceDict(a, method=0, fillValue=None, op=None): return a
+        def allreduceSet(a): return a
         def getSizeOf(a): return Internal.getSizeOf(a)
         def passPrevious(a): return a
         def passNext(a): return a
         def seq(F, *args): F(*args)
+        print0 = print
+        printA = print
         def convertFile2PyTree(fileName, format=None, proc=None):
             return C.convertFile2PyTree(fileName, format)
         def convertPyTree2File(t, fileName, format=None, links=[], isize=8, rsize=8, ignoreProcNodes=False, merge=True): return C.convertPyTree2File(t, fileName, format=format, links=links, isize=isize, rsize=rsize)

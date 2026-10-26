@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-//Author : Sam Landier (sam.landier@onera.fr)
 
 #include "CADviaOCC.h"
 

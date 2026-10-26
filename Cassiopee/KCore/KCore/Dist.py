@@ -33,7 +33,7 @@ def GDOUBLEINT():
     return _GDOUBLEINT or "_i8" in elsaprod
 
 #==============================================================================
-# System configuration using installBase.py / installBaseUser.py
+# System configuration using installBase.json / installBaseUser.json
 #==============================================================================
 def setConfigDict(installDict=None):
     global CONFIGDICT
@@ -72,7 +72,7 @@ def setConfigDict(installDict=None):
             if prod in installDict: cassProd = prod
 
     if cassProd is None:  # not found in installDict
-        print(f"Warning: {prod} not found in KCore/installBase.py nor "
+        print(f"Warning: {prod} not found in KCore/installBase.json nor "
               "KCore/installBaseUser.py.\n"
               "Warning: using default compilers and options.\n"
               "Warning: to change that, add a block in KCore/installBase.py.")
@@ -1242,9 +1242,8 @@ def checkModuleCassiopee(modname):
     try:
         import importlib
         module = importlib.import_module(modname)
-        import KCore.buildInfo
-        modIncDir = KCore.buildInfo.includePath
-        modIncDir = os.path.dirname(modIncDir)
+        buildInfo = getBuildInfoDict()
+        modIncDir = os.path.dirname(buildInfo["includePath"])
         modIncDir = os.path.join(modIncDir, modname, modname)
         modLibDir = getLibPath()
         version = getattr(module, "__version__", None)

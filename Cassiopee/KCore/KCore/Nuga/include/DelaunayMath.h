@@ -17,7 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef __LINEAR_DELAUNAY_MATH_H__
 #define __LINEAR_DELAUNAY_MATH_H__

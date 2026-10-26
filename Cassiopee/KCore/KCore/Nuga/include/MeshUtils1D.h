@@ -17,7 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef __DELAUNAY_MESH_UTILS_1D_H__
 #define __DELAUNAY_MESH_UTILS_1D_H__

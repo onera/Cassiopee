@@ -43,6 +43,7 @@ WIDGETS = {}
 #==============================================================================
 def about():
     """About panel."""
+    from importlib.metadata import distributions
     import KCore.Dist as Dist
     logoImg = TK.PhotoImage(data="""
 R0lGODlhLAFWAOf8AAoGDAkLBw8MEBIQFBUQDhESDxITGhUTFhcVGBUWHRYXFRoWHhgXGhoYGxwa
@@ -201,8 +202,12 @@ ClbQghfEYAY1uEEOdtCDHwRhCEUIloAAADs=
 
     myText = "\n\n Licensed under LGPL3.\n\n"
     textWidget.insert(TK.END, myText)
-    authors = KCore.__allAuthors__
-    authors = authors.split(',')
+    distrib = next(
+        d for d in distributions()
+        if d.metadata["Name"].lower().replace("_", "-")
+        in ("cassiopee-kcore", "cassiopee-kcore-i8")
+    )
+    authors = distrib.metadata.get_all("Author", [])
     myText = " -- Authors: --\n "
     col = 0; naut = len(authors)
     for i in authors:
@@ -292,7 +297,7 @@ def activation():
         version = 'full (until %2d/%4d)'%(month,year)
     myText = 'You are using the %s version of Cassiopee.\n\n'%version
     myText += 'To switch to full version, you must request an activation key.\n'
-    myText += 'Please mail to cassiopee@onera.fr or enter\n'
+    myText += 'Please mail to cassiope@onera.fr or enter\n'
     myText += 'an activation key below:'
     textWidget.insert(TK.END, myText)
     textWidget.grid(sticky=TK.NSEW, row=0, column=0, columnspan=2)
@@ -466,7 +471,7 @@ def createMail():
         return # cancelMail
     me = mailData['mailMe']
     bugReport = mailData['bugReport']
-    if bugReport: friends = ['cassiopee@onera.fr']
+    if bugReport: friends = ['cassiope@onera.fr']
     else: friends = friendText.split(';')
     titleText = mailData['titleText']
     if bugReport: titleText = '[BUG]'+titleText
@@ -585,7 +590,7 @@ def openMailWindow():
         B = TK.Label(MAILWINDOW, text="To:")
         B.grid(row=1, column=0, sticky=TK.EW)
         B = TK.Text(MAILWINDOW, width=40, height=2, background='White')
-        BB = CTK.infoBulle(parent=B, text='Destinaries email-adress: toto@tata.com; titi@tata.com\nCassiopee support: cassiopee@onera.fr')
+        BB = CTK.infoBulle(parent=B, text='Cassiopee support: cassiope@onera.fr')
         B.grid(row=1, column=1, columnspan=2, sticky=TK.EW)
         if 'mailFriends' in CTK.PREFS: B.insert(TK.END, CTK.PREFS['mailFriends'])
         mailData['friendWidget'] = B

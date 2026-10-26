@@ -17,8 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Authors : Sâm Landier (sam.landier@onera.fr)
-
 #ifndef NUGA_CELL_SENSOR_HXX
 #define NUGA_CELL_SENSOR_HXX
 

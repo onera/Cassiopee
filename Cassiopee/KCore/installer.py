@@ -18,9 +18,14 @@ WIDTH=40
 # tous les chemins dans config.py (ancien systeme).
 #==============================================================================
 try: import tkinter as TK
-except: raise ImportError('Cassiopee installer requires tkinter.\nIf your python dont run tkinter, edit the installBaseUser.py file manually and add your machine settings.')
+except:
+    raise ImportError(
+        'Cassiopee installer requires tkinter.\nIf your python dont run '
+        'tkinter, edit the installBaseUser.json file manually and add your '
+        'machine settings.'
+    )
 
-import Dist
+import KCore.Dist as Dist
 import os.path
 import json
 

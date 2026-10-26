@@ -17,8 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Authors : Sam Landier (sam.landier@onera.fr)
-
 #ifndef _CONTOURSPLITTER_H_
 #define _CONTOURSPLITTER_H_
 

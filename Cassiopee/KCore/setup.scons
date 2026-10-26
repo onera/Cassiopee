@@ -5,7 +5,7 @@
 # Numpy
 #==============================================================================
 import os
-import Dist
+import KCore.Dist as Dist
 
 # Get prefix from command line
 prefix = ARGUMENTS.get('prefix', '')

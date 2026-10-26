@@ -17,8 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Authors : Sâm Landier (sam.landier@onera.fr)
-
 #ifndef NUGA_VNGON_UNIT_H
 #define NUGA_VNGON_UNIT_H
 
