@@ -17,7 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Authors : Sam Landier (sam.landier@onera.fr)
 
 #include "Nuga/include/PostNodeAssociator.h"
 #include "Nuga/include/KdTree.h"

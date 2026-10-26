@@ -17,7 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef __NUGA_DEFS_H__
 #define __NUGA_DEFS_H__

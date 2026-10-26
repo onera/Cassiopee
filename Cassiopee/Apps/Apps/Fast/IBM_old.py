@@ -1908,7 +1908,6 @@ class IBM(Common):
     def __init__(self, format=None, numb=None, numz=None):
         Common.__init__(self, format, numb, numz)
         self.__version__ = "0.0"
-        self.authors = ["ash@onera.fr"]
         self.cartesian = True
 
     # Prepare

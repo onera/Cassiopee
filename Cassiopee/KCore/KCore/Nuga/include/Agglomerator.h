@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_AGGLOMERATOR_H
 #define NUGA_AGGLOMERATOR_H
@@ -425,7 +424,6 @@ namespace NUGA
          //if (ii == 5 || ii == 6)
           /*{
            std::ostringstream o;
-           o << "D://slandier//DATA//tmp//agglo//agg_" << ii << "_with_neigh_" << n << ".tp";
            K_FLD::IntArray cnto;
            ngon_type ng(ngi.PGs, best_agg);
            ng.export_to_array(cnto);
@@ -448,7 +446,6 @@ namespace NUGA
       //if (ii==5 || ii ==6)
       {
         std::ostringstream o;
-        o << "/visu/slandier/ATOM/TURBINE_REFROIDIE/ROTOR2/RXXX/TEST_10/best_agg_" << ii << ".tp";//";//D://slandier//DATA//tmp//agglo//best_agg_" << i << ".tp";
         K_FLD::IntArray cnto;
         ngon_type ng(ngi.PGs, best_agg);
         ng.export_to_array(cnto);
@@ -671,7 +668,6 @@ namespace NUGA
 #ifdef DEBUG_AGGLOMERATOR
          {
            std::ostringstream o;
-           o << "D://slandier//DATA//tmp//agglo//agg_" << ii << "_with_neigh_" << n << ".tp";
            K_FLD::IntArray cnto;
            ngon_type ng(ngi.PGs, best_agg);
            ng.export_to_array(cnto);
@@ -694,7 +690,6 @@ namespace NUGA
       //if (ii==73)
       {
         std::ostringstream o;
-        o << "D://slandier//DATA//tmp//agglo//best_agg_" << ii << ".tp";
         K_FLD::IntArray cnto;
         ngon_type ng(ngi.PGs, best_agg);
         ng.export_to_array(cnto);
@@ -842,7 +837,6 @@ namespace NUGA
 #ifdef DEBUG_AGGLOMERATOR
         {
           std::ostringstream o;
-          o << "D://slandier//DATA//tmp//agglo//curagg_" << ii << "_with_neigh_" << n << ".tp";
           K_FLD::IntArray cnto;
           ngon_type ng(ngi.PGs, cur_agg);
           ng.export_to_array(cnto);
@@ -970,7 +964,6 @@ namespace NUGA
          //if (ii == 5 || ii == 6)
           /*{
            std::ostringstream o;
-           o << "D://slandier//DATA//tmp//agglo//agg_" << ii << "_with_neigh_" << n << ".tp";
            K_FLD::IntArray cnto;
            ngon_type ng(ngi.PGs, best_agg);
            ng.export_to_array(cnto);
@@ -993,7 +986,6 @@ namespace NUGA
       //if (ii==5 || ii ==6)
       {
         std::ostringstream o;
-        o << "D://slandier//DATA//tmp//agglo//best_agg_" << ii << ".tp";//";//D://slandier//DATA//tmp//agglo//best_agg_" << i << ".tp";
         K_FLD::IntArray cnto;
         ngon_type ng(ngi.PGs, best_agg);
         ng.export_to_array(cnto);

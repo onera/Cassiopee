@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-//Author : Sâm Landier (sam.landier@onera.fr)
 
 #include "OCCSurface.h"
 #include "BRep_Tool.hxx"

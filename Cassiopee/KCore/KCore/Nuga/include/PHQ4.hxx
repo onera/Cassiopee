@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-//Authors : Sam Landier (sam.landier@onera.fr), Jacques Peter (jacques.peter@onera.fr)
 
 #ifndef NUGA_PHQ4_HXX
 #define NUGA_PHQ4_HXX

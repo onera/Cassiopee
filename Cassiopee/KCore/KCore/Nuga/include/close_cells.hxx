@@ -17,8 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Authors : Sâm Landier (sam.landier@onera.fr)
-
 #ifndef NUGA_CLOSE_CELLS_HXX
 #define NUGA_CLOSE_CELLS_HXX
 

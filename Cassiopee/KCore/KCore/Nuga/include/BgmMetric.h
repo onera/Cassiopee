@@ -17,8 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Authors : Sam Landier (sam.landier@onera.fr)
-
 #ifndef __GENERATOR_BGM_METRIC_H__
 #define __GENERATOR_BGM_METRIC_H__
 

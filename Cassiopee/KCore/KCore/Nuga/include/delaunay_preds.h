@@ -17,7 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef __DELAUNAY_PREDICATES_H__
 #define __DELAUNAY_PREDICATES_H__

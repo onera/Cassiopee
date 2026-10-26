@@ -7,7 +7,6 @@
 
 
 */
-//Authors : Sam Landier (sam.landier@onera.fr)
 
 #pragma once
 

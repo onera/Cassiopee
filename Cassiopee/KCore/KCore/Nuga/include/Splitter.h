@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef NUGA_SPLITTER_H
 #define NUGA_SPLITTER_H
@@ -1625,7 +1624,6 @@ if (PHi == faultyPH)
   std::ostringstream o;
   
   {
-    o << "D:\\slandier\\DATA\\tmp\\split\\twoPH_" << count << "a.tp";
     ngon_type ngo;
     ngo.PHs.add(twoPH.PHs.stride(0), twoPH.PHs.get_facets_ptr(0));
     ngo.PGs = twoPH.PGs;
@@ -1636,15 +1634,12 @@ if (PHi == faultyPH)
   }
 
   {
-    o.str("");
-    o << "D:\\slandier\\DATA\\tmp\\split\\twoPH_" << count << "b.tp";
     ngon_type ngo;
     ngo.PHs.add(twoPH.PHs.stride(1), twoPH.PHs.get_facets_ptr(1));
     ngo.PGs = twoPH.PGs;
     ngo.PHs.updateFacets();
     K_FLD::IntArray cnto;
     ngo.export_to_array(cnto);
-    tp::write(o.str().c_str(), crd, cnto, "NGON");
   }
 #endif
 
