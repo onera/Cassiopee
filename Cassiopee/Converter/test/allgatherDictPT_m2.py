@@ -45,20 +45,20 @@ else:
 
 # -- method 0: Return all unique values
 d = Cmpi.allgatherDict(bcNamesDict)
-if Cmpi.master: print(d); #test.testO(d, 1)
+if Cmpi.master: test.testO(d, 1)
 # {'inlet': [1.0, 3.0], 'wall': {'flap1': {'upper': [5.0, 6.0, 10.0, 7.0, 9.0, 8.0], 'lower': [5.2, 6.2, 10.2, 7.2, 9.2, 8.2]}, 'flap2': [5.5, 6.5, 10.5, 7.5, 9.5, 8.5]}, 'outlet': [11.0], 'symmetry': [20.0, 21.0, 22.0]}
 
 # -- method 1: Return all values
 d = Cmpi.allgatherDict(bcNamesDict, method=1)
-if Cmpi.master: print(d); #test.testO(d, 2)
+if Cmpi.master: test.testO(d, 2)
 # {'inlet': [1.0, 3.0, 3.0], 'wall': {'flap1': {'upper': [5.0, 6.0, 10.0, 7.0, 9.0, 8.0], 'lower': [5.2, 6.2, 10.2, 7.2, 9.2, 8.2]}, 'flap2': [5.5, 6.5, 10.5, 7.5, 9.5, 8.5]}, 'outlet': [11.0], 'symmetry': [20.0, 21.0, 20.0, 21.0, 22.0]}
 
 # -- method 2: Return all values, add fillValue if missing
 d = Cmpi.allgatherDict(bcNamesDict, method=2, fillValue=-1.)
-if Cmpi.master: print(d); #test.testO(d, 3)
+if Cmpi.master: test.testO(d, 3)
 # {'inlet': [1.0, 3.0, 3.0, -1.0], 'wall': {'flap1': {'upper': [5.0, 6.0, 10.0, 7.0, 9.0, 8.0], 'lower': [5.2, 6.2, 10.2, 7.2, 9.2, 8.2]}, 'flap2': [5.5, 6.5, 10.5, 7.5, 9.5, 8.5]}, 'outlet': [-1.0, 11.0], 'symmetry': [-1.0, 20.0, 21.0, 20.0, 21.0, 22.0]}
 
 # -- method 3: Return the single value, the first of the lowest rank
 d = Cmpi.allgatherDict(bcNamesDict, method=3)
-if Cmpi.master: print(d); #test.testO(d, 4)
+if Cmpi.master: test.testO(d, 4)
 # {'inlet': [1.0, 3.0], 'wall': {'flap1': {'upper': [5.0, 6.0, 10.0], 'lower': [5.2, 6.2, 10.2]}, 'flap2': [5.5, 6.5, 10.5]}, 'outlet': [], 'symmetry': [20.0, 21.0]}
