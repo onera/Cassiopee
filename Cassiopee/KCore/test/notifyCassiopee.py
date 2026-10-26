@@ -263,7 +263,7 @@ def checkInstallStatus():
     if not os.access(cassiopeeIncDir, os.R_OK):
         buildInfo = Dist.getBuildInfoDict()
         cassiopeeIncDir = os.path.join(buildInfo["includePath"], "..")
-    gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
+    gitOrigin = Dist.getGitOrigin()
     gitInfo = "Git origin: {}".format(gitOrigin)
 
     baseState = 'OK'
@@ -305,7 +305,7 @@ def parseInstallLogs(userProd):
     if not os.access(cassiopeeIncDir, os.R_OK):
         buildInfo = Dist.getBuildInfoDict()
         cassiopeeIncDir = os.path.join(buildInfo["includePath"], "..")
-    gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
+    gitOrigin = Dist.getGitOrigin()
     gitInfo = "Git origin: {}".format(gitOrigin)
 
     baseState = 'OK'
@@ -372,13 +372,9 @@ def checkCheckoutStatus(sendEmail=False):
             return messageSubject, messageText
 
     # Get git info
-    cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
-    if not os.access(cassiopeeIncDir, os.R_OK):
-        buildInfo = Dist.getBuildInfoDict()
-        cassiopeeIncDir = os.path.join(buildInfo["includePath"], "..")
-    gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
-    gitBranch = Dist.getGitBranch(cassiopeeIncDir)
-    gitHash = Dist.getGitHash(cassiopeeIncDir)[:7]
+    gitOrigin = Dist.getGitOrigin()
+    gitBranch = Dist.getGitBranch()
+    gitHash = Dist.getGitHash()[:7]
     gitInfo = "Git origin: {}\nGit branch: {}\nCommit hash: {}".format(
         gitOrigin, gitBranch, gitHash)
 
@@ -414,11 +410,7 @@ def checkValidStatus(sessionSuffix=""):
         log_entries.sort(key=lambda x: x[3], reverse=True)
 
     # Get git info
-    cassiopeeIncDir = '/stck/cassiope/git/Cassiopee/Cassiopee'
-    if not os.access(cassiopeeIncDir, os.R_OK):
-        buildInfo = Dist.getBuildInfoDict()
-        cassiopeeIncDir = os.path.join(buildInfo["includePath"], "..")
-    gitOrigin = Dist.getGitOrigin(cassiopeeIncDir)
+    gitOrigin = Dist.getGitOrigin()
     gitInfo = "Git origin: {}".format(gitOrigin)
 
     if not sessionSuffix: sessionSuffix = "Cassiopee"
