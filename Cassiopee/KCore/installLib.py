@@ -41,12 +41,3 @@ else: # Essai en dynamique
                         libPath+"/libkcore"+__EXTSHARED__)
     else:
         print("Error: kcore%s can not be found in %s."%(__EXTMODULE__,installPathLocal))
-
-# Copie aussi les .py
-shutil.copyfile("test/notify.py", os.path.join(installPath, "KCore", "notify.py"))
-
-# Ecrit les infos d'install
-Dist.writeBuildInfo()
-
-# Ecrit les fichiers d'environnement
-Dist.writeEnvs(installPath, libPath)
