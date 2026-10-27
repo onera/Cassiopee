@@ -21,6 +21,7 @@
 
 #include "float.h"
 #include "xcore.h"
+#include "common/mem.h"
 
 #define EXIT \
   do { \

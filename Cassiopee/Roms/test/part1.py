@@ -7,8 +7,8 @@ import Roms.Driver as D
 #T2 = D.DRIVER.Part('circle1', type='Circle')
 #T2.instantiate({'radius':1.})
 
-T1 = D.DRIVER.Part('box1', type='Box')
-T1.instantiate({'width':1., 'height':1., 'depth':1.})
+#T1 = D.DRIVER.Part('box1', type='Box')
+#T1.instantiate({'width':1., 'height':1., 'depth':1.})
 
 #T1 = D.DRIVER.Part('nozzle1', type='nozzle2D')
 #T1.instantiate({'P1.x': 0.,
@@ -43,5 +43,10 @@ T1.instantiate({'width':1., 'height':1., 'depth':1.})
 #T1.instantiate({'P0#2.y':1., 'P0#2.x':1., 'depth':1., 'angle':20., 'width':1.})
 #D.DRIVER.print()
 
-D.DRIVER.writeCAD('out.step')
+T1 = D.DRIVER.Part('wing1', type='DiamondWing')
+T1.instantiate({'chord1': 1., 'thickness1': 0.1, 'angle1': 2., 
+                'chord2': 0.2, 'thickness2': 0.01, 'angle2': 2., 
+                'spanLength': 2., 'tipShift': 0.})
+
+T1.surfaces['surface'].writeCAD('out.step')
 D.DRIVER.plot()

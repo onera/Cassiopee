@@ -245,12 +245,20 @@ class Point:
         if ret == 0: return 0
         return 1
 
+    # Create a new point identical to point
+    def copy(self, name=None):
+        """Create new point shifted from self of a given vector."""
+        if name is None: name = self.name+'C'
+        P = Point(name, part=self.part)
+        return P
+    
     # Create new point shifted from self by a given vector
     # IN: name: name of the new point (optional)
     # IN: vector: shift vector (dx, dy, dz) (default: (0.,0.,0.))
     # OUT: new Point object shifted from self
     def ShiftPoint(self, name=None, vector=(0.,0.,0.)):
         """Create new point shifted from self of a given vector."""
+        if name is None: name = self.name+'S'
         P = Point(name, part=self.part)
         Eq(P.x, self.x + vector[0], part=self.part)
         Eq(P.y, self.y + vector[1], part=self.part)
@@ -264,6 +272,7 @@ class Point:
     # OUT: new Point object that is the symmetric of self
     def SymPoint(self, name=None, plane='xz', center=(0,0,0)):
         """Create new point that is the symetric of self considering a plane."""
+        if name is None: name = self.name+'S'
         P = Point(name, part=self.part)
         if plane == 'yz':
             Eq(P.x, 2*center[0]-self.x, part=self.part)
@@ -317,6 +326,15 @@ class Grid:
         (i,j,k) = T
         return (self.P[i][j][k].x.v, self.P[i][j],[k].y.v, self.P[i][j][k].z.v)
 
+    # Return a copy
+    def copy(self):
+        """Return a copy of Grid."""
+        if name is None: name = self.name+'C'
+        G = Grid(name, (self.xo,self.yo,self.zo), 
+                 (self.dx+self.xo, self.dy+self.yo, self.dz+self.dzo), 
+                 (self.ni, self.nj, self.nk), self.part)
+        return G
+        
     # Print grid information
     # IN: shift: number of blank characters left to print (default: 0)
     def print(self, shift=0):
@@ -807,7 +825,8 @@ class Surface():
         """Update CAD hook from parameters."""
         if self.hook is not None: OCC.occ.freeHook(self.hook)
         self.hook = OCC.createEmptyCAD('surface.step')
-        if self.type == "loft": # by lofting
+
+        if self.type == "loft2": # by lofting
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
             n1 = len(self.sketches)
@@ -823,6 +842,45 @@ class Surface():
                 OCC._fillHole(h0, [1], [], 0)
                 OCC._fillHole(h1, [1], [], 0)
                 self.hook = OCC.mergeCAD([h0,self.hook,h1])
+
+        if self.type == "loft": # by lofting
+            hooks = []
+            for e in self.sketches: hooks.append(e.hook)
+            
+            # check sketches consistency
+            ns = len(self.sketches)
+            ne = -1
+            for n in range(ns): # for all sketches
+                ne1 = OCC.getNbEdges(hooks[n]) # suppose all the same for all sketches
+                if ne == -1: ne = ne1
+                elif ne != ne1: 
+                    raise ValueError('loft: the number of edges in sketches must be the same.') 
+            n1 = ne*ns
+
+            # optional guides
+            for e in self.sketches2: hooks.append(e.hook)
+            n2 = n1 + len(self.sketches2)
+            guideList = [i for i in range(n1+1, n2+1)]
+
+            # build loft
+            out = []
+            for e in range(ne):            
+                h = OCC.mergeCAD(hooks)
+                edgeList = [i for i in range(e+1, n1+1, ne)]
+                OCC._loft(h, edgeList, guideList)
+                out.append(h)
+            self.hook = OCC.mergeCAD(out)
+
+            if 'close' in self.data and self.data['close'].v:
+                h0 = hooks[0]; h1 = hooks[-1]
+                edgeList0 = [i for i in range(1, OCC.getNbEdges(h0)+1)]
+                edgeList1 = [i for i in range(1, OCC.getNbEdges(h1)+1)]
+                OCC._fillHole(h0, edgeList0, [], 0)
+                OCC._reverse(h0)
+                OCC._fillHole(h1, edgeList1, [], 0)
+                self.hook = OCC.mergeCAD([h0,self.hook,h1])
+            OCC._sewing(self.hook)
+
         if self.type == "loftSet": # by loft set
             hooks = []
             for e in self.sketches:

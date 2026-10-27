@@ -10,8 +10,7 @@ if [ -z "$ELSAPROD" ]; then
     exit 1
 fi
 
-PREFIX="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE}"
-INSTALLPATH="$PREFIX/Dist/bin/$ELSAPROD"
+INSTALLPATH="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE/Dist/bin/$ELSAPROD}"
 
 # if specific python exe name
 if [ -n "$PYTHONEXE" ]; then

@@ -6,8 +6,8 @@ import os
 import pathlib
 
 directory_ref = '/stck/cassiope/git/Cassiopee/Dist/bin'
-directory_local   = os.environ['CASSIOPEE']
-elsaprod          = os.environ['ELSAPROD']
+directory_local = os.environ['CASSIOPEE']
+elsaprod = os.environ['ELSAPROD']
 directory_ref += '/'+elsaprod
 directory_local += '/Dist/bin/'+elsaprod
 
