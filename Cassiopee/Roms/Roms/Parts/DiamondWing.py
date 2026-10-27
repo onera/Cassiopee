@@ -79,7 +79,7 @@ def createPart(name):
     # symetrisation
     symetric = True
     if symetric:
-        
+
         # Sketch2S
         P5S = T1.Point('P5S', (0,0,0))
         P6S = T1.Point('P6S', (0,0,0))

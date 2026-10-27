@@ -251,7 +251,7 @@ class Point:
         if name is None: name = self.name+'C'
         P = Point(name, part=self.part)
         return P
-    
+
     # Create new point shifted from self by a given vector
     # IN: name: name of the new point (optional)
     # IN: vector: shift vector (dx, dy, dz) (default: (0.,0.,0.))
@@ -330,11 +330,11 @@ class Grid:
     def copy(self):
         """Return a copy of Grid."""
         if name is None: name = self.name+'C'
-        G = Grid(name, (self.xo,self.yo,self.zo), 
-                 (self.dx+self.xo, self.dy+self.yo, self.dz+self.dzo), 
+        G = Grid(name, (self.xo,self.yo,self.zo),
+                 (self.dx+self.xo, self.dy+self.yo, self.dz+self.dzo),
                  (self.ni, self.nj, self.nk), self.part)
         return G
-        
+
     # Print grid information
     # IN: shift: number of blank characters left to print (default: 0)
     def print(self, shift=0):
@@ -846,15 +846,15 @@ class Surface():
         if self.type == "loft": # by lofting
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
-            
+
             # check sketches consistency
             ns = len(self.sketches)
             ne = -1
             for n in range(ns): # for all sketches
                 ne1 = OCC.getNbEdges(hooks[n]) # suppose all the same for all sketches
                 if ne == -1: ne = ne1
-                elif ne != ne1: 
-                    raise ValueError('loft: the number of edges in sketches must be the same.') 
+                elif ne != ne1:
+                    raise ValueError('loft: the number of edges in sketches must be the same.')
             n1 = ne*ns
 
             # optional guides
@@ -864,7 +864,7 @@ class Surface():
 
             # build loft
             out = []
-            for e in range(ne):            
+            for e in range(ne):
                 h = OCC.mergeCAD(hooks)
                 edgeList = [i for i in range(e+1, n1+1, ne)]
                 OCC._loft(h, edgeList, guideList)

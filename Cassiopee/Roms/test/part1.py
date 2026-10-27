@@ -44,8 +44,8 @@ import Roms.Driver as D
 #D.DRIVER.print()
 
 T1 = D.DRIVER.Part('wing1', type='DiamondWing')
-T1.instantiate({'chord1': 1., 'thickness1': 0.1, 'angle1': 2., 
-                'chord2': 0.2, 'thickness2': 0.01, 'angle2': 2., 
+T1.instantiate({'chord1': 1., 'thickness1': 0.1, 'angle1': 2.,
+                'chord2': 0.2, 'thickness2': 0.01, 'angle2': 2.,
                 'spanLength': 2., 'tipShift': 0.})
 
 T1.surfaces['surface'].writeCAD('out.step')
