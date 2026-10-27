@@ -1,2 +1,3 @@
-cp *_Cassiopee_* $CASSIOPEE/Dist
-cp *_Cassiopee_* $CASSIOPEE/Dist/bin
+PREFIX="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE}"
+cp *_Cassiopee_* $PREFIX/Dist
+cp *_Cassiopee_* $PREFIX/Dist/bin

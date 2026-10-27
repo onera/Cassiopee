@@ -32,7 +32,9 @@ Dist.writeSetupCfg()
 # Test if kcore exists =======================================================
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
-prod = os.getenv("ELSAPROD") or "xx"
+prod = os.getenv("ELSAPROD")
+if prod is None:
+    raise ValueError("Environment variable ELSAPROD must be set.")
 libraryDirs = ["build/"+prod]
 includeDirs = [numpyIncDir, kcoreIncDir, kcoreLibDir+'/../include']
 
@@ -114,12 +116,5 @@ if OSMesa:
 
 # Setup ======================================================================
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "CPlot",
-    version="4.2",
-    description="A plotter for *Cassiopee* Modules.",
-    author="ONERA",
-    url="https://onera.github.io/Cassiopee/",
-    packages=['CPlot'],
-    package_dir={"":"."},
     ext_modules=extensions
 )

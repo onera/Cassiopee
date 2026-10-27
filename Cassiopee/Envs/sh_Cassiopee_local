@@ -1,13 +1,16 @@
-#! /bin/sh
+#!/bin/sh
 # *Cassiopee* machine specific (local) variables
 
 # Preliminary checks
 unset ELSAPROD
-if [ "$CASSIOPEE" = "" ]; then
-    echo "You must specify a CASSIOPEE variable in your environment."
-    echo "This variable specifies the installation path of *Cassiopee*."
+if [ -z "$CASSIOPEE" ]; then
+    echo "Environment variable CASSIOPEE must be set."
+    echo "CASSIOPEE identifies the root directory of the Cassiopee repository."
     exit
 fi
+
+PREFIX="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE}"
+INSTALLPATH="$PREFIX/Dist/bin"
 
 # Environment
 [ "$(ulimit -Hs)" = "unlimited" ] && ulimit -s unlimited
@@ -113,7 +116,7 @@ if [ "$MAC" = "ld" ]; then
     export OMP_NUM_THREADS=$ncpu
     export XMODIFIERS="@im=none"
     export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
-    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+    export LSAN_OPTIONS=suppressions="$INSTALLPATH/$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/10.2.0-gnu831/lib64/libasan.so
 
 elif [ "$MAC" = "ld_coda" ]; then
@@ -151,7 +154,7 @@ elif [ "$MAC" = "ld_coda" ]; then
     export OMP_NUM_THREADS=$ncpu
     export XMODIFIERS="@im=none"
     export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
-    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+    export LSAN_OPTIONS=suppressions="$INSTALLPATH/$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/10.2.0-gnu831/lib64/libasan.so
 
 elif [ "$MAC" = "ld-clang" ]; then
@@ -210,7 +213,7 @@ elif [ "$MAC" = "ubuntu" ]; then
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     export XMODIFIERS="@im=none"
     export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
-    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+    export LSAN_OPTIONS=suppressions="$INSTALLPATH/$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/usr/lib/gcc/x86_64-linux-gnu/13/libasan.so
     ulimit -s 8192 # for ASAN
 
@@ -224,7 +227,7 @@ elif [ "$MAC" = "ubuntu-jax" ]; then
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     export XMODIFIERS="@im=none"
     export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
-    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+    export LSAN_OPTIONS=suppressions="$INSTALLPATH/$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/usr/lib/gcc/x86_64-linux-gnu/13/libasan.so
     ulimit -s 8192 # for ASAN
     source $CASSIOPEE/../JSolve/jax-env/bin/activate # all must be pip installed
@@ -414,7 +417,7 @@ elif [ "$MAC" = "juno_gcc" ]; then
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     export XMODIFIERS="@im=none"
     export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
-    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+    export LSAN_OPTIONS=suppressions="$INSTALLPATH/$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu850/lib64/libasan.so
     unset $(env | grep SLURM | cut -d'=' -f 1)
     export SLURM_CONF_SERVER=10.33.131.11:6817
@@ -485,7 +488,7 @@ elif [ "$MAC" = "juno_coda2" ]; then
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     export XMODIFIERS="@im=none"
     export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
-    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+    export LSAN_OPTIONS=suppressions="$INSTALLPATH/$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu850/lib64/libasan.so
     unset $(env | grep SLURM | cut -d'=' -f 1)
     export SLURM_CONF_SERVER=10.33.131.11:6817
@@ -516,7 +519,7 @@ elif [ "$MAC" = "juno_coda" ]; then
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     export XMODIFIERS="@im=none"
     export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
-    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+    export LSAN_OPTIONS=suppressions="$INSTALLPATH/$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu850/lib64/libasan.so
     unset $(env | grep SLURM | cut -d'=' -f 1)
     export SLURM_CONF_SERVER=10.33.131.11:6817
@@ -616,7 +619,7 @@ elif [ "$MAC" = "sator_gcc" ]; then
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     export XMODIFIERS="@im=none"
     export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
-    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+    export LSAN_OPTIONS=suppressions="$INSTALLPATH/$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 
 elif [ "$MAC" = "sator_coda" ]; then
@@ -646,7 +649,7 @@ elif [ "$MAC" = "sator_coda" ]; then
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     export XMODIFIERS="@im=none"
     export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
-    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+    export LSAN_OPTIONS=suppressions="$INSTALLPATH/$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 
 elif [ "$MAC" = "sator_coda2" ]; then
@@ -680,7 +683,7 @@ elif [ "$MAC" = "sator_coda2" ]; then
     export PIP_DISABLE_PIP_VERSION_CHECK=1
     export XMODIFIERS="@im=none"
     export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
-    export LSAN_OPTIONS=suppressions=$CASSIOPEE/Dist/bin/"$ELSAPROD"/asan.supp:print_suppressions=0
+    export LSAN_OPTIONS=suppressions="$INSTALLPATH/$ELSAPROD"/asan.supp:print_suppressions=0
     export ASAN_LIB=/opt/tools/gcc/12.1.0-gnu831/lib64/libasan.so
 
 elif [ "$MAC" = "adastra" ]; then
@@ -805,9 +808,10 @@ else
     fi
 fi
 
-export PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/bin:$PROD_PATH
-export LD_LIBRARY_PATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/"$pylib":$PROD_LD_LIBRARY_PATH
-export PYTHONPATHL=$CASSIOPEE/Dist/bin/"$ELSAPROD":$CASSIOPEE/Dist/bin/"$ELSAPROD"/"$pysite":$PROD_PYTHONPATH
+INSTALLPATH="$INSTALLPATH/$ELSAPROD"
+export PATHL="$INSTALLPATH":"$INSTALLPATH/bin":$PROD_PATH
+export LD_LIBRARY_PATHL="$INSTALLPATH":"$INSTALLPATH/$pylib":$PROD_LD_LIBRARY_PATH
+export PYTHONPATHL="$INSTALLPATH":"$INSTALLPATH/$pysite":$PROD_PYTHONPATH
 
 if ! [ -z $OLD_PATHL ]; then
     # Remove all occurences of old paths

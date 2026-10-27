@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 # Print help message
 usage() {
   cat <<EOF
@@ -28,5 +28,6 @@ do
   if test -e $mod; then
       cd $mod
       ./clean "$@"
+      cd ..
   fi
 done

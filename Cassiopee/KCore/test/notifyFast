@@ -1,10 +1,12 @@
-#! /bin/sh
-if [ "$PYTHONEXE" != "" ]; then
+#!/bin/sh
+PREFIX="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE}"
+if [ -n "$PYTHONEXE" ]; then
     alias python=$PYTHONEXE
 fi
-if test -e "$CASSIOPEE/Dist/bin/$ELSAPROD/notifyFast.py"
+
+if test -e "$PREFIX/Dist/bin/$ELSAPROD/notifyFast.py"
 then
-    python "$CASSIOPEE/Dist/bin/$ELSAPROD/notifyFast.py" "$@"
+    python "$PREFIX/Dist/bin/$ELSAPROD/notifyFast.py" "$@"
 else
-    python "$CASSIOPEE/Dist/bin/$ELSAPROD/notifyFast.pyc" "$@"
+    python "$PREFIX/Dist/bin/$ELSAPROD/notifyFast.pyc" "$@"
 fi

@@ -40,8 +40,9 @@ if not OCCPresent:
     print("Warning: open cascade not found on your system. OCC not installed.")
     os._exit(0)
 
-# Compilation des fortrans ===================================================
-prod = os.getenv("ELSAPROD") or "xx"
+prod = os.getenv("ELSAPROD")
+if prod is None:
+    raise ValueError("Environment variable ELSAPROD must be set.")
 
 # Setting libraryDirs and libraries ===========================================
 libraryDirs = ["build/"+prod, kcoreLibDir, generatorLibDir]
@@ -64,20 +65,18 @@ libraryDirs += paths; libraries += libs
 libraryDirs += paths; libraries += libs
 
 # setup ======================================================================
+listExtensions = [
+    Extension(
+        'OCC.occ',
+        sources=["OCC/occ.cpp"],
+        include_dirs=["OCC"]+additionalIncludePaths+includeDirs,
+        library_dirs=additionalLibPaths+libraryDirs,
+        libraries=libraries+additionalLibs,
+        extra_compile_args=Dist.getCppArgs(),
+        extra_link_args=Dist.getLinkArgs()
+    )
+]
+
 setup(
-    name=("Cassiopee-" if os.getenv("CASSIOPEE_DIST_PREFIX", "1") == "1" else "") + "OCC",
-    version="4.2",
-    description="OpenCascade python module.",
-    author="ONERA",
-    url="https://onera.github.io/Cassiopee/",
-    packages=['OCC'],
-    package_dir={"":"."},
-    ext_modules=[Extension('OCC.occ',
-                           sources=["OCC/occ.cpp"],
-                           include_dirs=["OCC"]+additionalIncludePaths+includeDirs,
-                           library_dirs=additionalLibPaths+libraryDirs,
-                           libraries=libraries+additionalLibs,
-                           extra_compile_args=Dist.getCppArgs(),
-                           extra_link_args=Dist.getLinkArgs()
-                           )]
+    ext_modules=listExtensions
 )

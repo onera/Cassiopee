@@ -1,45 +1,42 @@
-#! /bin/bash
+#!/bin/bash
 # Lancement de python en parallele
 # kpython -n 2 script.py: lance 2 process, choisit le nbre de threads en fonction de la ressource
 # kpython -n2 -t4 script.py: lance 2 process avec 4 threads chacuns
 # kpython -a "env::" -n2 script.py: lance mpirun avec une option supplementaire
 # kpython -p: ajoute un profiling python
-if ([ $# -eq 0 ])
-then
+if [ $# -eq 0 ]; then
     echo 'kpython -n 5 -t 2 script.py'
     exit 1
 fi
 
 # executable python
-if [ "$PYTHONEXE" = "" ]; then
+if [ -z "$PYTHONEXE" ]; then
     PYTHONEXE=python
 fi
 
 # OMP_NUM_THREADS init
-if [ -n "$OMP_NUM_THREADS" ]
-then
+if [ -n "$OMP_NUM_THREADS" ]; then
     OMPNUMTHREADSINIT=$OMP_NUM_THREADS
 else
     OMPNUMTHREADSINIT="1"
 fi
 
 # Ressources 
-if [ -n "$OMP_NUM_THREADS" ]
-then
+if [ -n "$OMP_NUM_THREADS" ]; then
     ncpu=$OMP_NUM_THREADS # suppose que l'OMP_NUM_THREADS de env correspond a tous les coeurs disponibles
 else
     ncpu=$(grep processor /proc/cpuinfo | tail -1 | cut -f2 -d: )
-    if [ -z "$ncpu" ]
-    then
+    if [ -z "$ncpu" ]; then
         ncpu=1
     else
         ncpu=$((ncpu + 1))
     fi
 fi
 
-if [ -z "$ELSAPROD" ]
-then
-    ELSAPROD="xx"
+if [ -z "$ELSAPROD" ]; then
+    echo "Environment variable ELSAPROD must be set."
+    echo "ELSAPROD identifies the target machine or computing environment."
+    exit 1
 fi
 
 # set mpi number of processes (-n)

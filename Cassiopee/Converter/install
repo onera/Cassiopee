@@ -1,45 +1,32 @@
-#! /bin/sh
-#
-# Installation du module Converter
-# Par defaut dans : $CASSIOPEE/Dist/bin/$ELSAPROD/
-# Sinon : dans le repertoire specifie en argument
-#
-if ([ $# -eq 0 ])
-then
-    if [ "$CASSIOPEE" = "" ]; then
-        echo "You must specify a CASSIOPEE variable in your environment."
-        echo "This variable specifies the installation path of *Cassiopee*."
-        exit 1
-    fi
-    if [ "$ELSAPROD" = "" ]; then
-       export ELSAPROD=x86_r8
-    fi
-    INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
-
-elif ([ $# -eq 1 ])
-then
-    INSTALLPATH="$1"
-else
-    echo 'install: install in $CASSIOPEE/Dist/bin/$ELSAPROD'
-    echo ' -or-'
-    echo 'install <dir>: install in directory <dir>.'
+#!/bin/sh
+if [ -z "$CASSIOPEE" ]; then
+    echo "Environment variable CASSIOPEE must be set."
+    echo "CASSIOPEE identifies the root directory of the Cassiopee repository."
+    exit 1
+fi
+if [ -z "$ELSAPROD" ]; then
+    echo "Environment variable ELSAPROD must be set."
+    echo "ELSAPROD identifies the target machine or computing environment."
     exit 1
 fi
 
+PREFIX="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE}"
+INSTALLPATH="$PREFIX/Dist/bin/$ELSAPROD"
+
 # if specific python exe name
-if [ "$PYTHONEXE" != "" ]; then
+if [ -n "$PYTHONEXE" ]; then
     alias python=$PYTHONEXE
 fi
 
 # set production mode (0: scons+setup, 1: scons+pip, 2: scons+pip+wheel)
-if [ "$PRODMODE" = "" ]; then
+if [ -z "$PRODMODE" ]; then
     PRODMODE=0
 fi
 
 # Compilation et installation
 if [ $PRODMODE -ge 0 ]; then
     sconsf=`which scons`
-    if [ "$OMP_NUM_THREADS" != "" ]; then
+    if [ -n "$OMP_NUM_THREADS" ]; then
         export SCONSOPT="-j $OMP_NUM_THREADS"
     else
         export SCONSOPT=""

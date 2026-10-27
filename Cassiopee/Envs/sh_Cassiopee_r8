@@ -1,15 +1,16 @@
-#! /bin/sh
+#!/bin/sh
 # *Cassiopee* Compilation Environment
 
 #-----------------------------------------------------------------------------
-if [ "$CASSIOPEE" = "" ]; then
-    echo 'You must specify a CASSIOPEE variable in your environment.'
-    echo 'This variable specifies the installation path of *Cassiopee*.'
+if [ -z "$CASSIOPEE" ]; then
+    echo "Environment variable CASSIOPEE must be set."
+    echo "CASSIOPEE identifies the root directory of the Cassiopee repository."
 else
+    PREFIX="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE}"
     if [ -e $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_local ]; then
         . $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_local
-    elif [ -e $CASSIOPEE/Dist/sh_Cassiopee_local ]; then
-        . $CASSIOPEE/Dist/sh_Cassiopee_local
+    elif [ -e $PREFIX/Dist/sh_Cassiopee_local ]; then
+        . $PREFIX/Dist/sh_Cassiopee_local
     else
         echo 'Could not load prod. File sh_Cassiopee_local not found.'
     fi
