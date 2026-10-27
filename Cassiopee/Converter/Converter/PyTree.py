@@ -4084,6 +4084,8 @@ def _addBC2StructZone__(z, bndName, bndType, wrange=[], faceList=[],
             nodes = []
             if isinstance(data, numpy.ndarray):
                 nodes.append(Internal.createNode('State', 'DataArray_t', value=data))
+            elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], float):
+                nodes.append(Internal.createNode('State', 'DataArray_t', value=data))
             elif isinstance(data, list): # list of DataArray_t nodes
                 for d in data:
                     nodes.append(Internal.createNode(d[0], 'DataArray_t', value=d[1]))
@@ -4214,6 +4216,8 @@ def _addBC2NGonZone__(z, bndName, bndType, faceList, data, subzone,
         if data is not None:
             nodes = []
             if isinstance(data, numpy.ndarray):
+                nodes.append(Internal.createNode('State', 'DataArray_t', value=data))
+            elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], float):
                 nodes.append(Internal.createNode('State', 'DataArray_t', value=data))
             elif isinstance(data, list): # list of DataArray_t nodes
                 for d in data:

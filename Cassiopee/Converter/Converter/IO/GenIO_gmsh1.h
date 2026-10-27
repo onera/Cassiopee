@@ -214,8 +214,7 @@
         for (E_Int j = 0; j < 125; j++) READI;
         break;
 
-      default:
-        nDiscard++;
+      default: ;
     }
   }
   

@@ -696,7 +696,7 @@ E_Int K_IO::GenIO::binvtkread(
     }
 
     // Allocate
-    printf("Elements: BAR=" SF_D_ " TRI=" SF_D_ " QUAD=" SF_D_ " HEXA=" SF_D_ " TETRA=" SF_D_ " PENTA=" SF_D_ " PYRA=" SF_D_ "\n", nBAR, nTRI, nQUAD, nHEXA, nTETRA, nPENTA, nPYRA);
+    printf("Elements: NODE=" SF_D_ " BAR=" SF_D_ " TRI=" SF_D_ " QUAD=" SF_D_ " HEXA=" SF_D_ " TETRA=" SF_D_ " PENTA=" SF_D_ " PYRA=" SF_D_ "\n", nNODE, nBAR, nTRI, nQUAD, nHEXA, nTETRA, nPENTA, nPYRA);
     
     E_Int* cnBAR=NULL; E_Int* cnTRI=NULL; E_Int* cnQUAD=NULL;
     E_Int* cnTETRA=NULL; E_Int* cnPYRA=NULL; E_Int* cnPENTA=NULL;

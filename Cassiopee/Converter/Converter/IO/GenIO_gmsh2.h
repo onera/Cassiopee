@@ -243,7 +243,6 @@
         nHEXA_125++;
         break;
 
-      default:
-        nDiscard++;
+      default: ;
     }
   }

@@ -77,7 +77,7 @@ E_Int K_IO::GenIO::stlread(
 
   E_Int sizeoffloat = sizeof(float);
   E_Int sizeofshort = sizeof(short);
-  for (E_Int i = 0; i < nd; i++)
+  for (uint32_t i = 0; i < nd; i++)
   {
     fread(buf, sizeoffloat, 12, ptrFile);
     fread(&count, sizeofshort, 1, ptrFile);
@@ -97,7 +97,7 @@ E_Int K_IO::GenIO::stlread(
   FldArrayI* cp = new FldArrayI(nd, 3);
   FldArrayI& cx = *cp;
   connect.push_back(cp);
-  for (E_Int i = 0; i < nd; i++)
+  for (uint32_t i = 0; i < nd; i++)
   {
     cx(i,1) = 3*i+1;
     cx(i,2) = 3*i+2;
