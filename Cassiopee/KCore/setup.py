@@ -26,6 +26,15 @@ additionalLibs = Dist.getAdditionalLibs()
 # Write setup.cfg file
 Dist.writeSetupCfg()
 
+# Write build info to file
+Dist.writeBuildInfo()
+
+# Write environnement files
+prefix = os.environ["INSTALL_PREFIX"]
+installPath = os.path.join(prefix, Dist.getInstallPathSuffix())
+libPath = os.path.dirname(os.path.dirname(installPath))
+Dist.writeEnvs(installPath, libPath)
+
 # Test if numpy exists
 numpyVersion, numpyIncDir, numpyLibDir = Dist.checkNumpy()
 
