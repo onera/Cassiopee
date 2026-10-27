@@ -17,8 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Authors : Sam Landier (sam.landier@onera.fr)
-
 #ifndef __DELAUNAY_CHRONO_H__
 #define __DELAUNAY_CHRONO_H__
 

@@ -203,7 +203,6 @@ class Common(App):
     def __init__(self, format=None, numb=None, numz=None):
         App.__init__(self)
         self.__version__ = "0.0"
-        self.authors = ["ash@onera.fr"]
         self.requires(['format', 'numb', 'numz'])
         self.compress = 0
         # default values

@@ -8,9 +8,7 @@ import KCore.Dist as Dist
 # KCore
 #==============================================================================
 
-# Get prefix from command line
-prefix = ARGUMENTS.get('prefix', '')
-installPath = Dist.getInstallPath(prefix)
+installPath = Dist.getInstallPath()
 Cppcompiler = Dist.getCppCompiler()
 f77compiler = Dist.getf77Compiler()
 f90compiler = Dist.getFromConfigDict("f90compiler", "gfortran")

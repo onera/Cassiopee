@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef __COLLIDER_H__
 #define	__COLLIDER_H__
@@ -278,7 +277,6 @@ void COLLIDER::__compute
         }
         
         K_FLD::FloatArray tutu(_aCoords.array());
-        meshIO::write("/home/slandier/tmp/cands.mesh", tutu, candidates);
            
         candidates.shift(toto.cols());
         toto.pushBack(tutu);
@@ -289,8 +287,6 @@ void COLLIDER::__compute
         
         T[0]=T[1]=toto.cols()-2;T[2]=toto.cols()-1;
         out.pushBack(T,T+3);
-        
-        meshIO::write("/home/slandier/tmp/H6candiadtes.mesh", toto, out);
       }*/
     
       for (j=0; j<tmp.size(); ++j)

@@ -118,7 +118,7 @@ def requestWaitall(reqs):
 #==============================================================================
 # Reduce to root applying op (using pickle, small data)
 #==============================================================================
-def reduce(data, op=MPI.SUM, root=0):
+def reduce(data, op=SUM, root=0):
     return KCOMM.reduce(data, op=op, root=root)
 
 #==============================================================================
@@ -126,13 +126,13 @@ def reduce(data, op=MPI.SUM, root=0):
 # dataIn and dataOut must be numpys of same size and type
 # or buffer specified [data,count,MPI_DOUBLE]
 #==============================================================================
-def Reduce(dataIn, dataOut, op=MPI.SUM, root=0):
+def Reduce(dataIn, dataOut, op=SUM, root=0):
     return KCOMM.Reduce(dataIn, dataOut, op=op, root=root)
 
 #==============================================================================
 # Reduce to all procs (using pickle, small data)
 #==============================================================================
-def allreduce(data, op=MPI.SUM):
+def allreduce(data, op=SUM):
     return KCOMM.allreduce(data, op=op)
 
 #==============================================================================
@@ -140,7 +140,7 @@ def allreduce(data, op=MPI.SUM):
 # dataIn and dataOut must be numpys of same size and type
 # or buffer specified [data,count,MPI_DOUBLE]
 #==============================================================================
-def Allreduce(dataIn, dataOut, op=MPI.SUM):
+def Allreduce(dataIn, dataOut, op=SUM):
     return KCOMM.Allreduce(dataIn, dataOut, op=op)
 
 #==============================================================================
@@ -150,18 +150,18 @@ def Allreduce(dataIn, dataOut, op=MPI.SUM):
 # Method 2 - All values, fill missing with fillValue
 # See allgatherDict for more info on the methods used to gather data
 #==============================================================================
-def allreduceDict(data, method=0, fillValue=None, op=MPI.SUM):
+def allreduceDict(data, method=0, fillValue=None, op=SUM):
     if method not in [0, 1, 2]:
         raise ValueError(f"allreduceDict: method can either be 0, 1 or 2, not {method}.")
     ret = allgatherDict(data, method=method, fillValue=fillValue)
     def reduceDict__(data):
         if isinstance(data, dict):
             return {k: reduceDict__(v) for k, v in data.items()}
-        if op == MPI.SUM: return sum(data)
-        elif op == MPI.MIN: return min(data)
-        elif op == MPI.MAX: return max(data)
-        elif op == MPI.LOR: return any(data)
-        elif op == MPI.LAND: return all(data)
+        if op == SUM: return sum(data)
+        elif op == MIN: return min(data)
+        elif op == MAX: return max(data)
+        elif op == LOR: return any(data)
+        elif op == LAND: return all(data)
         elif op == set:
             v = set(data)
             return v.pop() if len(v) == 1 else sorted(v)
@@ -310,8 +310,9 @@ def allgather(data):
 def allgatherDict(data, method=0, fillValue=None):
     if method not in [0, 1, 2, 3]:
         raise ValueError(f"allgatherDict: method can either be 0, 1, 2 or 3, not {method}.")
+    if not isinstance(data, dict):
+        raise TypeError("allgatherDict: data must be a dict.")
     ret = KCOMM.allgather(data)
-    if not isinstance(data, dict): return ret
     def keys__(dicts):
         return dict.fromkeys(k for d in dicts for k in d)
     def values__(v):

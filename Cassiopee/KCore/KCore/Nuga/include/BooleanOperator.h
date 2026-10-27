@@ -17,8 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Authors : Sam Landier (sam.landier@onera.fr)
-
 #ifndef __BOOLEANOPERATOR_H__
 #define	__BOOLEANOPERATOR_H__
 

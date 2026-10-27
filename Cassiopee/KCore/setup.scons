@@ -5,11 +5,13 @@
 # Numpy
 #==============================================================================
 import os
+import sys
+sys.path.insert(0, os.path.join(Dir('#').abspath, "KCore"))
 import Dist
 
 # Get prefix from command line
 prefix = ARGUMENTS.get('prefix', '')
-installPath = Dist.getInstallPath(prefix)
+installPath = os.path.join(prefix, Dist.getInstallPathSuffix())
 f77compiler = Dist.getf77Compiler()
 additionalIncludePaths = Dist.getAdditionalIncludePaths()
 additionalLibPaths = Dist.getAdditionalLibPaths()

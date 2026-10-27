@@ -1,10 +1,11 @@
 # Installation de libconnector pour etre accessible par les autres modules
 # Si libconnector.a existe, on la recopie
 # Sinon, on cherche connector.so ou connector.pyd, on le recopie en libconnector.so ou dll
-import os, shutil
+import os
+import shutil
 import KCore.Dist as Dist
-system = Dist.getSystem()[0]
 
+system = Dist.getSystem()[0]
 if system == 'Windows':
     __EXTMODULE__ = '.pyd'
     __EXTSHARED__ = '.dll'
@@ -12,8 +13,7 @@ else:
     __EXTMODULE__ = '.so'
     __EXTSHARED__ = '.so'
 
-import KCore.installPath as K
-libPath = K.libPath
+libPath = Dist.getLibPath()
 prod = os.getenv("ELSAPROD")
 if prod is None:
     raise ValueError("Environment variable ELSAPROD must be set.")

@@ -1,10 +1,8 @@
 """Transformation of arrays.
 """
 __version__ = "4.2"
-__author__ = "Stephanie Peron, Christophe Benoit, Gaelle Jeanfaivre, Pascal Raud"
-#
+
 # Python Interface to make basic transformations on arrays
-#
 from . import transform
 try: import Converter
 except: raise ImportError("Transform: requires Converter module.")

@@ -38,6 +38,7 @@ if [ -z "$ELSAPROD" ]; then
     rm -rf build
 else
     rm -rf "build/$ELSAPROD"
+    rm -rf build/bdist.* build/lib.* build/scripts-* build/temp.*
     if [ "$REMOVE_DIST" -eq 1 ]; then
         shopt -s nocaseglob
         rm -rf "$DIST_PYSITE/$mod" \

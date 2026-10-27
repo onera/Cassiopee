@@ -1,0 +1,5 @@
+merge.l
+doc/source/*.rst
+KCore/buildInfo.json
+KCore/installBase.json
+KCore/installBaseUser.json

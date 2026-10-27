@@ -9,9 +9,7 @@ import KCore.Dist as Dist
 # KCore library
 #==============================================================================
 
-# Get prefix from command line
-prefix = ARGUMENTS.get('prefix', '')
-installPath = Dist.getInstallPath(prefix)
+installPath = Dist.getInstallPath()
 additionalIncludePaths = Dist.getAdditionalIncludePaths()
 additionalLibPaths = Dist.getAdditionalLibPaths()
 additionalLibs = Dist.getAdditionalLibs()

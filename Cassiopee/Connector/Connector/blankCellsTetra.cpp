@@ -620,18 +620,6 @@ inline E_Int __do_the_cell_blanking
     }
   }
   
-  //int minid = *std::min_element(ids.begin(), ids.end());
-  //int maxid = *std::max_element(ids.begin(), ids.end());
-  //std::cout << "ids stat : size/min/max : " << ids.size() << " " << minid << " " << maxid << std::endl;
-  //std::cout << "cN size : " << cN.getSize() << std::endl;
-  
-  /*std::ostringstream o;
-  o << "/home/slandier/tmp/mask_tree/mask_" << xcount++ << ".txt";
-  std::ofstream of(o.str().c_str());
-  for (std::set<int>::const_iterator it=uids.begin(); it != uids.end(); ++it)
-    of <<*it << std::endl;
-  of.close();*/
-  
   return 0;
   
 }
@@ -755,18 +743,6 @@ inline E_Int __do_the_cell_blanking<K_MESH::Polyhedron<UNKNOWN> >
      //uids.insert(subset[oldIds2[i]]);
     }
   }
-  
-  //int minid = *std::min_element(ids.begin(), ids.end());
-  //int maxid = *std::max_element(ids.begin(), ids.end());
-  //std::cout << "ids stat : size/min/max : " << ids.size() << " " << minid << " " << maxid << std::endl;
-  //std::cout << "cN size : " << cN.getSize() << std::endl;
-  
-  /*std::ostringstream o;
-  o << "/home/slandier/tmp/mask_tree/mask_" << xcount++ << ".txt";
-  std::ofstream of(o.str().c_str());
-  for (std::set<int>::const_iterator it=uids.begin(); it != uids.end(); ++it)
-    of <<*it << std::endl;
-  of.close();*/
   
   return 0;
   

@@ -17,7 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Authors : Sam Landier (sam.landier@onera.fr); Imad Hammani (imad.hammani@onera.fr)
 
 #ifndef NUGA_METRIC_SENSOR_HXX
 #define NUGA_METRIC_SENSOR_HXX

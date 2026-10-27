@@ -1,7 +1,6 @@
 """Geometry definition module.
 """
 __version__ = "4.2"
-__author__ = "Stephanie Peron, Christophe Benoit, Pascal Raud, Sam Landier"
 
 from . import geom
 import numpy
@@ -57,11 +56,11 @@ def naca(e, N=101, sharpte=True):
 def profile(name=None):
     """Create a wing profile mesh."""
     import os
+    import KCore.Dist as Dist
     import Converter.PyTree as C
     import Converter.Internal as Internal
-    import KCore.installPath
     prodname = os.getenv("ELSAPROD")
-    libpath = KCore.installPath.libPath
+    libpath = Dist.getLibPath()
     pos = libpath.rfind(prodname)
     filepath = os.path.join(libpath[:pos], prodname, "UIUCAirfoils.cgns")
     t = C.convertFile2PyTree(filepath)

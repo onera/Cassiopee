@@ -18,17 +18,7 @@ def loadModuleFromPath(modname):
     return mod
 
 # Compiler settings must be set in installBase.py / installBaseUser.py
-Dist = loadModuleFromPath('Dist')
-installBase = loadModuleFromPath('installBase')
-try:
-    installBaseUser = loadModuleFromPath("installBaseUser")
-    installDict = {
-        **installBaseUser.installDict,
-        **installBase.installDict,
-    }
-except (ModuleNotFoundError, FileNotFoundError):
-    installDict = installBase.installDict
-Dist.setConfigDict(installDict)
+Dist = loadModuleFromPath('KCore/Dist')
 additionalLibPaths = Dist.getAdditionalLibPaths()
 additionalIncludePaths = Dist.getAdditionalIncludePaths()
 additionalLibs = Dist.getAdditionalLibs()

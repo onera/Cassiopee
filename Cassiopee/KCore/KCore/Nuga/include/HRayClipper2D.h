@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef BND_GEOM_HRAYCLIPPER2D_H
 #define BND_GEOM_HRAYCLIPPER2D_H
@@ -162,7 +161,6 @@ void HRayClipper2D<Connectivity_t>::run(const E_Float* w, E_Int nfield, E_Float*
 
 #ifdef DEBUG_CLIP
     assert (xbands <= NBANDS+2);
-    draw_PG("/home/slandier/tmp/hrayclipper/split.mesh", refine_crd);
 #endif
 
     if ((C0 > _nrays) || (C0 < 0 && xbands==1)) // completly outside the rays

@@ -17,7 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Authors : Sam Landier (sam.landier@onera.fr)
 
 #ifndef _NUGA_MESHTOOL_CXX__
 #define _NUGA_MESHTOOL_CXX__

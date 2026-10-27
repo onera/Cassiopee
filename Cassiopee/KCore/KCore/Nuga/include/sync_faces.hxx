@@ -1,13 +1,4 @@
-/*
-
-
-
---------- NUGA v1.0
-
-
-
-*/
-//Authors : Sâm Landier (sam.landier@onera.fr)
+/* --------- NUGA v1.0 --------- */
 
 #ifndef __NUGA_SYNC_FACES_HXX__
 #define __NUGA_SYNC_FACES_HXX__
@@ -188,7 +179,6 @@ inline void detect_async_modified_faces(NUGA::ph_mesh_t& vmesh, const E_Float* c
     ngon_type ng;
     b.convert2NG(cc, ng);
     ng.export_to_array(ccnt);
-    tp::write("D:\\slandier\\DATA\\tmp\\match_perio\\box.tp", cc, ccnt, "NGON");
 
     medith::write("face", crdR, m.cnt, i);
     }*/
@@ -484,7 +474,6 @@ inline void duplicate_and_move_period_faces
     ngon_type ngo(pgsL, false);
     K_FLD::IntArray cnto;
     ngo.export_to_array(cnto);
-    tp::write("D:\\slandier\\DATA\\tmp\\match_perio\\pgsL.tp", crdL, cnto, "NGON");
   }
 #endif
 
@@ -544,7 +533,6 @@ inline void duplicate_and_move_period_faces
     ngon_type ngo(pgsR, false);
     K_FLD::IntArray cnto;
     ngo.export_to_array(cnto);
-    tp::write("D:\\slandier\\DATA\\tmp\\match_perio\\pgsR.tp", crdR, cnto, "NGON");
   }
 #endif
 

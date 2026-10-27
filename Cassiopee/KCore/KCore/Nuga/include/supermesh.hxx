@@ -16,7 +16,6 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-//Authors : Sam Landier (sam.landier@onera.fr)
 #ifndef NUGA_SUPERMESH_HXX
 #define NUGA_SUPERMESH_HXX
 
@@ -513,7 +512,6 @@ void xmatch(const zmesh_t& m0, const zmesh_t& m1, E_Float ARTOL, std::vector<E_I
   K_FLD::IntArray cnto;
   ngon_type ngo(xm.cnt, false);
   ngo.export_to_array(cnto);
-  tp::write("D:\\slandier\\DATA\\tmp\\interpol\\SURF\\tmp\\xm.tp", xm.crd, cnto, "NGON");
 #endif
 
 }

@@ -3,7 +3,6 @@
 # One method: run
 
 __version__ = "4.2"
-__author__ = "Stephanie Peron, Christophe Benoit, Thomas Renaud, Ivan Mary"
 
 import Converter.PyTree as C
 
@@ -11,7 +10,6 @@ class App:
     """General applet for Cassiopee Apps."""
     def __init__(self):
         self.__version__ = "0.0"
-        self.authors = ["mickey.mouse@whitehouse.com"]
         self.data = {}
         self.data['dataOut'] = 'out.cgns'
         self.required = []

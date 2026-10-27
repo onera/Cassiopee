@@ -23,7 +23,7 @@ This distribution contains third party software:
 installing CPlot:
 =============================================================================
 You can use CPlot as a in window renderer or offscreen renderer.
-To use it as offscreen renderer, set in KCore.installBase.py: 
+To use it as offscreen renderer, set in KCore/installBase.json: 
 CPlotOffScreen=True.
 
 For standard install:

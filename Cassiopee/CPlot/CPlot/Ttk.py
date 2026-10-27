@@ -20,8 +20,9 @@ ICONMODE = 0
 #=================================================================
 def installLocalThemes(win):
     try:
-        import KCore.installPath
-        folder = KCore.installPath.installPath+'/CPlot'
+        import os
+        import KCore.Dist as Dist
+        folder = os.path.join(Dist.getInstallPath(), 'CPlot')
         win.call("lappend", "auto_path", "[%s]"%folder + "/themes")
         win.eval("source %s/themes/pkgIndex.tcl"%folder)
         #win.call("package", "require", "Img")
@@ -75,11 +76,12 @@ def setTheme(myTheme):
 
         # Load des themes dynamiques
         if myTheme in dynamicThemes.keys():
-            import KCore.installPath
-            folder = KCore.installPath.installPath+'/CPlot'
+            from pathlib import Path
+            import KCore.Dist as Dist
+            folder = Path(Dist.__file__).resolve().parents[1] / "CPlot"
             try: # if already loaded
-                CTK.WIDGETS['masterWin'].call("lappend", "auto_path", "[%s]"%folder + "/themes/%s"%myTheme)
-                CTK.WIDGETS['masterWin'].eval("source %s/themes/%s/%s"%(folder,myTheme,dynamicThemes[myTheme]))
+                CTK.WIDGETS['masterWin'].call("lappend", "auto_path", str(folder / "themes" / myTheme))
+                CTK.WIDGETS['masterWin'].call("source", str(folder / "themes" / myTheme / dynamicThemes[myTheme]))
             except: pass
             ttk.Style().theme_use(myTheme); createStyles(); return
 

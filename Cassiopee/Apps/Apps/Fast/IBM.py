@@ -1404,7 +1404,6 @@ class IBM(Common):
     def __init__(self, format=None, numb=None, numz=None):
         Common.__init__(self, format, numb, numz)
         self.__version__ = "0.0"
-        self.authors = ["defi@onera.fr"]
         self.input_var = IBM_Input()
 
         self.DEPTH                 = None

@@ -17,8 +17,6 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//Authors : Sam Landier (sam.landier@onera.fr)
-
 #ifndef __KCORE_SEARCH_BBTREE_CXX__
 #define __KCORE_SEARCH_BBTREE_CXX__
 

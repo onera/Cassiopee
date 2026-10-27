@@ -1,13 +1,4 @@
-/*
-
-
-
---------- NUGA v1.0
-
-
-
-*/
-//Authors : Sâm Landier (sam.landier@onera.fr)
+/* --------- NUGA v1.0 --------- */
 
 #ifndef SUBDIV_DEFS_H
 #define SUBDIV_DEFS_H
