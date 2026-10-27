@@ -44,7 +44,10 @@ fi
 [ $? -ne 0 ] && exit 1;
 rm -f build/lib.*/KCore/kcore.*
 rm -f build/lib.*/KCore/kcore-*.*
-python -c 'import sys, Dist; Dist.symLinks(sys.argv[1])' "$INSTALLPATH"
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+PYTHONPATH="$SCRIPT_DIR/KCore${PYTHONPATH:+:$PYTHONPATH}" \
+    python -c 'import sys, Dist; Dist.symLinks(sys.argv[1])' "$INSTALLPATH"
+
 if [ $PRODMODE -eq 0 ]; then # setup
     python setup.py install --prefix="$INSTALLPATH"
     [ $? -ne 0 ] && exit 1;
@@ -64,7 +67,6 @@ python installLib.py --prefix="$INSTALLPATH"
 
 # Copie les scripts de notifications utilisateur
 cp test/notifyCassiopee.py test/notifyCassiopee "$INSTALLPATH"
-cp test/notifyFast.py test/notifyFast "$INSTALLPATH"
 
 # LSAN: Ajoute un fichier pour supprimer certaines fuites memoire du log
 cat > "$INSTALLPATH"/asan.supp <<EOF

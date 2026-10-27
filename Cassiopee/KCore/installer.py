@@ -17,17 +17,17 @@ WIDTH=40
 # Si le python installe n'a pas tkinter, il reste possible d'ajouter
 # tous les chemins dans config.py (ancien systeme).
 #==============================================================================
+import KCore.Dist as Dist
+import os.path
+import json
+
 try: import tkinter as TK
 except:
     raise ImportError(
         'Cassiopee installer requires tkinter.\nIf your python dont run '
-        'tkinter, edit the installBaseUser.json file manually and add your '
+        'tkinter, edit the installBaseUser.json file and add your '
         'machine settings.'
     )
-
-import KCore.Dist as Dist
-import os.path
-import json
 
 #==============================================================================
 def quit(event=None):
@@ -297,14 +297,21 @@ def checkMpeg(event=None):
 
 #==============================================================================
 # Load install base
+installPath = Dist.getInstallPath()
+filename = os.path.join(installPath, "KCore", "KCore", "installBase.json")
 try:
-    import installBaseUser
-    installDictUser = installBaseUser.installDict
-except ModuleNotFoundError:
-    installDictUser = {}
-import installBase
-installDict = {**installDictUser, **installBase.installDict}
-
+    with open(filename, "r", encoding="utf-8") as f:
+        installDict = json.load(f)
+except OSError as e:
+    raise OSError(f"Cannot read file {filename}.") from e
+installDictUser = {}
+filename = os.path.join(installPath, "KCore", "KCore", "installBaseUser.json")
+try:
+    with open(filename, "r", encoding="utf-8") as f:
+        installDictUser = json.load(f)
+except OSError as e:
+    pass
+installDict = {**installDictUser, **installDict}
 
 #==============================================================================
 # Get machine

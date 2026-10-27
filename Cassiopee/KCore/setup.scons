@@ -5,7 +5,9 @@
 # Numpy
 #==============================================================================
 import os
-import KCore.Dist as Dist
+import sys
+sys.path.insert(0, os.path.join(Dir('#').abspath, "KCore"))
+import Dist
 
 # Get prefix from command line
 prefix = ARGUMENTS.get('prefix', '')

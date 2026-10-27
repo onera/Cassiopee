@@ -5,6 +5,7 @@ import platform
 import glob
 import subprocess
 import shutil
+import json
 
 # Toggle to True for compiling for debug (valgrind, inspector, sanitizer)
 _DEBUG = False
@@ -39,18 +40,21 @@ def setConfigDict(installDict=None):
     global CONFIGDICT
     prod = os.getenv("ELSAPROD")
     if installDict is None:
-        try: import KCore.installBase as installBase
-        except ModuleNotFoundError: import installBase
+        distDir = os.path.dirname(__file__)
+        filename = os.path.join(distDir, "installBase.json")
         try:
-            import KCore.installBaseUser as installBaseUser
-            installDictUser = installBaseUser.installDict
-        except ModuleNotFoundError:
-            try:
-                import installBaseUser as installBaseUser
-                installDictUser = installBaseUser.installDict
-            except ModuleNotFoundError:
-                installDictUser = {}
-        installDict = {**installDictUser, **installBase.installDict}
+            with open(filename, "r", encoding="utf-8") as f:
+                installDict = json.load(f)
+        except OSError as e:
+            raise OSError(f"Cannot read file {filename}.") from e
+        installDictUser = {}
+        filename = os.path.join(distDir, "installBaseUser.json")
+        try:
+            with open(filename, "r", encoding="utf-8") as f:
+                installDictUser = json.load(f)
+        except OSError as e:
+            pass
+        installDict = {**installDictUser, **installDict}
 
     cassProd = None
     # prod est tout d'abord cherche dans le dictionnaire
@@ -73,9 +77,10 @@ def setConfigDict(installDict=None):
 
     if cassProd is None:  # not found in installDict
         print(f"Warning: {prod} not found in KCore/installBase.json nor "
-              "KCore/installBaseUser.py.\n"
+              "KCore/installBaseUser.json.\n"
               "Warning: using default compilers and options.\n"
-              "Warning: to change that, add a block in KCore/installBase.py.")
+              "Warning: to change that, add a config in "
+              "KCore/installBaseUser.json.")
         cassProd = 'default'
 
     CONFIGDICT = installDict[cassProd]
@@ -306,14 +311,13 @@ def getInstallPathSuffix(type=0):
 # Return the buildInfo dictionary
 #=============================================================================
 def getBuildInfoDict():
-    import json
-    installPath = getInstallPath()
-    buildInfoFilename = os.path.join(installPath, "KCore", "buildInfo.json")
+    distDir = os.path.dirname(__file__)
+    filename = os.path.join(distDir, "buildInfo.json")
     try:
-        with open(buildInfoFilename, "r", encoding="utf-8") as f:
+        with open(filename, "r", encoding="utf-8") as f:
             buildInfo = json.load(f)
     except OSError as e:
-        raise OSError("Cannot read file buildInfo.json.") from e
+        raise OSError(f"Cannot read file {filename}.") from e
     return buildInfo
 
 #==============================================================================
@@ -534,7 +538,7 @@ def writeSetupCfg():
 
 #==============================================================================
 # Retourne le compilo c, c++ et ses options tels que definis dans distutils
-# ou dans installBase.py / installBaseUser.py
+# ou dans installBase.json / installBaseUser.json
 #==============================================================================
 def getDistUtilsCompilers():
     from setuptools._distutils import sysconfig
@@ -585,7 +589,7 @@ def getDistUtilsCompilers():
         elif Cppcompiler == 'icx':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('icx', 'icpx')
 
-    (cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = vars
+    cc, cxx, opt, basecflags, ccshared, ldshared, so_ext = vars
     cc = cc.split(' ') # enleve les options si mises dans cc
     cc = cc[0]
     cxx = cxx.split(' ')
@@ -1057,7 +1061,10 @@ def getForArgs():
     if f77compiler is None: return []
     options = getf77AdditionalOptions()
     if f77compiler == "gfortran":
-        if DEBUG(): options += ['-Wall', '-g', '-O0', '-fbacktrace', '-fbounds-check', '-ffpe-trap=zero,overflow,invalid']
+        if DEBUG(): options += [
+            '-Wall', '-g', '-O0', '-fbacktrace', '-fbounds-check',
+            '-ffpe-trap=zero,overflow,invalid'
+        ]
         else: options += ['-Wall', '-O3']
         if useOMP == 1: options += ['-fopenmp']
         if useStatic == 1: options += ['--static']
@@ -1228,12 +1235,14 @@ def checkLdLibraryPath(libPath):
     a = os.getenv("LD_LIBRARY_PATH")
     b = os.getenv("LIBRARY_PATH")
     if a is None and b is None:
-        print("Warning: to use the module, please add: %s to your LD_LIBRARY_PATH (unix) or PATH (windows)."%libPath)
+        print("Warning: to use the module, please add: %s to your "
+              "LD_LIBRARY_PATH (unix) or PATH (windows)."%libPath)
     else:
         if a is not None: ret = a
         else: ret = b
         if re.compile(libPath).search(ret) is None:
-            print("Warning: to use the module, please add: %s to your LD_LIBRARY_PATH (unix) or PATH (windows)."%libPath)
+            print("Warning: to use the module, please add: %s to your "
+                  "LD_LIBRARY_PATH (unix) or PATH (windows)."%libPath)
 
 #=============================================================================
 # Check the correct installation of any module of Cassiopee or Fast
@@ -1675,10 +1684,12 @@ def checkMpeg():
         print('Info: libavcodec was not found on your system. No mpeg support.')
         return (False, i, l)
     elif l is not None and i is None:
-        print('Info: libavcodec/avcodec.h,  libavutil/mem.h or libavutil/imgutils.h was not found on your system. No mpeg support.')
+        print('Info: libavcodec/avcodec.h,  libavutil/mem.h or '
+              'libavutil/imgutils.h was not found on your system. No mpeg support.')
         return (False, i, l)
     else:
-        print('Info: libavcodec and libavcodec/avcodec.h,  libavutil/mem.h or libavutil/imgutils.h was not found on your system. No mpeg support.')
+        print('Info: libavcodec and libavcodec/avcodec.h,  libavutil/mem.h or '
+              'libavutil/imgutils.h was not found on your system. No mpeg support.')
         return (False, i, l)
 
 #=============================================================================
@@ -2564,7 +2575,6 @@ def checkIncFile__(file, additionalIncludePaths):
 #==============================================================================
 def writeBuildInfo():
     import time
-    import json
     d = {}
     # Date
     execTime = time.strftime('%d/%m/%y %Hh%M', time.localtime())
@@ -2591,16 +2601,18 @@ def writeBuildInfo():
     cuda, cudaIndDir, cudaLib, cudalibNames, cudaexec = checkCuda()
     d['cuda'] = cudaLib if cuda else "None"
     # Write dictionnary
-    cwd = os.getcwd()
-    gitOrigin = getGitOrigin(cwd)
-    gitBranch = getGitBranch(cwd)
-    gitHash = getGitHash(cwd)[:7]
+    distDir = os.path.dirname(__file__)
+    filename = os.path.join(distDir, "buildInfo.json")
+    includePath = os.path.dirname(distDir)
+    gitOrigin = getGitOrigin(includePath)
+    gitBranch = getGitBranch(includePath)
+    gitHash = getGitHash(includePath)[:7]
     try:
-        with open("buildInfo.json", "w", encoding="utf-8") as f:
+        with open(filename, "w", encoding="utf-8") as f:
             json.dump(
                 {
                     "buildDict": d,
-                    "includePath": cwd,
+                    "includePath": includePath,
                     "gitOrigin": gitOrigin,
                     "gitBranch": gitBranch,
                     "gitHash": gitHash
@@ -2609,10 +2621,10 @@ def writeBuildInfo():
                 indent=4
             )
     except OSError as e:
-        raise OSError("Cannot write file buildInfo.json; check permissions.") from e
+        raise OSError(f"Cannot write file {filename}; check permissions.") from e
 
 #==============================================================================
-# Ecrit la base d'installation dans le fichier installBaseUser.py
+# Ecrit la base d'installation dans le fichier installBaseUser.json
 # IN: config: dict d'install
 #==============================================================================
 def writeInstallBase(config):
@@ -2632,20 +2644,17 @@ def writeInstallBase(config):
         "NvccAdditionalOptions"
     ]
 
-    with open("installBaseUser.py", "w") as p:
-        p.write("# This is the dictionary keeping track of user installation configs.\n")
-        p.write("installDict = {\n")
-        for machine, cfgList in config.items():
-            cfg = dict(zip(configKeys, cfgList))
-            p.write(f"    '{machine}': {{\n")
-            for i, (k, v) in enumerate(cfg.items()):
-                comma = "," if i < len(cfg) - 1 else ""
-                if isinstance(v, str):
-                    p.write(f"        '{k}': '{v}'{comma}\n")
-                else:
-                    p.write(f"        '{k}': {v}{comma}\n")
-            p.write("    },\n")
-        p.write("}\n")
+    installDict = {
+        machine: dict(zip(configKeys, cfgList))
+        for machine, cfgList in config.items()
+    }
+    distDir = os.path.dirname(__file__)
+    filename = os.path.join(distDir, "installBaseUser.json")
+    try:
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(installDict, f, indent=4)
+    except OSError as e:
+        raise OSError(f"Cannot write file {filename}; check permissions.") from e
 
 #==============================================================================
 # Sur certains unix, le chemin d'installation contient un lib64

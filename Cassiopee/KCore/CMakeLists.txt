@@ -106,7 +106,7 @@ install(
 install(
   FILES
     "${PROJECT_SOURCE_DIR}/config.py"
-    "${PROJECT_SOURCE_DIR}/installBase.json"
+    "${PROJECT_SOURCE_DIR}/${PROJECT_NAME}/installBase.json"
     "${PROJECT_SOURCE_DIR}/print_source_filenames.py"
   DESTINATION "${SITE_PACKAGES_OUTPUT_DIRECTORY}"
   COMPONENT   "python installation utils"

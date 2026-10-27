@@ -6,7 +6,9 @@
 import os
 import sys
 import shutil
-import KCore.Dist as Dist
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "KCore"))
+import Dist
 
 system = Dist.getSystem()[0]
 if system == 'Windows':
@@ -41,23 +43,10 @@ else: # Essai en dynamique
         print("Error: kcore%s can not be found in %s."%(__EXTMODULE__,installPathLocal))
 
 # Copie aussi les .py
-installPath = os.path.join(installPath, "KCore")
-<<<<<<< Updated upstream
-shutil.copyfile("Dist.py", installPath+"/Dist.py")
-shutil.copyfile("installBase.json", installPath+"/installBase.json")
-if os.access("installBaseUser.json", os.R_OK):
-    shutil.copyfile("installBaseUser.json", installPath+"/installBaseUser.json")
-=======
-shutil.copyfile("Dist.py", installPath+"/KCore/Dist.py")
-shutil.copyfile("installBase.py", installPath+"/installBase.py")
-if os.access("installBaseUser.py", os.R_OK):
-    shutil.copyfile("installBaseUser.py", installPath+"/installBaseUser.py")
->>>>>>> Stashed changes
-shutil.copyfile("test/notify.py", installPath+"/notify.py")
+shutil.copyfile("test/notify.py", os.path.join(installPath, "KCore", "notify.py"))
 
 # Ecrit les infos d'install
 Dist.writeBuildInfo()
-shutil.copyfile("buildInfo.json", installPath+"/buildInfo.json")
 
 # Ecrit les fichiers d'environnement
 Dist.writeEnvs(installPath, libPath)

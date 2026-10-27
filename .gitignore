@@ -7,16 +7,8 @@ setup.cfg
 Dist
 docs/doc/*.pdf
 docs/Download
-Cassiopee/KCore/merge.l
 Cassiopee/XCore/merge.l
 Cassiopee/Modeler/merge.l
-Cassiopee/KCore/buildInfo.py
-Cassiopee/KCore/buildInfo.json
-Cassiopee/KCore/installPath.py
-Cassiopee/KCore/installPath.json
-Cassiopee/KCore/installBaseUser.py
-Cassiopee/KCore/installBaseUser.json
-Cassiopee/KCore/doc/source/*.rst
 Cassiopee/Envs/sh_Cassiopee_user
 Cassiopee/CPlot/apps/Output
 ValidData*
