@@ -1,5 +1,5 @@
-find $CASSIOPEE/Dist/bin/win64 -name __pycache__ -type d -exec rm -rf {} +
-find $CASSIOPEE/Dist/bin/win64 -name test -type d -exec rm -rf {} +
-find $CASSIOPEE/Dist/bin/win64 -name tests -type d -exec rm -rf {} +
+find $CASSIOPEE/Dist/bin/$ELSAPROD -name __pycache__ -type d -exec rm -rf {} +
+find $CASSIOPEE/Dist/bin/$ELSAPROD -name test -type d -exec rm -rf {} +
+find $CASSIOPEE/Dist/bin/$ELSAPROD -name tests -type d -exec rm -rf {} +
 
 # supprimer Scons

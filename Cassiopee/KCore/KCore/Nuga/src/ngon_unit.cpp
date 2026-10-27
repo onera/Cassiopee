@@ -367,7 +367,7 @@ E_Int ngon_unit::remove_facets(const Vector_t<E_Int>& nfacids, Vector_t<E_Int>& 
   nids.clear(); //new element ids
   nids.resize(nb_elts, IDX_NONE);
 
-  E_Int count(-1), degen(0);
+  E_Int count(-1);
   //std::cout << "nb elts : " << PHs.size() << std::endl;
   for (E_Int i = 0; i < nb_elts; ++i)
   {
@@ -410,7 +410,6 @@ E_Int ngon_unit::remove_facets(const Vector_t<E_Int>& nfacids, Vector_t<E_Int>& 
     }
     else if (min_facet_nb > 0)
     {
-      ++degen;
 
 #ifdef DEBUG_NGON_UNIT
       std::cout << "degen ! " <<  i << std::endl;

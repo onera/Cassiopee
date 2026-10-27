@@ -504,8 +504,10 @@ elif [ "$MAC" = "juno_coda" ]; then
     module purge
 
     module load occt/7.6.1-gnu831
-    module load socle-fs/gnu1210_openmpi405
-    source /tmp_user/juno/rhea/coda_modules/expose_modules.sh 2026.05
+    module load socle-fs/light-gnu1210_openmpi405_np2
+    module use /stck/rhea/socle_juno_ompi4_gcc12_py312_np2/modules/linux-rocky8-x86_64_v3
+    module load scons
+    source /tmp_user/juno/rhea/coda_modules/expose_modules.sh 2026.09
     module load fsdm
     module load fsoversetblanking
     module load coda
@@ -633,6 +635,9 @@ elif [ "$MAC" = "sator_coda" ]; then
 
     module load emacs/27.2-gnu831
     module load occt/7.6.1-gnu831
+    #module load socle-fs/light-gnu1210_openmpi405_np2
+    #module use /tmp_user/sator/rhea/socle_sator_ompi4_gcc12_py312_np2/modules/linux-rocky8-x86_64_v3
+    #module load scons
     module load socle-fs/gnu1210_openmpi405
     source /tmp_user/sator/rhea/coda_modules/expose_modules.sh 2026.05
     module load fsdm

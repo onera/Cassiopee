@@ -1,12 +1,12 @@
 #!/bin/sh
-PREFIX="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE}"
+PREFIX="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE/Dist/bin/$ELSAPROD}"
 if [ -n "$PYTHONEXE" ]; then
     alias python=$PYTHONEXE
 fi
 
-if test -e "$PREFIX/Dist/bin/$ELSAPROD/cplot.py"
+if test -e "$PREFIX/cplot.py"
 then
-    python "$PREFIX/Dist/bin/$ELSAPROD/cplot.py" "$@"
+    python "$PREFIX/cplot.py" "$@"
 else
-    python "$PREFIX/Dist/bin/$ELSAPROD/cplot.pyc" "$@"
+    python "$PREFIX/cplot.pyc" "$@"
 fi

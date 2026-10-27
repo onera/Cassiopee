@@ -57,13 +57,13 @@ void MultiLevelCacheTableBuild(struct TopLevelTable* topTable, float* precisionT
 
     //uint32_t expoBoundary[subTableCount];
     uint8_t lastExpo = 0xff;
-    uint8_t lastIndex = 0;
+    //uint8_t lastIndex = 0;
     for(int i=0; i<count; i++){
         uint8_t expo = MLCT_GetExpoIndex(precisionTable[i]);
         if(expo != lastExpo){
             //expoBoundary[lastIndex] = i;
             lastExpo = expo;
-            lastIndex++;
+            //lastIndex++;
         }
     }
 

@@ -498,6 +498,7 @@ void K_OCC::OCCSurface::orderBAR(E_Int npts,
 #endif
   
   // Check start
+#ifdef DEBUG_CAD_READER
   E_Int nstart = 0;
   E_Int length = 0;
   for (E_Int i = 0; i < npts; i++)
@@ -509,7 +510,6 @@ void K_OCC::OCCSurface::orderBAR(E_Int npts,
     }
     else length += 1;
   }
-#ifdef DEBUG_CAD_READER
   if (nstart > 1) printf("Warning: nstart = " SF_D_ "\n", nstart);
 #endif
 }

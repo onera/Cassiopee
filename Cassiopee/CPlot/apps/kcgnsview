@@ -1,12 +1,12 @@
 #!/bin/sh
-PREFIX="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE}"
+PREFIX="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE/Dist/bin/$ELSAPROD}"
 if [ -z "$PYTHONEXE" ]; then
     export PYTHONEXE=python
 fi
 
-if test -e "$PREFIX/Dist/bin/$ELSAPROD/tkcgnsview.py"
+if test -e "$PREFIX/tkcgnsview.py"
 then
-    $PYTHONEXE "$PREFIX/Dist/bin/$ELSAPROD/tkcgnsview.py" "$@"
+    $PYTHONEXE "$PREFIX/tkcgnsview.py" "$@"
 else
-    $PYTHONEXE "$PREFIX/Dist/bin/$ELSAPROD/tkcgnsview.pyc" "$@"
+    $PYTHONEXE "$PREFIX/tkcgnsview.pyc" "$@"
 fi

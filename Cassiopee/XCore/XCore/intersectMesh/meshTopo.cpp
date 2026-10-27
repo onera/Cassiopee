@@ -92,13 +92,11 @@ E_Int IMesh::orient_skin(E_Int normal_direction)
     }
 
     // Apply orientation
-    E_Int nrev = 0;
     for (E_Int i = 0; i < nefaces; i++) {
         if (forient[i] == -1) {
             E_Int face = efaces[i]; // 0-based
             auto &pn = F[face];
             std::reverse(pn.begin(), pn.end());
-            nrev++;
         }
     }
 

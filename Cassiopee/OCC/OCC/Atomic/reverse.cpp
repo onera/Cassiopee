@@ -51,7 +51,6 @@ PyObject* K_OCC::reverse(PyObject* self, PyObject* args)
   GETMAPSURFACES;
   
   TopoDS_Shape* newshp = NULL;
-  //nfaces = 0; // force car le code par subfaces semble ne pas marcher
   if (listFaces == Py_None)
   {
     newshp = new TopoDS_Shape(shape->Reversed());
