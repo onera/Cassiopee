@@ -51,9 +51,9 @@ if [ $PRODMODE -eq 0 ]; then # setup
     INSTALL_PREFIX="$INSTALLPATH" \
         python setup.py install --prefix="$INSTALLPATH"
     [ $? -ne 0 ] && exit 1;
-elif [ $PRODMODE -eq 1 ]; then # pip --ignore-installed --upgrade
+elif [ $PRODMODE -eq 1 ]; then # pip
     INSTALL_PREFIX="$INSTALLPATH" \
-        python -m pip install --no-build-isolation  --prefix="$INSTALLPATH" .
+        python -m pip install --ignore-installed --upgrade --no-build-isolation --prefix="$INSTALLPATH" .
     [ $? -ne 0 ] && exit 1;
 elif [ $PRODMODE -eq 2 ]; then # pip+wheel
     INSTALL_PREFIX="$INSTALLPATH" \
