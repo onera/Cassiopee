@@ -47,5 +47,10 @@ Changelog = "https://onera.github.io/Cassiopee/current/ReleaseNotes.html"
 package-dir = {"" = "."}
 packages = ["RigidMotion"]
 
+[tool.setuptools.package-data]
+RigidMotion = [
+  "buildInfo.json"
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "RigidMotion.RigidMotion.__version__"}

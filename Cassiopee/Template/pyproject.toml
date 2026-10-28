@@ -49,5 +49,10 @@ Changelog = "https://onera.github.io/Cassiopee/current/ReleaseNotes.html"
 package-dir = {"" = "."}
 packages = ["Template"]
 
+[tool.setuptools.package-data]
+Template = [
+  "buildInfo.json"
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "Template.Template.__version__"}

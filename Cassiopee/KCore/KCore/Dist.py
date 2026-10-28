@@ -310,8 +310,9 @@ def getInstallPathSuffix(type=0):
 #=============================================================================
 # Return the buildInfo dictionary
 #=============================================================================
-def getBuildInfoDict():
-    distDir = os.path.dirname(__file__)
+def getBuildInfoDict(moduleFilePath=None):
+    if moduleFilePath is None: moduleFilePath = __file__
+    distDir = os.path.dirname(moduleFilePath)
     filename = os.path.join(distDir, "buildInfo.json")
     try:
         with open(filename, "r", encoding="utf-8") as f:
@@ -1252,31 +1253,13 @@ def checkModuleCassiopee(modname):
     try:
         import importlib
         module = importlib.import_module(modname)
-        buildInfo = getBuildInfoDict()
+        modInstallPath = os.path.abspath(module.__file__)
+        buildInfo = getBuildInfoDict(modInstallPath)
         modIncDir = os.path.dirname(buildInfo["includePath"])
         modIncDir = os.path.join(modIncDir, modname, modname)
         modLibDir = getLibPath()
         version = getattr(module, "__version__", None)
         return version, modIncDir, modLibDir
-
-    except ImportError as e:
-        raise ImportError(
-            f"Error: {modname.lower()} library is required for the compilation "
-            "of this module."
-        ) from e
-
-def checkModuleFast(modname):
-    try:
-        import importlib
-        module = importlib.import_module(modname)
-        import FastC.installPath
-        modIncDir = FastC.installPath.includePath
-        modIncDir = os.path.dirname(modIncDir)
-        modIncDir = os.path.join(modIncDir, modname)
-        modLibDir = FastC.installPath.libPath
-        version = getattr(module, "__version__", None)
-        return version, modIncDir, modLibDir
-
     except ImportError as e:
         raise ImportError(
             f"Error: {modname.lower()} library is required for the compilation "
@@ -2574,7 +2557,7 @@ def checkIncFile__(file, additionalIncludePaths):
 #==============================================================================
 # Ecrit les infos de build dans le fichier buildInfo.json
 #==============================================================================
-def writeBuildInfo():
+def writeBuildInfo(moduleFilePath=None):
     import time
     d = {}
     # Date
@@ -2602,7 +2585,8 @@ def writeBuildInfo():
     cuda, cudaIndDir, cudaLib, cudalibNames, cudaexec = checkCuda()
     d['cuda'] = cudaLib if cuda else "None"
     # Write dictionnary
-    distDir = os.path.dirname(os.path.abspath(__file__))
+    if moduleFilePath is None: moduleFilePath = __file__
+    distDir = os.path.dirname(os.path.abspath(moduleFilePath))
     filename = os.path.join(distDir, "buildInfo.json")
     includePath = os.path.dirname(distDir)
     gitOrigin = getGitOrigin(includePath)

@@ -47,5 +47,10 @@ Changelog = "https://onera.github.io/Cassiopee/current/ReleaseNotes.html"
 package-dir = {"" = "."}
 packages = ["Initiator"]
 
+[tool.setuptools.package-data]
+Initiator = [
+  "buildInfo.json"
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "Initiator.Initiator.__version__"}

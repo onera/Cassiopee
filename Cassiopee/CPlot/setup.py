@@ -26,6 +26,9 @@ additionalLibs = Dist.getAdditionalLibs()
 # Write setup.cfg file
 Dist.writeSetupCfg()
 
+# Write build info to file
+Dist.writeBuildInfo("CPlot/CPlot.py")
+
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 

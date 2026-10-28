@@ -25,6 +25,9 @@ additionalLibs = Dist.getAdditionalLibs()
 # Write setup.cfg file
 Dist.writeSetupCfg()
 
+# Write build info to file
+Dist.writeBuildInfo("XCore/XCore.py")
+
 # Get compilers from Distutils ================================================
 (cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = Dist.getDistUtilsCompilers()
 

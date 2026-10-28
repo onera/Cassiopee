@@ -47,5 +47,10 @@ Changelog = "https://onera.github.io/Cassiopee/current/ReleaseNotes.html"
 package-dir = {"" = "."}
 packages = ["Dist2Walls"]
 
+[tool.setuptools.package-data]
+Dist2Walls = [
+  "buildInfo.json"
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "Dist2Walls.Dist2Walls.__version__"}

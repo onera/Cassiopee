@@ -15,6 +15,9 @@ additionalLibs = Dist.getAdditionalLibs()
 # Write setup.cfg file
 Dist.writeSetupCfg()
 
+# Write build info to file
+Dist.writeBuildInfo("Distributor2/Distributor2.py")
+
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 

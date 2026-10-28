@@ -17,6 +17,9 @@ additionalLibs = Dist.getAdditionalLibs()
 # Write setup.cfg file
 Dist.writeSetupCfg()
 
+# Write build info to file
+Dist.writeBuildInfo("Intersector/Intersector.py")
+
 # Test if numpy exists =======================================================
 (numpyVersion, numpyIncDir, numpyLibDir) = Dist.checkNumpy()
 
@@ -24,7 +27,7 @@ Dist.writeSetupCfg()
 (kcoreVersion, kcoreIncDir, kcoreLibDir) = Dist.checkModuleCassiopee("KCore")
 
 # Test if xcore exists =======================================================
-#(xcoreVersion, xcoreIncDir, xcoreLibDir) = Dist.checkModuleCassiopee("XCore")()
+#(xcoreVersion, xcoreIncDir, xcoreLibDir) = Dist.checkModuleCassiopee("XCore")
 
 # Test if libmpi exists ======================================================
 (mpi, mpiIncDir, mpiLibDir, mpiLibs) = Dist.checkMpi()

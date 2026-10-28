@@ -47,5 +47,10 @@ Changelog = "https://onera.github.io/Cassiopee/current/ReleaseNotes.html"
 package-dir = {"" = "."}
 packages = ["Modeler"]
 
+[tool.setuptools.package-data]
+Modeler = [
+  "buildInfo.json"
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "Modeler.Modeler.__version__"}

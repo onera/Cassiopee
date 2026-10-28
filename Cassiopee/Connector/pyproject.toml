@@ -47,5 +47,10 @@ Changelog = "https://onera.github.io/Cassiopee/current/ReleaseNotes.html"
 package-dir = {"" = "."}
 packages = ["Connector"]
 
+[tool.setuptools.package-data]
+Connector = [
+  "buildInfo.json"
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "Connector.Connector.__version__"}

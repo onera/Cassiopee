@@ -53,5 +53,10 @@ packages = [
   "Apps.Coda"
 ]
 
+[tool.setuptools.package-data]
+Apps = [
+  "buildInfo.json"
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "Apps.App.__version__"}

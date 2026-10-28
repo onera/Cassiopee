@@ -54,5 +54,10 @@ packages = [
     "Roms.Parts"
 ]
 
+[tool.setuptools.package-data]
+Roms = [
+  "buildInfo.json"
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "Roms.__version__"}
