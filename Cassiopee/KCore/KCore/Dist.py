@@ -1266,6 +1266,23 @@ def checkModuleCassiopee(modname):
             "of this module."
         ) from e
 
+def checkModuleFast(modname):
+    try:
+        import importlib
+        module = importlib.import_module(modname)
+        modInstallPath = os.path.abspath(module.__file__)
+        buildInfo = getBuildInfoDict(modInstallPath)
+        modIncDir = os.path.dirname(buildInfo["includePath"])
+        modIncDir = os.path.join(modIncDir, modname)
+        modLibDir = getLibPath()
+        version = getattr(module, "__version__", None)
+        return version, modIncDir, modLibDir
+    except ImportError as e:
+        raise ImportError(
+            f"Error: {modname.lower()} library is required for the compilation "
+            "of this module."
+        ) from e
+
 #=============================================================================
 # Check for Cassiopee Kernel in Dist/ or Kernel/
 # La prod de Cassiopee ne doit pas contenir mpi

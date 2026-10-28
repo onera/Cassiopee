@@ -7,6 +7,7 @@ setup.cfg
 Dist
 docs/doc/*.pdf
 docs/Download
+buildInfo.json
 Cassiopee/XCore/merge.l
 Cassiopee/Modeler/merge.l
 Cassiopee/Envs/sh_Cassiopee_user
