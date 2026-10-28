@@ -12,8 +12,8 @@ build-backend = "setuptools.build_meta"
 name = "cassiopee-converter"
 dynamic = ["version"]
 dependencies = [
-  "numpy>=1.23.3",
-  "mpi4py>=3.1.3"
+#  "numpy>=1.23.3",
+#  "mpi4py>=3.1.3"
 ]
 requires-python = ">=3.8"
 authors = [
