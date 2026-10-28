@@ -48,5 +48,10 @@ Changelog = "https://onera.github.io/Cassiopee/current/ReleaseNotes.html"
 package-dir = {"" = "."}
 packages = ["OCC"]
 
+[tool.setuptools.package-data]
+OCC = [
+  "buildInfo.json"
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "OCC.OCC.__version__"}

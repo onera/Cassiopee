@@ -48,5 +48,10 @@ Changelog = "https://onera.github.io/Cassiopee/current/ReleaseNotes.html"
 package-dir = {"" = "."}
 packages = ["Intersector"]
 
+[tool.setuptools.package-data]
+Intersector = [
+  "buildInfo.json"
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "Intersector.Intersector.__version__"}

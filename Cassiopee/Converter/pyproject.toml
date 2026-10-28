@@ -51,5 +51,10 @@ package-dir = {"" = "."}
 packages = ["Converter"]
 script-files = ["Converter/kpython"]
 
+[tool.setuptools.package-data]
+Converter = [
+  "buildInfo.json"
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "Converter.Converter.__version__"}

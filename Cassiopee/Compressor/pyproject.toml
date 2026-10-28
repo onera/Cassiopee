@@ -51,5 +51,10 @@ packages = [
   "Compressor.zfp"
 ]
 
+[tool.setuptools.package-data]
+Compressor = [
+  "buildInfo.json"
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "Compressor.Compressor.__version__"}

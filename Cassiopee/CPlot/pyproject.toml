@@ -54,5 +54,10 @@ script-files = [
   "apps/cassiopee"
 ]
 
+[tool.setuptools.package-data]
+CPlot = [
+  "buildInfo.json"
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "CPlot.CPlot.__version__"}
