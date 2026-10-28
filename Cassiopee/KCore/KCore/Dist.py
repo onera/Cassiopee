@@ -402,6 +402,7 @@ def writeEnvs(installPath, libPath):
 
     # sh ou bash
     # usage: source $CASSIOPEE/Dist/bin/$ELSAPROD/env_Cassiopee.sh
+    os.makedirs(envPath, exist_ok=True)
     with open(envPath+"env_Cassiopee.sh", 'w') as p:
         p.write("ulimit -s unlimited\n")
         if cassiopee != '': p.write("export CASSIOPEE=%s\n"%cassiopee)
@@ -2601,7 +2602,7 @@ def writeBuildInfo():
     cuda, cudaIndDir, cudaLib, cudalibNames, cudaexec = checkCuda()
     d['cuda'] = cudaLib if cuda else "None"
     # Write dictionnary
-    distDir = os.path.dirname(__file__)
+    distDir = os.path.dirname(os.path.abspath(__file__))
     filename = os.path.join(distDir, "buildInfo.json")
     includePath = os.path.dirname(distDir)
     gitOrigin = getGitOrigin(includePath)
@@ -2684,6 +2685,11 @@ def symLinks(prefix):
         elif not ex1 and ex2:
             try: # may fail under windows disk system
                 os.symlink(libPath2, libPath1)
+            except: pass
+        elif not (ex1 or ex2):
+            os.makedirs(libPath1, exist_ok=True)
+            try: # may fail under windows disk system
+                os.symlink(libPath1, libPath2)
             except: pass
 
 #==============================================================================
