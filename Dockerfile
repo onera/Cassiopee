@@ -160,7 +160,7 @@ RUN . /etc/cassiopee-machine.env && echo "Using MACHINE=${MACHINE}" \
     && . $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8 \
     && export PRODMODE=3 \
     && export OMP_NUM_THREADS=2 \
-    && cd $CASSIOPEE/Cassiopee \
+    && cd $CASSIOPEE \
     && ./install
 
 # Default command to run the application: start an interactive shell session

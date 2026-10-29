@@ -45,7 +45,7 @@ export CASSIOPEE=<your_path>/Cassiopee
 export MACHINE=msys2
     
 source $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8
-cd $CASSIOPEE/Cassiopee
+cd $CASSIOPEE
 ./install
 ```
 

@@ -37,7 +37,7 @@ export CASSIOPEE=/d/johndo/Cassiopee
 export MACHINE=ubuntu
     
 source $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8
-cd $CASSIOPEE/Cassiopee
+cd $CASSIOPEE
 ./install
 ```
 
