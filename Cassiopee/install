@@ -2,8 +2,8 @@
 # Print help message
 usage() {
   cat <<EOF
-Usage: $0                                             : Install all modules
-       $0 --all, -a                                   : Install modules and docs
+Usage: $0                                             : Install all modules listed in $CASSIOPEE/Cassiopee/MODULES
+       $0 --all, -a                                   : Install all modules and docs
        $0 --doc, -d                                   : Install docs only
        $0 --help, -h                                  : Print help message
 EOF

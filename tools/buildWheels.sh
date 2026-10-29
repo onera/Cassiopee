@@ -96,6 +96,7 @@ renamePackagesInt64() {
 # ---------------------------------------------------------------------------
 export MACHINE=azure
 . "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8"
+cd "$CASSIOPEE"
 ./install || { echo "Cassiopee int32 install failed"; exit 1; }
 repairWheels int32
 
@@ -110,8 +111,8 @@ for mod in $FREE_MODULES; do
     renamePackagesInt64 "$CASSIOPEE/Cassiopee/$mod/pyproject.toml"
 done
 
-cd "$CASSIOPEE/Cassiopee"
 export MACHINE=azure_i8
 . "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8"
+cd "$CASSIOPEE"
 ./install || { echo "Cassiopee int64 install failed"; exit 1; }
 repairWheels int64

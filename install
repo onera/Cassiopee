@@ -1,0 +1,32 @@
+#!/bin/sh
+# Print help message
+usage() {
+  cat <<EOF
+Usage: $0                                             : Install all modules listed in $CASSIOPEE/Cassiopee/MODULES
+       $0 --all, -a                                   : Install all modules and docs
+       $0 --doc, -d                                   : Install docs only
+       $0 --help, -h                                  : Print help message
+EOF
+}
+
+if [ -z "$CASSIOPEE" ]; then
+    echo "Environment variable CASSIOPEE must be set."
+    echo "CASSIOPEE identifies the root directory of the Cassiopee repository."
+    usage >&2; exit 1
+fi
+
+# Parse command-line arguments
+while [ -n "$1" ]; do
+  case "$1" in
+    --help | -h)
+      usage; exit 0
+      ;;
+    *)
+      ;;
+  esac
+  shift
+done
+
+cd $CASSIOPEE/Cassiopee
+./install "$@"
+cd ../
