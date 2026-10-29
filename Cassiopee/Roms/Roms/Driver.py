@@ -198,9 +198,8 @@ class Point:
         self.y = Scalar(self.name+".y", value[1], part)
         self.z = Scalar(self.name+".z", value[2], part)
         # register
-        if part is not None:
-            self.part = part
-            part.registerPoint(self)
+        self.part = part
+        if part is not None: part.registerPoint(self)
 
     # Return value
     # OUT: tuple (x, y, z) of current values
@@ -245,47 +244,64 @@ class Point:
         if ret == 0: return 0
         return 1
 
-    # Create a new point identical to point
-    def copy(self, name=None):
-        """Create new point shifted from self of a given vector."""
-        if name is None: name = self.name+'C'
-        P = Point(name, part=self.part)
-        return P
-
     # Create new point shifted from self by a given vector
     # IN: name: name of the new point (optional)
     # IN: vector: shift vector (dx, dy, dz) (default: (0.,0.,0.))
     # OUT: new Point object shifted from self
-    def ShiftPoint(self, name=None, vector=(0.,0.,0.)):
+    def Shift(self, name=None, vector=(0.,0.,0.)):
         """Create new point shifted from self of a given vector."""
-        if name is None: name = self.name+'S'
+        if name is None: name = getName(self.name+'S')
         P = Point(name, part=self.part)
-        Eq(P.x, self.x + vector[0], part=self.part)
-        Eq(P.y, self.y + vector[1], part=self.part)
-        Eq(P.z, self.z + vector[2], part=self.part)
+        P.x.v = self.x.v + vector[0]
+        P.y.v = self.y.v + vector[1]
+        P.z.v = self.z.v + vector[2]        
+        if self.x.range is not None:
+            Eq(P.x, self.x + vector[0], part=self.part)
+        if self.y.range is not None:
+            Eq(P.y, self.y + vector[1], part=self.part)
+        if self.z.range is not None:
+            Eq(P.z, self.z + vector[2], part=self.part)
         return P
 
     # Create new point that is the symmetric of self considering a plane
     # IN: name: name of the new point (optional)
     # IN: plane: symmetry plane ('yz', 'xz', or 'xy') (default: 'xz')
-    # IN: center: center point of the plane (default: (0,0,0))
+    # IN: center: center point of the plane (default: (0,0,0)), a fixed scalar (not parameter)
     # OUT: new Point object that is the symmetric of self
-    def SymPoint(self, name=None, plane='xz', center=(0,0,0)):
-        """Create new point that is the symetric of self considering a plane."""
-        if name is None: name = self.name+'S'
+    def Symm(self, name=None, plane='xz', center=(0,0,0)):
+        """Create new point that is the symmetric of self considering a plane."""
+        if name is None: name = getName(self.name+'S')
         P = Point(name, part=self.part)
         if plane == 'yz':
-            Eq(P.x, 2*center[0]-self.x, part=self.part)
-            Eq(P.y, +self.y, part=self.part)
-            Eq(P.z, +self.z, part=self.part)
+            P.x.v = 2*center[0]-self.x.v
+            P.y.v = self.y.v
+            P.z.v = self.z.v
+            if self.x.range is not None:
+                Eq(P.x, 2*center[0]-self.x, part=self.part)
+            if self.y.range is not None:
+                Eq(P.y, +self.y, part=self.part)
+            if self.z.range is not None:       
+                Eq(P.z, +self.z, part=self.part)
         elif plane == 'xz':
-            Eq(P.x, +self.x, part=self.part)
-            Eq(P.y, 2*center[1]-self.y, part=self.part)
-            Eq(P.z, +self.z, part=self.part)
+            P.x.v = self.x.v
+            P.y.v = 2*center[1]-self.y.v
+            P.z.v = self.z.v
+            if self.x.range is not None:        
+                Eq(P.x, +self.x, part=self.part)
+            if self.y.range is not None:    
+                Eq(P.y, 2*center[1]-self.y, part=self.part)
+            if self.z.range is not None:           
+                Eq(P.z, +self.z, part=self.part)
         elif plane == 'xy':
-            Eq(P.x, +self.x, part=self.part)
-            Eq(P.y, +self.y, part=self.part)
-            Eq(P.z, 2*center[2]-self.z, part=self.part)
+            P.x.v = self.x.v
+            P.y.v = self.y.v
+            P.z.v = 2*center[2]-self.z.v
+            if self.x.range is not None:        
+                Eq(P.x, +self.x, part=self.part)
+            if self.y.range is not None:        
+                Eq(P.y, +self.y, part=self.part)
+            if self.z.range is not None:        
+                Eq(P.z, 2*center[2]-self.z, part=self.part)
         return P
 
 Vec3 = Point # alias
@@ -325,15 +341,6 @@ class Grid:
         """Return grid value."""
         (i,j,k) = T
         return (self.P[i][j][k].x.v, self.P[i][j],[k].y.v, self.P[i][j][k].z.v)
-
-    # Return a copy
-    def copy(self):
-        """Return a copy of Grid."""
-        if name is None: name = self.name+'C'
-        G = Grid(name, (self.xo,self.yo,self.zo),
-                 (self.dx+self.xo, self.dy+self.yo, self.dz+self.dzo),
-                 (self.ni, self.nj, self.nk), self.part)
-        return G
 
     # Print grid information
     # IN: shift: number of blank characters left to print (default: 0)
@@ -402,6 +409,7 @@ class Entity:
         # hook on cad
         self.hook = None
         # register
+        self.part = part
         if part is not None: part.registerEdge(self)
 
     # Destructor: free CAD hook
@@ -413,23 +421,28 @@ class Entity:
         """Update CAD hook for entity."""
         if self.hook is not None: OCC.occ.freeHook(self.hook)
         self.hook = OCC.createEmptyCAD()
+
         if self.type == "line":
             OCC._addLine(self.hook, self.P[0].v(), self.P[1].v())
+        
         elif self.type == "polyline":
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
             OCC._addSpline(self.hook, n, 0, 1)
+        
         elif self.type == "spline1": # by control points
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
             OCC._addSpline(self.hook, n, 0, 3)
+        
         elif self.type == "spline2": # by approximated points
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
             OCC._addSpline(self.hook, n, 1, 3)
+        
         elif self.type == "spline3": # by free form control points + mesh
             # self.P[0] is a Grid, mesh is an array
 
@@ -459,14 +472,18 @@ class Entity:
 
         elif self.type == "circle":
             OCC._addCircle(self.hook, self.P[0].v(), (0,0,1), self.P[1].v, 0)
+        
         elif self.type == "arc":
             OCC._addArc(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v())
+        
         elif self.type == "superellipse":
-            OCC._addSuperEllipse(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v(), self.P[3].v, self.P[4].v)
+            OCC._addSuperEllipse(self.hook, self.P[0].v(), self.P[1].v, self.P[2].v, self.P[3].v, self.P[4].v)
+        
         elif self.type == "naca4":
             import Geom
             naca = Geom.naca("%01d%01d%02d"%(int(self.P[0].v),int(self.P[1].v),int(self.P[2].v)), N=51, sharpte=True)
             OCC._addSpline(self.hook, naca[1], 1, 3)
+        
         else:
             raise(ValueError, "Unknown entity type %s."%self.type)
 
@@ -495,6 +512,89 @@ class Entity:
             ret = P.check()
             if ret == 0: return 0
         return 1
+
+    # Create new entity shifted from self by a given vector
+    # IN: name: name of the new entity (optional)
+    # IN: vector: shift vector (dx, dy, dz) (default: (0.,0.,0.))
+    # OUT: new entity object shifted from self
+    def Shift(self, name=None, vector=(0.,0.,0.)):
+        """Create new entity shifted from self of a given vector."""
+        if name is None: name = getName(self.name+'S')
+        if self.type == "line":
+            P1 = self.P[0].Shift(vector=vector)
+            P2 = self.P[1].Shift(vector=vector)
+            return Line(name, P1, P2, self.part)
+        elif self.type == "polyline":
+            Points = []
+            for P in self.P:
+                Points.append(P.Shift(vector=vector))
+            return Polyline(name, Points, self.part)
+        elif self.type == "spline1":
+            Points = []
+            for P in self.P:
+                Points.append(P.Shift(vector=vector))
+            return Spline1(name, Points, self.part)
+        elif self.type == "spline2":
+            Points = []
+            for P in self.P:
+                Points.append(P.Shift(vector=vector))
+            return Spline2(name, Points, self.part)
+        elif self.type == "circle":
+            C = self.P[0].Shift(vector=vector)
+            return Circle(name, C, self.P[1], self.part)
+        elif self.type == "superellipse":
+            C = self.P[0].Shift(vector=vector)
+            return SuperEllipse(name, C, self.P[1], self.P[2], self.P[3].v, self.P[4].v, self.part)
+        elif self.type == "arc":
+            P1 = self.P[0].Shift(vector=vector)
+            P2 = self.P[1].Shift(vector=vector)
+            P3 = self.P[2].Shift(vector=vector)
+            return Arc(name, P1, P2, P3, self.part)
+        else:
+            raise NotImplemented('no shift for this entity type.')
+        return None
+
+    # Create new entity that is the symmetric of self considering a plane
+    # IN: name: name of the new entity (optional)
+    # IN: plane: symmetry plane ('yz', 'xz', or 'xy') (default: 'xz')
+    # IN: center: center point of the plane (default: (0,0,0))
+    # OUT: new entity object that is the symmetric of self
+    def Symm(self, name=None, plane='xz', center=(0,0,0)):
+        """Create new entity that is the symmetric of self considering a plane."""
+        if name is None: name = getName(self.name+'S')
+        if self.type == "line":
+            P1 = self.P[0].Symm(plane=plane, center=center)
+            P2 = self.P[1].Symm(plane=plane, center=center)
+            return Line(name, P1, P2, self.part)
+        elif self.type == "polyline":
+            Points = []
+            for P in self.P:
+                Points.append(P.Symm(plane=plane, center=center))
+            return Polyline(name, Points, self.part)
+        elif self.type == "spline1":
+            Points = []
+            for P in self.P:
+                Points.append(P.Symm(plane=plane, center=center))
+            return Spline1(name, Points, self.part)
+        elif self.type == "spline2":
+            Points = []
+            for P in self.P:
+                Points.append(P.Symm(plane=plane, center=center))
+            return Spline2(name, Points, self.part)
+        elif self.type == "circle":
+            C = self.P[0].Symm(plane=plane, center=center)
+            return Circle(name, C, self.P[1], self.part)
+        elif self.type == "superellipse":
+            C = self.P[0].Symm(plane=plane, center=center)
+            return SuperEllipse(name, C, self.P[1], self.P[2], self.P[3].v, self.P[4].v, self.part)
+        elif self.type == "arc":
+            P1 = self.P[0].Symm(plane=plane, center=center)
+            P2 = self.P[1].Symm(plane=plane, center=center)
+            P3 = self.P[2].Symm(plane=plane, center=center)
+            return Arc(name, P1, P2, P3, self.part)
+        else:
+            raise NotImplemented('no shift for this entity type.')
+        return None
 
 #============================================================
 # line from two parametric points
@@ -575,6 +675,7 @@ class Sketch():
         self.P.append(P)
         self.rotAngle = P
         # register
+        self.part = part
         if part is not None: part.registerSketch(self)
         # meshing: (hmin,hmax,hausd)
         self.h = None
@@ -901,17 +1002,20 @@ class Surface():
                 OCC._fillHole(h0, [1], [], 0)
                 OCC._fillHole(h1, [1], [], 0)
                 self.hook = OCC.mergeCAD([h0,self.hook,h1])
-        elif self.type == "revolve": # by revolving sketch
+
+        elif self.type == "revolve": # by revolving sketches
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
             self.hook = OCC.mergeCAD(hooks)
             nedges = OCC.getNbEdges(self.hook)
             edgeList = [i for i in range(1, nedges+1)]
             OCC._revolve(self.hook, edgeList, self.data['center'].v(), self.data['axis'].v(), self.data['angle'].v)
+
         elif self.type == "merge": # by merging surfaces
             hooks = []
             for e in self.surfaces: hooks.append(e.hook)
             self.hook = OCC.mergeCAD(hooks)
+        
         elif self.type == "fill": # by filling sketch
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
@@ -920,10 +1024,12 @@ class Surface():
             edgeList = [i for i in range(1, nedges+1)]
             OCC._fillHole(self.hook, edgeList, [], self.data['continuity'].v)
             if self.data['reverse'].v == 1: OCC._reverse(self.hook)
+        
         elif self.type == "mergeEdges": # for debug
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
             self.hook = OCC.mergeCAD(hooks)
+        
         elif self.type == "union": # by boolean union
             hooks = []; n1 = 0; n2 = 0
             for e in self.surfaces:
@@ -938,6 +1044,7 @@ class Surface():
             if 'rev2' in self.data: rev2 = self.data['rev2'].v
             else: rev2 = 1
             OCC._boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 0, rev1, rev2)
+        
         elif self.type == "inter": # by boolean intersection
             hooks = []; n1 = 0; n2 = 0
             for e in self.surfaces:
@@ -952,6 +1059,7 @@ class Surface():
             if 'rev2' in self.data: rev2 = self.data['rev2'].v
             else: rev2 = 1
             OCC._boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 2, rev1, rev2)
+        
         elif self.type == "sub": # by boolean substraction
             hooks = []; n1 = 0; n2 = 0
             for e in self.surfaces:
@@ -966,13 +1074,16 @@ class Surface():
             if 'rev2' in self.data: rev2 = self.data['rev2'].v
             else: rev2 = 1
             OCC._boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 1, rev1, rev2)
+        
         elif self.type == "sphere":
             self.hook = OCC.createEmptyCAD()
             OCC._addSphere(self.hook, self.data['center'].v(), self.data['radius'].v, name=self.name)
+        
         elif self.type == "addFillet":
-            ne = OCC.getNedges(self.hook)
+            ne = OCC.getNbEdges(self.hook)
             edges = [x for x in range(1,ne+1)]
             OCC._addFillet(self.hook, edges, self.data['radius'].v())
+        
         # global positionning
         OCC._rotate(self.hook, self.rotCenter.v(), self.rotAxis.v(), self.rotAngle.v)
         OCC._translate(self.hook, self.position.v())

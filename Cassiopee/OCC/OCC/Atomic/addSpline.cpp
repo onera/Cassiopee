@@ -87,7 +87,7 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
     }
 
     if (ncp == 2) degree = 1;
-    else if (ncp == 3) degree = 2;
+    else if (ncp == 3) degree = std::min(2, degree);
 
     E_Int nk = ncp - degree +1;
 
