@@ -32,127 +32,34 @@ jobs:
         
       - name: Build Cassiopee in a Docker container
         run: |
-          docker run --rm -v $GITHUB_WORKSPACE/..:/io quay.io/pypa/manylinux2014_x86_64:latest /bin/bash -c "
-              set -e
-              export PATH=/opt/python/cp312-cp312/bin:\$PATH
-              yum update && yum install -y \
-                  gcc \
-                  gcc-c++ \
-                  gcc-gfortran \
-                  openmpi \
-                  openmpi-devel \
-                  hdf5 \
-                  hdf5-devel \
-                  tk \
-                  mesa-libGL \
-                  mesa-libGL-devel \
-                  mesa-libGLU \
-                  mesa-libGLU-devel \
-                  mesa-libOSMesa \
-                  mesa-libOSMesa-devel \
-                  libX11-devel \
-                  libXext-devel \
-                  libXmu-devel \
-                  libXi-devel \
-                  libXrender-devel \
-                  libpng-devel \
-                  zlib-devel \
-                  xorg-x11-server-devel \
-                  OCE-devel \
-                  OCE-draw \
-                  OCE-foundation \
-                  OCE-modeling \
-                  OCE-ocaf \
-                  OCE-visualization
-              pip3 install \
-                  wheel \
-                  auditwheel \
-                  setuptools \
-                  scons
-              pip3 install --only-binary=numpy \"numpy<2.3\"
-              export PATH=/usr/lib64/openmpi/bin:\$PATH
-              export LD_LIBRARY_PATH=/usr/lib64/openmpi/lib:\$LD_LIBRARY_PATH
-              export CFLAGS="-std=c99"
-              pip3 install mpi4py
-              export CFLAGS="-std=c11"
-              python --version && python -m pip list
-              export CASSIOPEE=/io/Cassiopee
-              cd \$CASSIOPEE/Cassiopee
-              sed -i 's/Modeler//g' MODULES
-              sed -i 's/OCC//g' MODULES
+          docker run --rm -v $GITHUB_WORKSPACE/..:/io \
+            quay.io/pypa/manylinux2014_x86_64:latest \
+            /bin/bash /io/Cassiopee/tools/buildWheels.sh
 
-              # Installation int32
-              export MACHINE=azure
-              . \$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8
-              export OMP_NUM_THREADS=2
-              ./install || { echo \"Cassiopee install failed\"; exit 1; }
-              mkdir -p \$CASSIOPEE/tmp/
-              cd \$CASSIOPEE/Dist/bin/\$ELSAPROD
-              find . -type f -name '*.whl' -exec mv {} \$CASSIOPEE/tmp/ \;
-              find /tmp/ -type f -name 'cassiopee_kcore*.whl' -exec mv {} \$CASSIOPEE/tmp/ \;
-              mkdir -p \$CASSIOPEE/wheels/int32/wheelhouse/
-              cd \$CASSIOPEE/wheels/int32
-              for kwheel in \$(find \$CASSIOPEE/tmp/ -name \"*.whl\"); do
-                  if [[ \"\$kwheel\" == *-none-any.whl ]]; then
-                      cp \"\$kwheel\" wheelhouse/
-                  else
-                      auditwheel repair \"\$kwheel\" || exit 1
-                  fi
-              done
-              ls .
-              ls wheelhouse
+      # - name: Publish to Test-PyPI
+      #   env:
+      #     TWINE_USERNAME: __token__
+      #     TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
+      #   run: |
+      #     export CASSIOPEE=$GITHUB_WORKSPACE/
+      #     ls $CASSIOPEE/wheels/int32/wheelhouse/
+      #     for kwheel in $(find $CASSIOPEE/wheels/int32/wheelhouse/ -name '*.whl'); do
+      #       twine upload --repository-url https://test.pypi.org/legacy/ --verbose $kwheel;
+      #     done
+      #     ls $CASSIOPEE/wheels/int64/wheelhouse/
+      #     for kwheel in $(find $CASSIOPEE/wheels/int64/wheelhouse/ -name '*.whl'); do
+      #       twine upload --repository-url https://test.pypi.org/legacy/ --verbose $kwheel;
+      #     done
 
-              # Installation int64
-              rm -r \$CASSIOPEE/tmp/
-              cd \$CASSIOPEE
-              sed -i '0,/^name = /s/\"\$/-i8\"/' pyproject.toml
-              cd \$CASSIOPEE/Cassiopee
-              FREE_MODULES=\$(cat MODULES | head -1 | cut -d '=' -f 2 | tr -d \')
-              for mod in \$FREE_MODULES; do
-                  sed -i '0,/^name = /s/\"\$/-i8\"/' pyproject.toml
-              done
-              export MACHINE=azure_i8
-              . \$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8
-              export OMP_NUM_THREADS=2
-              ./install || { echo \"Cassiopee install failed\"; exit 1; }
-              mkdir -p \$CASSIOPEE/tmp/
-              cd \$CASSIOPEE/Dist/bin/\$ELSAPROD
-              find . -type f -name '*.whl' -exec mv {} \$CASSIOPEE/tmp/ \;
-              find /tmp/ -type f -name 'cassiopee_kcore*.whl' -exec mv {} \$CASSIOPEE/tmp/ \;
-              mkdir -p \$CASSIOPEE/wheels/int64/wheelhouse/
-              cd \$CASSIOPEE/wheels/int64
-              for kwheel in \$(find \$CASSIOPEE/tmp/ -name \"*.whl\"); do
-                  if [[ \"\$kwheel\" == *-none-any.whl ]]; then
-                      cp \"\$kwheel\" wheelhouse/
-                  else
-                      auditwheel repair \"\$kwheel\" || exit 1
-                  fi
-              done
-              ls .
-              ls wheelhouse
-          "
-
-      - name: Publish to Test-PyPI
+      - name: Publish to PyPI
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
-          export CASSIOPEE=$GITHUB_WORKSPACE/
-          ls $CASSIOPEE/wheels/int32/wheelhouse/
+          export CASSIOPEE=$GITHUB_WORKSPACE
           for kwheel in $(find $CASSIOPEE/wheels/int32/wheelhouse/ -name '*.whl'); do
-              twine upload --repository-url https://test.pypi.org/legacy/ --verbose $kwheel;
+            twine upload --verbose $kwheel;
           done
-          ls $CASSIOPEE/wheels/int64/wheelhouse/
           for kwheel in $(find $CASSIOPEE/wheels/int64/wheelhouse/ -name '*.whl'); do
-              twine upload --repository-url https://test.pypi.org/legacy/ --verbose $kwheel;
+            twine upload --verbose $kwheel;
           done
-
-      #- name: Publish to PyPI
-      #  env:
-      #    TWINE_USERNAME: __token__
-      #    TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-      #  run: |
-      #    export CASSIOPEE=$GITHUB_WORKSPACE
-      #    for kwheel in $(find $CASSIOPEE/wheels/int32/wheelhouse/ -name '*.whl'); do
-      #        twine upload --verbose $kwheel;
-      #    done

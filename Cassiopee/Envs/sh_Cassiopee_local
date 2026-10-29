@@ -236,7 +236,7 @@ elif [ "$MAC" = "azure" ]; then
 #------------------------ azure: Centos7 - github actions ----------------------
     export ELSAPROD=azure
     export ELSAPROD=$ELSAPROD$EXT
-    export OMP_NUM_THREADS=4
+    export OMP_NUM_THREADS=2
     export PYTHONEXE=python3
     export PRODMODE=2
     export PIP_DISABLE_PIP_VERSION_CHECK=1
