@@ -20,11 +20,11 @@ if TEST == 'line':
     # line
     line1 = T1.Line('line1', P1, P3)
     line2 = line1.Shift('line2', vector=(0,5,0))
-    line3 = line1.Symm('lines3', plane='yz', center=(0,0,0)) 
-    
+    line3 = line1.Symm('lines3', plane='yz', center=(0,0,0))
+
     line1.print()
     line2.print()
-    
+
     # sketch for viz
     sketch1 = T1.Sketch('sketch1', [line1, line2, line3])
 

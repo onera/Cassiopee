@@ -254,7 +254,7 @@ class Point:
         P = Point(name, part=self.part)
         P.x.v = self.x.v + vector[0]
         P.y.v = self.y.v + vector[1]
-        P.z.v = self.z.v + vector[2]        
+        P.z.v = self.z.v + vector[2]
         if self.x.range is not None:
             Eq(P.x, self.x + vector[0], part=self.part)
         if self.y.range is not None:
@@ -280,27 +280,27 @@ class Point:
                 Eq(P.x, 2*center[0]-self.x, part=self.part)
             if self.y.range is not None:
                 Eq(P.y, +self.y, part=self.part)
-            if self.z.range is not None:       
+            if self.z.range is not None:
                 Eq(P.z, +self.z, part=self.part)
         elif plane == 'xz':
             P.x.v = self.x.v
             P.y.v = 2*center[1]-self.y.v
             P.z.v = self.z.v
-            if self.x.range is not None:        
+            if self.x.range is not None:
                 Eq(P.x, +self.x, part=self.part)
-            if self.y.range is not None:    
+            if self.y.range is not None:
                 Eq(P.y, 2*center[1]-self.y, part=self.part)
-            if self.z.range is not None:           
+            if self.z.range is not None:
                 Eq(P.z, +self.z, part=self.part)
         elif plane == 'xy':
             P.x.v = self.x.v
             P.y.v = self.y.v
             P.z.v = 2*center[2]-self.z.v
-            if self.x.range is not None:        
+            if self.x.range is not None:
                 Eq(P.x, +self.x, part=self.part)
-            if self.y.range is not None:        
+            if self.y.range is not None:
                 Eq(P.y, +self.y, part=self.part)
-            if self.z.range is not None:        
+            if self.z.range is not None:
                 Eq(P.z, 2*center[2]-self.z, part=self.part)
         return P
 
@@ -424,25 +424,25 @@ class Entity:
 
         if self.type == "line":
             OCC._addLine(self.hook, self.P[0].v(), self.P[1].v())
-        
+
         elif self.type == "polyline":
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
             OCC._addSpline(self.hook, n, 0, 1)
-        
+
         elif self.type == "spline1": # by control points
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
             OCC._addSpline(self.hook, n, 0, 3)
-        
+
         elif self.type == "spline2": # by approximated points
             s = len(self.P)
             n = numpy.zeros((3,s), dtype=numpy.float64)
             for c, p in enumerate(self.P): n[:,c] = p.v()
             OCC._addSpline(self.hook, n, 1, 3)
-        
+
         elif self.type == "spline3": # by free form control points + mesh
             # self.P[0] is a Grid, mesh is an array
 
@@ -472,18 +472,18 @@ class Entity:
 
         elif self.type == "circle":
             OCC._addCircle(self.hook, self.P[0].v(), (0,0,1), self.P[1].v, 0)
-        
+
         elif self.type == "arc":
             OCC._addArc(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v())
-        
+
         elif self.type == "superellipse":
             OCC._addSuperEllipse(self.hook, self.P[0].v(), self.P[1].v, self.P[2].v, self.P[3].v, self.P[4].v)
-        
+
         elif self.type == "naca4":
             import Geom
             naca = Geom.naca("%01d%01d%02d"%(int(self.P[0].v),int(self.P[1].v),int(self.P[2].v)), N=51, sharpte=True)
             OCC._addSpline(self.hook, naca[1], 1, 3)
-        
+
         else:
             raise(ValueError, "Unknown entity type %s."%self.type)
 
@@ -1015,7 +1015,7 @@ class Surface():
             hooks = []
             for e in self.surfaces: hooks.append(e.hook)
             self.hook = OCC.mergeCAD(hooks)
-        
+
         elif self.type == "fill": # by filling sketch
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
@@ -1024,12 +1024,12 @@ class Surface():
             edgeList = [i for i in range(1, nedges+1)]
             OCC._fillHole(self.hook, edgeList, [], self.data['continuity'].v)
             if self.data['reverse'].v == 1: OCC._reverse(self.hook)
-        
+
         elif self.type == "mergeEdges": # for debug
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
             self.hook = OCC.mergeCAD(hooks)
-        
+
         elif self.type == "union": # by boolean union
             hooks = []; n1 = 0; n2 = 0
             for e in self.surfaces:
@@ -1044,7 +1044,7 @@ class Surface():
             if 'rev2' in self.data: rev2 = self.data['rev2'].v
             else: rev2 = 1
             OCC._boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 0, rev1, rev2)
-        
+
         elif self.type == "inter": # by boolean intersection
             hooks = []; n1 = 0; n2 = 0
             for e in self.surfaces:
@@ -1059,7 +1059,7 @@ class Surface():
             if 'rev2' in self.data: rev2 = self.data['rev2'].v
             else: rev2 = 1
             OCC._boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 2, rev1, rev2)
-        
+
         elif self.type == "sub": # by boolean substraction
             hooks = []; n1 = 0; n2 = 0
             for e in self.surfaces:
@@ -1074,16 +1074,16 @@ class Surface():
             if 'rev2' in self.data: rev2 = self.data['rev2'].v
             else: rev2 = 1
             OCC._boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 1, rev1, rev2)
-        
+
         elif self.type == "sphere":
             self.hook = OCC.createEmptyCAD()
             OCC._addSphere(self.hook, self.data['center'].v(), self.data['radius'].v, name=self.name)
-        
+
         elif self.type == "addFillet":
             ne = OCC.getNbEdges(self.hook)
             edges = [x for x in range(1,ne+1)]
             OCC._addFillet(self.hook, edges, self.data['radius'].v())
-        
+
         # global positionning
         OCC._rotate(self.hook, self.rotCenter.v(), self.rotAxis.v(), self.rotAngle.v)
         OCC._translate(self.hook, self.position.v())
