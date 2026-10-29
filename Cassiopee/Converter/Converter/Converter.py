@@ -1,6 +1,6 @@
 """Conversion module for Cassiopee package.
 """
-__version__ = "4.2"
+__version__ = "2026.11"
 
 # Python Interface for conversion between array / file / CGNS
 import numpy

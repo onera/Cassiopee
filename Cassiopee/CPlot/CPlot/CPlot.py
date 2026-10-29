@@ -1,6 +1,6 @@
 """Simple plotter for CFD.
 """
-__version__ = "4.2"
+__version__ = "2026.11"
 
 # cplot and cplotOSMesa must not be imported at the same time
 

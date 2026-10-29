@@ -6,27 +6,27 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cassiopee"
-version = "4.2"
+version = "2026.11"
 dependencies = [
-  "cassiopee-kcore==4.2",
-  "cassiopee-xcore==4.2",
-  "cassiopee-converter==4.2",
-  "cassiopee-geom==4.2",
-  "cassiopee-transform==4.2",
-  "cassiopee-generator==4.2",
-  "cassiopee-post==4.2",
-  "cassiopee-initiator==4.2",
-  "cassiopee-connector==4.2",
-  "cassiopee-distributor2==4.2",
-  "cassiopee-dist2walls==4.2",
-  "cassiopee-rigidmotion==4.2",
-  "cassiopee-compressor==4.2",
-  "cassiopee-modeler==4.2",
-  "cassiopee-intersector==4.2",
-  "cassiopee-apps==4.2",
-  "cassiopee-roms==4.2",
-  "cassiopee-cplot==4.2",
-  "cassiopee-occ==4.2"
+  "cassiopee-kcore==2026.11",
+  "cassiopee-xcore==2026.11",
+  "cassiopee-converter==2026.11",
+  "cassiopee-geom==2026.11",
+  "cassiopee-transform==2026.11",
+  "cassiopee-generator==2026.11",
+  "cassiopee-post==2026.11",
+  "cassiopee-initiator==2026.11",
+  "cassiopee-connector==2026.11",
+  "cassiopee-distributor2==2026.11",
+  "cassiopee-dist2walls==2026.11",
+  "cassiopee-rigidmotion==2026.11",
+  "cassiopee-compressor==2026.11",
+  "cassiopee-modeler==2026.11",
+  "cassiopee-intersector==2026.11",
+  "cassiopee-apps==2026.11",
+  "cassiopee-roms==2026.11",
+  "cassiopee-cplot==2026.11",
+  "cassiopee-occ==2026.11"
 ]
 requires-python = ">=3.8"
 authors = [

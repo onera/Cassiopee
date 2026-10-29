@@ -1,3 +1,3 @@
 """Module of procedural models.
 """
-__version__ = "4.2"
+__version__ = "2026.11"

@@ -1,6 +1,6 @@
 """Initialization of grid solutions.
 """
-__version__ = "4.2"
+__version__ = "2026.11"
 
 from . import initiator
 

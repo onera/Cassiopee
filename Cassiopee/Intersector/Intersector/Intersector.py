@@ -1,6 +1,6 @@
 """Intersections module.
 """
-__version__ = "4.2"
+__version__ = "2026.11"
 
 # Python Interface to create arrays defining meshes
 from . import intersector
