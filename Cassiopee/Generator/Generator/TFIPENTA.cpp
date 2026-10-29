@@ -290,12 +290,7 @@ PyObject* K_GENERATOR::TFIPENTA(PyObject* arrays)
   E_Int off1 = 0;
   E_Int off2;
   E_Int off3 = n*(n+1)/2;
-  E_Int* cnp1 = cn->begin(1);
-  E_Int* cnp2 = cn->begin(2);
-  E_Int* cnp3 = cn->begin(3);
-  E_Int* cnp4 = cn->begin(4);
-  E_Int* cnp5 = cn->begin(5);
-  E_Int* cnp6 = cn->begin(6);
+  FldArrayI& cm = *(cn->getConnect(0));
   for (E_Int k = 0; k < p1; k++)
   {
     for (E_Int j = n1-1; j >= 0; j--)
@@ -303,27 +298,27 @@ PyObject* K_GENERATOR::TFIPENTA(PyObject* arrays)
       off2 = off1 + j + 2; 
       for (E_Int i = 0; i < j; i++)
       {
-        cnp1[et] = off1 + i + 1;
-        cnp2[et] = off1 + i + 2;
-        cnp3[et] = off2 + i + 1;
-        cnp4[et] = off1 + i + 1 + off3;
-        cnp5[et] = off1 + i + 2 + off3;
-        cnp6[et] = off2 + i + 1 + off3;
+        cm(et,1) = off1 + i + 1;
+        cm(et,2) = off1 + i + 2;
+        cm(et,3) = off2 + i + 1;
+        cm(et,4) = off1 + i + 1 + off3;
+        cm(et,5) = off1 + i + 2 + off3;
+        cm(et,6) = off2 + i + 1 + off3;
         et++;
-        cnp1[et] = off1 + i + 2;
-        cnp2[et] = off2 + i + 1;
-        cnp3[et] = off2 + i + 2;
-        cnp4[et] = off1 + i + 2 + off3;
-        cnp5[et] = off2 + i + 1 + off3;
-        cnp6[et] = off2 + i + 2 + off3;
+        cm(et,1) = off1 + i + 2;
+        cm(et,2) = off2 + i + 1;
+        cm(et,3) = off2 + i + 2;
+        cm(et,4) = off1 + i + 2 + off3;
+        cm(et,5) = off2 + i + 1 + off3;
+        cm(et,6) = off2 + i + 2 + off3;
         et++;
       }
-      cnp1[et] = off1 + j + 1;
-      cnp2[et] = off1 + j + 2;
-      cnp3[et] = off2 + j + 1;
-      cnp4[et] = off1 + j + 1 + off3;
-      cnp5[et] = off1 + j + 2 + off3;
-      cnp6[et] = off2 + j + 1 + off3;
+      cm(et,1) = off1 + j + 1;
+      cm(et,2) = off1 + j + 2;
+      cm(et,3) = off2 + j + 1;
+      cm(et,4) = off1 + j + 1 + off3;
+      cm(et,5) = off1 + j + 2 + off3;
+      cm(et,6) = off2 + j + 1 + off3;
       et++;
       off1 = off2;
     }

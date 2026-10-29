@@ -108,9 +108,9 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
     for (E_Int et1 = 0; et1 < nelts; et1++)
     {
       indA1 = cn1[et1]-1; indB1 = cn2[et1]-1; 
-      ptA1[0] = x[indA1];ptB1[0] = x[indB1];
-      ptA1[1] = y[indA1];ptB1[1] = y[indB1];
-      ptA1[2] = z[indA1];ptB1[2] = z[indB1];
+      ptA1[0] = x[indA1]; ptB1[0] = x[indB1];
+      ptA1[1] = y[indA1]; ptB1[1] = y[indB1];
+      ptA1[2] = z[indA1]; ptB1[2] = z[indB1];
       vector<E_Int>& eltsVoisins = cEEN[et1]; E_Int nvoisins = eltsVoisins.size();
       for (E_Int noet2 = 0; noet2 < nvoisins; noet2++)
       {
@@ -124,8 +124,8 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
         {
           found1 = 0; found2 = 0;
           if (indA1 == indA2 || indA1 == indB2) 
-          {for (E_Int p=0;p<nfld;p++) fep[p][nop] = fp[p][indA1];}
-          else {for (E_Int p=0;p<nfld;p++) fep[p][nop] = fp[p][indB1];}
+          {for (E_Int p=0; p < nfld; p++) fep[p][nop] = fp[p][indA1];}
+          else {for (E_Int p=0; p < nfld; p++) fep[p][nop] = fp[p][indB1];}
           nop++; noe++;
           if ( nop+2 > fe->getSize() ) 
           { fe->reAllocMat(2*fe->getSize(), nfld); for (E_Int p=0;p<nfld;p++) fep[p] = fe->begin(p+1);}
@@ -158,7 +158,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
       ptA1[0] = x[indA1]; ptB1[0] = x[indB1]; ptC1[0] = x[indC1];
       ptA1[1] = y[indA1]; ptB1[1] = y[indB1]; ptC1[1] = y[indC1];
       ptA1[2] = z[indA1]; ptB1[2] = z[indB1]; ptC1[2] = z[indC1];
-      for (E_Int p=0;p<nfld;p++){ptA1[p] = fp[p][indA1];ptB1[p] = fp[p][indB1];ptC1[p] = fp[p][indC1];}
+      for (E_Int p=0; p < nfld; p++){ptA1[p] = fp[p][indA1];ptB1[p] = fp[p][indB1];ptC1[p] = fp[p][indC1];}
       vector<E_Int>& eltsVoisins = cEEN[et1]; E_Int nvoisins = eltsVoisins.size();
       for (E_Int noet2 = 0; noet2 < nvoisins; noet2++)
       {
@@ -186,9 +186,9 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
             found2 = 3;
           }
           if ( found1 == 1 ) {for (E_Int p=0;p<nfld;p++) fep[p][nop] = fp[p][indA1];}
-          else {for (E_Int p=0;p<nfld;p++) fep[p][nop] = fp[p][indB1];}
-          if ( found2 == 2 ) {for (E_Int p=0;p<nfld;p++) fep[p][nop+1] = fp[p][indB1];}
-          else {for (E_Int p=0;p<nfld;p++) fep[p][nop+1] = fp[p][indC1];}
+          else {for (E_Int p=0; p < nfld; p++) fep[p][nop] = fp[p][indB1];}
+          if ( found2 == 2 ) {for (E_Int p=0; p < nfld; p++) fep[p][nop+1] = fp[p][indB1];}
+          else {for (E_Int p=0; p < nfld; p++) fep[p][nop+1] = fp[p][indC1];}
           cne1[noe] = nop+1; cne2[noe] = nop+2;
           nop = nop+2; noe++;
           if ( nop+2 >fe->getSize() ) 
@@ -256,11 +256,11 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
 
           if ( found1 == 1 ) {for (E_Int p=0;p<nfld;p++) fep[p][nop] = fp[p][indA1];}
           else if ( found1 == 2 ) {for (E_Int p=0;p<nfld;p++) fep[p][nop] = fp[p][indB1];}
-          else {for (E_Int p=0;p<nfld;p++) fep[p][nop] = fp[p][indC1];}
+          else {for (E_Int p=0; p < nfld; p++) fep[p][nop] = fp[p][indC1];}
 
           if (found2 == 2) {for (E_Int p=0;p<nfld;p++) fep[p][nop+1] = fp[p][indB1];}
-          else if ( found2 == 3 ) {for (E_Int p=0;p<nfld;p++) fep[p][nop+1] = fp[p][indC1];}
-          else {for (E_Int p=0;p<nfld;p++) fep[p][nop+1] = fp[p][indD1];}
+          else if ( found2 == 3 ) {for (E_Int p=0; p < nfld; p++) fep[p][nop+1] = fp[p][indC1];}
+          else {for (E_Int p=0; p < nfld; p++) fep[p][nop+1] = fp[p][indD1];}
 
           cne1[noe] = nop+1; cne2[noe] = nop+2; nop = nop+2; noe++;
           if ( nop+2 > fe->getSize() ) {fe->reAllocMat(2*fe->getSize(),nfld);for (E_Int p=0;p<nfld;p++) fep[p] = fe->begin(p+1);}
@@ -364,9 +364,9 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
       {
         K_CONNECT::getVertexIndices(cn->begin(), posFaces.begin(), pos[elt1], indices1);
         indA1 = indices1[0]-1; indB1 = indices1[1]-1;
-        ptA1[0] = x[indA1];ptB1[0] = x[indB1];
-        ptA1[1] = y[indA1];ptB1[1] = y[indB1];
-        ptA1[2] = z[indA1];ptB1[2] = z[indB1];
+        ptA1[0] = x[indA1]; ptB1[0] = x[indB1];
+        ptA1[1] = y[indA1]; ptB1[1] = y[indB1];
+        ptA1[2] = z[indA1]; ptB1[2] = z[indB1];
         // parcours des elements voisins
         for (unsigned int ev = 0; ev < cEEN[elt1].size(); ev++)
         {
@@ -375,16 +375,16 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
           // recuperation des noeuds de elt2
           K_CONNECT::getVertexIndices(cn->begin(), posFaces.begin(), pos[elt2], indices2);
           indA2 = indices2[0]-1; indB2 = indices2[1]-1;
-          ptA2[0] = x[indA2];ptB2[0] = x[indB2];
-          ptA2[1] = y[indA2];ptB2[1] = y[indB2];
-          ptA2[2] = z[indA2];ptB2[2] = z[indB2];
+          ptA2[0] = x[indA2]; ptB2[0] = x[indB2];
+          ptA2[1] = y[indA2]; ptB2[1] = y[indB2];
+          ptA2[2] = z[indA2]; ptB2[2] = z[indB2];
           E_Float alpha = K_COMPGEOM::getAlphaAngleBetweenBars(&ptA1[0], &ptB1[0], &ptA2[0], &ptB2[0], dirVect);
           if ((alpha < alphamin || alpha > alphamax ) && alpha != -1000.) 
          {
            found1 = 0; found2 = 0;
            if (indA1 == indA2 || indA1 == indB2) 
-           {for (E_Int p=0;p<nfld;p++) fep[p][nop] = fp[p][indA1];}
-           else {for (E_Int p=0;p<nfld;p++) fep[p][nop] = fp[p][indB1];}
+           {for (E_Int p=0; p < nfld; p++) fep[p][nop] = fp[p][indA1];}
+           else {for (E_Int p=0; p < nfld; p++) fep[p][nop] = fp[p][indB1];}
            cnep[noe] = nop+1;  nop++; noe++;
            if (nop+2 > fe->getSize()) 
            { fe->reAllocMat(2*fe->getSize(), nfld); for (E_Int p=0;p<nfld;p++) fep[p] = fe->begin(p+1);}
@@ -428,7 +428,7 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
       E_Int* newptrFN = newcnFN.begin();
       E_Int* newptrEF = newcnEF.begin();
       sizeco1 = 0; sizeco2 = 0; ptrEF = cnp+sizeFN+4;
-      nof =1;
+      nof = 1;
       // parcours des elements
       for (E_Int elt1 = 0; elt1 < nelts; elt1++)
       {
@@ -503,9 +503,9 @@ PyObject* K_POST::sharpEdges(PyObject* self, PyObject* args)
             {
               found1 = 0; found2 = 0;
               if ( indices1[0] == indices2[0] || indices1[0] == indices2[1] ) 
-              {for (E_Int p=0;p<nfld;p++) fep[p][nop] = ptA[p];}
-              else {for (E_Int p=0;p<nfld;p++) fep[p][nop] = ptC[p];}
-              newptrFN[noe] = nop+1;  nop++; noe++;
+              {for (E_Int p=0; p < nfld; p++) fep[p][nop] = ptA[p];}
+              else {for (E_Int p=0; p < nfld; p++) fep[p][nop] = ptC[p];}
+              newptrFN[noe] = nop+1; nop++; noe++;
             }
           }
           else

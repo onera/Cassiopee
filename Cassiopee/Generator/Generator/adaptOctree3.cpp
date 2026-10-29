@@ -123,11 +123,11 @@ PyObject* K_GENERATOR::adaptOctree3(PyObject* self, PyObject* args)
 
   // calcul du pas sur chaque grille 
   FldArrayF dht(nelts);
-  E_Int* cn1 = cn->begin(1); E_Int* cn2 = cn->begin(2);
+  FldArrayI& cm = *(cn->getConnect(0));
   E_Int ind1, ind2;
   for (E_Int et = 0; et < nelts; et++)
   {
-    ind1 = cn1[et]-1; ind2 = cn2[et]-1;
+    ind1 = cm(et,1)-1; ind2 = cm(et,2)-1;
     dht[et] = xt[ind2]-xt[ind1];
   }
   vector< vector<E_Int> > cEEN(nelts);

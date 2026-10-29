@@ -84,15 +84,14 @@ PyObject* K_GENERATOR::getTriQualityMap(PyObject* self, PyObject* args)
     return NULL;
   }
 
-  E_Int* cn1 = cn->begin(1); E_Int* cn2 = cn->begin(2); E_Int* cn3 = cn->begin(3);
+  FldArrayI& cnp = *(cn->getConnect(0));
   E_Int ind1, ind2, ind3;
   E_Float P0[3], P1[3], P2[3];
-  //
   for (E_Int et = 0; et < nelts; et++)
   {
-    ind1 = cn1[et]-1;
-    ind2 = cn2[et]-1;
-    ind3 = cn3[et]-1;
+    ind1 = cnp(et,1)-1;
+    ind2 = cnp(et,2)-1;
+    ind3 = cnp(et,3)-1;
     
     P0[0] = x[ind1]; P0[1] = y[ind1]; P0[2] = z[ind1];
     P1[0] = x[ind2]; P1[1] = y[ind2]; P1[2] = z[ind2];

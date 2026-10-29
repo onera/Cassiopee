@@ -119,7 +119,7 @@ def constrainedDelaunay(cont0, tol=1.e-10, keepBB=0):
     return tri
 
 def check(array):
-    """Check a mesh for regularity, cellSkewness...
+    """Check a mesh for regularity, cell skewness...
     Usage: check(array)"""
     generator.check(array)
 

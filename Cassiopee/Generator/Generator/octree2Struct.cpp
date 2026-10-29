@@ -84,8 +84,7 @@ PyObject* K_GENERATOR::octree2Struct(PyObject* self, PyObject* args)
   E_Float* xo = f->begin(posx);
   E_Float* yo = f->begin(posy);
   E_Float* zo = f->begin(posz);
-  E_Int* cn1 = cn->begin(1);
-  E_Int* cn2 = cn->begin(2);
+  FldArrayI& cm = *(cn->getConnect(0));
 
   FldArrayI levels(nelts); E_Int* lp = levels.begin();
   E_Int levelMax = 0;
@@ -97,7 +96,7 @@ PyObject* K_GENERATOR::octree2Struct(PyObject* self, PyObject* args)
 #pragma omp for
     for (E_Int et = 0; et < nelts; et++)
     {
-      E_Int v1 = cn1[et]-1; E_Int v2 = cn2[et]-1;  
+      E_Int v1 = cm(et,1)-1; E_Int v2 = cm(et,2)-1;  
       dhloc = K_FUNC::E_abs(xo[v2]-xo[v1]);
       dhminLoc = K_FUNC::E_min(dhminLoc, dhloc);
     }
@@ -115,7 +114,7 @@ PyObject* K_GENERATOR::octree2Struct(PyObject* self, PyObject* args)
 #pragma omp for
     for (E_Int et = 0; et < nelts; et++)
     {
-      E_Int v1 = cn1[et]-1; E_Int v2 = cn2[et]-1;  
+      E_Int v1 = cm(et,1)-1; E_Int v2 = cm(et,2)-1;  
       dhloc = K_FUNC::E_abs(xo[v2]-xo[v1]); 
       E_Int lloc = E_Int(dhloc/dhmin+1.e-6);
       E_Int found = 1; E_Int levelloc = 0;
@@ -185,7 +184,7 @@ PyObject* K_GENERATOR::octree2Struct(PyObject* self, PyObject* args)
       E_Float* xt = xtt[et];
       E_Float* yt = xt+npts;
       E_Float* zt = yt+npts;
-      E_Int ind1 = cn1[et]-1; E_Int ind2 = cn2[et]-1;
+      E_Int ind1 = cm(et,1)-1; E_Int ind2 = cm(et,2)-1;
       E_Float xmin = xo[ind1]; E_Float xmax = xo[ind2];
       E_Float ymin = yo[ind1]; 
       E_Float vmini = 1./(vminloc-1);
@@ -227,7 +226,7 @@ PyObject* K_GENERATOR::octree2Struct(PyObject* self, PyObject* args)
       E_Float* xt = xtt[et];
       E_Float* yt = xt+npts;
       E_Float* zt = yt+npts;
-      E_Int ind1 = cn1[et]-1; E_Int ind2 = cn2[et]-1;
+      E_Int ind1 = cm(et,1)-1; E_Int ind2 = cm(et,2)-1;
       E_Float xmin = xo[ind1]; E_Float xmax = xo[ind2]; 
       E_Float ymin = yo[ind1]; E_Float zmin = zo[ind1];
       E_Float vmini = 1./(vminloc-1);

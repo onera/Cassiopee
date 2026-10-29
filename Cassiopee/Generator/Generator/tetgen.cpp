@@ -263,9 +263,7 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
   {
     ptin[0] = ptx[i]; ptin[1] = pty[i]; ptin[2] = ptz[i]; ptin += 3;
   }
-  E_Int* cn1 = cn->begin(1);
-  E_Int* cn2 = cn->begin(2);
-  E_Int* cn3 = cn->begin(3);
+  FldArrayI& cm = *(cn->getConnect(0));
   E_Int ne = cn->getSize();
   in.numberoffacets = ne;
   in.facetlist = new tetgenio::facet[ne];
@@ -280,9 +278,9 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
     p->numberofvertices = 3;
     p->vertexlist = new int[p->numberofvertices];
     
-    p->vertexlist[0] = cn1[i]-1;
-    p->vertexlist[1] = cn2[i]-1;
-    p->vertexlist[2] = cn3[i]-1;
+    p->vertexlist[0] = cm(i,1)-1;
+    p->vertexlist[1] = cm(i,2)-1;
+    p->vertexlist[2] = cm(i,3)-1;
   }
 
   // Ajoute des holes

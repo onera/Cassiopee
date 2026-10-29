@@ -121,7 +121,7 @@ PyObject* K_POST::silhouette(PyObject* self, PyObject* args)
     for (E_Int elt1 = 0; elt1 < nelts; elt1++)
     {
       indA = cn1[elt1]-1; indB = cn2[elt1]-1;
-      for (E_Int p=0;p<nfld;p++)
+      for (E_Int p=0; p < nfld; p++)
       {
         fnewp[p][indA] = fp[p][indA]; fnewp[p][indB] = fp[p][indB];
         cnnew1[elt1] = cn1[elt1]; cnnew2[elt1] = cn2[elt1];

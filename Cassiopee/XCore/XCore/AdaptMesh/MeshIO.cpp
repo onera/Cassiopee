@@ -53,7 +53,8 @@ PyObject *export_BE_mesh(Mesh *M)
         // BOT
         E_Int *BOT = cell;
 
-        if (crange[0] == 4) {
+        if (crange[0] == 4) 
+        {
             E_Int fid = BOT[0];
             E_Int *pn = Mesh_get_face(M, fid);
             for (E_Int i = 0; i < 4; i++) local[i] = pn[2*i];

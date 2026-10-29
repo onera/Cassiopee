@@ -105,13 +105,10 @@ E_Int K_IO::GenIO::fstlread(
     // facettes
     E_Int ne = nv/3;
     FldArrayI* cn = new FldArrayI(ne, 3);
-    E_Int* cn1 = cn->begin(1);
-    E_Int* cn2 = cn->begin(2);
-    E_Int* cn3 = cn->begin(3);
-
+    FldArrayI& cnp = *(cn->getConnect(0));
     for (i = 0; i < ne; i++)
     {
-      cn1[i] = 3*i+1; cn2[i] = 3*i+2; cn3[i] = 3*i+3;
+      cnp(i,1) = 3*i+1; cnp(i,2) = 3*i+2; cnp(i,3) = 3*i+3;
     }
 
     K_CONNECT::cleanConnectivity(1, 2, 3, 

@@ -130,7 +130,7 @@ PyObject* K_TRANSFORM::splitTBranches(PyObject* self, PyObject* args)
 
     for (E_Int eq = 1; eq <= nfld; eq++)
     {
-      (*fnew)(nop,eq) = (*f)(v1,eq);(*fnew)(nop+1,eq) = (*f)(v2,eq);
+      (*fnew)(nop,eq) = (*f)(v1,eq); (*fnew)(nop+1,eq) = (*f)(v2,eq);
       (*cnnew)(noet,1) = nop+1; (*cnnew)(noet,2) = nop+2;
     }
     dejaVu[etstart] = 1;

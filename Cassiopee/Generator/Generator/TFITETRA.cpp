@@ -231,11 +231,7 @@ PyObject* K_GENERATOR::TFITETRA(PyObject* arrays)
   E_Int Nj, Nk;
   E_Int offi=0, offj=0;
   E_Int offi2=0, offj2=0;
-  
-  E_Int* cn1 = cn->begin(1);
-  E_Int* cn2 = cn->begin(2);
-  E_Int* cn3 = cn->begin(3);
-  E_Int* cn4 = cn->begin(4);
+  FldArrayI& cm = *(cn->getConnect(0));
 
   for (E_Int k = 0; k < ni1; k++)
   { 
@@ -247,44 +243,44 @@ PyObject* K_GENERATOR::TFITETRA(PyObject* arrays)
       Nj = ni-j-k;
       for (E_Int i = 0; i < ni1-j-k-1; i++)
       { 
-        cn1[et] = offi + 1; 
-        cn2[et] = offi + 2;
-        cn3[et] = offi + Nj + 1;
-        cn4[et] = offi + offj + 1;
+        cm(et,1) = offi + 1; 
+        cm(et,2) = offi + 2;
+        cm(et,3) = offi + Nj + 1;
+        cm(et,4) = offi + offj + 1;
         et++;     
 
-        cn1[et] = offi + 2;
-        cn2[et] = offi + Nj + 2;
-        cn3[et] = offi + Nj + 1;
-        cn4[et] = offi + offj + 1;
+        cm(et,1) = offi + 2;
+        cm(et,2) = offi + Nj + 2;
+        cm(et,3) = offi + Nj + 1;
+        cm(et,4) = offi + offj + 1;
         et++;
 
-        cn1[et] = offi + 2;
-        cn2[et] = offi + Nj + 2;
-        cn3[et] = offi + offj + 1;
-        cn4[et] = offi + offj + 2;
+        cm(et,1) = offi + 2;
+        cm(et,2) = offi + Nj + 2;
+        cm(et,3) = offi + offj + 1;
+        cm(et,4) = offi + offj + 2;
         et++;
 
         // deuxieme bande
         offi2 =  offi + Nj;
-        cn1[et] = offi2 + 1; 
-        cn2[et] = offi2 + 2; 
-        cn3[et] = offi2 + offj2 + 1;  
-        cn4[et] = offi + offj + 1; 
+        cm(et,1) = offi2 + 1; 
+        cm(et,2) = offi2 + 2; 
+        cm(et,3) = offi2 + offj2 + 1;  
+        cm(et,4) = offi + offj + 1; 
         et++;
         
-        cn1[et] = offi2 + 2;
-        cn2[et] = offi + offj + 1;
-        cn3[et] = offi + offj + 2;        
-        cn4[et] = offi2 + offj2 + 1;  
+        cm(et,1) = offi2 + 2;
+        cm(et,2) = offi + offj + 1;
+        cm(et,3) = offi + offj + 2;        
+        cm(et,4) = offi2 + offj2 + 1;  
         et++;
           
         if ( i <  ni1-j-k-2)
         {
-          cn1[et] = offi2 + 2;
-          cn2[et] = offi + offj + 2;
-          cn3[et] = offi2 + offj2 + 2;        
-          cn4[et] = offi2 + offj2 + 1;  
+          cm(et,1) = offi2 + 2;
+          cm(et,2) = offi + offj + 2;
+          cm(et,3) = offi2 + offj2 + 2;        
+          cm(et,4) = offi2 + offj2 + 1;  
           et++;
         }
         // fin deuxieme bande
@@ -292,10 +288,10 @@ PyObject* K_GENERATOR::TFITETRA(PyObject* arrays)
       }
 
 
-      cn1[et] = offi + 1; 
-      cn2[et] = offi + 2;
-      cn3[et] = offi + Nj + 1;
-      cn4[et] = offi + offj + 1;
+      cm(et,1) = offi + 1; 
+      cm(et,2) = offi + 2;
+      cm(et,3) = offi + Nj + 1;
+      cm(et,4) = offi + offj + 1;
       et++;
     
       offi++;

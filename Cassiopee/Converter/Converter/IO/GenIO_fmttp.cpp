@@ -564,7 +564,7 @@ E_Int K_IO::GenIO::tpread(
       {
         cp[i+2] = faces[i];
       }
-      int pt = 2+faces.getSize();
+      E_Int pt = 2+faces.getSize();
       cp[pt] = ne;
       cp[pt+1] = cEF.getSize();
       for (E_Int i = 0; i < cEF.getSize(); i++)

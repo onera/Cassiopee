@@ -393,7 +393,7 @@ E_Int K_CONNECTOR::blankIntersectingCellsPenta(
         face->yo = 0.25*(yt[indA]+yt[indB]+yt[indC]+yt[indD]);
         face->zo = 0.25*(zt[indA]+zt[indB]+zt[indC]+zt[indD]);
         etvoisin = K_CONNECT::getNbrForQuadFace(indA, indB, indC, indD, *cn, cEEN[et]);
-        if ( etvoisin == -1 ) etvoisin = et;
+        if (etvoisin == -1) etvoisin = et;
         face->indcell1 = et; face->indcell2 = etvoisin;
         face->nozone = v;
         listFacettes.push_back(face);

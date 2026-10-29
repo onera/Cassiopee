@@ -418,7 +418,7 @@ PyObject* octree3(PyObject* self, PyObject* args)
   {
     xt = coords->begin(1); yt = coords->begin(2); zt = coords->begin(3);
     cn1 = cn->begin(1); cn2 = cn->begin(2); cn3 = cn->begin(3); cn4 = cn->begin(4);
-    if ( dim == 3) {cn5 = cn->begin(5); cn6 = cn->begin(6); cn7 = cn->begin(7); cn8 = cn->begin(8);}
+    if (dim == 3) {cn5 = cn->begin(5); cn6 = cn->begin(6); cn7 = cn->begin(7); cn8 = cn->begin(8);}
     dataForStack = stack.top(); stack.pop();
     current = dataForStack.current;
     dh0 = current->getDh();

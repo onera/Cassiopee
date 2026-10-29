@@ -148,27 +148,25 @@ PyObject* K_GENERATOR::TFITRI(PyObject* arrays)
   E_Int et = 0;
   E_Int off1 = 0;
   E_Int off2;
-  E_Int* cn1 = cn->begin(1);
-  E_Int* cn2 = cn->begin(2);
-  E_Int* cn3 = cn->begin(3);
+  FldArrayI& cm = *(cn->getConnect(0));
 
   for (E_Int j = ni1-1; j >= 0; j--)
   {
     off2 = off1 + j + 2; 
     for (E_Int i = 0; i < j; i++)
     {
-      cn1[et] = off1 + i + 1;
-      cn2[et] = off1 + i + 2;
-      cn3[et] = off2 + i + 1;
+      cm(et,1) = off1 + i + 1;
+      cm(et,2) = off1 + i + 2;
+      cm(et,3) = off2 + i + 1;
       et++;
-      cn1[et] = off1 + i + 2;
-      cn2[et] = off2 + i + 1;
-      cn3[et] = off2 + i + 2;
+      cm(et,1) = off1 + i + 2;
+      cm(et,2) = off2 + i + 1;
+      cm(et,3) = off2 + i + 2;
       et++;
     }
-    cn1[et] = off1 + j + 1;
-    cn2[et] = off1 + j + 2;
-    cn3[et] = off2 + j + 1;
+    cm(et,1) = off1 + j + 1;
+    cm(et,2) = off1 + j + 2;
+    cm(et,3) = off2 + j + 1;
     et++;
     off1 = off2;
   }

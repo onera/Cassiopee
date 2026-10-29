@@ -548,7 +548,7 @@ def _snapSharpEdges(t, surfs, step=None, angle=30.):
                    arrays, step, angle)
 
 def check(t):
-    """Check a mesh for regularity, cellSkewness...
+    """Check a mesh for regularity, cell skewness...
     Usage: check(t)"""
     a = C.getFields(Internal.__GridCoordinates__, t, api=1)
     for i in a: Generator.check(i)

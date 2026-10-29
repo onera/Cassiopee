@@ -45,14 +45,12 @@ PyObject* K_GEOM::triangle(PyObject* self, PyObject* args)
   E_Float* xt = f->begin(1);
   E_Float* yt = f->begin(2);
   E_Float* zt = f->begin(3);
-  E_Int* cn1 = cn->begin(1);
-  E_Int* cn2 = cn->begin(2);
-  E_Int* cn3 = cn->begin(3);
+  FldArrayI& cm = *(cn->getConnect(0));
 
   xt[0] = x1; yt[0] = y1; zt[0] = z1;
   xt[1] = x2; yt[1] = y2; zt[1] = z2;
   xt[2] = x3; yt[2] = y3; zt[2] = z3;
-  cn1[0] = 1; cn2[0] = 2; cn3[0] = 3;
+  cm(0,1) = 1; cm(0,2) = 2; cm(0,3) = 3;
 
   RELEASESHAREDU(tpl, f, cn);
   return tpl;
