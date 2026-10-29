@@ -89,7 +89,8 @@ PROD_PATH=""
 PROD_LD_LIBRARY_PATH=""
 PROD_PYTHONPATH=""
 
-# ----------------------------- Prods ------------------------------------------
+# ----------------------------- Prods -----------------------------------------
+rm -f "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_user"
 if [ -f "$CASSIOPEE/etc/sh_Cassiopee_user" ]; then
     cp "$CASSIOPEE/etc/sh_Cassiopee_user" "$CASSIOPEE/Cassiopee/Envs/"
     . "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_user"
@@ -97,7 +98,7 @@ fi
 
 if [ -z $ELSAPROD ]; then
 if [ "$MAC" = "ld" ]; then
-#------------------------------- ld rocky 8 + python 3 -----------------------------------
+#------------------------------- ld rocky 8 + python 3 ------------------------
     export ELSAPROD=ld
     export ELSAPROD=$ELSAPROD$EXT
     . /etc/profile.d/modules-onera.sh
@@ -121,7 +122,7 @@ if [ "$MAC" = "ld" ]; then
     export ASAN_LIB=/opt/tools/gcc/10.2.0-gnu831/lib64/libasan.so
 
 elif [ "$MAC" = "ld_coda" ]; then
-#------------------------------- ld rocky 8 + python 3 -----------------------------------
+#------------------------------- ld rocky 8 + python 3 ------------------------
     export ELSAPROD=ld_coda
     export ELSAPROD=$ELSAPROD$EXT
     . /etc/profile.d/modules-onera.sh
@@ -159,7 +160,7 @@ elif [ "$MAC" = "ld_coda" ]; then
     export ASAN_LIB=/opt/tools/gcc/10.2.0-gnu831/lib64/libasan.so
 
 elif [ "$MAC" = "ld-clang" ]; then
-#------------------------------- ld clang ----------------------------------
+#------------------------------- ld clang -------------------------------------
     export ELSAPROD=ld_clang
     export ELSAPROD=$ELSAPROD$EXT
     . /etc/profile.d/modules-onera.sh
@@ -178,7 +179,7 @@ elif [ "$MAC" = "ld-clang" ]; then
     export XMODIFIERS="@im=none"
     
 elif [ "$MAC" = "ld_spack2" ]; then
-#------------------------------- ld spack2 + python 3.9 ----------------------------------
+#------------------------------- ld spack2 + python 3.9 -----------------------
     export ELSAPROD=ld_spack2
     export ELSAPROD=$ELSAPROD$EXT
     . /etc/profile.d/modules-onera.sh

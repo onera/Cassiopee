@@ -1,4 +1,5 @@
 PREFIX="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE}"
+rm -f sh_Cassiopee_user
 cp $CASSIOPEE/etc/sh_Cassiopee_user . 2>/dev/null
 cp *_Cassiopee_* $PREFIX/Dist
 cp *_Cassiopee_* $PREFIX/Dist/bin

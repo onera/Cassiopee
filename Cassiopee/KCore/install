@@ -23,6 +23,7 @@ if [ -z "$PRODMODE" ]; then
 fi
 
 # Copy etc/installBaseUser.json in KCore/ if it exists
+rm -f KCore/installBaseUser.json
 if [ -f "$CASSIOPEE/etc/installBaseUser.json" ]; then
     cp "$CASSIOPEE/etc/installBaseUser.json" "KCore/"
 fi
