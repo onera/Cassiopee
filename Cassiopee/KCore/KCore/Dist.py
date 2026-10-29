@@ -52,9 +52,9 @@ def setConfigDict(installDict=None):
         try:
             with open(filename, "r", encoding="utf-8") as f:
                 installDictUser = json.load(f)
-        except OSError as e:
+        except OSError:
             pass
-        installDict = {**installDictUser, **installDict}
+        installDict = {**installDict, **installDictUser}
 
     cassProd = None
     # prod est tout d'abord cherche dans le dictionnaire
@@ -77,10 +77,10 @@ def setConfigDict(installDict=None):
 
     if cassProd is None:  # not found in installDict
         print(f"Warning: {prod} not found in KCore/installBase.json nor "
-              "KCore/installBaseUser.json.\n"
+              "in $CASSIOPEE/etc/installBaseUser.json.\n"
               "Warning: using default compilers and options.\n"
               "Warning: to change that, add a config in "
-              "KCore/installBaseUser.json.")
+              "$CASSIOPEE/etc/installBaseUser.json.")
         cassProd = 'default'
 
     CONFIGDICT = installDict[cassProd]
@@ -540,7 +540,7 @@ def writeSetupCfg():
 
 #==============================================================================
 # Retourne le compilo c, c++ et ses options tels que definis dans distutils
-# ou dans installBase.json / installBaseUser.json
+# ou dans installBase.json / $CASSIOPEE/etc/installBaseUser.json
 #==============================================================================
 def getDistUtilsCompilers():
     from setuptools._distutils import sysconfig

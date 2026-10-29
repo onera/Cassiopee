@@ -1,0 +1,18 @@
+#!/bin/sh
+# *Cassiopee* machine specific (local) variables for user prods
+
+if [ "$MAC" = "ubuntu" ]; then
+#-------------------------------- ubuntu --------------------------------------
+    export ELSAPROD=ubuntu
+    export ELSAPROD=$ELSAPROD$EXT
+    export OMP_NUM_THREADS=12
+    export PYTHONEXE=python3
+    export PRODMODE=1
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    export XMODIFIERS="@im=none"
+    export ASAN_OPTIONS=verify_asan_link_order=false:handle_abort=1
+    export LSAN_OPTIONS=suppressions="$INSTALLPATH/$ELSAPROD"/asan.supp:print_suppressions=0
+    export ASAN_LIB=/usr/lib/gcc/x86_64-linux-gnu/13/libasan.so
+    ulimit -s 8192 # for ASAN
+fi
+
