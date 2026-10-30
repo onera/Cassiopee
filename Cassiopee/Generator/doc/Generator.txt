@@ -1,9 +1,0 @@
-===============================================================================
-Generator
-Requires: C++ compiler, f77 compiler, python > 2.7, numpy > 1.0, KCore
-Optional: pyTree interface requires Converter
-Optional: bbox requires Converter
-Optional: addNormalLayers, gencartmb, map require Converter, Transform
-Optional: stitchedHat requires Transform
-Optional: mapSplit requires Converter, Transform, Geom
-===============================================================================

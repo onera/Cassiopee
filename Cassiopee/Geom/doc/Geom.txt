@@ -1,8 +1,0 @@
-===============================================================================
-Geom
-Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0, KCore
-Optional: pyTree interface requires Converter
-Optional: volumeFromCrossSections requires Converter, Transform, Generator
-Optional: sphere6 requires Transform, Generator
-Optional: text functions require Converter, Transform, Generator
-===============================================================================

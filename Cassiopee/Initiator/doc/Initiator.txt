@@ -1,5 +1,0 @@
-===============================================================================
-Initiator
-Require: C++ compiler, f77 compiler, python > 2.4, numpy > 1.0
-Optional: pyTree interface requires Converter
-===============================================================================
