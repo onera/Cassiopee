@@ -61,4 +61,4 @@ out.step
 *.swp
 *.db
 tools/MigrationSVN
-.env
+/.env

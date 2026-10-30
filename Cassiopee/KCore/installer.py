@@ -25,7 +25,7 @@ try: import tkinter as TK
 except:
     raise ImportError(
         'Cassiopee installer requires tkinter.\nIf your python dont run '
-        'tkinter, edit the installBaseUser.json file and add your '
+        'tkinter, edit $CASSIOPEE/etc/installBaseUser.json file and add your '
         'machine settings.'
     )
 

@@ -95,7 +95,7 @@ To run the container interactively using Docker Compose:
 ```sh
 xhost +local:docker
 cd $CASSIOPEE
-cp .env.template .env  # configure any environment variables if needed
+cp etc/.env .env  # configure any environment variables if needed
 docker compose run --rm cassiopee
 ```
 
@@ -103,7 +103,8 @@ Docker Compose automatically sets up the container with the correct volumes, dis
 
 As with manual execution, `--rm` ensures the container is removed when you exit.
 
-Use the `.env` file to configure the tag and python version used without modifying the Compose file directly.
+Use the `.env` file to configure the tag and python version used without modifying the Compose file directly. A template
+is available in etc/templates/.env and the user can store his own copy in etc/.env.
 
 <br></br>
 
