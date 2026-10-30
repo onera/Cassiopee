@@ -12,16 +12,16 @@ WIDGETS = {}; VARS = []
 # DRIVER
 DRIVER = None
 PART = None
-ENTITY = None
+ENTITIES = None
 MODE = 0 # 0: mesh, 1: dxdmu
 
 #==============================================================================
 # set driver, current part and current entity
 def setDriver(driver, part, entity):
-    global DRIVER, PART, ENTITY
+    global DRIVER, PART, ENTITIES
     DRIVER = driver
     PART = part
-    ENTITY = entity
+    ENTITIES = [entity]
     return None
 
 #==============================================================================
@@ -35,7 +35,7 @@ def getParamFromPart():
 #==============================================================================
 # get the entities of part
 def getEntitiesFromPart():
-    entities = []
+    entities = ['All sketches', 'All surfaces']
     #for f in PART.edges:
     #    entities.append(f)
     for f in PART.sketches:
@@ -96,16 +96,20 @@ def setParameterValueWithScale(event=None):
     return None
 
 #==============================================================================
-# set ENTITY from VARS[2]
+# set ENTITIES from VARS[2]
 def setEntityName(event=None):
-    global ENTITY
+    global ENTITIES
     name = VARS[2].get()
-    if name in PART.surfaces:
-        ENTITY = PART.surfaces[name]
+    if name == 'All sketches':
+        ENTITIES = list(PART.sketches.values())
+    elif name == 'All surfaces':
+        ENTITIES = list(PART.surfaces.values())
+    elif name in PART.surfaces:
+        ENTITIES = [PART.surfaces[name]]
     elif name in PART.sketches:
-        ENTITY = PART.sketches[name]
+        ENTITIES = [PART.sketches[name]]
     elif name in PART.edges:
-        ENTITY = PART.edges[name]
+        ENTITIES = [PART.edges[name]]
     update()
 
 #==============================================================================
@@ -120,9 +124,9 @@ def setPartName(event=None):
     # change the list of possible params since they depend on part
     freeParams = PART.freeParams
     WIDGETS['ParameterName']['values'] = freeParams
-    # change entity
+    # change entity name
     if len(entities) > 0:
-        VARS[2].set(entities[0])
+        VARS[2].set('All sketches')
     # change param
     if len(freeParams) > 0:
         VARS[0].set(freeParams[0])
@@ -139,16 +143,22 @@ def update(event=None):
     params[paramName] = paramValue
     PART.instantiate(params)
     if MODE == 0: # mesh
-        if ENTITY.h is None:
-            ENTITY.h = (0.1, 0.1, 0.01) # a mieux regler automatiquement
-        m = ENTITY.Mesh(method=0)
-        CPlot.display(m, mode='Mesh', meshStyle=4, bgColor=1)
+        out = []
+        for E in ENTITIES:
+            if E.h is None:
+                E.h = (0.1, 0.1, 0.01) # a mieux regler automatiquement
+            m = E.Mesh(method=0)
+            out += m
+        CPlot.display(out, mode='Mesh', meshStyle=4, bgColor=1)
     elif MODE == 1: # dXdmu
-        if ENTITY.h is None:
-            ENTITY.h = (0.1, 0.1, 0.01) # a mieux regler automatiquement
-        m = ENTITY.MeshAsReference()
-        PART._dXdmu(ENTITY, Mesh=m, freeParams=[VARS[0].get()], deps=1.e-4)
-        CPlot.display(m, mode='Vector',
+        out = []
+        for E in ENTITIES:
+            if E.h is None:
+                E.h = (0.1, 0.1, 0.01) # a mieux regler automatiquement
+            m = E.MeshAsReference()
+            PART._dXdmu(E, Mesh=m, freeParams=[VARS[0].get()], deps=1.e-4)
+            out += m
+        CPlot.display(out, mode='Vector',
                       vectorField1='dXd0', vectorField2='dYd0', vectorField3='dZd0',
                       vectorStyle=1, bgColor=1)
 
@@ -203,7 +213,7 @@ def createApp(win):
     alpha = 100./delta
     beta = 100. - alpha*r[1]
     scaleValue = beta + alpha*paramValue
-
+    
     # - VARS -
     # -0- Current parameter name -
     V = TK.StringVar(win); V.set(paramName); VARS.append(V)
@@ -212,11 +222,11 @@ def createApp(win):
     V = TK.StringVar(win); V.set(paramValue); VARS.append(V)
 
     # -2- Current entity
-    V = TK.StringVar(win); V.set(ENTITY.name); VARS.append(V)
+    V = TK.StringVar(win); V.set('All sketches'); VARS.append(V)
 
     # -3- Current part
     V = TK.StringVar(win); V.set(PART.name); VARS.append(V)
-
+        
     # - Part chooser -
     B = TTK.Label(Frame, text="Part")
     B.grid(row=0, column=0, sticky=TK.EW)
@@ -301,6 +311,7 @@ def createApp(win):
     WIDGETS['Mode'] = B
 
     # update for first time
+    setEntityName()
     update()
 
 #==============================================================================
