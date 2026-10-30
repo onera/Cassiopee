@@ -22,7 +22,7 @@ if TEST == 'line':
     line2 = line1.Shift('line2', vector=(0,5,0))
     line3 = line1.Symm('lines3', plane='yz', center=(0,0,0))
     line4 = line1.Rotate('line4', center=(0,0,0), alpha=-90.)
-    
+
     line1.print()
     line2.print()
 

@@ -314,7 +314,7 @@ class Point:
         if name is None: name = getName(self.name+'R')
         alphar = numpy.deg2rad(alpha)
         P = Point(name, part=self.part)
-        P.x.v = center[0] + (self.x.v - center[0])*numpy.cos(alphar) - (self.y.v - center[1])*numpy.sin(alphar) 
+        P.x.v = center[0] + (self.x.v - center[0])*numpy.cos(alphar) - (self.y.v - center[1])*numpy.sin(alphar)
         P.y.v = center[1] + (self.x.v - center[0])*numpy.sin(alphar) + (self.y.v - center[1])*numpy.cos(alphar)
         P.z.v = self.z.v
         if self.x.range is not None and self.y.range is not None:

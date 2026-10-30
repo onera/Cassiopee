@@ -213,7 +213,7 @@ def createApp(win):
     alpha = 100./delta
     beta = 100. - alpha*r[1]
     scaleValue = beta + alpha*paramValue
-    
+
     # - VARS -
     # -0- Current parameter name -
     V = TK.StringVar(win); V.set(paramName); VARS.append(V)
@@ -226,7 +226,7 @@ def createApp(win):
 
     # -3- Current part
     V = TK.StringVar(win); V.set(PART.name); VARS.append(V)
-        
+
     # - Part chooser -
     B = TTK.Label(Frame, text="Part")
     B.grid(row=0, column=0, sticky=TK.EW)
