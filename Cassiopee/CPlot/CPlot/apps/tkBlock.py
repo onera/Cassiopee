@@ -297,7 +297,7 @@ def close():
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
         zones.append(z)
-    try: zones = G.close(zones, eps)
+    try: zones = G.close(zones, tol=eps)
     except Exception as e:
         fail = True; errors += [0,str(e)]
 

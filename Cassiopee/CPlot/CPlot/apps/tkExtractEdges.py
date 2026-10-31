@@ -124,7 +124,7 @@ def silhouette():
         nob = CTK.Nb[nz]+1
         noz = CTK.Nz[nz]
         z = CTK.t[2][nob][2][noz]
-        z = G.close(z, 1.e-6)
+        z = G.close(z, tol=1.e-6)
         try:
             ext = P.silhouette(z, vector)
             exts += ext

@@ -60,7 +60,7 @@ for i in range(4):
     n = C.normalize(n, ['sx','sy','sz'])
     n[1] = n[1]*0.3
     b = T.transform.deform2(a, n)
-    b = G.close(b, 1.e-6)
+    b = G.close(b, tol=1.e-6)
     out.append(b)
     #b = T.reorder(b, (1,))
 

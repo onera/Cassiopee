@@ -6,7 +6,7 @@ import Transform as T
 
 # Read a 2D geometry created with tecplot
 a = C.convertFile2Arrays('fusee.plt')
-a = G.close(a,1e-2); a = T.reorder(a,(-1,2,3))
+a = G.close(a, tol=1e-2); a = T.reorder(a,(-1,2,3))
 C.convertArrays2File(a, 'input.plt')
 
 # Data

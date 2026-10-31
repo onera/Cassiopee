@@ -10,7 +10,7 @@ a = [D.polyline([(0.,0.,0.),(1.,0.,0.),(1.,1.,0.),(0.,1.,0.),(0.,0.,0.)])]
 m  = []
 for i in a:
     i = C.convertArray2Tetra(i)
-    i = G.close(i, 1.e-2)
+    i = G.close(i, tol=1.e-2)
     m.append(i)
 
 # Donnees

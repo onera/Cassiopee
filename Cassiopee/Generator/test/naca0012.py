@@ -49,7 +49,7 @@ distrib = T.translate(distrib, (0.5,0,0))
 C.convertArrays2File([distrib], "distrib.tp", "bin_tp")
 
 msh = G.hyper2D(msh, distrib, "C")
-msh = G.close(msh, 1.e-6)
+msh = G.close(msh, tol=1.e-6)
 
 msh = T.addkplane(msh)
 C.convertArrays2File([msh], "new.plt", "bin_tp")
