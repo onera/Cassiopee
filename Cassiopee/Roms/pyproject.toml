@@ -43,6 +43,9 @@ Repository = "https://github.com/onera/Cassiopee.git"
 Issues = "https://github.com/onera/Cassiopee/issues"
 Changelog = "https://onera.github.io/Cassiopee/current/ReleaseNotes.html"
 
+[project.scripts]
+kdb = "Roms.kdb:main"
+
 [tool.setuptools]
 package-dir = {"" = "."}
 packages = [

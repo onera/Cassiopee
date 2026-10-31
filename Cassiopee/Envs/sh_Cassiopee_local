@@ -796,23 +796,25 @@ if ! [ -z $PATHL ]; then
 fi
 
 if [ "$PYTHONEXE" = "python3" ]; then
-    pylib=$($PYTHONEXE -c 'import os; import site; a = site.getsitepackages()[0].split("/")[-4:-2]; print(os.path.join(*a) if a[0] == "local" else a[1])' 2>/dev/null)
-    pysite=$($PYTHONEXE -c 'import os; import site; a = site.getsitepackages()[0].split("/")[-4:]; print(os.path.join(*a) if a[0] == "local" else os.path.join(*a[1:]))' 2>/dev/null)
+    pybin=$("$PYTHONEXE" -c 'from pathlib import Path; import site; p=Path(site.getsitepackages()[0]); lib=p.parents[1]; print("local/bin" if lib.parent.name == "local" else "bin")')
+    pylib=$("$PYTHONEXE" -c 'from pathlib import Path; import site; p=Path(site.getsitepackages()[0]); lib=p.parents[1]; print(str(Path("local") / lib.name) if lib.parent.name == "local" else lib.name)')
     alias python=python3
 else
     pyenv=$($PYTHONEXE -c 'import sys; print("pyenv" in sys.executable)' 2>/dev/null)
     pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
     if [ "$MAC" = "ubuntu" ] && [ "$pyenv" == "False" ]; then
+        pybin="local/bin"
         pylib="local/lib"
         pysite=$pylib/$pyversion/"dist-packages"
     else
+        pybin="bin"
         pylib="lib"
         pysite=$pylib/$pyversion/"site-packages"
     fi
 fi
 
 INSTALLPATH="$INSTALLPATH/$ELSAPROD"
-export PATHL="$INSTALLPATH":"$INSTALLPATH/bin":$PROD_PATH
+export PATHL="$INSTALLPATH":"$INSTALLPATH/$pybin":$PROD_PATH
 export LD_LIBRARY_PATHL="$INSTALLPATH":"$INSTALLPATH/$pylib":$PROD_LD_LIBRARY_PATH
 export PYTHONPATHL="$INSTALLPATH":"$INSTALLPATH/$pysite":$PROD_PYTHONPATH
 

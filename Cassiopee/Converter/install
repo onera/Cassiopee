@@ -57,8 +57,5 @@ elif [ $PRODMODE -eq 3 ]; then # pip no isolation
     [ $? -ne 0 ] && exit 1;
 fi
 
-cp test/ediff "$INSTALLPATH"
-cp test/ediff.py "$INSTALLPATH"
-cp Converter/kpython "$INSTALLPATH"
 # Test installation
 python test/t1.py
