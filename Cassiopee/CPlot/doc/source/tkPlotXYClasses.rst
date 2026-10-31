@@ -15,9 +15,9 @@ define datas are available and will be exposed in this document.
 
 This module is part of Cassiopee, a free open-source pre- and post-processor for CFD simulations.
 
-For use in a python script, you have to import tkPlotXY module::
+For use in a python script, you have to import CPlot.apps.tkPlotXY module::
 
-   import tkPlotXY
+   import CPlot.apps.tkPlotXY
 
 .. py:module:: tkPlotXY
 
@@ -129,7 +129,7 @@ The first step is to create a graphEditor and to get its Desktop using :
 
 .. code-block:: python
 
-   import tkPlotXY as tkP
+   import CPlot.apps.tkPlotXY as tkP
    # Create a graphEditor
    graphDesktop = tkP.openGraphEditor(None)
 
@@ -158,7 +158,7 @@ Several methods are available to set, update or even remove data :
 .. code-block:: python
 
     import numpy
-    import tkPlotXY as tkP
+    import CPlot.apps.tkPlotXY as tkP
     # Create a graphEditor
     graphDesktop = tkP.openGraphEditor(None)
     # Generate data
@@ -181,7 +181,7 @@ Several methods are available to set, update or even remove data :
 
 .. code-block:: python
 
-    import tkPlotXY as tkP
+    import CPlot.apps.tkPlotXY as tkP
     # Create a graphEditor
     graphDesktop = tkP.openGraphEditor(None)
     # Generate data with a Lamb vortex (pyTree) -
@@ -654,7 +654,7 @@ Complete example
 
 .. code-block:: python
 
-   import tkPlotXY as tkP
+   import CPlot.apps.tkPlotXY as tkP
    # Create a graphEditor
    graphDesktop = tkP.openGraphEditor(None)
    # Generate data with a Lamb vortex (pyTree) -
@@ -662,7 +662,7 @@ Complete example
    import Initiator.PyTree as I
    import Post.PyTree as P
    import Converter.PyTree as C
-   import time,os
+   import time, os
    cwd = os.getcwd()
 
    DEBUG_CHECKDATA = True

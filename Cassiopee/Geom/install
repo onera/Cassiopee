@@ -57,7 +57,7 @@ elif [ $PRODMODE -eq 3 ]; then # pip no isolation
     [ $? -ne 0 ] && exit 1;
 fi
 
-cp Data/UIUCAirfoils.cgns "$INSTALLPATH"
+cp Geom/Data/UIUCAirfoils.cgns "$INSTALLPATH"
 
 # Test l'installation
 python test/t1.py

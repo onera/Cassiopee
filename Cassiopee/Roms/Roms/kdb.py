@@ -19,7 +19,7 @@ def usage():
     
     sys.exit(1)
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) < 2 or len(sys.argv) > 4:
         print("kdb: wrong arguments.")
         usage()
@@ -87,3 +87,6 @@ if __name__ == "__main__":
     
     # close db
     db.close()
+    
+if __name__ == "__main__":
+    main()

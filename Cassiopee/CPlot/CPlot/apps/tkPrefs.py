@@ -147,7 +147,7 @@ def savePrefs():
 
 #==============================================================================
 def getOpenedApps():
-    import tkCassiopee
+    import CPlot.apps.tkCassiopee as tkCassiopee
     allapps = tkCassiopee.ALLAPPS
     opened = []
     for i in allapps:

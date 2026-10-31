@@ -60,8 +60,8 @@ elif [ $PRODMODE -eq 3 ]; then # pip no isolation
     [ $? -ne 0 ] && exit 1;
 fi
 
-# Install libxcore
-python installLib.py
+# Copy static/dynamic libraries
+python -c "import KCore.Dist as Dist; Dist.copyModuleLibrary('XCore')"
 
 # Check installation
 python test/t1.py

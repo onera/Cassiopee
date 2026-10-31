@@ -1,7 +1,8 @@
 # -- cassiopee cgnsview main app --
 import Converter.PyTree as C
 import CPlot.Tk as CTK
-import os, os.path, sys
+import os
+import sys
 
 #==============================================================================
 # To be called when CTK.t is set
@@ -41,7 +42,7 @@ def run(a, q):
     submenus = {}
     for app in ['tkMeshInfo']: CTK.addMenuItem(app, menus[4], frames[4], submenus, auto)
     try:
-        import tkPlotXY
+        import CPlot.apps.tkPlotXY as tkPlotXY
         submenus = {}
         for app in ['tkPlotXY']: CTK.addMenuItem(app, menus[10], frames[10], submenus, auto)
     except: pass
@@ -79,9 +80,8 @@ def loadSkeleton(q, h):
 
 
 #==============================================================================
-if __name__ == "__main__":
+def main():
     # Ouverture du fichier de la ligne de commande
-    import sys
     a = None; q = None
     if len(sys.argv) >= 2:
         files = sys.argv[1:]
@@ -96,3 +96,7 @@ if __name__ == "__main__":
         a.start()
 
     run(a, q)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,7 +1,7 @@
 # Search BAR
 import tkinter as TK
-from . import Ttk as TTK
-from . import Tk as CTK
+import CPlot.Ttk as TTK
+import CPlot.Tk as CTK
 
 # Dictionaire Action->applet
 applet = {
