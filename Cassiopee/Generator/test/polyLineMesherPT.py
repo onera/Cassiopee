@@ -4,7 +4,7 @@ import Generator.PyTree as G
 import Transform.PyTree as T
 
 tb = C.convertFile2PyTree('fusee.plt')
-tb = G.close(tb,1e-2); tb = T.reorder(tb,(-1,2,3))
+tb = G.close(tb, tol=1e-2); tb = T.reorder(tb,(-1,2,3))
 h = 0.02; hf = 0.0001; density = 500
 
 res = G.polyLineMesher(tb[2][1][2][0], h, hf, density)

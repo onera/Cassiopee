@@ -94,8 +94,7 @@ PyObject* K_TRANSFORM::dualNGon(PyObject* self, PyObject* args)
   PyObject* tpl = NULL;
   if (extraPoints == 1)
   {
-    tpl = K_CONNECT::V_cleanConnectivityNGon(posx, posy, posz, varString,
-                                             fd, cNGD, 1.e-10);
+    tpl = K_CONNECT::V_cleanConnectivity(varString, fd, cNGD, "NGON", 1.e-10);
     return tpl;
   }
   else

@@ -101,35 +101,39 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
 
   // Get dimensionality
   E_Int dim = cn.getDim();
+  if (dim == 0) rmOrphanPts = false;  // Overrule user inputs
   
   // --- 1. Points ---
   // 1a. Identify orphan points, ie, initialise indirection table for use in 1b
   E_Int nuniquePts = npts;
   std::vector<E_Int> indir;
-  if (dim == 0) rmOrphanPts = false;
   if (rmOrphanPts)
   {
-    E_Int nv, vidx;
-    indir.resize(npts, -1);
-    for (E_Int i = 0; i < nfaces; i++)
+    indir.resize(npts);
+    #pragma omp parallel
     {
-      E_Int* face = cn.getFace(i, nv, ngon, indPG);
-      for (E_Int p = 0; p < nv; p++)
+      E_Int nv, vidx;
+
+      #pragma omp for
+      for (E_Int i = 0; i < npts; i++) indir[i] = rmOverlappingPts ? -1 : 0;
+
+      #pragma omp for
+      for (E_Int i = 0; i < nfaces; i++)
       {
-        vidx = face[p]-1;
-        indir[vidx] = vidx;
+        E_Int* face = cn.getFace(i, nv, ngon, indPG);
+        for (E_Int p = 0; p < nv; p++)
+        {
+          vidx = face[p]-1;
+          indir[vidx] = rmOverlappingPts ? vidx : 1;
+        }
       }
     }
 
     if (!rmOverlappingPts)
     {
-      E_Int norphans = 0;
-      for (E_Int i = 0; i < npts; i++)
-      {
-        if (indir[i] == -1) norphans++;
-        else indir[i] -= norphans;
-      }
-      nuniquePts -= norphans;
+      nuniquePts = K_CONNECT::mask2Indir(indir);
+      #pragma omp parallel for
+      for (E_Int i = 0; i < npts; i++) indir[i] -= 1;
     }
   }
 
@@ -773,31 +777,35 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   std::vector<E_Int> indir;
   if (rmOrphanPts)
   {
-    indir.resize(npts, -1);
-    for (E_Int ic = 0; ic < nc; ic++)
+    indir.resize(npts);
+    #pragma omp parallel
     {
-      FldArrayI& cm = *(cn.getConnect(ic));
-      E_Int nelts = cm.getSize();
-      E_Int nvpe = cm.getNfld();
-      for (E_Int i = 0; i < nelts; i++)
+      E_Int vidx;
+
+      #pragma omp for
+      for (E_Int i = 0; i < npts; i++) indir[i] = rmOverlappingPts ? -1 : 0;
+
+      for (E_Int ic = 0; ic < nc; ic++)
       {
-        for (E_Int j = 1; j <= nvpe; j++)
+        FldArrayI& cm = *(cn.getConnect(ic));
+        E_Int nvpe = cm.getNfld();
+        #pragma omp for nowait
+        for (E_Int i = 0; i < nepc[ic]; i++)
         {
-          vidx = cm(i,j)-1;
-          indir[vidx] = vidx;
+          for (E_Int j = 1; j <= nvpe; j++)
+          {
+            vidx = cm(i,j)-1;
+            indir[vidx] = rmOverlappingPts ? vidx : 1;
+          }
         }
       }
     }
 
     if (!rmOverlappingPts)
     {
-      E_Int norphans = 0;
-      for (E_Int i = 0; i < npts; i++)
-      {
-        if (indir[i] == -1) norphans++;
-        else indir[i] -= norphans;
-      }
-      nuniquePts -= norphans;
+      nuniquePts = K_CONNECT::mask2Indir(indir);
+      #pragma omp parallel for
+      for (E_Int i = 0; i < npts; i++) indir[i] -= 1;
     }
   }
 
@@ -886,12 +894,11 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
     for (E_Int ic = 0; ic < nc; ic++)
     {
       // Skip connectivity if none of its elements are duplicated/degenerated
-      if (nuniqueElts[ic] == nepc[ic]) continue;
-      
+      if (nuniqueElts[ic] == nepc[ic]) { elOffset += nepc[ic]; continue; }
+
       FldArrayI& cm = *(cn.getConnect(ic));
-      E_Int nelts = cm.getSize();
       E_Int nvpe = cm.getNfld();
-      for (E_Int i = 0; i < nelts; i++)
+      for (E_Int i = 0; i < nepc[ic]; i++)
       {
         // Skip duplicated/degenerated elements
         if (indirPH[elOffset+i] == COLLAPSED ||
@@ -900,8 +907,7 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
         for (E_Int j = 1; j <= nvpe; j++) cm(k,j) = cm(i,j);
         itrl = i; k += 1;
       }
-      
-      elOffset += nelts;
+      elOffset += nepc[ic];
     }
   }
 
@@ -933,7 +939,7 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
       {
         E_Float* fp = f.begin(n);
         E_Float* f2p = f2->begin(n);
-        #pragma omp for
+        #pragma omp for nowait
         for (E_Int i = 0; i < nuniquePts; i++) f2p[i] = fp[i];
       }
 
@@ -961,8 +967,16 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
   {
     PyObject* vmap = K_NUMPY::buildNumpyArray(npts, 1, 1);
     E_Int* vmapp = K_NUMPY::getNumpyPtrI(vmap);
-    #pragma omp parallel for
-    for (E_Int i = 0; i < npts; i++) vmapp[i] = indir[i];
+    if (indir.size())
+    {
+      #pragma omp parallel for
+      for (E_Int i = 0; i < npts; i++) vmapp[i] = indir[i];
+    }
+    else
+    {
+      #pragma omp parallel for
+      for (E_Int i = 0; i < npts; i++) vmapp[i] = i+1;
+    }
     return Py_BuildValue("(OO)", tpl, vmap);
   }
   return tpl;

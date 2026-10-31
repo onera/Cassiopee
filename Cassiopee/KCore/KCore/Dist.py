@@ -293,19 +293,24 @@ def parseInstallPathPrefix(*args):
 
 def getInstallPathSuffix(type=0):
     # if type=0, return a string, else a dict
+    from pathlib import Path
     import site
-    a = site.getsitepackages()[0].split('/')[-4:]
+    p = Path(site.getsitepackages()[0])
+    lib = p.parents[1]
+    libPath = (
+        Path("local") / lib.name
+        if lib.parent.name == "local" else Path(lib.name)
+    )
     if type == 0:
-        if a[0] != 'local':
-            # lib/python3.12/site-packages'
-            installPath = os.path.join(*a[1:4])
-        else:
-            # local/lib/python3.12/site-packages'
-            installPath = os.path.join(*a[:4])
+        # [local/]lib/python3.12/site-packages'
+        return str(libPath / p.parent.name / p.name)
     else:
-        # {'lib': 'lib', 'pyversion': 'python3.12', 'site': 'site-packages'}
-        installPath = {'lib': a[1], 'pyversion': a[2], 'site': a[3]}
-    return installPath
+        # {'lib': '[local/]lib', 'pyversion': 'python3.12', 'site': 'site-packages'}
+        return {
+            "lib": str(libPath),
+            "pyversion": p.parent.name,
+            "site": p.name
+        }
 
 #=============================================================================
 # Return the buildInfo dictionary
@@ -590,14 +595,13 @@ def getDistUtilsCompilers():
             vars[0] = Cppcompiler.replace('icpx', 'icx'); vars[1] = Cppcompiler
         elif Cppcompiler == 'icx':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('icx', 'icpx')
-
-        print(f"Warning: getDistUtilsCompilers: unknown compiler set in installBase.json ({Cppcompiler})")
+        else:
+            print("Warning: getDistUtilsCompilers: unknown compiler set in "
+                  f"installBase.json ({Cppcompiler})")
 
     cc, cxx, opt, basecflags, ccshared, ldshared, so_ext = vars
-    cc = cc.split(' ') # enleve les options si mises dans cc
-    cc = cc[0]
-    cxx = cxx.split(' ')
-    cxx = cxx[0]
+    cc = cc.split(' ')[0] # enleve les options si mises dans cc
+    cxx = cxx.split(' ')[0]
     return (cc, cxx, opt, basecflags, ccshared, ldshared, so_ext)
 
 #==============================================================================
@@ -643,24 +647,21 @@ def getFortranModDirPrefix():
 #==============================================================================
 def useOMP():
     useOMP = getFromConfigDict("useOMP", True)
-    if useOMP: return 1
-    else: return 0
+    return int(useOMP)
 
 #==============================================================================
 # Retourne 1 si on produit des librairies statiques
 #==============================================================================
 def useStatic():
     useStatic = getFromConfigDict("useStatic", False)
-    if useStatic: return 1
-    else: return 0
+    return int(useStatic)
 
 #==============================================================================
 # Retourne 1 si on dispose de cuda
 #==============================================================================
 def useCuda():
     useCuda = getFromConfigDict("useCuda", False)
-    if useCuda: return 1
-    else: return 0
+    return int(useCuda)
 
 #==============================================================================
 # Retourne les versions des compilateurs
@@ -1247,6 +1248,16 @@ def checkLdLibraryPath(libPath):
         if re.compile(libPath).search(ret) is None:
             print("Warning: to use the module, please add: %s to your "
                   "LD_LIBRARY_PATH (unix) or PATH (windows)."%libPath)
+
+#=============================================================================
+# Check PYTHONPATH and LD_LIBRARY_PATH
+#=============================================================================
+def checkPaths(*args):
+    prefix = parseInstallPathPrefix(*args)
+    installPath = os.path.join(prefix, getInstallPathSuffix())
+    libPath = os.path.dirname(os.path.dirname(installPath))
+    checkPythonPath(installPath)
+    checkLdLibraryPath(libPath)
 
 #=============================================================================
 # Check the correct installation of any module of Cassiopee or Fast
@@ -3062,6 +3073,41 @@ def copyBuiltFiles(env, staticLib, moduleName, installPath):
     dp1 = env.Install(modDir, staticLib)
     dp2 = env.Install(modDir, glob.glob('{}/*.py'.format(moduleName)))
     env.Alias(target="install", source=[dp1, dp2])
+
+def copyModuleLibrary(modname):
+    """
+    Copie de libmodname pour etre accessible par les autres modules
+    Si libmodname.a existe, on la recopie
+    Sinon, on cherche modname.so ou modname.pyd, on le recopie en libmodname.so ou dll
+    """
+    prod = os.getenv("ELSAPROD")
+    system = getSystem()[0]
+    if system == 'Windows':
+        __EXTMODULE__ = '.pyd'
+        __EXTSHARED__ = '.dll'
+    else:
+        __EXTMODULE__ = '.so'
+        __EXTSHARED__ = '.so'
+
+    modname = modname.lower()
+    libPath = getLibPath()
+    installPathLocal = os.path.join('build', prod)
+    staticLibPath = os.path.join(installPathLocal, f"lib{modname}.a")
+    dynLibPath = os.path.join(installPathLocal, modname + __EXTMODULE__)
+
+    if os.access(staticLibPath, os.F_OK):
+        # Copy static library
+        shutil.copyfile(staticLibPath, os.path.join(libPath, f"lib{modname}.a"))
+    else:
+        if os.access(dynLibPath, os.F_OK):
+            # Copy dynamic library
+            shutil.copyfile(
+                dynLibPath,
+                os.path.join(libPath, f"lib{modname}{__EXTSHARED__}")
+            )
+        else:
+            print(f"Error: {modname}{__EXTMODULE__} not found.")
+
 
 #==============================================================================
 if __name__ == "__main__":

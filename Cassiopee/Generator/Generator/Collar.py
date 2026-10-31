@@ -42,7 +42,7 @@ def createCollarMesh__(s1, s2, distribj, distribk, niterj, niterk, ext,
     s1 = C.convertArray2Tetra(s1); s2 = C.convertArray2Tetra(s2)
     if isinstance(s1[0],list): s1 = T.join(s1)
     if isinstance(s2[0],list): s2 = T.join(s2)
-    s1 = G.close(s1, toldist); s2 = G.close(s2, toldist)
+    s1 = G.close(s1, tol=toldist); s2 = G.close(s2, tol=toldist)
     s0 = booleanSurface__(s1, s2, btype, toldist)
     if s0 == []: return []
     if contour == []: edges = booleanSurfaceEdges__(s1, s2, toldist)
@@ -300,7 +300,7 @@ def booleanSurface__(s1,s2,btype,toldist):
     if closed == 1:
         if btype == 'union': s0 = XOR.booleanUnion(s1,s2)
         else: s0 = XOR.booleanMinus(s1,s2)
-        s0 = G.close(s0,toldist)
+        s0 = G.close(s0, tol=toldist)
         return s0
 
     else:
@@ -330,7 +330,7 @@ def booleanSurface__(s1,s2,btype,toldist):
         #
         if btype == 'union': s0 = XOR.booleanUnion(surf1,surf2)
         else: s0 = XOR.booleanMinus(surf1,surf2)
-        s0 = G.close(s0,toldist)
+        s0 = G.close(s0, tol=toldist)
         return s0
 
 #=============================================================================
@@ -374,7 +374,7 @@ def joinTBranches__(edges,toldist):
 def booleanSurfaceEdges__(s1,s2, toldist):
     err = 0
     edge = XOR.intersection(s1,s2)
-    edge = G.close(edge,toldist)
+    edge = G.close(edge, tol=toldist)
     edges = T.splitConnexity(edge)
     for noe in range(len(edges)):
         edges0 = T.splitTBranches(edges[noe])
@@ -506,7 +506,7 @@ def createBFExtension(c, surfaces, projSurf, dhj, toldist, niter=0):
     ind0 = SW.getMinDistIndex__(d0)
     if ind0 != 0 : c0 = T.reorder(c0,(-1,2,3))
 
-    c2 = T.projectOrtho(c0,surfaces); c2 = G.close(c2,tol=toldist)
+    c2 = T.projectOrtho(c0, surfaces); c2 = G.close(c2, tol=toldist)
     imax = c2[1].shape[1]; jmax = dhj[1].shape[1]
     loop = 0
     dx = c2[1][0,0]-c2[1][0,imax-1]

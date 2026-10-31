@@ -794,7 +794,7 @@ def volumeFromCrossSections(contours):
     # Delaunay constrained
     DT = []; CT = []
     for i in sort:
-        d = G.close(i[1], 1.e-6); CT.append(d)
+        d = G.close(i[1], tol=1.e-6); CT.append(d)
         #m = G.constrainedDelaunay(d, 1.e-10, 1)
         m = G.T3mesher2D(d); m = T.translate(m, (0,0,i[0]))
         DT.append(m)

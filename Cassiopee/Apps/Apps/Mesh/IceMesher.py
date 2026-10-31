@@ -1146,7 +1146,7 @@ def joinInOrder(processedFree, processedProtected, orderMap, mergeTol=1e-2):
 
             # G.close merges nodes within tol of each other
             tol = 1e-2 * meanDs
-            joined_clean = G.close(joined, tol)     # joined_clean = G.close(joined)
+            joined_clean = G.close(joined, tol=tol)     # joined_clean = G.close(joined)
             nBefore = getNpts(joined)
             nAfter = getNpts(joined_clean)
             if nBefore != nAfter:

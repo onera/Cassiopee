@@ -1,0 +1,18 @@
+#!/bin/sh
+
+PREFIX="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE/Dist/bin/$ELSAPROD}"
+
+case "$ELSAPROD" in
+    ubuntu*) BIN="$PREFIX/local/bin" ;;
+    *)       BIN="$PREFIX/bin" ;;
+esac
+
+APP="$BIN/appCassiopee"
+
+export MPIRUN=0
+
+if command -v xdpyinfo >/dev/null 2>&1 && xdpyinfo | grep -q VNC; then
+    exec vglrun "$APP" "$@"
+fi
+
+exec "$APP" "$@"

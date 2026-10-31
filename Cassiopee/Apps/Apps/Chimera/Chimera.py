@@ -74,10 +74,10 @@ def extractSurface(t_sol, t_pts=None, eq=(0.,0.,0.,0.), XC=(0.,0.,0.), AXIS=(1.,
     Internal._rmNodesFromType(res,"FlowSolution_t")
     T._cyl2Cart(res,XC,AXIS)
     res = C.convertArray2Tetra(res)
-    res = T.join(res); res = G.close(res,1.e-6)
+    res = T.join(res); res = G.close(res, tol=1.e-6)
     # res = T.splitConnexity(res)
     # resBB = G.BB(res,method=IMETHOD)
-    res = XOR.conformUnstr(res,tol=0.,itermax=1)
+    res = XOR.conformUnstr(res, tol=0., itermax=1)
 
     if isinstance(t_sol,str):
         if len(variables)==0:# on interpole tout
