@@ -1254,6 +1254,16 @@ def checkLdLibraryPath(libPath):
                   "LD_LIBRARY_PATH (unix) or PATH (windows)."%libPath)
 
 #=============================================================================
+# Check PYTHONPATH and LD_LIBRARY_PATH
+#=============================================================================
+def checkPaths(*args):
+    prefix = parseInstallPathPrefix(*args)
+    installPath = os.path.join(prefix, getInstallPathSuffix())
+    libPath = os.path.dirname(os.path.dirname(installPath))
+    checkPythonPath(installPath)
+    checkLdLibraryPath(libPath)
+
+#=============================================================================
 # Check the correct installation of any module of Cassiopee or Fast
 #=============================================================================
 def checkModuleCassiopee(modname):
@@ -3067,6 +3077,41 @@ def copyBuiltFiles(env, staticLib, moduleName, installPath):
     dp1 = env.Install(modDir, staticLib)
     dp2 = env.Install(modDir, glob.glob('{}/*.py'.format(moduleName)))
     env.Alias(target="install", source=[dp1, dp2])
+
+def copyModuleLibrary(modname):
+    """
+    Copie de libmodname pour etre accessible par les autres modules
+    Si libmodname.a existe, on la recopie
+    Sinon, on cherche modname.so ou modname.pyd, on le recopie en libmodname.so ou dll
+    """
+    prod = os.getenv("ELSAPROD")
+    system = getSystem()[0]
+    if system == 'Windows':
+        __EXTMODULE__ = '.pyd'
+        __EXTSHARED__ = '.dll'
+    else:
+        __EXTMODULE__ = '.so'
+        __EXTSHARED__ = '.so'
+
+    modname = modname.lower()
+    libPath = getLibPath()
+    installPathLocal = os.path.join('build', prod)
+    staticLibPath = os.path.join(installPathLocal, f"lib{modname}.a")
+    dynLibPath = os.path.join(installPathLocal, modname + __EXTMODULE__)
+
+    if os.access(staticLibPath, os.F_OK):
+        # Copy static library
+        shutil.copyfile(staticLibPath, os.path.join(libPath, f"lib{modname}.a"))
+    else:
+        if os.access(dynLibPath, os.F_OK):
+            # Copy dynamic library
+            shutil.copyfile(
+                dynLibPath,
+                os.path.join(libPath, f"lib{modname}{__EXTSHARED__}")
+            )
+        else:
+            print(f"Error: {modname}{__EXTMODULE__} not found.")
+
 
 #==============================================================================
 if __name__ == "__main__":
