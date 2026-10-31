@@ -10,13 +10,13 @@ def usage():
     print("kdb: fetch: kdb -f <name.db> <query> \n ")
     print("kdb: join: kdb -j <name1.db> <name2.db> \n ")
     print("kdb: plot: kdb -p <name1.db> \n ")
-    
+
     print("<query> needs to be enclosed by \"\"")
     print("Examples of <query>:")
     print("‣ kdb -q Local.db \"id\" ; query all ids")
     print("‣ kdb -q Local.db \"id<10\" ; where id is the number of the case in the database")
     print("‣ kdb -q Local.db \"AoA<10 AND Mach=0.3\" ; where AoA & Mach are parameters in the dabatase")
-    
+
     sys.exit(1)
 
 def main():
@@ -29,15 +29,15 @@ def main():
     if com not in ['-q', '-qv', '-f', '-l', '-h', '-j', '-p']:
         print("kdb: invalid command.")
         exit(1)
-    
-    # argument 2 must be the data base name    
+
+    # argument 2 must be the data base name
     if len(sys.argv) >= 3: baseName = sys.argv[2]
     else: baseName = None
 
     # argument 3 must be the sql query
     if len(sys.argv) >= 4: query = sys.argv[3]
     else: query = None
-    
+
     flagsLocal = ['-f', '-q', '-qv']
     if com in flagsLocal:
         if baseName is None:
@@ -48,7 +48,7 @@ def main():
             exit(1)
 
     if com == '-h':
-        usage()            
+        usage()
 
     # open db
     db = DataBase.DataBase(baseName)
@@ -84,9 +84,9 @@ def main():
         module.showApp()
         win.deiconify(); win.focus_set()
         win.mainloop()
-    
+
     # close db
     db.close()
-    
+
 if __name__ == "__main__":
     main()
