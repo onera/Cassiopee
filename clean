@@ -15,18 +15,14 @@ if [ -z "$CASSIOPEE" ]; then
     usage >&2; exit 1
 fi
 
-# Parse command-line arguments
-while [ -n "$1" ]; do
-  case "$1" in
-    --help | -h)
-      usage; exit 0
-      ;;
-    *)
-      ;;
-  esac
-  shift
+# Handle help without consuming arguments
+for arg in "$@"; do
+    case "$arg" in
+        --help|-h)
+            usage; exit 0
+            ;;
+    esac
 done
 
-cd $CASSIOPEE/Cassiopee
+cd "$CASSIOPEE/Cassiopee"
 ./clean "$@"
-cd ../

@@ -1,0 +1,25 @@
+{
+    "ubuntu": {
+        "description": "Linux ubuntu 24.04",
+        "f77compiler": "gfortran",
+        "f90compiler": "gfortran",
+        "Cppcompiler": "gcc",
+        "CppAdditionalOptions": [],
+        "f77AdditionalOptions": [],
+        "useOMP": true,
+        "static": false,
+        "additionalIncludePaths": [
+            "/usr/include",
+            "/usr/include/hdf5/openmpi",
+            "/usr/include/x86_64-linux-gnu/openblas-pthread",
+            "/usr/lib/x86_64-linux-gnu/openmpi/include"
+        ],
+        "additionalLibs": ["gfortran", "gomp"],
+        "additionalLibPaths": [
+            "/usr/lib/x86_64-linux-gnu/hdf5/openmpi",
+            "/usr/lib/x86_64-linux-gnu"
+        ],
+        "useCuda": false,
+        "NvccAdditionalOptions": []
+    }
+}

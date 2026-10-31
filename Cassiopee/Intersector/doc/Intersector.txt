@@ -1,6 +1,0 @@
-===============================================================================
-Intersector
-Require: C++ compiler, python > 2.7, numpy > 1.0, Transform, Generator, 
-KCore
-Optional: pyTree interface requires Converter
-===============================================================================

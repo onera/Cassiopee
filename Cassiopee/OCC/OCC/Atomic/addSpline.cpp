@@ -59,7 +59,7 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
   E_Float* y = pc->begin(2);
   E_Float* z = pc->begin(3);
 
-  printf("INFO: addSpline: method=%d, degree=%d\n", method, degree);
+  printf("INFO: addSpline: method=" SF_D_ ", degree=" SF_D_ "\n", method, degree);
 
   GETPACKET;
   GETSHAPE;
@@ -87,7 +87,7 @@ PyObject* K_OCC::addSpline(PyObject* self, PyObject* args)
     }
 
     if (ncp == 2) degree = 1;
-    else if (ncp == 3) degree = std::min(2, degree);
+    else if (ncp == 3) degree = K_FUNC::E_min(2, degree);
 
     E_Int nk = ncp - degree +1;
 

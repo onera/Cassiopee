@@ -22,6 +22,12 @@ if [ -z "$PRODMODE" ]; then
     PRODMODE=0
 fi
 
+# Copy etc/installBaseUser.json in KCore/ if it exists
+rm -f KCore/installBaseUser.json
+if [ -f "$CASSIOPEE/etc/installBaseUser.json" ]; then
+    cp "$CASSIOPEE/etc/installBaseUser.json" "KCore/"
+fi
+
 # Compilation et installation
 sconsf=`which scons`
 [ $? -ne 0 ] && echo "Error: scons not found." && exit 1;

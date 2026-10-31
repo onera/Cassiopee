@@ -1,6 +1,0 @@
-===============================================================================
-Transform
-Require: C++ compiler, f77 compiler, python > 2.7, numpy > 1.0, KCore
-Optional: pyTree interface requires Converter
-Optional: splitMultiplePts function requires Connector
-===============================================================================

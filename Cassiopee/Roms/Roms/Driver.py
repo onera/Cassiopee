@@ -304,6 +304,30 @@ class Point:
                 Eq(P.z, 2*center[2]-self.z, part=self.part)
         return P
 
+    # Create new point that is the rotation of self considering around axis=(0,0,1)
+    # IN: name: name of the new point (optional)
+    # IN: center: center of rotation
+    # IN: alpha: rotation angle in degrees
+    # OUT: new Point object that is the rotation of self
+    def Rotate(self, name=None, center=(0,0,0), alpha=90.):
+        """Create new point that is the rotation of self."""
+        if name is None: name = getName(self.name+'R')
+        alphar = numpy.deg2rad(alpha)
+        P = Point(name, part=self.part)
+        P.x.v = center[0] + (self.x.v - center[0])*numpy.cos(alphar) - (self.y.v - center[1])*numpy.sin(alphar)
+        P.y.v = center[1] + (self.x.v - center[0])*numpy.sin(alphar) + (self.y.v - center[1])*numpy.cos(alphar)
+        P.z.v = self.z.v
+        if self.x.range is not None and self.y.range is not None:
+            Eq(P.x, center[0] + (self.x - center[0])*numpy.cos(alphar) - (self.y - center[1])*numpy.sin(alphar), part=self.part)
+            Eq(P.y, center[1] + (self.x - center[0])*numpy.sin(alphar) + (self.y - center[1])*numpy.cos(alphar), part=self.part)
+        elif self.x.range is not None:
+            Eq(P.x, center[0] + (self.x - center[0])*numpy.cos(alphar) - (self.y.v - center[1])*numpy.sin(alphar), part=self.part)
+            Eq(P.y, center[1] + (self.x - center[0])*numpy.sin(alphar) + (self.y.v - center[1])*numpy.cos(alphar), part=self.part)
+        elif self.y.range is not None:
+            Eq(P.x, center[0] + (self.x.v - center[0])*numpy.cos(alphar) - (self.y - center[1])*numpy.sin(alphar), part=self.part)
+            Eq(P.y, center[1] + (self.x.v - center[0])*numpy.sin(alphar) + (self.y - center[1])*numpy.cos(alphar), part=self.part)
+        return P
+
 Vec3 = Point # alias
 
 #============================================================
@@ -519,7 +543,7 @@ class Entity:
     # OUT: new entity object shifted from self
     def Shift(self, name=None, vector=(0.,0.,0.)):
         """Create new entity shifted from self of a given vector."""
-        if name is None: name = getName(self.name+'S')
+        if name is None: name = getName(self.name+'T')
         if self.type == "line":
             P1 = self.P[0].Shift(vector=vector)
             P2 = self.P[1].Shift(vector=vector)
@@ -591,6 +615,48 @@ class Entity:
             P1 = self.P[0].Symm(plane=plane, center=center)
             P2 = self.P[1].Symm(plane=plane, center=center)
             P3 = self.P[2].Symm(plane=plane, center=center)
+            return Arc(name, P1, P2, P3, self.part)
+        else:
+            raise NotImplemented('no shift for this entity type.')
+        return None
+
+    # Create new entity that is the rotation of self
+    # IN: name: name of the new entity (optional)
+    # IN: center: center point of rotation (default: (0,0,0))
+    # IN: alpha: angle in degrees
+    # OUT: new entity object that is the rotation of self
+    def Rotate(self, name=None, center=(0,0,0), alpha=90.):
+        """Create new entity that is the rotation of self."""
+        if name is None: name = getName(self.name+'R')
+        if self.type == "line":
+            P1 = self.P[0].Rotate(center=center, alpha=alpha)
+            P2 = self.P[1].Rotate(center=center, alpha=alpha)
+            return Line(name, P1, P2, self.part)
+        elif self.type == "polyline":
+            Points = []
+            for P in self.P:
+                Points.append(P.Rotate(center=center, alpha=alpha))
+            return Polyline(name, Points, self.part)
+        elif self.type == "spline1":
+            Points = []
+            for P in self.P:
+                Points.append(P.Rotate(center=center, alpha=alpha))
+            return Spline1(name, Points, self.part)
+        elif self.type == "spline2":
+            Points = []
+            for P in self.P:
+                Points.append(P.Rotate(center=center, alpha=alpha))
+            return Spline2(name, Points, self.part)
+        elif self.type == "circle":
+            C = self.P[0].Rotate(center=center, alpha=alpha)
+            return Circle(name, C, self.P[1], self.part)
+        elif self.type == "superellipse":
+            C = self.P[0].Rotate(center=center, alpha=alpha)
+            return SuperEllipse(name, C, self.P[1], self.P[2], self.P[3].v, self.P[4].v, self.part)
+        elif self.type == "arc":
+            P1 = self.P[0].Rotate(center=center, alpha=alpha)
+            P2 = self.P[1].Rotate(center=center, alpha=alpha)
+            P3 = self.P[2].Rotate(center=center, alpha=alpha)
             return Arc(name, P1, P2, P3, self.part)
         else:
             raise NotImplemented('no shift for this entity type.')
@@ -691,6 +757,79 @@ class Sketch():
     def add(self, entity):
         """Add an entity to sketch."""
         self.entities.append(entity)
+
+    def set(self, position=None, rotCenter=None, rotAxis=None, rotAngle=None):
+        """Set sketch global position."""
+        if position is not None:
+            if isinstance(position, tuple) and len(position) == 3:
+                posx = position[0]
+                posy = position[1]
+                posz = position[2]
+                if isinstance(posx, float): self.position.x.v = posx
+                elif isinstance(posx, int): self.position.x.v = float(posx)
+                elif isinstance(posx, Scalar): self.position.x = posx
+                if isinstance(posy, float): self.position.y.v = posy
+                elif isinstance(posy, int): self.position.y.v = float(posy)
+                elif isinstance(posy, Scalar): self.position.y = posy
+                if isinstance(posz, float): self.position.z.v = posz
+                elif isinstance(posz, int): self.position.z.v = float(posz)
+                elif isinstance(posz, Scalar): self.position.z = posz
+            elif isinstance(position, Point):
+                self.position = position
+            else:
+                raise ValueError('set: not a valid position.')
+        if rotCenter is not None:
+            if isinstance(rotCenter, tuple) and len(rotCenter) == 3:
+                posx = rotCenter[0]
+                posy = rotCenter[1]
+                posz = rotCenter[2]
+                if isinstance(posx, float): self.rotCenter.x.v = posx
+                elif isinstance(posx, int): self.rotCenter.x.v = float(posx)
+                elif isinstance(posx, Scalar): self.rotCenter.x = posx
+                if isinstance(posy, float): self.rotCenter.y.v = posy
+                elif isinstance(posy, int): self.rotCenter.y.v = float(posy)
+                elif isinstance(posy, Scalar): self.rotCenter.y = posy
+                if isinstance(posz, float): self.rotCenter.z.v = posz
+                elif isinstance(posz, int): self.rotCenter.z.v = float(posz)
+                elif isinstance(posz, Scalar): self.rotCenter.z = posz
+            elif isinstance(rotCenter, Point):
+                self.rotCenter = rotCenter
+            else:
+                raise ValueError('set: not a valid rotCenter.')
+        if rotAxis is not None:
+            if isinstance(rotAxis, tuple) and len(rotAxis) == 3:
+                posx = rotAxis[0]
+                posy = rotAxis[1]
+                posz = rotAxis[2]
+                if isinstance(posx, float): self.rotAxis.x.v = posx
+                elif isinstance(posx, int): self.rotAxis.x.v = float(posx)
+                elif isinstance(posx, Scalar): self.rotAxis.x = posx
+                if isinstance(posy, float): self.rotAxis.y.v = posy
+                elif isinstance(posy, int): self.rotAxis.y.v = float(posy)
+                elif isinstance(posy, Scalar): self.rotAxis.y = posy
+                if isinstance(posz, float): self.rotAxis.z.v = posz
+                elif isinstance(posz, int): self.rotAxis.z.v = float(posz)
+                elif isinstance(posz, Scalar): self.rotAxis.z = posz
+            elif isinstance(rotAxis, Point):
+                self.rotCenter = rotAxis
+            else:
+                raise ValueError('set: not a valid rotAxis.')
+        if rotAngle is not None:
+            if isinstance(rotAngle, float): self.rotAngle.v = rotAngle
+            elif isinstance(rotAngle, int): self.rotAngle.v = float(rotAngle)
+            elif isinstance(rotAngle, Scalar):
+                self.rotAngle = rotAngle
+            else:
+                raise ValueError('set: not a valid rotAngle.')
+
+    def Copy(self, name=None):
+        """Copy a sketch, return a new sketch."""
+        if name is None: name = getName(self.name+'C')
+        entities = []
+        for e in self.entities:
+            entities.append(e.Shift(vector=(0,0,0)))
+        S = Sketch(name, entities, h=self.h, part=self.part)
+        return S
 
     # Update CAD hook from parameters
     def update(self):

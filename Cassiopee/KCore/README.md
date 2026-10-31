@@ -8,7 +8,6 @@ For support, go to https://github.com/onera/Cassiopee
 
 ## installing KCore:
 
-
 - before installing, edit etc/installBaseUser.json. Set the correct 
 compiler names and libraries.
 
