@@ -1,9 +1,9 @@
 # *Cassiopee* Computation Center
 import Tkinter as TK
-import tkMessageBox
 import os, sys, re, time
 import subprocess
 import CPlot.Tk as CTK
+import CPlot.apps.tkMessageBox as tkMessageBox
 import KCore.Dist as Dist
 from threading  import Thread
 try: from Queue import Queue, Empty
@@ -459,146 +459,151 @@ def viewCase(event=None):
 # Main
 #==============================================================================
 
-# Main window
-master = TK.Tk()
-master.title('*Cassiopee* Computation Center')
-#GENERALFONT = ('Courier', 9)
-GENERALFONT = ('Andale Mono', 9)
-master.option_add('*Font', GENERALFONT)
+def main():
+    # Main window
+    master = TK.Tk()
+    master.title('*Cassiopee* Computation Center')
+    #GENERALFONT = ('Courier', 9)
+    GENERALFONT = ('Andale Mono', 9)
+    master.option_add('*Font', GENERALFONT)
 
-# Main menu
-menu = TK.Menu(master)
-file = TK.Menu(menu, tearoff=0)
-menu.add_cascade(label='File', menu=file)
-file.add_command(label='Quit', command=Quit, accelerator='Ctrl+Q')
-master.config(menu=menu)
-master.bind_all("<Control-q>", Quit)
+    # Main menu
+    menu = TK.Menu(master)
+    file = TK.Menu(menu, tearoff=0)
+    menu.add_cascade(label='File', menu=file)
+    file.add_command(label='Quit', command=Quit, accelerator='Ctrl+Q')
+    master.config(menu=menu)
+    master.bind_all("<Control-q>", Quit)
 
-# - VARS -
-# -0- Case -
-V = TK.StringVar(master); V.set(''); VARS.append(V)
-# -1- Nit
-V = TK.StringVar(master); V.set('10'); VARS.append(V)
-# -2- scale
-V = TK.StringVar(master); V.set('1.'); VARS.append(V)
-# -3- gfx
-V = TK.StringVar(master); V.set('0'); VARS.append(V)
+    # - VARS -
+    # -0- Case -
+    V = TK.StringVar(master); V.set(''); VARS.append(V)
+    # -1- Nit
+    V = TK.StringVar(master); V.set('10'); VARS.append(V)
+    # -2- scale
+    V = TK.StringVar(master); V.set('1.'); VARS.append(V)
+    # -3- gfx
+    V = TK.StringVar(master); V.set('0'); VARS.append(V)
 
-# Main frame
-Frame = TK.Frame(master)
-Frame.columnconfigure(0, weight=1)
+    # Main frame
+    Frame = TK.Frame(master)
+    Frame.columnconfigure(0, weight=1)
 
-# list box
-listbox = TK.Listbox(Frame, selectmode=TK.EXTENDED, width=120, height=22,
-                     background='White')
-listbox.grid(row=0, column=0, columnspan=10, sticky=TK.EW)
-WIDGETS['listbox'] = listbox
-scrollbar = TK.Scrollbar(Frame, orient=TK.VERTICAL)
-scrollbar.grid(row=0, column=10, sticky=TK.NSEW)
+    # list box
+    listbox = TK.Listbox(Frame, selectmode=TK.EXTENDED, width=120, height=22,
+                         background='White')
+    listbox.grid(row=0, column=0, columnspan=10, sticky=TK.EW)
+    WIDGETS['listbox'] = listbox
+    scrollbar = TK.Scrollbar(Frame, orient=TK.VERTICAL)
+    scrollbar.grid(row=0, column=10, sticky=TK.NSEW)
 
-# - premiere ligne -
+    # - premiere ligne -
 
-# Case label display
-F = TK.Frame(Frame, borderwidth=0)
-F.columnconfigure(0, weight=1)
-B = TK.Entry(F, textvariable=VARS[0], background='White', width=10)
-B.grid(sticky=TK.EW)
-WIDGETS['case'] = B
-#F.bind('<Enter>', updateCases1)
-F.grid(row=1, column=0, sticky=TK.EW)
+    # Case label display
+    F = TK.Frame(Frame, borderwidth=0)
+    F.columnconfigure(0, weight=1)
+    B = TK.Entry(F, textvariable=VARS[0], background='White', width=10)
+    B.grid(sticky=TK.EW)
+    WIDGETS['case'] = B
+    #F.bind('<Enter>', updateCases1)
+    F.grid(row=1, column=0, sticky=TK.EW)
 
-#if ttk is None:
-#    B = TK.OptionMenu(F, VARS[0], '')
-#    B.grid(sticky=TK.EW)
-#    WIDGETS['case'] = B
-#    F.bind('<Enter>', updateCases1)
-#    F.grid(row=1, column=0, sticky=TK.EW)
-#else:
-#    B = ttk.Combobox(F, textvariable=VARS[0],
-#                     values=[], state='normal')
-#    B.grid(sticky=TK.EW)
-#    WIDGETS['case'] = B
-#    F.bind('<Enter>', updateCases2)
-#    F.grid(row=1, column=0, sticky=TK.EW)
+    #if ttk is None:
+    #    B = TK.OptionMenu(F, VARS[0], '')
+    #    B.grid(sticky=TK.EW)
+    #    WIDGETS['case'] = B
+    #    F.bind('<Enter>', updateCases1)
+    #    F.grid(row=1, column=0, sticky=TK.EW)
+    #else:
+    #    B = ttk.Combobox(F, textvariable=VARS[0],
+    #                     values=[], state='normal')
+    #    B.grid(sticky=TK.EW)
+    #    WIDGETS['case'] = B
+    #    F.bind('<Enter>', updateCases2)
+    #    F.grid(row=1, column=0, sticky=TK.EW)
 
-# Open case
-B = TK.Button(Frame, text='..', padx=0, pady=0, command=caseSelector)
-BB = CTK.infoBulle(parent=B, text='Pick a case.')
-B.grid(row=1, column=1)
+    # Open case
+    B = TK.Button(Frame, text='..', padx=0, pady=0, command=caseSelector)
+    BB = CTK.infoBulle(parent=B, text='Pick a case.')
+    B.grid(row=1, column=1)
 
-# nit
-B = TK.Entry(Frame, textvariable=VARS[1], background='White', width=9)
-BB = CTK.infoBulle(parent=B, text='Number of iterations.')
-B.grid(row=1, column=2)
+    # nit
+    B = TK.Entry(Frame, textvariable=VARS[1], background='White', width=9)
+    BB = CTK.infoBulle(parent=B, text='Number of iterations.')
+    B.grid(row=1, column=2)
 
-# scale
-B = TK.Entry(Frame, textvariable=VARS[2], background='White', width=5)
-BB = CTK.infoBulle(parent=B, text='Case scale.')
-B.grid(row=1, column=3)
+    # scale
+    B = TK.Entry(Frame, textvariable=VARS[2], background='White', width=5)
+    BB = CTK.infoBulle(parent=B, text='Case scale.')
+    B.grid(row=1, column=3)
 
-# gfx
-B = TK.Checkbutton(Frame, variable=VARS[3])
-BB = CTK.infoBulle(parent=B, text='Toggle gfx.')
-B.grid(row=1, column=4)
+    # gfx
+    B = TK.Checkbutton(Frame, variable=VARS[3])
+    BB = CTK.infoBulle(parent=B, text='Toggle gfx.')
+    B.grid(row=1, column=4)
 
-# Add to list
-B = TK.Button(Frame, text='Add', command=addCase2List)
-B.grid(row=1, column=5)
+    # Add to list
+    B = TK.Button(Frame, text='Add', command=addCase2List)
+    B.grid(row=1, column=5)
 
-# - deuxieme ligne -
-F = TK.Frame(Frame)
-F.grid(row=2, column=0, columnspan=10, sticky=TK.EW)
+    # - deuxieme ligne -
+    F = TK.Frame(Frame)
+    F.grid(row=2, column=0, columnspan=10, sticky=TK.EW)
 
-# Up in list
-B = TK.Button(F, text='Up', command=Up, fg='blue')
-B.grid(row=0, column=0, sticky=TK.EW)
+    # Up in list
+    B = TK.Button(F, text='Up', command=Up, fg='blue')
+    B.grid(row=0, column=0, sticky=TK.EW)
 
-# Down in list
-B = TK.Button(F, text='Down', command=Down, fg='blue')
-B.grid(row=0, column=1, sticky=TK.EW)
+    # Down in list
+    B = TK.Button(F, text='Down', command=Down, fg='blue')
+    B.grid(row=0, column=1, sticky=TK.EW)
 
-# Delete from list
-B = TK.Button(F, text='Del', command=Del, fg='blue')
-BB = CTK.infoBulle(parent=B, text='Del from list')
-B.grid(row=0, column=2, sticky=TK.EW)
+    # Delete from list
+    B = TK.Button(F, text='Del', command=Del, fg='blue')
+    BB = CTK.infoBulle(parent=B, text='Del from list')
+    B.grid(row=0, column=2, sticky=TK.EW)
 
-# Separator
-label = TK.Label(F, text='-')
-label.grid(row=0, column=3, sticky=TK.EW)
+    # Separator
+    label = TK.Label(F, text='-')
+    label.grid(row=0, column=3, sticky=TK.EW)
 
-# Run
-B = TK.Button(F, text='Run', command=runCases, fg='blue')
-BB = CTK.infoBulle(parent=B, text='Run cases')
-B.grid(row=0, column=4, sticky=TK.EW)
+    # Run
+    B = TK.Button(F, text='Run', command=runCases, fg='blue')
+    BB = CTK.infoBulle(parent=B, text='Run cases')
+    B.grid(row=0, column=4, sticky=TK.EW)
 
-# Stop
-B = TK.Button(F, text='Stop', command=stopRun, fg='red')
-BB = CTK.infoBulle(parent=B, text='Stop run')
-B.grid(row=0, column=5, sticky=TK.EW)
+    # Stop
+    B = TK.Button(F, text='Stop', command=stopRun, fg='red')
+    BB = CTK.infoBulle(parent=B, text='Stop run')
+    B.grid(row=0, column=5, sticky=TK.EW)
 
-# Edit run.py
-B = TK.Button(F, text='Edit', command=editCase)
-BB = CTK.infoBulle(parent=B, text='Edit run.py')
-B.grid(row=0, column=6, sticky=TK.EW)
+    # Edit run.py
+    B = TK.Button(F, text='Edit', command=editCase)
+    BB = CTK.infoBulle(parent=B, text='Edit run.py')
+    B.grid(row=0, column=6, sticky=TK.EW)
 
-# View
-B = TK.Button(F, text='View', command=viewCase)
-BB = CTK.infoBulle(parent=B, text='Display restart.cgns')
-B.grid(row=0, column=7, sticky=TK.EW)
+    # View
+    B = TK.Button(F, text='View', command=viewCase)
+    BB = CTK.infoBulle(parent=B, text='Display restart.cgns')
+    B.grid(row=0, column=7, sticky=TK.EW)
 
-# Separator
-label = TK.Label(F, text='-')
-label.grid(row=0, column=8, sticky=TK.EW)
+    # Separator
+    label = TK.Label(F, text='-')
+    label.grid(row=0, column=8, sticky=TK.EW)
 
-# Clean
-B = TK.Button(F, text='Clean', command=cleanCases, fg='red')
-BB = CTK.infoBulle(parent=B, text='Rm restart.cgns')
-B.grid(row=0, column=10, sticky=TK.EW)
+    # Clean
+    B = TK.Button(F, text='Clean', command=cleanCases, fg='red')
+    BB = CTK.infoBulle(parent=B, text='Rm restart.cgns')
+    B.grid(row=0, column=10, sticky=TK.EW)
 
-# Archive
-B = TK.Button(F, text='Archive', command=archiveCases)
-BB = CTK.infoBulle(parent=B, text='Archive case.')
-B.grid(row=0, column=9, sticky=TK.EW)
+    # Archive
+    B = TK.Button(F, text='Archive', command=archiveCases)
+    BB = CTK.infoBulle(parent=B, text='Archive case.')
+    B.grid(row=0, column=9, sticky=TK.EW)
 
-Frame.grid()
-TK.mainloop()
+    Frame.grid()
+    TK.mainloop()
+
+
+if __name__ == "__main__":
+    main()

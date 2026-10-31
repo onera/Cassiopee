@@ -357,7 +357,7 @@ For gurus
 ############
     
 tkCassiopee is a fully modular GUI. You can add your own 
-applet easily. First copy the file CPlot/apps/tkPersonalSample.py
+applet easily. First copy the file CPlot/CPlot/apps/tkPersonalSample.py
 to tkMyApplet.py. Then add your own buttons and functions in this file.
 Finally, in cassiopee, go to top menu **Tools** and
 **Add a personal app**. Enter the file name. Your applet

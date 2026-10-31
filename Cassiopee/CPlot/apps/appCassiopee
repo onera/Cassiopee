@@ -1,9 +1,0 @@
-#!/bin/sh
-PREFIX="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE}"
-
-if test -e "$PREFIX/Dist/tkCassiopee.py"
-then
-    ${APPDIR}/Dist/BUNDLE/bin/python "$PREFIX/Dist/tkCassiopee.py" "$@"
-else
-    ${APPDIR}/Dist/BUNDLE/bin/python "$PREFIX/Dist/tkCassiopee.pyc" "$@"
-fi

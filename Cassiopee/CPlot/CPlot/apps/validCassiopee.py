@@ -82,8 +82,25 @@ USE_ASAN = [False, False]
 # Est egal a 1 si on doit s'arreter
 STOP = 0
 
-# WIDGETS dict
+# WIDGETS dict and other objects
 WIDGETS = {}
+Master = None
+Listbox = None
+Scrollbar = None
+Status = None
+StatusLabel = None
+Progress = None
+ProgressLabel = None
+Filter = None
+sortTab = None
+toolsTab = None
+TextFilter = None
+Threads = None
+TextThreads = None
+generalFontFixed = None
+generalFont = None
+generalFontA = None
+generalFontS = None
 
 # Session filename and whether to save it
 SESSION_NAME = "session"
@@ -207,8 +224,11 @@ def getInstallPaths():
     except ImportError:
         raise ImportError("Error: KCore module is required to use this script.")
     try:
-        import FastC.installPath
-        fastIncDir = FastC.installPath.includePath
+        import importlib
+        module = importlib.import_module("FastC")
+        modInstallPath = os.path.abspath(module.__file__)
+        buildInfo = Dist.getBuildInfoDict(modInstallPath)
+        fastIncDir = buildInfo["includePath"]
         fastIncDir = os.path.dirname(fastIncDir)
     except:
         fastIncDir = None
@@ -1592,7 +1612,9 @@ def setupLocal(**kwargs):
     else:
         os.environ['VALIDLOCAL'] = os.path.join(os.getcwd(), "Valid{}".format(DATA))
 
-    if INTERACTIVE: WIDGETS['UpdateButton'].configure(state=TK.NORMAL)
+    if INTERACTIVE:
+        import tkinter as TK
+        WIDGETS['UpdateButton'].configure(state=TK.NORMAL)
     createEmptySessionLog()
     loadTestMetadata()
     buildTestList(**kwargs)
@@ -1610,7 +1632,9 @@ def setupGlobal(**kwargs):
     os.environ['VALIDLOCAL'] = VALIDDIR['LOCAL']
 
     # No update on global ref
-    if INTERACTIVE: WIDGETS['UpdateButton'].configure(state=TK.DISABLED)
+    if INTERACTIVE:
+        import tkinter as TK
+        WIDGETS['UpdateButton'].configure(state=TK.DISABLED)
     # Change to match the numthreads of global ref
     try:
         with open(os.path.join(VALIDDIR['GLOBAL'], 'base.time'), 'r') as f:
@@ -1810,7 +1834,12 @@ def savePrefFile():
 # Main
 #==============================================================================
 
-if __name__ == '__main__':
+def main():
+    global DATA, SESSION_NAME, SAVE_SESSION_LOG, INTERACTIVE, GENERALFONT, WIDGETS
+    global Master, Listbox, Scrollbar, Status, StatusLabel, Progress, ProgressLabel
+    global Filter, TextFilter, Threads, TextThreads, sortTab, toolsTab
+    global generalFontFixed, generalFont, generalFontA, generalFontS
+    
     # Check that CASSIOPEE and the install paths are consistent
     checkEnvironment()
     # Get name of the ValidData folder
@@ -2048,3 +2077,7 @@ if __name__ == '__main__':
         selectAll()
         runTests(update=vcargs.update)
         Quit()
+
+
+if __name__ == '__main__':
+    main()
