@@ -293,19 +293,24 @@ def parseInstallPathPrefix(*args):
 
 def getInstallPathSuffix(type=0):
     # if type=0, return a string, else a dict
+    from pathlib import Path
     import site
-    a = site.getsitepackages()[0].split('/')[-4:]
+    p = Path(site.getsitepackages()[0])
+    lib = p.parents[1]
+    libPath = (
+        Path("local") / lib.name
+        if lib.parent.name == "local" else Path(lib.name)
+    )
     if type == 0:
-        if a[0] != 'local':
-            # lib/python3.12/site-packages'
-            installPath = os.path.join(*a[1:4])
-        else:
-            # local/lib/python3.12/site-packages'
-            installPath = os.path.join(*a[:4])
+        # [local/]lib/python3.12/site-packages'
+        return str(libPath / p.parent.name / p.name)
     else:
-        # {'lib': 'lib', 'pyversion': 'python3.12', 'site': 'site-packages'}
-        installPath = {'lib': a[1], 'pyversion': a[2], 'site': a[3]}
-    return installPath
+        # {'lib': '[local/]lib', 'pyversion': 'python3.12', 'site': 'site-packages'}
+        return {
+            "lib": str(libPath),
+            "pyversion": p.parent.name,
+            "site": p.name
+        }
 
 #=============================================================================
 # Return the buildInfo dictionary
