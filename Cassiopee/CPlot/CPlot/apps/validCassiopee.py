@@ -1839,7 +1839,7 @@ def main():
     global Master, Listbox, Scrollbar, Status, StatusLabel, Progress, ProgressLabel
     global Filter, TextFilter, Threads, TextThreads, sortTab, toolsTab
     global generalFontFixed, generalFont, generalFontA, generalFontS
-    
+
     # Check that CASSIOPEE and the install paths are consistent
     checkEnvironment()
     # Get name of the ValidData folder
