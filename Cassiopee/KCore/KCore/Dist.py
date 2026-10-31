@@ -595,14 +595,13 @@ def getDistUtilsCompilers():
             vars[0] = Cppcompiler.replace('icpx', 'icx'); vars[1] = Cppcompiler
         elif Cppcompiler == 'icx':
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('icx', 'icpx')
-
-        print(f"Warning: getDistUtilsCompilers: unknown compiler set in installBase.json ({Cppcompiler})")
+        else:
+            print("Warning: getDistUtilsCompilers: unknown compiler set in "
+                  f"installBase.json ({Cppcompiler})")
 
     cc, cxx, opt, basecflags, ccshared, ldshared, so_ext = vars
-    cc = cc.split(' ') # enleve les options si mises dans cc
-    cc = cc[0]
-    cxx = cxx.split(' ')
-    cxx = cxx[0]
+    cc = cc.split(' ')[0] # enleve les options si mises dans cc
+    cxx = cxx.split(' ')[0]
     return (cc, cxx, opt, basecflags, ccshared, ldshared, so_ext)
 
 #==============================================================================
@@ -648,24 +647,21 @@ def getFortranModDirPrefix():
 #==============================================================================
 def useOMP():
     useOMP = getFromConfigDict("useOMP", True)
-    if useOMP: return 1
-    else: return 0
+    return int(useOMP)
 
 #==============================================================================
 # Retourne 1 si on produit des librairies statiques
 #==============================================================================
 def useStatic():
     useStatic = getFromConfigDict("useStatic", False)
-    if useStatic: return 1
-    else: return 0
+    return int(useStatic)
 
 #==============================================================================
 # Retourne 1 si on dispose de cuda
 #==============================================================================
 def useCuda():
     useCuda = getFromConfigDict("useCuda", False)
-    if useCuda: return 1
-    else: return 0
+    return int(useCuda)
 
 #==============================================================================
 # Retourne les versions des compilateurs
