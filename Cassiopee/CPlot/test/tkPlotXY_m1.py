@@ -2,7 +2,7 @@
 import Converter.PyTree as C
 import Generator.PyTree as G
 import Converter.Mpi as Cmpi
-import tkPlotXY
+import CPlot.apps.tkPlotXY as tkPlotXY
 import KCore.test as test
 
 LOCAL = test.getLocal()

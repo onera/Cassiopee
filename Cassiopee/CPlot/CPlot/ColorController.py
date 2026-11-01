@@ -3,7 +3,7 @@
 import tkinter as TK
 from . import Ttk as TTK
 import colorsys
-import tkPlotXY
+import CPlot.apps.tkPlotXY as tkPlotXY
 
 COLOR_LIST_HISTORY = []
 
@@ -16,7 +16,7 @@ COLOR_LIST_HISTORY = []
 # colorsys renvoie entre 0 et 1
 #
 ################################################################################
-class ColorControler(object):
+class ColorController(object):
     def __init__(self, parent, color="#3a65c6", colormapName='Set1', nbColorMap=8, colorHistoryList=None):
 
         if color == 'black' or color == 'Black': color = "#000000"
@@ -312,7 +312,7 @@ class ColorControler(object):
                 colormapList = ['#fcfbfd', '#eeecf4', '#d9d9ea', '#bbbcdb', '#9d99c7', '#7f7cb9', '#6950a2', '#53258e']
             elif colormapName == 'Blues':
                 colormapList = ['#f7fbff', '#ddeaf6', '#c5daee', '#9dc9e0', '#6aadd5', '#4191c5', '#2070b4', '#08509a']
-            elif colormpaName == 'Greens':
+            elif colormapName == 'Greens':
                 colormapList = ['#f7fcf5', '#e4f4df', '#c6e8bf', '#a0d89a', '#73c375', '#40aa5c', '#228a44', '#006b2b']
             elif colormapName == 'Oranges':
                 colormapList = ['#fff5eb', '#fde5cd', '#fdcfa1', '#fdad6a', '#fc8c3b', '#f06812', '#d74701', '#a43503']
@@ -380,7 +380,7 @@ class ColorControler(object):
                 colormapList = ['#67001f', '#bb2a33', '#e58368', '#faceb6', '#fefefe', '#d5d5d5', '#9f9f9f', '#595959']
             elif colormapName == 'RdBu':
                 colormapList = ['#67001f', '#bb2a33', '#e58368', '#faceb6', '#f6f6f6', '#bfdceb', '#68aacf', '#286fb0']
-            elif colormpaName == 'RdYlGn':
+            elif colormapName == 'RdYlGn':
                 colormapList = ['#a50026', '#de3f2e', '#f88e52', '#fdd481', '#fefebd', '#cbe881', '#84ca66', '#2a9f54']
             elif colormapName == 'Spectral':
                 colormapList = ['#9e0142', '#dc494b', '#f88e52', '#fdd481', '#fefebe', '#d5ee9b', '#86cea4', '#3d94b7']
@@ -774,7 +774,7 @@ class color_dialogWindow(TK.Toplevel):
         #
         history = list(COLOR_LIST_HISTORY)
         history.reverse()
-        colorControler = ColorControler(self,color=color,colorHistoryList=history[:tkPlotXY.NUM_COLORS],colormapName=colormapName,nbColorMap=nbColorMap)
+        colorControler = ColorController(self,color=color,colorHistoryList=history[:tkPlotXY.NUM_COLORS],colormapName=colormapName,nbColorMap=nbColorMap)
 
     def cmd_close(self,event=None):
         self.destroy()

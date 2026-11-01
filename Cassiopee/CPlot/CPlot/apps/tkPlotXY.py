@@ -29,8 +29,8 @@ try:
     import tkinter.messagebox as tkMessageBox
 except ImportError:
     try:
-        import tkFileDialog
-        import tkMessageBox
+        import CPlot.apps.tkFileDialog as tkFileDialog
+        import CPlot.apps.tkMessageBox as tkMessageBox
     except: IMPORTOK = False
 
 try:
@@ -78,7 +78,7 @@ try:
     #import CPlot.PyTree as CPlot
     import CPlot.Tk as CTK
     import CPlot.Ttk as TTK
-    import CPlot.ColorControler as ColorControler
+    import CPlot.ColorController as ColorController
 except ImportError:
     CTK = None
     TTK = TK
@@ -2513,7 +2513,7 @@ class editTextWindow(TK.Toplevel):
             self.list_dialog = list_dialogWindow()
             self.list_dialog.initialize(self,B)
         elif B.treatmentId==1:
-            self.list_dialog = ColorControler.color_dialogWindow(self,B,B.val,extra_data=ind)
+            self.list_dialog = ColorController.color_dialogWindow(self,B,B.val,extra_data=ind)
             # try:
             #     color = askcolor(B.val,parent=self)
             #     if color[1] is not None:
@@ -3905,7 +3905,7 @@ class editShapeWindow(TK.Toplevel):
             self.list_dialog = list_dialogWindow()
             self.list_dialog.initialize(self,B)
         elif B.treatmentId==1:
-            self.list_dialog = ColorControler.color_dialogWindow(self,B,B.val,extra_data=ind)
+            self.list_dialog = ColorController.color_dialogWindow(self,B,B.val,extra_data=ind)
         elif B.treatmentId==2: # UNUSED
             self.input_dialog = input_dialogWindow()
             self.input_dialog.initialize(self,B)
@@ -3923,7 +3923,7 @@ class editShapeWindow(TK.Toplevel):
             self.list_dialog = list_dialogWindow()
             self.list_dialog.initialize(self,B)
         elif B.treatmentId==1:
-            self.list_dialog = ColorControler.color_dialogWindow(self,B,B.val)
+            self.list_dialog = ColorController.color_dialogWindow(self,B,B.val)
         elif B.treatmentId==2: # UNUSED
             self.input_dialog = input_dialogWindow()
             self.input_dialog.initialize(self,B)
@@ -6959,7 +6959,7 @@ class editAxisWindow(TK.Toplevel):
             self.list_dialog = list_dialogWindow()
             self.list_dialog.initialize(self,B)
         elif B.treatmentId==1:
-            self.list_dialog = ColorControler.color_dialogWindow(self,B,B.val)
+            self.list_dialog = ColorController.color_dialogWindow(self,B,B.val)
             # try:
             #     color = askcolor(B.val,parent=self)
             #     if color[1] is not None:
@@ -7482,7 +7482,7 @@ class editLegendWindow(TK.Toplevel):
             self.list_dialog = list_dialogWindow()
             self.list_dialog.initialize(self,B)
         elif B.treatmentId==1:
-            self.list_dialog = ColorControler.color_dialogWindow(self,B,B.val)
+            self.list_dialog = ColorController.color_dialogWindow(self,B,B.val)
             # try:
             #     color = askcolor(B.val,parent=self)
             #     if color[1] is not None:
@@ -8034,7 +8034,7 @@ class editGraphWindow(TK.Toplevel):
         self.closeAllDialog()
 
         if B.treatmentId==1: # Color selector
-            self.list_dialog = ColorControler.color_dialogWindow(self,B,B.val)
+            self.list_dialog = ColorController.color_dialogWindow(self,B,B.val)
             # try:
             #     color = askcolor(B.val,parent=self)
             #     if color[1] is not None:
@@ -8643,7 +8643,7 @@ class editGridWindow(TK.Toplevel):
             self.list_dialog = list_dialogWindow()
             self.list_dialog.initialize(self,B)
         elif B.treatmentId==1: # Color selector
-            self.list_dialog = ColorControler.color_dialogWindow(self,B,B.val)
+            self.list_dialog = ColorController.color_dialogWindow(self,B,B.val)
         elif B.treatmentId==2: # Float
             self.input_dialog = inputFloat_dialogWindow()
             self.input_dialog.initialize(self,B)
@@ -12040,7 +12040,7 @@ class editCurvesWindow(TK.Toplevel):
             self.list_dialog = list_dialogWindow()
             self.list_dialog.initialize(self,B)
         elif B.treatmentId == 1:
-            self.list_dialog = ColorControler.color_dialogWindow(self,B,B.val,extra_data=ind)
+            self.list_dialog = ColorController.color_dialogWindow(self,B,B.val,extra_data=ind)
             # try:
             #     color = askcolor(B.val,parent=self)
             #

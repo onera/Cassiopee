@@ -4,57 +4,83 @@ import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import CPlot.Panels as Panels
 import Converter.Internal as Internal
-import os, os.path, sys
+import os
+import sys
+import importlib
 
 # Liste des apps par sous menu et perso
-TREEAPPS = ['tkNodeEdit', 'tkTreeOps', 'tkCheckPyTree', '---',
-            'tkFamily', '---',
-            'tkCADFix']
-STATEAPPS = ['tkState', '---',
-             'tkPrefs', 'tkPerfo', 'tkContainers', 'tkCamera', '---',
-             #'tkLogFile', '---',
-             'tkFilter', 'tkFind', 'tkProbe', '---',
-             'tkRuler']
-EDGEAPPS = ['tkCanvas', 'tkPoint', 'tkDraw','---',
-            'tkExtractEdges', 'tkMapEdge']
-SURFAPPS = ['tkBasicSurfs', 'tkText', '---',
-            'tkCADMesh',
-            'tkFixer2', 'tkBoolean', '---',
-            'tkMapUV', 'tkSculpt', '---',
-            'tkMMGs', 'tkCartWrap', 'tkOffset', 'tkSurfaceWalk', '---',
-            'tkProjection']
-MESHAPPS = ['tkCells', 'tkStretch', '---',
-            #tkMirabelle,
-            'tkExtrusion', 'tkTetraMesher', 'tkTFI', 'tkSmooth', '---',
-            'tkOctree', 'tkCollarMesh', 'tkBlader', '---',
-            'tkMeshQual', 'tkMeshInfo']
-BLOCKAPPS = ['tkBlock', '---',
-             'tkTransform', 'tkNGon', 'tkGhostCells', '---',
-             'tkSplit', 'tkReorder']
-BCAPPS = ['tkBC', '---',
-          'tkChimera', 'tkIBCOld',
-          'tkIBC',
-          '---',
-          'tkExtractBC']
+TREEAPPS = [
+    'tkNodeEdit', 'tkTreeOps', 'tkCheckPyTree', '---',
+    'tkFamily', '---',
+    'tkCADFix'
+]
+STATEAPPS = [
+    'tkState', '---',
+    'tkPrefs', 'tkPerfo', 'tkContainers', 'tkCamera', '---',
+    #'tkLogFile', '---',
+    'tkFilter', 'tkFind', 'tkProbe', '---',
+    'tkRuler'
+]
+EDGEAPPS = [
+    'tkCanvas', 'tkPoint', 'tkDraw','---',
+    'tkExtractEdges', 'tkMapEdge'
+]
+SURFAPPS = [
+    'tkBasicSurfs', 'tkText', '---',
+    'tkCADMesh',
+    'tkFixer2', 'tkBoolean', '---',
+    'tkMapUV', 'tkSculpt', '---',
+    'tkMMGs', 'tkCartWrap', 'tkOffset', 'tkSurfaceWalk', '---',
+    'tkProjection'
+]
+MESHAPPS = [
+    'tkCells', 'tkStretch', '---',
+    #tkMirabelle,
+    'tkExtrusion', 'tkTetraMesher', 'tkTFI', 'tkSmooth', '---',
+    'tkOctree', 'tkCollarMesh', 'tkBlader', '---',
+    'tkMeshQual', 'tkMeshInfo'
+]
+BLOCKAPPS = [
+    'tkBlock', '---',
+    'tkTransform', 'tkNGon', 'tkGhostCells', '---',
+    'tkSplit', 'tkReorder'
+]
+BCAPPS = [
+    'tkBC', '---',
+    'tkChimera', 'tkIBCOld',
+    'tkIBC',
+    '---',
+    'tkExtractBC'
+]
 MOTIONAPPS = ['tkRigidMotion', 'tkTime']
-SOLVERAPPS = ['tkInit', 'tkDistributor', 'tkDist2Walls', '---',
-              #tkCassiopeeSolver,
-              'tkElsaSolver', 'tkFastSolver']
-POSTAPPS = ['tkVariables', '---',
-            'tkExtractMesh', '---',
-            'tkStream', 'tkIsoLine', 'tkIsoSurf', '---',
-            'tkInteg']
-VISUAPPS = ['tkView', #'tkPlot',
-            'tkPlotXY', '---',
-            'tkSlice', 'tkIJK', 'tkCellN', '---',
-            'tkBackground']
-RENDERAPPS = ['tkRenderTree', 'tkRenderSet', '---',
-              'tkStereo', 'tkEffects', 'tkDemo', '---',
-              'tkPovRay', 'tkLuxRender']
+SOLVERAPPS = [
+    'tkInit', 'tkDistributor', 'tkDist2Walls', '---',
+    #tkCassiopeeSolver,
+    'tkElsaSolver', 'tkFastSolver'
+]
+POSTAPPS = [
+    'tkVariables', '---',
+    'tkExtractMesh', '---',
+    'tkStream', 'tkIsoLine', 'tkIsoSurf', '---',
+    'tkInteg'
+]
+VISUAPPS = [
+    'tkView', #'tkPlot',
+    'tkPlotXY', '---',
+    'tkSlice', 'tkIJK', 'tkCellN', '---',
+    'tkBackground'
+]
+RENDERAPPS = [
+    'tkRenderTree', 'tkRenderSet', '---',
+    'tkStereo', 'tkEffects', 'tkDemo', '---',
+    'tkPovRay', 'tkLuxRender'
+]
 
-ALLAPPS = TREEAPPS + STATEAPPS + EDGEAPPS + SURFAPPS + MESHAPPS + \
-    BLOCKAPPS + BCAPPS + MOTIONAPPS + SOLVERAPPS + POSTAPPS + \
-    VISUAPPS + RENDERAPPS
+ALLAPPS = (
+    TREEAPPS + STATEAPPS + EDGEAPPS + SURFAPPS + MESHAPPS
+    + BLOCKAPPS + BCAPPS + MOTIONAPPS + SOLVERAPPS + POSTAPPS
+    + VISUAPPS + RENDERAPPS
+)
 PERSOAPPS = []
 
 #==============================================================================
@@ -62,21 +88,21 @@ PERSOAPPS = []
 #==============================================================================
 def addPersonalApp():
     import tkinter.filedialog as tkFileDialog
-    file = tkFileDialog.askopenfilename(filetypes=[('python', '*.py')])
-    a = os.access(file, os.F_OK)
+    filename = tkFileDialog.askopenfilename(filetypes=[('python', '*.py')])
+    a = os.access(filename, os.F_OK)
     if not a: return
     CTK.loadPrefFile()
-    if 'module' in CTK.PREFS: CTK.PREFS['module'] += ' ;'+file
-    else: CTK.PREFS['module'] = file
+    if 'module' in CTK.PREFS: CTK.PREFS['module'] += ' ;'+filename
+    else: CTK.PREFS['module'] = filename
     CTK.savePrefFile()
-    file = os.path.split(file)
-    moduleName = os.path.splitext(file[1])[0]
-    pathName = file[0]
+    filename = os.path.split(filename)
+    moduleName = os.path.splitext(filename[1])[0]
+    pathName = filename[0]
     try:
         orig = sys.path; local = orig
         local.append(pathName)
         sys.path = local
-        module = __import__(moduleName)
+        module = importlib.import_module(moduleName)
         CTK.TKMODULES[moduleName] = module
         sys.path = orig
         #tools.add_command(label=moduleName,
@@ -98,7 +124,6 @@ def notImplemented():
 # To be called when CTK.t is set
 #==============================================================================
 def run(t=None):
-
     # force cplot init module
     CPlot.CPlot.getModule()
 
@@ -136,8 +161,10 @@ def run(t=None):
             auto[i] = 1
 
     # Main window
-    (win, frames, menu, menus, file, tools) = CTK.minimal2('Cassiopee '+C.__version__,
-                                                           show=False)
+    win, frames, menu, menus, filename, tools = CTK.minimal2(
+        'Cassiopee '+C.__version__,
+        show=False
+    )
 
     fileName = os.path.split(CTK.FILE)
     CTK.changeWindowTitle(fileName[1], fileName[0])
@@ -185,9 +212,9 @@ def run(t=None):
         mod = mod.split(';')
         for i in mod:
             i = i.strip()
-            file = os.path.split(i)
-            moduleName = os.path.splitext(file[1])[0]
-            pathName = file[0]
+            filename = os.path.split(i)
+            moduleName = os.path.splitext(filename[1])[0]
+            pathName = filename[0]
             try:
                 orig = sys.path; local = orig
                 local.append(pathName)
@@ -214,7 +241,8 @@ def run(t=None):
 
     # - Update apps -
     CTK.TKTREE.updateApp()
-    if CTK.TKMODULES['tkContainers'] is not None: CTK.TKMODULES['tkContainers'].updateApp()
+    if CTK.TKMODULES['tkContainers'] is not None:
+        CTK.TKMODULES['tkContainers'].updateApp()
     if CTK.TKPLOTXY is not None: CTK.TKPLOTXY.updateApp()
 
     # - open load panel if partial load -
@@ -231,7 +259,8 @@ def run(t=None):
         renderInfo = Internal.getNodeFromName1(CTK.t, '.RenderInfo')
         if renderInfo is not None:
             CTK.getModule("tkView")
-            import tkView; tkView.loadSlot()
+            import CPlot.apps.tkView as tkView
+            tkView.loadSlot()
 
     # - Main loop -
     win.mainloop()
@@ -240,10 +269,13 @@ def run(t=None):
     CTK.PHOTOS = []
 
 #==============================================================================
-if __name__ == "__main__":
+def main():
     # Ouverture du fichier de la ligne de commande
-    import sys
     if len(sys.argv) >= 2:
         files = sys.argv[1:]
         CTK.tkLoadFile(files, mode='auto')
     run()
+
+
+if __name__ == "__main__":
+    main()

@@ -19,7 +19,7 @@ This module is part of Cassiopee, a free open-source pre- and post-processor for
 
 For use in a python script, you have to import tkPlotXY module::
 
-   import tkPlotXY
+   import CPlot.apps.tkPlotXY as tkPlotXY
 
 .. py:module:: tkPlotXY
 

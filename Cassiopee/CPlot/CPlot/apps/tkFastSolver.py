@@ -452,7 +452,7 @@ def getAlphaAngle(t):
 # update 1D plots graphs from walls tree
 #========================================================================
 def updateWallPlot(walls):
-    import tkPlotXY
+    import CPlot.apps.tkPlotXY as tkPlotXY
     if not tkPlotXY.IMPORTOK: return
     global DESKTOP1
     # rename zones to keep the same names through computation
@@ -496,7 +496,7 @@ def updateWallPlot(walls):
 # update 1D plots graphs from CL and CD values
 #========================================================================
 def updateLoadPlot(CL, CD, nitrun, nit):
-    import tkPlotXY
+    import CPlot.apps.tkPlotXY as tkPlotXY
     if not tkPlotXY.IMPORTOK: return
     import Generator.PyTree as G
     global DESKTOP2, LOAD
@@ -679,7 +679,7 @@ def displaySlices():
     global TKSLICE
     if TKSLICE is None:
         frame = CTK.TKMODULEFRAMES['tkSlice']
-        try: TKSLICE = __import__('tkSlice'); TKSLICE.createApp(frame)
+        try: TKSLICE = __import__('CPlot.apps.tkSlice'); TKSLICE.createApp(frame)
         except: TKSLICE = None
     if TKSLICE is not None:
         if WALL is not None: TKSLICE.WALL = WALL

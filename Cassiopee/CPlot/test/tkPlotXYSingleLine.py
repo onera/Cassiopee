@@ -1,7 +1,7 @@
 # - tkPlotXY (pyTree) -
 import Converter.PyTree as C
 import Generator.PyTree as G
-import tkPlotXY
+import CPlot.apps.tkPlotXY as tkPlotXY
 
 # Cas test
 a = G.cart((0,0,0), (1,1,1), (100,1,1))
