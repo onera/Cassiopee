@@ -800,6 +800,7 @@ fi
 if [ "$PYTHONEXE" = "python3" ]; then
     pybin=$("$PYTHONEXE" -c 'from pathlib import Path; import site; p=Path(site.getsitepackages()[0]); lib=p.parents[1]; print("local/bin" if lib.parent.name == "local" else "bin")')
     pylib=$("$PYTHONEXE" -c 'from pathlib import Path; import site; p=Path(site.getsitepackages()[0]); lib=p.parents[1]; print(str(Path("local") / lib.name) if lib.parent.name == "local" else lib.name)')
+    pysite=$("$PYTHONEXE" -c 'from pathlib import Path; import site; p=Path(site.getsitepackages()[0]); i=next(i for i,x in enumerate(p.parts) if x in ("lib", "local")); print(Path(*p.parts[i:]))' 2>/dev/null)
     alias python=python3
 else
     pyenv=$($PYTHONEXE -c 'import sys; print("pyenv" in sys.executable)' 2>/dev/null)
