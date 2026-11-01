@@ -1,12 +1,12 @@
 #!/bin/bash
-# Build Cassiopee wheels (int32 and int64 / "-i8") inside a manylinux2014 container.
-# Usage (from the workflow):
+# Build Cassiopee wheels inside a manylinux2014 container.
+# Usage (from the publish-pypi.yml workflow):
 #   docker run --rm -v $GITHUB_WORKSPACE/..:/io \
 #       quay.io/pypa/manylinux2014_x86_64:latest \
 #       /bin/bash /io/Cassiopee/tools/build_wheels.sh
 set -e
 
-export PATH=/opt/python/cp312-cp312/bin:$PATH
+export PATH=/opt/python/cp311-cp311/bin:$PATH
 
 yum update -y && yum install -y \
     gcc \
@@ -43,7 +43,7 @@ pip3 install \
     auditwheel \
     setuptools \
     scons
-pip3 install --only-binary=numpy "numpy<2.3"
+pip3 install --only-binary=numpy "numpy>=2.0,<2.3"
 
 export PATH=/usr/lib64/openmpi/bin:$PATH
 export LD_LIBRARY_PATH=/usr/lib64/openmpi/lib:$LD_LIBRARY_PATH
@@ -64,12 +64,12 @@ sed -i 's/OCC//g' MODULES
 # Collect the built wheels from /tmp, repair them, and put the result
 # in $CASSIOPEE/wheels/<int32|int64>/wheelhouse/
 repairWheels() {
-    local kind="$1"
+    local intSize="$1"
     rm -rf "$CASSIOPEE/tmp"
     mkdir -p "$CASSIOPEE/tmp/"
     find /tmp/ -type f -name 'cassiopee_*.whl' -exec mv {} "$CASSIOPEE/tmp/" \;
-    mkdir -p "$CASSIOPEE/wheels/$kind/wheelhouse/"
-    cd "$CASSIOPEE/wheels/$kind"
+    mkdir -p "$CASSIOPEE/wheels/$intSize/wheelhouse/"
+    cd "$CASSIOPEE/wheels/$intSize"
     for kwheel in $(find "$CASSIOPEE/tmp/" -name "*.whl"); do
         if [[ "$kwheel" == *-none-any.whl ]]; then
             cp "$kwheel" wheelhouse/
@@ -78,6 +78,17 @@ repairWheels() {
         fi
     done
     ls wheelhouse
+}
+
+# Build the meta-package
+buildMetaWheel() {
+    local intSize="$1"
+    mkdir -p "$CASSIOPEE/wheels/$intSize/meta"
+    python -m pip wheel \
+        --no-deps \
+        --no-build-isolation \
+        --wheel-dir "$CASSIOPEE/wheels/$intSize/meta" \
+        "$CASSIOPEE"
 }
 
 # Append -i8 to the project name and to every cassiopee* dependency in a
@@ -98,6 +109,7 @@ export MACHINE=azure
 . "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8"
 cd "$CASSIOPEE"
 ./install || { echo "Cassiopee int32 install failed"; exit 1; }
+buildMetaWheel int32
 repairWheels int32
 
 # ---------------------------------------------------------------------------
@@ -115,4 +127,5 @@ export MACHINE=azure_i8
 . "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8"
 cd "$CASSIOPEE"
 ./install || { echo "Cassiopee int64 install failed"; exit 1; }
+buildMetaWheel int64
 repairWheels int64
