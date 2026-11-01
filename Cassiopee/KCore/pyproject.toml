@@ -2,7 +2,7 @@
 requires = [
   "setuptools>=61",
   "scons>=4.4.0",
-  "numpy>=1.23.3",
+  "numpy>=2.0",
   "mpi4py>=3.1.3"
 ]
 build-backend = "setuptools.build_meta"
@@ -43,14 +43,11 @@ Issues = "https://github.com/onera/Cassiopee/issues"
 Changelog = "https://onera.github.io/Cassiopee/current/ReleaseNotes.html"
 
 [project.scripts]
-#notifyCassiopee = "notifyCassiopee:main"
+notifyCassiopee = "KCore.notifyCassiopee:main"
 
 [tool.setuptools]
 package-dir = {"" = "."}
 packages = ["KCore"]
-script-files = [
-  "test/notifyCassiopee"
-]
 
 [tool.setuptools.package-data]
 KCore = [

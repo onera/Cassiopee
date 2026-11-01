@@ -580,8 +580,7 @@ def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
 
     return messageSubject, messageText, exitStatus
 
-# Main
-if __name__ == '__main__':
+def main():
     exitStatus = 0
     scriptArgs = parseArgs()
     recipients = scriptArgs.recipients.split(' ')
@@ -662,3 +661,7 @@ if __name__ == '__main__':
         sep = 83*'-'
         print(f"{sep}\n|{messageSubject:^81}|\n{sep}\n{messageText}")
     sys.exit(exitStatus)
+
+
+if __name__ == '__main__':
+    main()
