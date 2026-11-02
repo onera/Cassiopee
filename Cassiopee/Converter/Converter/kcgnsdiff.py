@@ -2,8 +2,6 @@
 # Usage: kcgnsdiff file1 file2
 import os
 import sys
-import Converter.PyTree as C
-import Converter.Internal as Internal
 import KCore.test as test
 
 
