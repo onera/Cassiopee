@@ -99,35 +99,46 @@ buildMetaWheel() {
 buildPythonWheels() {
     local intSize="$1"
     local py="$2"
+    local python="/opt/python/$py/bin/python"
 
     echo "=========================================="
     echo "Building $intSize with $py"
     echo "=========================================="
-    
-    export PATH="/opt/python/$py/bin:$BASE_PATH"
-    hash -r
 
-    python --version
-    python -m pip --version
+    if [[ ! -x "$python" ]]; then
+        echo "ERROR: Python interpreter not found: $python"
+        exit 1
+    fi
 
-    python -m pip install --upgrade pip
-    python -m pip install wheel auditwheel setuptools scons
+    "$python" --version
+    "$python" -m pip --version
+
+    "$python" -m pip install --upgrade pip
+    "$python" -m pip install wheel auditwheel setuptools scons
 
     if [[ "$py" == "cp38-cp38" ]]; then
-        python -m pip install --only-binary=numpy "numpy>=1.23.3,<2"
+        "$python" -m pip install --only-binary=numpy "numpy>=1.23.3,<2"
     else
-        python -m pip install --only-binary=numpy "numpy>=2.0,<2.3"
+        "$python" -m pip install --only-binary=numpy "numpy>=2.0,<2.3"
     fi
 
     MPICC=mpicc CFLAGS="-std=c99" \
-        python -m pip install \
+        "$python" -m pip install \
         --no-cache-dir --no-binary=mpi4py mpi4py
+
     export CFLAGS="-std=c11"
 
-    python -c \
+    "$python" -c \
         'import sys, numpy; print(sys.executable); print(numpy.__version__)'
 
     . "$CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8"
+
+    # The environment script may modify PATH or PYTHONEXE.
+    # Restore the selected interpreter for the Cassiopee installation.
+    export PATH="/opt/python/$py/bin:$BASE_PATH"
+    export PYTHONEXE="$python"
+    hash -r
+
     cd "$CASSIOPEE"
     ./clean -f
     ./install || {
