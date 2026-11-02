@@ -108,6 +108,13 @@ buildPythonWheels() {
     local intSize="$1"
     local py="$2"
     local python="/opt/python/$py/bin/python"
+    local pythonShim="/tmp/cassiopee-python-$py"
+
+    mkdir -p "$pythonShim"
+    ln -sf "$python" "$pythonShim/python3"
+
+    export PATH="$pythonShim:/opt/python/$py/bin:$BASE_PATH"
+    hash -r
 
     echo "=========================================="
     echo "Building $intSize with $py"
