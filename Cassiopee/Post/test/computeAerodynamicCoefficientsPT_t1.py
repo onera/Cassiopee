@@ -20,7 +20,7 @@ def _initSurfaceFlowSolution(tb, case=0):
             C._initVars(z, '{gradxPressure} = 0.')
             C._initVars(z, '{gradyPressure} = 0.')
             C._initVars(z, '{gradzPressure} = 0.')
-    else: 
+    else:
         for z in Internal.getZones(tb):
             C._initVars(z, '{Pressure} = 3*{CoordinateX} + 6*{CoordinateY} + 9*{CoordinateZ} + 20')
             C._initVars(z, '{Density} = 3*{CoordinateX} + 6*{CoordinateY} + 9*{CoordinateZ} + 20')
@@ -66,12 +66,12 @@ _initReferenceState(tb)
 
 wall, aeroLoads = P_IBM.computeAerodynamicLoads(tb, ts2=None, dimPb=2, famZones=[], Pref=1, center=(1.,0.5,0.), verbose=1)
 # -> Fx_P, Fy_P, Fz_P = 12, 24, 0
-# -> Fx_V, Fy_V, Fz_V = 0, 0, 0 
+# -> Fx_V, Fy_V, Fz_V = 0, 0, 0
 # -> Mx_P, My_P, Mz_P = 0, 0, 24
 # -> Mx_V, My_V, Mz_V = 0, 0, 0
 wall, aeroLoads = P_IBM.computeAerodynamicCoefficients(wall, aeroLoads, dimPb=2, Sref=4, Lref=2, Qref=1, alpha=0., beta=0., verbose=1)
 # -> Fx_P, Fy_P, Fz_P = 3, 0, 6
-# -> Fx_V, Fy_V, Fz_V = 0, 0, 0 
+# -> Fx_V, Fy_V, Fz_V = 0, 0, 0
 # -> Mx_P, My_P, Mz_P = 0, 3, 0
 # -> Mx_V, My_V, Mz_V = 0, 0, 0
 
@@ -90,12 +90,12 @@ T._rotate(tb, (1,0.5,0), (0,0,1), 15.)
 
 wall, aeroLoads = P_IBM.computeAerodynamicLoads(tb, ts2=None, dimPb=2, famZones=[], Pref=1, center=(1.,0.5,0.), verbose=1)
 # -> Fx_P, Fy_P, Fz_P = 12*cos(15)-24*sin(15), 0, 12*sin(15)+24*cos(15)
-# -> Fx_V, Fy_V, Fz_V = 0, 0, 0 
+# -> Fx_V, Fy_V, Fz_V = 0, 0, 0
 # -> Mx_P, My_P, Mz_P = 0, 0, 24
 # -> Mx_V, My_V, Mz_V = 0, 0, 0
 wall, aeroLoads = P_IBM.computeAerodynamicCoefficients(wall, aeroLoads, dimPb=2, Sref=1, Lref=1, Qref=1, alpha=15, beta=0., verbose=1)
 # -> Fx_P, Fy_P, Fz_P = 12, 0, 24
-# -> Fx_V, Fy_V, Fz_V = 0, 0, 0 
+# -> Fx_V, Fy_V, Fz_V = 0, 0, 0
 # -> Mx_P, My_P, Mz_P = 0, 24, 0
 # -> Mx_V, My_V, Mz_V = 0, 0, 0
 
@@ -110,7 +110,7 @@ _initReferenceState(tb)
 
 wall, aeroLoads = P_IBM.computeAerodynamicLoads(tb, ts2=None, dimPb=2, famZones=[], Pref=None, center=(0.,0.,0.), verbose=1)
 # -> Fx_P, Fy_P, Fz_P = 3*pi, 6*pi, 0
-# -> Fx_V, Fy_V, Fz_V = -6*pi, 3*pi, 0 
+# -> Fx_V, Fy_V, Fz_V = -6*pi, 3*pi, 0
 # -> Mx_P, My_P, Mz_P = 0, 0, 0
 # -> Mx_V, My_V, Mz_V = 0, 0, 40*pi
 wall, aeroLoads = P_IBM.computeAerodynamicCoefficients(wall, aeroLoads, dimPb=2, Sref=None, Lref=None, Qref=None, alpha=0., beta=0., verbose=1)
@@ -137,7 +137,7 @@ for z2 in Internal.getZones(tb2):
 
 wall, aeroLoads = P_IBM.computeAerodynamicLoads(tb, ts2=tb2, dimPb=2, famZones=[], Pref=None, center=(0.,0.,0.), verbose=1)
 # -> Fx_P, Fy_P, Fz_P = 6*pi, 12*pi, 0
-# -> Fx_V, Fy_V, Fz_V = -6*pi, 3*pi, 0 
+# -> Fx_V, Fy_V, Fz_V = -6*pi, 3*pi, 0
 # -> Mx_P, My_P, Mz_P = 0, 0, 0
 # -> Mx_V, My_V, Mz_V = 0, 0, 40*pi
 wall, aeroLoads = P_IBM.computeAerodynamicCoefficients(wall, aeroLoads, dimPb=2, Sref=None, Lref=None, Qref=None, alpha=0., beta=0., verbose=1)

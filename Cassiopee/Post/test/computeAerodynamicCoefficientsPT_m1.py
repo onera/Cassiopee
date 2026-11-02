@@ -19,7 +19,7 @@ def _initSurfaceFlowSolution(tb, case=0):
             C._initVars(z, '{gradxPressure} = 0.')
             C._initVars(z, '{gradyPressure} = 0.')
             C._initVars(z, '{gradzPressure} = 0.')
-    else: 
+    else:
         for z in Internal.getZones(tb):
             C._initVars(z, '{Pressure} = 3*{CoordinateX} + 6*{CoordinateY} + 9*{CoordinateZ} + 20')
             C._initVars(z, '{Density} = 3*{CoordinateX} + 6*{CoordinateY} + 9*{CoordinateZ} + 20')
@@ -72,7 +72,7 @@ _initReferenceState(tb)
 
 wall, aeroLoads = P_IBM.computeAerodynamicLoads(tb, ts2=None, dimPb=2, famZones=[], Pref=None, center=(0.,0.,0.), verbose=1)
 # -> Fx_P, Fy_P, Fz_P = 3*pi, 6*pi, 0
-# -> Fx_V, Fy_V, Fz_V = -6*pi, 3*pi, 0 
+# -> Fx_V, Fy_V, Fz_V = -6*pi, 3*pi, 0
 # -> Mx_P, My_P, Mz_P = 0, 0, 0
 # -> Mx_V, My_V, Mz_V = 0, 0, 40*pi
 wall, aeroLoads = P_IBM.computeAerodynamicCoefficients(wall, aeroLoads, dimPb=2, Sref=None, Lref=None, Qref=None, alpha=0., beta=0., verbose=1)
