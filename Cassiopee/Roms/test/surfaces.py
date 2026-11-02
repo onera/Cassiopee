@@ -77,7 +77,7 @@ elif TEST == 'loft4':
     sketch3.set(position=(0,0,4), rotCenter=(0,0,4), rotAxis=(0,0,1), rotAngle=50.)
 
     surface1 = T1.Loft('surface1', [sketch1,sketch2,sketch3], close=False)
-    
+
 T1.solve()
 T1.instantiate({'v1': 1.})
 

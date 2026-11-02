@@ -514,7 +514,7 @@ class Entity:
         #    bbox = Generator.bbox(airfoil)
         #    grid1 = Grid('grid1', bbox[0:3], bbox[3:], N=(3,3,1))
         #    OCC._addSpline(self.hook, airfoil[1], 1, 3)
-        
+
         else:
             raise(ValueError, "Unknown entity type %s."%self.type)
 
