@@ -30,7 +30,7 @@ def _updateFlowSolutionIBM(tc):
                 Internal.getNodeFromName(zsr, 'VelocityY')[1] = 3*numpy.ones_like(XPW)
                 Internal.getNodeFromName(zsr, 'VelocityZ')[1] = 4*numpy.ones_like(XPW)
 
-                
+
     return None
 
 #### 2D (NACA0012)
