@@ -98,7 +98,7 @@ wall, aeroLoads = P_IBM.computeAerodynamicLoads(tb, ts2=None, dimPb=3, famZones=
 # -> Mx_V, My_V, Mz_V = 0, 0, 20*pi**2
 wall, aeroLoads = P_IBM.computeAerodynamicCoefficients(wall, aeroLoads, dimPb=3, Sref=None, Lref=None, Qref=None, alpha=0., beta=0., verbose=1)
 # -> Fx_P, Fy_P, Fz_P = -1, -2, -3
-# -> Fx_V, Fy_V, Fz_V = -3*pi/4, (3*pi**2)/8, 0
+# -> Fx_V, Fy_V, Fz_V = -3*pi/4, 3*pi/8, 0
 # -> Mx_P, My_P, Mz_P = 0, 0, 0
 # -> Mx_V, My_V, Mz_V = 0, 0, 5*pi
 

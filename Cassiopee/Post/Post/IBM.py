@@ -1119,12 +1119,12 @@ def prepareSkinReconstruction(tb, tc, dimPb=3, ibctypes=[], famZones=[], extraIB
 
     return graphIBCDPost, ts
 
-##Added old parameter to revert back to the previous project cloud solution method.
-##See Post/PyTree.py _projectCloudSolution
-##old=True for wind tunnel test cases. Has shown to yield more physically accurate results.
-##old means we are reverting back to predominant extrapolations for the projectCloudSolution.
-##When a more stable & robust solution is obtained for these test cases this argument will be removed.
-##See Antoine J. @ DAAA/DEFI for more questions. - error appears at 90 edges of the wind tunnels.
+# Added old parameter to revert back to the previous project cloud solution method.
+# See Post/PyTree.py _projectCloudSolution
+# old=True for wind tunnel test cases. Has shown to yield more physically accurate results.
+# old means we are reverting back to predominant extrapolations for the projectCloudSolution.
+# When a more stable & robust solution is obtained for these test cases this argument will be removed.
+# See Antoine J. @ DAAA/DEFI for more questions. - error appears at 90 edges of the wind tunnels.
 def computeSkinVariables(ts, tc, graphIBCDPost=None, dimPb=3, ibctypes=[], famZones=[], extraIBCVariables=['yplusIP'], isPreProjectOrtho=False, old=False):
     """Computes the surface flow solution at the wall."""
     tp = Internal.copyRef(ts)
