@@ -36,30 +36,34 @@ jobs:
             quay.io/pypa/manylinux2014_x86_64:latest \
             /bin/bash /io/Cassiopee/tools/buildWheels.sh
 
-      # - name: Publish to Test-PyPI
-      #   env:
-      #     TWINE_USERNAME: __token__
-      #     TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
-      #   run: |
-      #     export CASSIOPEE=$GITHUB_WORKSPACE/
-      #     ls $CASSIOPEE/wheels/int32/wheelhouse/
-      #     for kwheel in $(find $CASSIOPEE/wheels/int32/wheelhouse/ -name '*.whl'); do
-      #       twine upload --repository-url https://test.pypi.org/legacy/ --verbose $kwheel;
-      #     done
-      #     ls $CASSIOPEE/wheels/int64/wheelhouse/
-      #     for kwheel in $(find $CASSIOPEE/wheels/int64/wheelhouse/ -name '*.whl'); do
-      #       twine upload --repository-url https://test.pypi.org/legacy/ --verbose $kwheel;
-      #     done
-
-      - name: Publish to PyPI
+      - name: Publish to Test-PyPI
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
         run: |
-          export CASSIOPEE=$GITHUB_WORKSPACE
+          export CASSIOPEE=$GITHUB_WORKSPACE/
+          ls $CASSIOPEE/wheels/int32/wheelhouse/
           for kwheel in $(find $CASSIOPEE/wheels/int32/wheelhouse/ -name '*.whl'); do
-            twine upload --verbose $kwheel;
+            twine upload --skip-existing --repository-url https://test.pypi.org/legacy/ --verbose $kwheel;
           done
+          twine upload --skip-existing --repository-url https://test.pypi.org/legacy/ --verbose "$CASSIOPEE"/wheels/int32/meta/*.whl
+          ls $CASSIOPEE/wheels/int64/wheelhouse/
           for kwheel in $(find $CASSIOPEE/wheels/int64/wheelhouse/ -name '*.whl'); do
-            twine upload --verbose $kwheel;
+            twine upload --skip-existing --repository-url https://test.pypi.org/legacy/ --verbose $kwheel;
           done
+          twine upload --skip-existing --repository-url https://test.pypi.org/legacy/ --verbose "$CASSIOPEE"/wheels/int64/meta/*.whl
+
+      # - name: Publish to PyPI
+      #   env:
+      #     TWINE_USERNAME: __token__
+      #     TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      #   run: |
+      #     export CASSIOPEE=$GITHUB_WORKSPACE
+      #     for kwheel in $(find $CASSIOPEE/wheels/int32/wheelhouse/ -name '*.whl'); do
+      #       twine upload --skip-existing --verbose $kwheel;
+      #     done
+      #     twine upload --skip-existing --verbose "$CASSIOPEE"/wheels/int32/meta/*.whl
+      #     for kwheel in $(find $CASSIOPEE/wheels/int64/wheelhouse/ -name '*.whl'); do
+      #       twine upload --skip-existing --verbose $kwheel;
+      #     done
+      #     twine upload --skip-existing --verbose "$CASSIOPEE"/wheels/int64/meta/*.whl
