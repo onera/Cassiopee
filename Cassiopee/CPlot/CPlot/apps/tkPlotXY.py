@@ -24,7 +24,7 @@ except:
     except: IMPORTOK = False
 
 try:
-    # from tkColorChooser import askcolor
+    # from CPlot.apps.tkColorChooser import askcolor
     import tkinter.filedialog as tkFileDialog
     import tkinter.messagebox as tkMessageBox
 except ImportError:
@@ -12917,7 +12917,7 @@ class DesktopFrameTK(TK.Frame):
         instance = open(filename,'w')
         lines  = '''# coding: utf-8\n'''
         lines += '''from __future__ import unicode_literals\n'''
-        lines += '''from tkPlotXY import *\n'''
+        lines += '''from CPlot.apps.tkPlotXY import *\n'''
         lines += '''def loadVisu(obj):\n'''
         #
         indgraph = 0
@@ -13760,7 +13760,7 @@ class Desktop():
         instance = open(filename,'w')
         lines  = '''# coding: utf-8\n'''
         lines += '''from __future__ import unicode_literals\n'''
-        lines += '''from tkPlotXY import *\n'''
+        lines += '''from CPlot.apps.tkPlotXY import *\n'''
         lines += '''def loadVisu(obj):\n'''
         #
         indgraph = 0

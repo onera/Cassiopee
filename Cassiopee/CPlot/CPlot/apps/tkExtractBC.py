@@ -12,7 +12,7 @@ import CPlot.iconics as iconics
 WIDGETS = {}; VARS = []
 
 # Known BCs
-from tkBC import getAllDefinedBC
+from CPlot.apps.tkBC import getAllDefinedBC
 
 #==============================================================================
 def updateFamilyBCNameList(event=None):
