@@ -346,7 +346,7 @@ def step1():
     #Converter.convertArrays2File([curve0], 'curve.plt')
 
     m4 = G.addNormalLayers([curve0], d, niter=1000, check=0)
-    m4 = G.close(m4, 1.e-8)
+    m4 = G.close(m4, tol=1.e-8)
     #Converter.convertArrays2File([m1,m2]+m3+m4, 'all.plt')
 
     # check volume + subzone

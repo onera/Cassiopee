@@ -52,7 +52,7 @@ f = [a, b, c, d, e]
 f = C.convertArray2Hexa(f)
 f = C.convertArray2Tetra(f, split='withBarycenters')
 f = T.join(f)
-f = G.close(f, 1e-6)
+f = G.close(f, tol=1e-6)
 f = T.reorder(f, (1,))
 f = T.consSmooth(f, sweeps=5, omega=0.1)
 test.testA(f, 6)
