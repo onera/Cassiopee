@@ -7,13 +7,21 @@
 set -e
 
 PYTHON_ABIS=(
-    cp38-cp38
     cp39-cp39
     cp310-cp310
     cp311-cp311
     cp312-cp312
     cp313-cp313
 )
+
+manylinux-interpreters ensure "${PYTHON_ABIS[@]}"
+
+for py in "${PYTHON_ABIS[@]}"; do
+    test -x "/opt/python/$py/bin/python" || {
+        echo "ERROR: Missing Python interpreter: $py"
+        exit 1
+    }
+done
 
 yum update -y && yum install -y \
     gcc \
