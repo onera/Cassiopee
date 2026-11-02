@@ -11,7 +11,7 @@ import KCore.test as test
 FILE_FORMATS = {
     ".plt": ("bin_tp", False),
     ".dat": ("fmt_tp", False),
-    ".tp":  ("fmt_tp", False),
+    ".tp": ("fmt_tp", False),
     ".v3d": ("bin_v3d", False),
     ".mesh": ("fmt_mesh", False),
     ".stl": ("bin_stl", False),
@@ -24,7 +24,7 @@ FILE_FORMATS = {
     ".cgns": ("bin_cgns", True),
     ".adf": ("bin_cgns", True),
     ".hdf": ("bin_hdf", True),
-    ".pickle":  ("bin_pickle", False),
+    ".pickle": ("bin_pickle", False),
 }
 
 
