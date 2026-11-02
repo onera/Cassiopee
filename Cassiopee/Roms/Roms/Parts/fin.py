@@ -32,7 +32,7 @@ def createPart(name):
 
     # Base
     profile = Geom.naca(12, N=51)
-    #profile = Geom.profile("SIKORSKY/SIKORSKYSSC-A07AIRFOIL")
+    #profile = Geom.airfoil("SIKORSKY/SIKORSKYSSC-A07AIRFOIL")
     bbox = Generator.bbox(profile)
     grid1 = T1.Grid('grid1', bbox[0:3], bbox[3:], N=(2,2,1))
     D.Eq(grid1.P[1][0][0].x, baseLength)
@@ -46,7 +46,7 @@ def createPart(name):
 
     # Top
     profile = Geom.naca(12, N=51)
-    #naca = Geom.profile("SIKORSKY/SIKORSKYSSC-A07AIRFOIL")
+    #naca = Geom.airfoil("SIKORSKY/SIKORSKYSSC-A07AIRFOIL")
     bbox = Generator.bbox(profile)
     grid2 = T1.Grid('grid2', bbox[0:3], bbox[3:], N=(2,2,1))
     D.Eq(grid2.P[1][0][0].x, topLength)

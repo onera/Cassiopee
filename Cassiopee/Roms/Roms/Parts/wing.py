@@ -26,7 +26,7 @@ def createPart(name):
     #=================
 
     # Sketch1
-    airfoil = Geom.profile("NACA/NACA64-206")
+    airfoil = Geom.airfoil("NACA/NACA64-206")
 
     bbox = Generator.bbox(airfoil)
     grid1 = T1.Grid('grid1', bbox[0:3], bbox[3:], N=(2,2,1))
@@ -34,7 +34,7 @@ def createPart(name):
     sketch1 = T1.Sketch('sketch1', [spline1])
 
     # Sketch2
-    airfoil = Geom.profile("NACA/NACA64-206")
+    airfoil = Geom.airfoil("NACA/NACA64-206")
     airfoil = Transform.scale(airfoil, 0.5)
     bbox = Generator.bbox(airfoil)
     grid2 = T1.Grid('grid2', bbox[0:3], bbox[3:], N=(2,2,1))
