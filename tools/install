@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
 echo 'Installing tree_grep'
 cp tree_grep "$INSTALLPATH"
