@@ -26,9 +26,9 @@ def main():
 
     # argument 1 must be the command (-q, -f, ...)
     com = sys.argv[1]
-    if com not in ['-q', '--query', '-qv', 
-                   '-f', '--fetch', 
-                   '-l', '--list', 
+    if com not in ['-q', '--query', '-qv',
+                   '-f', '--fetch',
+                   '-l', '--list',
                    '-h', '--help',
                    '-j', '--join',
                    '-p', '--plot']:
