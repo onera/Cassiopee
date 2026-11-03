@@ -76,7 +76,7 @@ def main():
     elif com == '-p': # plot
         import CPlot.Tk as CTK
         (win, menu, file, tools) = CTK.minimal("DataBase", mode=1)
-        module = __import__("tkDb")
+        module = __import__("CPlot.apps.tkDb", fromlist=['tkDb'])
         CTK.TKMODULES["tkDb"] = module
         tools.add_command(label="tkDb", command=module.showApp)
         module.setDb(db)

@@ -3,18 +3,19 @@
 
 [Setup]
 AppName=Cassiopee
-AppVersion=4.1
+AppVersion=2026.11
 DefaultDirName={code:DefDirRoot}\Cassiopee
 DefaultGroupName=Cassiopee
 Compression=lzma2
 SolidCompression=yes
-OutputBaseFilename=Cassiopee-4.1-win64
+OutputBaseFilename=Cassiopee-2026.11-win64
 PrivilegesRequired=lowest
 AppPublisher=ONERA
 
 [Files]
 Source: "C:\Users\benoit\Code\Cassiopee\Dist\*"; DestDir: "{app}\Dist" ; Flags: recursesubdirs createallsubdirs; Excludes: "ubuntu"
-Source: "C:\Users\benoit\Code\Cassiopee\env_Cassiopee_win64.bat"; DestDir: "{app}\Dist"; AfterInstall: CurStepChanged()
+Source: "C:\Users\benoit\Code\Cassiopee\Cassiopee\Envs\env_Cassiopee_win64.bat"; DestDir: "{app}\Dist"; AfterInstall: CurStepChanged()
+Source: "C:\Users\benoit\Code\Cassiopee\Cassiopee\CPlot\CPlot\apps\cassiopeeRunWin64.bat"; DestDir: "{app}\Dist"; AfterInstall: CurStepChanged()
 
 [Code]
 function IsRegularUser(): boolean;
@@ -59,7 +60,7 @@ begin
   lines[6] := '$global:OMP_NUM_THREADS = $Env:NUMBER_OF_PROCESSORS';
   SaveStringsToFile(filename,lines,false);
 
-  fileName := ExpandConstant('{app}\Dist\bin\win64\cassiopeeRunWin64.bat');
+  fileName := ExpandConstant('{app}\Dist\cassiopeeRunWin64.bat');
   CassiopeeVar := ExpandConstant('{app}');
   SetArrayLength(lines, 8);
   lines[0] := 'set CASSIOPEE='+CassiopeeVar;

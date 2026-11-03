@@ -151,8 +151,8 @@ def getOpenedApps():
     allapps = tkCassiopee.ALLAPPS
     opened = []
     for i in allapps:
-        if (i != '---'):
-            app = __import__(i)
+        if i != '---':
+            app = __import__('CPlot.apps.'+i, fromlist=[i])
             info = app.WIDGETS['frame'].grid_info()
             if info: opened.append(i)
 
