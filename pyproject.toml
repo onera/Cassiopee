@@ -21,12 +21,10 @@ dependencies = [
   "cassiopee-dist2walls==2026.11",
   "cassiopee-rigidmotion==2026.11",
   "cassiopee-compressor==2026.11",
-  "cassiopee-modeler==2026.11",
   "cassiopee-intersector==2026.11",
   "cassiopee-apps==2026.11",
   "cassiopee-roms==2026.11",
-  "cassiopee-cplot==2026.11",
-  "cassiopee-occ==2026.11"
+  "cassiopee-cplot==2026.11"
 ]
 requires-python = ">=3.8"
 authors = [
