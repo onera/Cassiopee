@@ -5,6 +5,9 @@ import CPlot.Ttk as TTK
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
 import Converter.PyTree as C
+import Post.PyTree as P
+import Transform.PyTree as T
+import Converter.Internal as Internal
 import numpy
 
 # local widgets list
@@ -44,11 +47,10 @@ def initParametersFromDb():
         for k in p: RANGEMIN[k] = min(RANGEMIN[k], p[k])
         for k in p: RANGEMAX[k] = max(RANGEMAX[k], p[k])
         for k in p: POINTS[k][c] = p[k]
-    for k in points[0]: PARAMS[k] = RANGEMIN[k]
-    for k in points[0]: POINTS[k].sort()
-    print("RANGEMIN=", RANGEMIN)
-    print("RANGEMAX=", RANGEMAX)
-    print("PARAMS=", PARAMS)
+    for k in p: PARAMS[k] = RANGEMIN[k]
+    for k in p: POINTS[k].sort()
+    for k in p:
+        print(k,':', PARAMS[k], '(', RANGEMIN[k], 'to', RANGEMAX[k],')')
     return None
 
 #==============================================================================
@@ -57,10 +59,13 @@ def update(event=None):
     paramName = VARS[0].get()
     paramValue = CTK.varsFromWidget(VARS[1].get(), type=1)[0]
     PARAMS[paramName] = paramValue
-    print("PARAMS=", PARAMS)
     q = DB.query(PARAMS)
     t = DB.fetchTree(q)
-    CPlot.display(t, mode='Mesh', bgColor=1)
+    #tp = P.exteriorFaces(t)
+    #tp = T.splitSharpEdges(tp)
+    #tp = Internal.getZones(tp)[0]
+    tp = T.scale(t, (1,0.00001,1))
+    CPlot.display(tp, bgColor=1)
 
 #==============================================================================
 def setParameterValueWithScale(event=None):
@@ -74,6 +79,17 @@ def setParameterValueWithScale(event=None):
     VARS[1].set(str(value))
     update()
     return None
+
+#==============================================================================
+def setParameterName(event=None):
+    paramName = VARS[0].get()
+    value = PARAMS[paramName]
+    VARS[1].set(str(value))
+    vmax = RANGEMAX[paramName]
+    vmin = RANGEMIN[paramName]
+    v = (value-vmin)/(vmax-vmin)*100.
+    WIDGETS['valueSlider'].set(v)
+    update()
 
 #==============================================================================
 # Create app widgets
@@ -122,15 +138,15 @@ def createApp(win):
     if ttk is None:
         B = TK.Entry(F, textvariable=VARS[0], background='White')
         B.grid(sticky=TK.EW)
-        F.bind('<Return>', update)
+        F.bind('<Return>', setParameterName)
         F.grid(row=0, column=1, sticky=TK.EW)
         WIDGETS['ParameterName'] = B
     else:
         B = TTK.Combobox(F, textvariable=VARS[0],
                          values=params, state='readonly')
-        B.bind("<<ComboboxSelected>>", update)
+        B.bind("<<ComboboxSelected>>", setParameterName)
         B.grid(sticky=TK.EW)
-        B.bind('<Return>', update)
+        B.bind('<Return>', setParameterName)
         F.grid(row=0, column=1, sticky=TK.EW)
         WIDGETS['ParameterName'] = B
 

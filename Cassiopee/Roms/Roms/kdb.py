@@ -26,7 +26,12 @@ def main():
 
     # argument 1 must be the command (-q, -f, ...)
     com = sys.argv[1]
-    if com not in ['-q', '-qv', '-f', '-l', '-h', '-j', '-p']:
+    if com not in ['-q', '--query', '-qv', 
+                   '-f', '--fetch', 
+                   '-l', '--list', 
+                   '-h', '--help',
+                   '-j', '--join',
+                   '-p', '--plot']:
         print("kdb: invalid command.")
         exit(1)
 
@@ -38,7 +43,7 @@ def main():
     if len(sys.argv) >= 4: query = sys.argv[3]
     else: query = None
 
-    flagsLocal = ['-f', '-q', '-qv']
+    flagsLocal = ['-f', '--fetch', '-q', '--query', '-qv']
     if com in flagsLocal:
         if baseName is None:
             print("kdb: baseName is missing.")
@@ -47,33 +52,33 @@ def main():
             print("kdb: query is missing.")
             exit(1)
 
-    if com == '-h':
+    if com == '-h' or com == '--help':
         usage()
 
     # open db
     db = DataBase.DataBase(baseName)
 
-    if com == '-l': # list
+    if com == '-l' or com == '--list': # list
         q = db.query()
         db.print(q, mode=0)
-    elif com == '-q': # query
+    elif com == '-q' or com == '--query': # query
         q = db.query(query)
         db.print(q, mode=1)
     elif com == '-qv': # verbose query
         q = db.query(query)
         db.print(q, mode=1, fullListVar=True)
-    elif com == '-f': # fetch
+    elif com == '-f' or com == '--fetch': # fetch
         q = db.query(query)
         t = db.fetchTree(q)
         for c, ti in enumerate(t):
             id = q[c][0]
             C.convertPyTree2File(ti, 'out%05d.cgns'%id)
-    elif com == '-j': # join
+    elif com == '-j' or com == '--join': # join
         baseName2 = query
         db2 = DataBase.DataBase(baseName2, mode="r")
         db.join(db2)
         db2.close()
-    elif com == '-p': # plot
+    elif com == '-p' or com == '--plot': # plot
         import CPlot.Tk as CTK
         (win, menu, file, tools) = CTK.minimal("DataBase", mode=1)
         module = __import__("CPlot.apps.tkDb", fromlist=['tkDb'])
