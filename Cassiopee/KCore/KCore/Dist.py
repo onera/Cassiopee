@@ -597,7 +597,7 @@ def getDistUtilsCompilers():
             vars[0] = Cppcompiler; vars[1] = Cppcompiler.replace('icx', 'icpx')
 
         else:
-            print(f"Warning: getDistUtilsCompilers: unknown compiler set in installBase.json ({Cppcompiler})")
+            print(f"Warning: getDistUtilsCompilers: unknown compiler set in installBase.json ({Cppcompiler}).")
 
     cc, cxx, opt, basecflags, ccshared, ldshared, so_ext = vars
     cc = cc.split(' ') # enleve les options si mises dans cc

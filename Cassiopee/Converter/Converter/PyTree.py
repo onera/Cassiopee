@@ -1338,7 +1338,7 @@ def convertPyTree2File(t, fileName, format=None, isize=8, rsize=8,
     elif format == 'bin_pickle':
         import pickle
         file = open(fileName, 'wb')
-        print('Writing '+fileName+'...', end='')
+        print('Writing %s (bin_pickle)...'%fileName, end='')
         pickle.dump(t, file, protocol=pickle.HIGHEST_PROTOCOL); file.close()
         print('done.')
     else:

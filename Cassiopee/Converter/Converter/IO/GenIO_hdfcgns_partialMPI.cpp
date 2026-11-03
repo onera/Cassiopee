@@ -164,9 +164,9 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readIntMode
       PyObject* data = NULL;
 
       /** Loop over List of Path to load **/
-      for (int iField = 0; iField < nField; iField++)
+      for (E_Int iField = 0; iField < nField; iField++)
       {
-        lpath      = PyTuple_GetItem(key, iField);
+        lpath = PyTuple_GetItem(key, iField);
         char* path = NULL;
         if (PyString_Check(lpath)) path = PyString_AsString(lpath);
 #if PY_VERSION_HEX >= 0x03000000
@@ -222,10 +222,10 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readIntMode
 
       /* On parse tous les chemins du tuple de chemins */
       assert(nField > 0 && "Number of field must be greater than zero");
-      for (int iField = 0; iField < nField; iField++)
+      for (E_Int iField = 0; iField < nField; iField++)
       {
         /** Get current path **/
-        lpath      = PyTuple_GetItem(key, iField);
+        lpath = PyTuple_GetItem(key, iField);
         char* path = NULL;
         if (PyString_Check(lpath)) path = PyString_AsString(lpath);
 #if PY_VERSION_HEX >= 0x03000000
@@ -312,11 +312,8 @@ PyObject* K_IO::GenIO::hdfcgnsReadFromPathsPartial(char* file, E_Int readIntMode
 //=============================================================================
 PyObject* K_IO::GenIOHdf::createNodePartial(hid_t& node)
 {
-  /* ***************************************************** */
-  /* Declaration */
-  int d;
-  int dim = 0;
-  /* ***************************************************** */
+  E_Int d;
+  E_Int dim = 0;
 
   /* Nom du noeud de l'arbre */
   HDF_Get_Attribute_As_String(node, L3S_NAME, _name);
@@ -472,12 +469,12 @@ PyObject* K_IO::GenIOHdf::createNodePartialContigous(hid_t&    node,
 {
   /* ***************************************************** */
   /* Declaration */
-  int d;
-  int dim = 0;
+  E_Int d;
+  E_Int dim = 0;
 
   /* Hdf id */
-  hid_t      tid;
-  herr_t     herr;
+  hid_t tid;
+  herr_t herr;
   /* ***************************************************** */
 
   /* Nom du noeud de l'arbre */
@@ -644,8 +641,7 @@ PyObject* K_IO::GenIOHdf::createNodePartialContigous(hid_t&    node,
   }
   else if (strcmp(_dtype, L3T_C1) == 0)
   {
-    printf("Contiguous load af char * not allowed ...\n");
-    exit(1);
+    printf("Warning: contiguous load of char * not allowed ...\n");
   }
   else if (strcmp(_dtype, L3T_MT) == 0)
   {
@@ -677,8 +673,8 @@ E_Int K_IO::GenIO::hdfcgnsWritePathsPartial(char* file, PyObject* tree,
   /* ***************************************************** */
   hid_t fapl, fid/*, ret, capl*/;
 
-  PyObject   *key, *DataSpaceDIM;
-  Py_ssize_t  pos = 0;
+  PyObject *key, *DataSpaceDIM;
+  Py_ssize_t pos = 0;
   /* ***************************************************** */
 
   /* Check */
@@ -796,11 +792,11 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
   IMPORTNUMPY;
   /* ***************************************************** */
   /* Declaration */
-  char  s1[CGNSMAXLABEL+1];
-  char  s2[CGNSMAXLABEL+1];
+  char s1[CGNSMAXLABEL+1];
+  char s2[CGNSMAXLABEL+1];
   // hid_t child;
   /* ***************************************************** */
-  PyObject* pname  = PyList_GetItem(tree, 0);
+  PyObject* pname = PyList_GetItem(tree, 0);
   char* name = NULL;
   if (PyString_Check(pname)) name = PyString_AsString(pname);
 #if PY_VERSION_HEX >= 0x03000000
@@ -857,13 +853,13 @@ hid_t K_IO::GenIOHdf::writeNodePartial(hid_t     node,
   else if (PyArray_Check(v))
   {
     PyArrayObject* ar = (PyArrayObject*)v;
-    int dim = PyArray_NDIM(ar);
+    E_Int dim = PyArray_NDIM(ar);
     hsize_t* dims = new hsize_t [dim];
     //int typeNum = ar->descr->type_num;
     //int elSize = ar->descr->elsize;
-    int typeNum = PyArray_TYPE(ar);
-    int elSize = PyArray_ITEMSIZE(ar);
-    for (int n = 0; n < dim; n++)
+    E_Int typeNum = PyArray_TYPE(ar);
+    E_Int elSize = PyArray_ITEMSIZE(ar);
+    for (E_Int n = 0; n < dim; n++)
     {
       // Fortran indexing
       dims[n] = PyArray_DIMS(ar)[dim-n-1];
@@ -1052,7 +1048,7 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, hsize_t*
 
   // New manner in case of memory data space not the same
   hsize_t dim_file = 0; hsize_t sentry = -1;
-  for (int i = 0; i < L3C_MAX_DIMS; ++i ) 
+  for (E_Int i = 0; i < L3C_MAX_DIMS; ++i ) 
   {
     if (DataSpace.GlobDataSetDim[i] == sentry)
     {
@@ -1061,7 +1057,7 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, hsize_t*
   }
   //printf("dim_file: %i %i\n", dim_file, dim);
   sid = H5Screate_simple(dim_file, DataSpace.GlobDataSetDim, NULL);
-  if (sid < 0) {printf("Fail in setArrayPartial::H5Screate_simple (file)\n");}
+  if (sid < 0) {printf("Warning: fail in setArrayPartial::H5Screate_simple (file).\n");}
 
 #if defined(_MPI) && defined(H5_HAVE_PARALLEL)
  if (this->_ismpi == 1)
@@ -1095,7 +1091,7 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, hsize_t*
   {
     // printf("setArrayPartial Sequential Skeleton \n");
     dataset = H5Dcreate2(node, L3S_DATA, tid, sid, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    if (dataset < 0) {printf("Fail in setArrayPartial::H5Dcreate2\n");}
+    if (dataset < 0) {printf("Warning: fail in setArrayPartial::H5Dcreate2.\n");}
     ret = H5Dclose(dataset);
     H5Sclose(sid);
     return node;
@@ -1135,7 +1131,7 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, hsize_t*
                                  DataSpace.List_Dst_Stride[i_data_space].data(),
                                  DataSpace.List_Dst_Count[i_data_space].data(),
                                  DataSpace.List_Dst_Block[i_data_space].data());
-      if (ret < 0) {printf("Fail in setArrayPartial::H5Sselect_hyperslab (file_dataspace) - flag 2\n");}
+      if (ret < 0) {printf("Warning: fail in setArrayPartial::H5Sselect_hyperslab (file_dataspace) - flag 2\n");}
     }
   } else {
   ret = H5Sselect_hyperslab(file_dataspace, H5S_SELECT_SET,
@@ -1147,7 +1143,7 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, hsize_t*
   /* -------------------------------------------------------------- */
   /* create a memory dataspace independently */
   mem_dataspace = H5Screate_simple(dim, dims, NULL);
-  if (mem_dataspace < 0) {printf("Fail in setArrayPartial::H5Screate_simple (mem)\n");}
+  if (mem_dataspace < 0) {printf("Warning: fail in setArrayPartial::H5Screate_simple (mem)\n");}
 
   ret = H5Sselect_hyperslab(mem_dataspace, H5S_SELECT_SET,
                             DataSpace.Src_Offset, DataSpace.Src_Stride,
@@ -1172,7 +1168,7 @@ hid_t K_IO::GenIOHdf::setArrayPartial(hid_t node, void* data, int idim, hsize_t*
   /* -------------------------------------------------------------- */
   /* Write data collectively */
   ret = H5Dwrite(dataset, mid, mem_dataspace, file_dataspace, xfer_plist, data);
-  if (ret < 0) {printf("Fail in setArrayPartial::H5Dwrite\n");}
+  if (ret < 0) {printf("Warning: fail in setArrayPartial::H5Dwrite\n");}
   /* -------------------------------------------------------------- */
 
   /* -------------------------------------------------------------- */
@@ -1232,9 +1228,9 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilter(PyObject* Filter)
   /** Better make reverse that in interface **/
   DataSpace_t DataSpaceSave = DataSpace;
 
-  int i=0; int j=0;
+  E_Int i=0; E_Int j=0;
   hsize_t sentry = -1;
-  for (int n=0; n<L3C_MAX_DIMS; n++)
+  for (E_Int n=0; n < L3C_MAX_DIMS; n++)
   {
     DataSpace.Src_Offset[n] = sentry;
     DataSpace.Src_Count[n]  = sentry;
@@ -1257,8 +1253,8 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilter(PyObject* Filter)
     }
   }
 
-  i=0;
-  for (int n=0; n<L3C_MAX_DIMS; n++)
+  i = 0;
+  for (E_Int n=0; n < L3C_MAX_DIMS; n++)
   {
     DataSpace.Dst_Offset[n] = sentry;
     DataSpace.Dst_Count[n]  = sentry;
@@ -1298,9 +1294,9 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
   // printf("fillDataSpaceWithFilterCombine:: %i \n", FilterSize);
 
   // On cherche la liste dans l'objet python
-  int n_data_space = -1;
-  int flags_src_or_dst = -1;
-  for (int i_list = 0; i_list < FilterSize; ++i_list)
+  E_Int n_data_space = -1;
+  E_Int flags_src_or_dst = -1;
+  for (E_Int i_list = 0; i_list < FilterSize; ++i_list)
   {
     PyObject* item = PyList_GetItem(Filter, i_list);
     bool is_multiple_data_space = false;
@@ -1315,7 +1311,7 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
       }
     }
 
-    if (is_multiple_data_space == true ) 
+    if (is_multiple_data_space == true) 
     {
       assert(flags_src_or_dst == -1);
       n_data_space = PyList_Size(item)/4;
@@ -1411,7 +1407,7 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
 
   E_Int i=0; E_Int j=0;
   hsize_t sentry = -1;
-  for (E_Int n=0; n<L3C_MAX_DIMS; n++)
+  for (E_Int n=0; n < L3C_MAX_DIMS; n++)
   {
     DataSpace.Src_Offset[n] = sentry;
     DataSpace.Src_Count[n]  = sentry;
@@ -1433,8 +1429,8 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
     }
   }
 
-  i=0;
-  for (int n=0; n<L3C_MAX_DIMS; n++)
+  i = 0;
+  for (E_Int n=0; n<L3C_MAX_DIMS; n++)
   {
     DataSpace.Dst_Offset[n] = sentry;
     DataSpace.Dst_Count[n]  = sentry;
@@ -1452,10 +1448,10 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
 
   if (flags_src_or_dst == 1)
   {
-    for (int i_data_space = 0; i_data_space < n_data_space; ++i_data_space)
+    for (E_Int i_data_space = 0; i_data_space < n_data_space; ++i_data_space)
     {
-      i=0;
-      for (int n=0; n<L3C_MAX_DIMS; n++)
+      i = 0;
+      for (E_Int n=0; n < L3C_MAX_DIMS; n++)
       {
         DataSpace.List_Src_Offset[i_data_space][n] = sentry;
         DataSpace.List_Src_Stride[i_data_space][n] = sentry;
@@ -1473,12 +1469,12 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
     }
 
   } 
-  else if (flags_src_or_dst == 2 )
+  else if (flags_src_or_dst == 2)
   {
-    for(int i_data_space = 0; i_data_space < n_data_space; ++i_data_space)
+    for(E_Int i_data_space = 0; i_data_space < n_data_space; ++i_data_space)
     {
       i=0;
-      for (int n=0; n<L3C_MAX_DIMS; n++)
+      for (E_Int n=0; n < L3C_MAX_DIMS; n++)
       {
         DataSpace.List_Dst_Offset[i_data_space][n] = sentry;
         DataSpace.List_Dst_Stride[i_data_space][n] = sentry;
@@ -1497,7 +1493,7 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
   }
   DataSpace.data_space_combine = true;
 
-  // for(int n=0; n<L3C_MAX_DIMS; n++)
+  // for (int n=0; n<L3C_MAX_DIMS; n++)
   // {
   //   printf("----------------------- \n");
   //   printf("DataSpace.Dst_Offset     [" SF_D_ "] : " SF_D_ " \n", n, DataSpace.Dst_Offset[n]     );
@@ -1533,8 +1529,8 @@ void K_IO::GenIOHdf::fillDataSpaceWithFilterCombine(PyObject* Filter)
 void fillArrayLongWithList(PyObject* obj, int item, hsize_t *val)
 {
   PyObject* SubList;
-  int       n;
-  int       s;
+  E_Int n;
+  E_Int s;
 
   SubList = PyList_GetItem(obj, item);
   for (n = 0; n < PyList_Size(SubList); n++)
@@ -1557,12 +1553,11 @@ int HDF_Get_DataDimensionsPartial(hid_t nid, hsize_t *dims,
                                   hsize_t *dst_count,
                                   hsize_t *dst_block)
 {
-  int n;
-  int ndims;
+  E_Int ndims;
   L3M_CLEARDIMS(dims);
   hsize_t sentry = -1;
   ndims = 0;
-  for (n = 0; dst_count[n] != sentry; n++)
+  for (E_Int n = 0; dst_count[n] != sentry; n++)
   {
     ndims += 1;
     dims[n] = dst_count[n]*dst_block[n];
@@ -1613,7 +1608,7 @@ hid_t createDataSpaceOutput(hid_t nid, hsize_t *dst_dims,
 {
   /* ***************************************************** */
   /* Declaration */
-  int n, dst_ndims;
+  E_Int dst_ndims;
   hsize_t dst_dim_vals[L3C_MAX_DIMS];
   hid_t /*yid,tid,*/mid;
   hssize_t dst_size;
@@ -1622,7 +1617,7 @@ hid_t createDataSpaceOutput(hid_t nid, hsize_t *dst_dims,
   dst_size  = 1;
   dst_ndims = 0;
 
-  for (n = 0; dst_dims[n] != -1; n++)
+  for (E_Int n = 0; dst_dims[n] != -1; n++)
   {
     dst_size *= dst_count[n];
     dst_size *= dst_block[n];
@@ -1666,7 +1661,7 @@ hid_t createDataSpaceEntryCombine(hid_t nid, std::vector<std::array<hsize_t, L3C
                              src_offset[0].data(), src_stride[0].data(),
                              src_count [0].data(), src_block [0].data());
 
-  for (int i_data_space = 1; i_data_space < static_cast<int>(src_offset.size()); ++i_data_space)
+  for (size_t i_data_space = 1; i_data_space < src_offset.size(); ++i_data_space)
   {
     stat = H5Sselect_hyperslab(sid, H5S_SELECT_OR,
                                src_offset[i_data_space].data(),
@@ -1691,11 +1686,11 @@ bool haveMultipleDataSpace(PyObject* Filter)
   //printf("FilterSize: " SF_D_ " \n", FilterSize);
   /* Orient if mutiple_data_space or not */
   bool have_multiple_data_space = false;
-  for (int i_list = 0; i_list < FilterSize; ++i_list)
+  for (E_Int i_list = 0; i_list < FilterSize; ++i_list)
   {
     PyObject* item = PyList_GetItem(Filter, i_list);
     E_Int litem_size = PyList_Size(item);
-    for(int i_sub_list = 0; i_sub_list < litem_size; ++i_sub_list)
+    for (E_Int i_sub_list = 0; i_sub_list < litem_size; ++i_sub_list)
     {
       PyObject* subitem = PyList_GetItem(item, i_sub_list);
       if (PyList_Check(subitem) == true)

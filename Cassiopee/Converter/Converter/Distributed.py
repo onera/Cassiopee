@@ -262,7 +262,6 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
             if paths[c][0] != '/': paths[c] = '/'+paths[c]
 
     #print('Reading '+fileName+' '+str(paths)+'...'),
-    print('Reading %s [%d zones]...'%(fileName,len(paths))),
     if format is None: format = Converter.convertExt2Format__(fileName)
     if format == 'bin_cgns' or format == 'unknown': format = Converter.checkFileType(fileName)
 
@@ -302,7 +301,6 @@ def _readZones(t, fileName, format=None, rank=None, zoneNames=None):
                     param[2].append(a)
             m += 1
 
-    print('done.')
     return None
 
 #==============================================================================
@@ -345,10 +343,8 @@ def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None, 
             if paths[c][0] != '/': paths[c] = '/'+paths[c]
             paths[c] = Internal.getPathAncestor(paths[c])
 
-    print('Writing %s [%d zones]...'%(fileName,len(paths))),
     if format is None: format = Converter.convertExt2Format__(fileName)
     Converter.converter.writePyTreePaths(fileName, nodes, paths, format, -1, 0, links, isize, rsize)
-    print('done.')
     return None
 
 #==============================================================================

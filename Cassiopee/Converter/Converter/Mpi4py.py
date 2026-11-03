@@ -53,7 +53,9 @@ LOR = MPI.LOR
 # version collective
 def writeZones(t, fileName, format=None, proc=None, zoneNames=None, links=None):
     """Write zones in parallel."""
+    if rank == 0: print('Writing '+fileName+'...', end='')
     seq(Distributed.writeZones, t, fileName, format, proc, zoneNames, links)
+    if rank == 0: print('done.')
     return None
 
 #==============================================================================
@@ -593,7 +595,9 @@ def convertFile2PyTree(fileName, format=None, proc=None):
         t = KCOMM.bcast(t)
     else:
         t = convertFile2SkeletonTree(fileName, format)
+        if rank == 0: print('Reading %s...'%fileName, end='')
         _readZones(t, fileName, rank=proc)
+        if rank == 0: print("done.")
         _convert2PartialTree(t, rank=proc)
     return t
 

@@ -67,7 +67,7 @@ PyObject* K_CONVERTER::convertFile2PyTree(PyObject* self, PyObject* args)
   }
 
   if (skeletonData == Py_None) printf("Reading %s (%s)...", fileName, myFormat);
-  else printf("Reading %s (%s, skeleton)...", fileName, myFormat);
+  else printf("Reading %s (%s)...", fileName, myFormat);
   fflush(stdout);
 
   PyObject* tree; E_Int ret;
@@ -107,8 +107,6 @@ PyObject* K_CONVERTER::convertFile2PyTreeFromPath(PyObject* self, PyObject* args
   
   PyObject* ret = NULL;
   ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPaths(fileName, paths, 1.e6, -1, readIntMode);
-  printf("done.\n");
- 
   delete [] myFormat;
 
   return ret;
@@ -171,14 +169,8 @@ PyObject* K_CONVERTER::convertFile2PartialPyTree(PyObject* self, PyObject* args)
   if (strcmp(myFormat, "bin_hdf") != 0)
   { printf("convertFile2PartialPyTree: only for HDF.\n"); return NULL; }
 
-  //if (skeletonData == Py_None) printf("Reading %s (%s)...", fileName, myFormat);
-  //else printf("Reading %s (%s, skeleton)...", fileName, myFormat);
-  //fflush(stdout);
-  printf("Reading %s (%s, partial)...", fileName, myFormat);
-
   PyObject* ret;
   ret = K_IO::GenIO::getInstance()->hdfcgnsReadFromPathsPartial(fileName, readIntMode, filter, mpi4pyCom);
-  printf("done.\n");
   delete [] myFormat;
   return ret;
 }
@@ -216,8 +208,6 @@ PyObject* K_CONVERTER::convertPyTree2FilePartial(PyObject* self, PyObject* args)
   // skeleton = 1;
   K_IO::GenIO::getInstance()->hdfcgnsWritePathsPartial(fileName, t, Filter, skeleton, mpi4pyCom);
 #endif
-
-  printf("done.\n");
 
   Py_INCREF(Py_None);
   return Py_None;

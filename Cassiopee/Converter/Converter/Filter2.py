@@ -756,7 +756,7 @@ def loadTreeFromFilter(filename, distTree, comm, hdfFilter):
                              if not isinstance(value, (list, tuple))}
 
     if unlockedOnce is False:
-        raise RuntimeError("Something strange in the loading process")
+        raise RuntimeError("Something strange in the loading process.")
 
 def cleanDistributionInfo(distTree):
     bases = Internal.getBases(distTree)
