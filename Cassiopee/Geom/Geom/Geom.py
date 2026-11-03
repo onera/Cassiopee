@@ -53,8 +53,8 @@ def naca(e, N=101, sharpte=True):
     else: sharpte = 1
     return geom.naca(e, N, im, ip, it, ith, iq, sharpte)
 
-def profile(name=None):
-    """Create a wing profile mesh."""
+def airfoil(name=None):
+    """Create an airfoil (2D) mesh."""
     import os
     import KCore.Dist as Dist
     import Converter.PyTree as C

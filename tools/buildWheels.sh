@@ -183,12 +183,11 @@ renamePackagesInt64() {
 # ---------------------------------------------------------------------------
 # Installation int32
 # ---------------------------------------------------------------------------
-export MACHINE=azure
-
 export PATH=/usr/lib64/openmpi/bin:$PATH
 export LD_LIBRARY_PATH=/usr/lib64/openmpi/lib:$LD_LIBRARY_PATH
 BASE_PATH="$PATH"
 
+export MACHINE=azure
 for py in "${PYTHON_ABIS[@]}"; do
     buildPythonWheels int32 "$py"
 done
@@ -206,13 +205,11 @@ for mod in $FREE_MODULES; do
     renamePackagesInt64 "$CASSIOPEE/Cassiopee/$mod/pyproject.toml"
 done
 
-export MACHINE=azure_i8
-cd "$CASSIOPEE"
-
 export PATH=/usr/lib64/openmpi/bin:$PATH
 export LD_LIBRARY_PATH=/usr/lib64/openmpi/lib:$LD_LIBRARY_PATH
 BASE_PATH="$PATH"
 
+export MACHINE=azure_i8
 for py in "${PYTHON_ABIS[@]}"; do
     buildPythonWheels int64 "$py"
 done

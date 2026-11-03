@@ -30,14 +30,14 @@ def naca(e, N=101, sharpte=True):
     if isinstance(e, str): zname ='NACA'+e
     return C.convertArrays2ZoneNode(zname, [a])
 
-def profile(name=None):
-    """Create a wing profile mesh."""
-    if name is None: return Geom.profile()
+def airfoil(name=None):
+    """Create an airfoil (2D) mesh."""
+    if name is None: return Geom.airfoil()
     else:
         name1 = name.split('/')
-        if len(name1) == 1: return Geom.profile(name)
+        if len(name1) == 1: return Geom.airfoil(name)
         else:
-            a = Geom.profile(name)
+            a = Geom.airfoil(name)
             return C.convertArrays2ZoneNode(name, [a])
 
 def line(P1, P2, N=100):

@@ -494,19 +494,26 @@ class Entity:
             # spline from approximated point
             OCC._addSpline(self.hook, mesh[1], 1, 3)
 
-        elif self.type == "circle":
+        elif self.type == "circle": # circle
             OCC._addCircle(self.hook, self.P[0].v(), (0,0,1), self.P[1].v, 0)
 
-        elif self.type == "arc":
+        elif self.type == "arc": # arc
             OCC._addArc(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v())
 
-        elif self.type == "superellipse":
+        elif self.type == "superellipse": # superellipse
             OCC._addSuperEllipse(self.hook, self.P[0].v(), self.P[1].v, self.P[2].v, self.P[3].v, self.P[4].v)
 
-        elif self.type == "naca4":
+        elif self.type == "naca4": # naca 4 digits
             import Geom
             naca = Geom.naca("%01d%01d%02d"%(int(self.P[0].v),int(self.P[1].v),int(self.P[2].v)), N=51, sharpte=True)
             OCC._addSpline(self.hook, naca[1], 1, 3)
+
+        #elif self.type == "airfoil": # any airfoil
+        #    import Geom
+        #    airfoil = Geom.airfoil(name)
+        #    bbox = Generator.bbox(airfoil)
+        #    grid1 = Grid('grid1', bbox[0:3], bbox[3:], N=(3,3,1))
+        #    OCC._addSpline(self.hook, airfoil[1], 1, 3)
 
         else:
             raise(ValueError, "Unknown entity type %s."%self.type)

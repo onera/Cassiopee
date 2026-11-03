@@ -345,7 +345,7 @@ class AutocompleteEntry(TK.Entry):
             module = CTK.getModule(app)
             module.showApp()
             frame = None; menu = None
-            from tkCassiopee import TREEAPPS, STATEAPPS, EDGEAPPS, SURFAPPS, MESHAPPS, BLOCKAPPS, BCAPPS, MOTIONAPPS, SOLVERAPPS, POSTAPPS, VISUAPPS, RENDERAPPS
+            from CPlot.apps.tkCassiopee import TREEAPPS, STATEAPPS, EDGEAPPS, SURFAPPS, MESHAPPS, BLOCKAPPS, BCAPPS, MOTIONAPPS, SOLVERAPPS, POSTAPPS, VISUAPPS, RENDERAPPS
             frames = CTK.WIDGETS['noteBookFrames']
             menus = CTK.WIDGETS['noteBookMenus']
             buttons = CTK.WIDGETS['noteBookButtons']
