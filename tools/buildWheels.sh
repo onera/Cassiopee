@@ -7,11 +7,13 @@
 set -e
 
 PYTHON_ABIS=(
+    cp38-cp38
     cp39-cp39
     cp310-cp310
     cp311-cp311
     cp312-cp312
     cp313-cp313
+    cp314-cp314
 )
 
 manylinux-interpreters ensure "${PYTHON_ABIS[@]}"
@@ -53,13 +55,15 @@ yum update -y && yum install -y \
     OCE-ocaf \
     OCE-visualization
 
+# Do not build manylinux2014 wheels for Cassiopee modules Modeler and OCC
 export CASSIOPEE=/io/Cassiopee
 cd "$CASSIOPEE/Cassiopee"
 sed -i 's/Modeler//g' MODULES
 sed -i 's/OCC//g' MODULES
 
+
 # ---------------------------------------------------------------------------
-# Helpers
+# Helper functions
 # ---------------------------------------------------------------------------
 
 # Collect the built wheels from /tmp, repair them, and put the result
