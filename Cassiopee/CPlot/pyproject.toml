@@ -47,6 +47,7 @@ Changelog = "https://onera.github.io/Cassiopee/current/ReleaseNotes.html"
 validCassiopee = "CPlot.apps.validCassiopee:main"
 cplot = "CPlot.apps.cplot:main"
 kcgnsview = "CPlot.apps.tkcgnsview:main"
+appCassiopee = "CPlot.apps.tkCassiopee:main"
 
 [tool.setuptools]
 package-dir = {"" = "."}
