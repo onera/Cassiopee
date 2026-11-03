@@ -1,12 +1,5 @@
 #!/bin/sh
-
-PREFIX="${CASSIOPEE_INSTALL_PREFIX:-$CASSIOPEE/Dist/bin/$ELSAPROD}"
-
-case "$ELSAPROD" in
-    ubuntu*) BIN="$PREFIX/local/bin" ;;
-    *)       BIN="$PREFIX/bin" ;;
-esac
-
+BIN=$("$PYTHONEXE" -c 'import os; import KCore.Dist as Dist; p = Dist.getLibPath(); print(os.path.join(os.path.dirname(p), "bin"))')
 APP="$BIN/appCassiopee"
 
 export MPIRUN=0

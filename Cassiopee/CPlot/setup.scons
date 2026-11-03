@@ -1,4 +1,5 @@
 import os
+import subprocess
 import KCore.Dist as Dist
 #==============================================================================
 # CPlot requires:
@@ -126,7 +127,18 @@ dp0 = env.Install(modDir, cplotLib)
 if isGL: dp1 = env1.Install(modDir, cplotLib1)
 if OSMesa: dp2 = env2.Install(modDir, cplotLib2)
 
+def extractThemes(target, source, env):
+    p = target[0].dir.abspath
+    if not os.path.isdir(os.path.join(p, 'themes')):
+        subprocess.run(
+            ["tar", "-xf", target[0].abspath, "-C", p],
+            check=True
+        )
+    return 0
+
 dp3 = env.Install(modDir, 'ttk-themes/themes.tar')
+env.AddPostAction(dp3, extractThemes)
+env.AlwaysBuild(dp3)
 
 if srcs.SHADERS1 == 4:
     dp10 = env.Install(modDir, Glob('CPlot/Textures/*.png'))
