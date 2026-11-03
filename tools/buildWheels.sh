@@ -12,10 +12,7 @@ PYTHON_ABIS=(
     cp311-cp311
     cp312-cp312
     cp313-cp313
-    cp314-cp314
-    cp315-cp315
 )
-# cp38-cp38 no longer available
 
 manylinux-interpreters ensure "${PYTHON_ABIS[@]}"
 
