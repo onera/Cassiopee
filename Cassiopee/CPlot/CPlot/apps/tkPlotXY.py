@@ -14,24 +14,16 @@ import numpy
 # Import Tkinter
 IMPORTOK = True
 try: import tkinter as TK
-except:
-    try: import Tkinter as TK
-    except: IMPORTOK = False
+except: IMPORTOK = False
 
 try: import tkinter.ttk as cttk
-except:
-    try: import ttk as cttk
-    except: IMPORTOK = False
+except: IMPORTOK = False
 
 try:
     # from CPlot.apps.tkColorChooser import askcolor
     import tkinter.filedialog as tkFileDialog
     import tkinter.messagebox as tkMessageBox
-except ImportError:
-    try:
-        import CPlot.apps.tkFileDialog as tkFileDialog
-        import CPlot.apps.tkMessageBox as tkMessageBox
-    except: IMPORTOK = False
+except: IMPORTOK = False
 
 try:
     from matplotlib.widgets import SubplotTool
@@ -451,8 +443,7 @@ def createFonts():
         plt.rcParams['font.family'] = init_rcparams
     else:
         import sys
-        try: import StringIO
-        except: from io import StringIO
+        from io import StringIO
         init_rcparams = plt.rcParams['font.family']
         # 1/- Make a copy of sys.stderr.
         stdout_store = sys.stdout
@@ -13032,24 +13023,24 @@ class DesktopFrameTK(TK.Frame):
 #
 
         # WARNING : THE FOLLOWING IS ONLY WORKING FOR PYTHON 2.X
-        cwd = os.getcwd()
-        modulename = os.path.splitext(os.path.split(filename)[1])[0]
-        try:
-            import imp
-            loadedModule = imp.load_source(modulename, filename)
-            loadedModule.loadVisu(self)
-            self.updateAllGraph()
-        except: pass
+        #cwd = os.getcwd()
+        #modulename = os.path.splitext(os.path.split(filename)[1])[0]
+        #try:
+        #    import imp
+        #    loadedModule = imp.load_source(modulename, filename)
+        #    loadedModule.loadVisu(self)
+        #    self.updateAllGraph()
+        #except: pass
 
         # FOR PYTHON 3.X<3.4 TRY SOMETHING LIKE :
 #        from importlib.machinery import SourceFileLoader
 #        foo = SourceFileLoader("module.name", "/path/to/file.py").load_module()
 
         # FOR PYTHON 3.X>3.4 TRY SOMETHING LIKE :
-#        import importlib.util
-#        spec = importlib.util.spec_from_file_location("module.name", "/path/to/file.py")
-#        foo = importlib.util.module_from_spec(spec)
-#        spec.loader.exec_module(foo)
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("module.name", "/path/to/file.py")
+        foo = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(foo)
 
     # ------------------------------------------------------ cmd_graphNameChange
     def cmd_graphNameChange(self,event):
@@ -13848,23 +13839,23 @@ class Desktop():
 #
 
         # WARNING : THE FOLLOWING IS ONLY WORKING FOR PYTHON 2.X
-        cwd = os.getcwd()
-        modulename = os.path.splitext(os.path.split(filename)[1])[0]
-        try:
-            import imp
-            loadedModule = imp.load_source(modulename, filename)
-            loadedModule.loadVisu(self)
-            self.updateAllGraph()
-        except: pass
+        #cwd = os.getcwd()
+        #modulename = os.path.splitext(os.path.split(filename)[1])[0]
+        #try:
+        #    import imp
+        #    loadedModule = imp.load_source(modulename, filename)
+        #    loadedModule.loadVisu(self)
+        #    self.updateAllGraph()
+        #except: pass
         # FOR PYTHON 3.X<3.4 TRY SOMETHING LIKE :
 #        from importlib.machinery import SourceFileLoader
 #        foo = SourceFileLoader("module.name", "/path/to/file.py").load_module()
 
         # FOR PYTHON 3.X>3.4 TRY SOMETHING LIKE :
-#        import importlib.util
-#        spec = importlib.util.spec_from_file_location("module.name", "/path/to/file.py")
-#        foo = importlib.util.module_from_spec(spec)
-#        spec.loader.exec_module(foo)
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("module.name", "/path/to/file.py")
+        foo = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(foo)
 
 #    # -------------------------------------------------------- updateactiveGraph
 #    def updateactiveGraph(self):
@@ -14449,22 +14440,22 @@ class MatplotlibFigure():
                         'Simple'        :mpatch.ArrowStyle.Simple(head_length=s.head_length,head_width=s.head_width,tail_width=s.tail_width)
                     }
 
-                    if len(points)==2:
-                        shape = mpatch.FancyArrowPatch(points[0],points[1],arrowstyle=dico_arrow[s.arrowstyle],
-                                                       mutation_scale=s.scale,linewidth=s.linewidth,
+                    if len(points) == 2:
+                        shape = mpatch.FancyArrowPatch(points[0], points[1], arrowstyle=dico_arrow[s.arrowstyle],
+                                                       mutation_scale=s.scale, linewidth=s.linewidth,
                                                        hatch=hatch,
                                                        edgecolor=s.edgecolor,
                                                        facecolor=s.facecolor,
                                                        linestyle=s.linestyle,
                                                        alpha=s.alpha)
                         self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_patch(shape)
-                    elif len(points)==3:
+                    elif len(points) == 3:
                         codes = [
-                            Path.MOVETO,
-                            Path.CURVE3,
-                            Path.CURVE3,
+                            matplotlib.path.Path.MOVETO,
+                            matplotlib.path.Path.CURVE3,
+                            matplotlib.path.Path.CURVE3,
                         ]
-                        path = Path(points,codes)
+                        path = matplotlib.path.Path(points,codes)
                         self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_patch(mpatch.FancyArrowPatch(
                             path=path,
                             arrowstyle=dico_arrow[s.arrowstyle],
@@ -14500,7 +14491,7 @@ class MatplotlibFigure():
                         'BracketAB'          :mpatch.ArrowStyle.BracketAB(widthA=s.widthA,lengthA=s.lengthA,angleA=s.angleA,
                                                                           widthB=s.widthB,lengthB=s.lengthB,angleB=s.angleB),
                     }
-                    if len(points)==2:
+                    if len(points) == 2:
                         shape = mpatch.FancyArrowPatch(points[0],points[1],arrowstyle=dico_bracket[s.bracketstyle],
                                                        mutation_scale=s.scale,linewidth=s.linewidth,
                                                        edgecolor=s.edgecolor,
@@ -14508,13 +14499,13 @@ class MatplotlibFigure():
                                                        linestyle=s.linestyle,
                                                        alpha=s.alpha)
                         self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_patch(shape)
-                    elif len(points)==3:
+                    elif len(points) == 3:
                         codes = [
-                            Path.MOVETO,
-                            Path.CURVE3,
-                            Path.CURVE3,
+                            matplotlib.path.Path.MOVETO,
+                            matplotlib.path.Path.CURVE3,
+                            matplotlib.path.Path.CURVE3,
                         ]
-                        path = Path(points,codes)
+                        path = matplotlib.path.Path(points,codes)
 
                         self.subGraph[iCurSubGraph].axis[iCurrentAxis].add_patch(mpatch.FancyArrowPatch(
                             path=path,
@@ -15051,7 +15042,7 @@ class Text:
         if self.visibility               != default_values['Text']['visibility']    :
             lines += ''', visibility=%s'''%(self.visibility)
         lines += ''')\n'''
-        lines += '''    graph_%s.addText('%s',text_%s)'''%(indgraph,iCurSubGraph,indcurve)
+        lines += '''    graph_%s.addText('%s',text_%s)'''%(indgraph,iCurSubGraph,indtext)
         return lines
 
 # ==============================================================================
@@ -15117,8 +15108,8 @@ class Shape:
         elif variable == 'widthB': self.widthB = value
         elif variable == 'angleB': self.angleB = value
     # -------------------------------------------------------------------- write
-    def write(self,indgraph,iCurSubGraph,indsubgraph,indshape):
-        lines = '''    shape_%s = Shape(zone=%s '''%(indtext,self.zone,self.varx,self.vary)
+    def write(self, indgraph, iCurSubGraph, indsubgraph, indshape):
+        lines = '''    shape_%s = Shape(zone=%s '''%(indgraph,self.zone,self.varx,self.vary)
         if self.shape_type            != default_values['Shape']['shape_type']    :
             lines += ''', shape_type='%s' '''%(self.shape_type)
         if self.points            != default_values['Shape']['points']    :
@@ -15170,7 +15161,7 @@ class Shape:
         if self.angleB            != default_values['Shape']['angleB']    :
             lines += ''', angleB='%s' '''%(self.angleB)
         lines += ''')\n'''
-        lines += '''    graph_%s.addShape('%s',shape_%s)'''%(indgraph,iCurSubGraph,indcurve)
+        lines += '''    graph_%s.addShape('%s',shape_%s)'''%(indgraph,iCurSubGraph,indshape)
         return lines
 
 

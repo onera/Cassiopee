@@ -876,20 +876,6 @@ def chunk2part(dt):
             bcfields.append(dl)
             bcfieldNames.append(dn)
 
-    # keep BCFamilyTypes and familyZone nodes
-    #bcFamilyTypes = {}
-    #familyZones = []
-    #nodes = Internal.getNodesFromType2(dt, 'Family_t')
-    #for n in nodes:
-    #    a1 = Internal.getNodeFromType1(n, 'FamilyBC_t')
-    #    if a1 is not None:
-    #        bcFamilyTypes[n[0]] = Internal.getValue(a1)
-    #    else: # familyZone
-    #        familyZones.append(n)
-
-    # keep ReferenceState if any
-    #refState = Internal.getNodeFromType2(dt, 'ReferenceState_t')
-
     # bcs is a list of PL
     # bcdataset is a list of list of arrays
     arrays.append([cx,cy,cz,ngonc,ngonso,nfacec,nfaceso,solc,sol,bcs,bcfields])
@@ -939,25 +925,6 @@ def chunk2part(dt):
 
     t = C.newPyTree(['Base', zo])
     Cmpi._setProc(t, Cmpi.rank)
-
-    # add refState
-    #if refState is not None:
-    #    base = Internal.getNodeFromType1(t, 'CGNSBase_t')
-    #    base[2].append(refState)
-
-    # update BCfamily types
-    #nodes = Internal.getNodesFromType2(t, 'Family_t')
-    #for n in nodes:
-    #    if n[0] in bcFamilyTypes:
-    #        a1 = Internal.getNodeFromType1(n, 'FamilyBC_t')
-    #        Internal.setValue(a1, bcFamilyTypes[n[0]])
-
-    # add familyZones
-    #b = Internal.getBases(t)[0]
-    #z = Internal.getZones(t)[0]
-    #for fz in familyZones:
-    #    Internal.addChild(b, fz, -1)
-    #    Internal._createUniqueChild(z, 'FamilyName', 'FamilyName_t', value=fz[0], pos=-1)
 
     # add familyName_t nodes (removed during chunk2partNGon)
     z = Internal.getZones(t)[0]
