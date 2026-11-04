@@ -1045,9 +1045,8 @@ def _blankingIBM(t, tb, tbFilament=None, dimPb=3, frontType=1, IBCType=1, depth=
 
     isFilamentOnly, isWireModel = D_IBM.localWMMFlags__(tb, tbFilament)
 
-    tb = Internal.copyTree(tb)
-
     if dimPb == 2:
+        tb = Internal.copyTree(tb)
         T._addkplane(tb)
         T._contract(tb, (0,0,0), (1,0,0), (0,1,0), 0.01)
         if tbFilament:
@@ -1340,9 +1339,8 @@ def _setInterpDataIBM(t, tc, tb, tbFilament=None, front=None, front2=None, front
 
     isFilamentOnly, isWireModel = D_IBM.localWMMFlags__(tb, tbFilament)
 
-    tb = Internal.copyTree(tb)
-
     if dimPb == 2:
+        tb = Internal.copyTree(tb)
         T._addkplane(tb)
         T._contract(tb, (0,0,0), (1,0,0), (0,1,0), 0.01)
         if tbFilament:
