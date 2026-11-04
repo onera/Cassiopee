@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/onera/Cassiopee/refs/heads/dev/docs/Images/CassiopeeLogo.png" width="20%" alt="Cassiopee Logo">
+  <img src="./docs/Images/CassiopeeTitreWhiteBg.png" width="80%" alt="Cassiopee Logo">
 </p>
 
 **A Python toolkit for CFD pre-processing, mesh generation, and post-processing.**
@@ -130,5 +130,5 @@ Cassiopee is distributed under the **GNU Lesser General Public License v3.0 (LGP
 <br>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/onera/Cassiopee/refs/heads/dev/docs/Images/authors2.png" width="100%" alt="CFD flow visualisation">
+  <img src="./docs/Images/DroneAD.png" width="80%" alt="CFD flow visualisation">
 </p>
