@@ -1045,6 +1045,8 @@ def _blankingIBM(t, tb, tbFilament=None, dimPb=3, frontType=1, IBCType=1, depth=
 
     isFilamentOnly, isWireModel = D_IBM.localWMMFlags__(tb, tbFilament)
 
+    tb = Internal.copyTree(tb)
+
     if dimPb == 2:
         T._addkplane(tb)
         T._contract(tb, (0,0,0), (1,0,0), (0,1,0), 0.01)
@@ -1337,6 +1339,15 @@ def _setInterpDataIBM(t, tc, tb, tbFilament=None, front=None, front2=None, front
     """Compute the transfer coefficients and data for IBM pre-processing."""
 
     isFilamentOnly, isWireModel = D_IBM.localWMMFlags__(tb, tbFilament)
+
+    tb = Internal.copyTree(tb)
+
+    if dimPb == 2:
+        T._addkplane(tb)
+        T._contract(tb, (0,0,0), (1,0,0), (0,1,0), 0.01)
+        if tbFilament:
+            T._addkplane(tbFilament)
+            T._contract(tbFilament, (0,0,0), (1,0,0), (0,1,0), 0.01)
 
     for zc in Internal.getZones(tc):
         proc = Cmpi.getProc(zc)

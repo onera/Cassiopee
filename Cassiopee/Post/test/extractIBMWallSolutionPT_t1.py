@@ -36,8 +36,8 @@ def _updateFlowSolutionIBM(tc):
 #### 2D (NACA0012)
 
 # Create t_in
-Nx = 151
 Ny = 51
+Nx = (Ny-1)*3+1
 z = G.cart((-1,-0.5, 0),(3./(Nx-1),1./(Ny-1),1),(Nx,Ny,1))
 t = C.newPyTree(['Base', z])
 T._addkplane(t)
@@ -70,37 +70,41 @@ C._addState(tb, adim='adim1', MInf=0.2, alphaZ=0., alphaY=0., ReInf=5.e6, Equati
 C._addState(t, adim='adim1', MInf=0.2, alphaZ=0., alphaY=0., ReInf=5.e6, EquationDimension=2, GoverningEquations='NSTurbulent')
 
 # prep IBM + init IBM info in tc
-a, ac = X_IBM.prepareIBMData(tb, t_in=t, t_out=None, tc_out=None, frontType=1, check=False)
-_updateFlowSolutionIBM(ac)
+X_IBM._dist2wallIBM(t, tb, dimPb=2)
+X_IBM._blankingIBM(t, tb, dimPb=2, frontType=1, IBCType=1, depth=2)
+tc = C.node2Center(t)
+t, tc, front, front2, frontWMM = X_IBM.buildFrontIBM(t, tc, tb=tb, dimPb=2, frontType=1)
+X_IBM._setInterpDataIBM(t, tc, tb, front=front, dimPb=2, frontType=1, IBCType=1, depth=2)
+_updateFlowSolutionIBM(tc)
 
 # test 1: All + prepareMLS = False
-graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, ac, dimPb=2, ibctypes=[], famZones=[], prepareMLS=False)
-P_IBM._computeSkinVariables(ts, ac, graphIBCDPost, dimPb=2, ibctypes=[], famZones=[])
+graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=2, ibctypes=[], famZones=[], prepareMLS=False)
+P_IBM._computeSkinVariables(ts, tc, graphIBCDPost, dimPb=2, ibctypes=[], famZones=[])
 test.testT(ts, 1)
 
 # test 2: All + prepareMLS = True
-graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, ac, dimPb=2, ibctypes=[], famZones=[])
-P_IBM._computeSkinVariables(ts, ac, graphIBCDPost, dimPb=2, ibctypes=[], famZones=[])
+graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=2, ibctypes=[], famZones=[])
+P_IBM._computeSkinVariables(ts, tc, graphIBCDPost, dimPb=2, ibctypes=[], famZones=[])
 test.testT(ts, 2)
 
 # test 3: Musker IBC only
-graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, ac, dimPb=2, ibctypes=[3], famZones=[])
-P_IBM._computeSkinVariables(ts, ac, graphIBCDPost, dimPb=2, ibctypes=[3], famZones=[])
+graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=2, ibctypes=[3], famZones=[])
+P_IBM._computeSkinVariables(ts, tc, graphIBCDPost, dimPb=2, ibctypes=[3], famZones=[])
 test.testT(ts, 3)
 
 # test 4: naca family zones only
-graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, ac, dimPb=2, ibctypes=[], famZones=['wing'])
-P_IBM._computeSkinVariables(ts, ac, graphIBCDPost, dimPb=2, ibctypes=[], famZones=['wing'])
+graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=2, ibctypes=[], famZones=['wing'])
+P_IBM._computeSkinVariables(ts, tc, graphIBCDPost, dimPb=2, ibctypes=[], famZones=['wing'])
 test.testT(ts, 4)
 
 # test 5: circle family zones only
-graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, ac, dimPb=2, ibctypes=[], famZones=['obstacle'])
-P_IBM._computeSkinVariables(ts, ac, graphIBCDPost, dimPb=2, ibctypes=[], famZones=['obstacle'])
+graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=2, ibctypes=[], famZones=['obstacle'])
+P_IBM._computeSkinVariables(ts, tc, graphIBCDPost, dimPb=2, ibctypes=[], famZones=['obstacle'])
 test.testT(ts, 5)
 
 # test 6: Musker IBC + naca family zones only
-graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, ac, dimPb=2, ibctypes=[3], famZones=['wing'])
-P_IBM._computeSkinVariables(ts, ac, graphIBCDPost, dimPb=2, ibctypes=[3], famZones=['wing'])
+graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=2, ibctypes=[3], famZones=['wing'])
+P_IBM._computeSkinVariables(ts, tc, graphIBCDPost, dimPb=2, ibctypes=[3], famZones=['wing'])
 test.testT(ts, 6)
 
 #### 3D (SPHERE)
@@ -120,15 +124,19 @@ C._addState(tb, adim='adim1', MInf=0.2, alphaZ=0., alphaY=0., ReInf=5.e6, Equati
 C._addState(t, adim='adim1', MInf=0.2, alphaZ=0., alphaY=0., ReInf=5.e6, EquationDimension=3, GoverningEquations='NSTurbulent')
 
 # prep IBM + init IBM info in tc
-a, ac = X_IBM.prepareIBMData(tb, t_in=t, t_out=None, tc_out=None, frontType=1, check=False)
-_updateFlowSolutionIBM(ac)
+X_IBM._dist2wallIBM(t, tb, dimPb=3)
+X_IBM._blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2)
+tc = C.node2Center(t)
+t, tc, front, front2, frontWMM = X_IBM.buildFrontIBM(t, tc, tb=tb, dimPb=3, frontType=1)
+X_IBM._setInterpDataIBM(t, tc, tb, front=front, dimPb=3, frontType=1, IBCType=1, depth=2)
+_updateFlowSolutionIBM(tc)
 
 # test 7: All + prepare MLS = False
-graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, ac, dimPb=3, ibctypes=[], famZones=[], prepareMLS=False)
-P_IBM._computeSkinVariables(ts, ac, graphIBCDPost, dimPb=3, ibctypes=[], famZones=[])
+graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=3, ibctypes=[], famZones=[], prepareMLS=False)
+P_IBM._computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[], famZones=[])
 test.testT(ts, 7)
 
 # test 8: All + prepare MLS = True
-graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, ac, dimPb=3, ibctypes=[], famZones=[], prepareMLS=True)
-P_IBM._computeSkinVariables(ts, ac, graphIBCDPost, dimPb=3, ibctypes=[], famZones=[])
+graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=3, ibctypes=[], famZones=[], prepareMLS=True)
+P_IBM._computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[], famZones=[])
 test.testT(ts, 8)

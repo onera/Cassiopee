@@ -56,12 +56,17 @@ C._addState(tb, adim='adim1', MInf=0.2, alphaZ=0., alphaY=0., ReInf=5.e6, Equati
 C._addState(t, adim='adim1', MInf=0.2, alphaZ=0., alphaY=0., ReInf=5.e6, EquationDimension=2, GoverningEquations='NSTurbulent')
 
 # prep IBM + init IBM info in tc
-a, ac = X_IBM.prepareIBMData(tb, t_in=t, t_out=None, tc_out=None, frontType=1, check=False)
-_updateFlowSolutionIBM(ac)
+X_IBM._dist2wallIBM(t, tb, dimPb=2)
+X_IBM._blankingIBM(t, tb, dimPb=2, frontType=1, IBCType=1, depth=2)
+tc = C.node2Center(t)
+t, tc, front, front2, frontWMM = X_IBM.buildFrontIBM(t, tc, tb=tb, dimPb=2, frontType=1)
+X_IBM._setInterpDataIBM(t, tc, tb, front=front, dimPb=2, frontType=1, IBCType=1, depth=2)
+
+_updateFlowSolutionIBM(tc)
 
 # test 1: all
-graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, ac, dimPb=2, ibctypes=[], famZones=[])
-P_IBM._computeSkinVariables(ts, ac, graphIBCDPost, dimPb=2, ibctypes=[], famZones=[])
+graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=2, ibctypes=[], famZones=[])
+P_IBM._computeSkinVariables(ts, tc, graphIBCDPost, dimPb=2, ibctypes=[], famZones=[])
 if Cmpi.master: test.testT(ts, 1)
 
 #### 3D (Sphere)
@@ -82,10 +87,14 @@ C._addState(tb, adim='adim1', MInf=0.2, alphaZ=0., alphaY=0., ReInf=5.e6, Equati
 C._addState(t, adim='adim1', MInf=0.2, alphaZ=0., alphaY=0., ReInf=5.e6, EquationDimension=3, GoverningEquations='NSTurbulent')
 
 # prep IBM + init IBM info in tc
-a, ac = X_IBM.prepareIBMData(tb, t_in=t, t_out=None, tc_out=None, frontType=1, check=False)
-_updateFlowSolutionIBM(ac)
+X_IBM._dist2wallIBM(t, tb, dimPb=3)
+X_IBM._blankingIBM(t, tb, dimPb=3, frontType=1, IBCType=1, depth=2)
+tc = C.node2Center(t)
+t, tc, front, front2, frontWMM = X_IBM.buildFrontIBM(t, tc, tb=tb, dimPb=3, frontType=1)
+X_IBM._setInterpDataIBM(t, tc, tb, front=front, dimPb=3, frontType=1, IBCType=1, depth=2)
+_updateFlowSolutionIBM(tc)
 
 # test 2: all
-graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, ac, dimPb=3, ibctypes=[], famZones=[])
-P_IBM._computeSkinVariables(ts, ac, graphIBCDPost, dimPb=3, ibctypes=[], famZones=[])
+graphIBCDPost, ts = P_IBM.prepareSkinReconstruction(tb, tc, dimPb=3, ibctypes=[], famZones=[])
+P_IBM._computeSkinVariables(ts, tc, graphIBCDPost, dimPb=3, ibctypes=[], famZones=[])
 if Cmpi.master: test.testT(ts, 2)
