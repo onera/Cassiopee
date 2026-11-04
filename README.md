@@ -102,7 +102,7 @@ For a container-based installation, follow the [Docker instructions](https://git
 
 ### Build from source
 
-Building from source is available for the following supported platforms:
+Building from source is supported on the following platforms:
 
 - [Windows — MSYS2](https://github.com/onera/Cassiopee/blob/dev/docs/developers/Install/msys2.md)
 - [Linux — Ubuntu](https://github.com/onera/Cassiopee/blob/dev/docs/developers/Install/ubuntu.md)
@@ -119,7 +119,7 @@ Building from source may require a suitable compiler toolchain and external libr
 | `cassiopee` | Main graphical user interface (GUI) for pyTree visualization and pre-/post-processing. |
 | `cplot` | Cassiopee's lightweight display application, supporting a wide range of mesh and visualization formats. |
 | `validCassiopee` | Cassiopee's continuous integration (CI) tool: runs regression tests and CFD validation cases, comparing results against local/global references and tracking test status and execution times. |
-| `kpython` | Cassiopee's Python executable wrapper: facilitates the launch of Python scripts sequentially or in parallel using MPI and OpenMP options, with profiling, sanitizer, and GNU Debugger (GDB) support. |
+| `kpython` | Cassiopee's Python executable wrapper: facilitates the launch of Python scripts sequentially or in parallel via MPI and OpenMP. Additional options include profiling, sanitizer, and GNU Debugger (GDB) support. |
 | `kdiff` | Cassiopee's own diff tool: compares two files across a wide range of file formats. |
 
 <br>
