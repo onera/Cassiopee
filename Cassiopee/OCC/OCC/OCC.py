@@ -162,7 +162,7 @@ def meshSTRUCT__(hook, N=11, faceSubset=None, faceNo=None):
         # scale uv
         T = _scaleUV(edges)
         # force loop closure
-        edges = Generator.close(edges, 1.e-6) # the weakness
+        edges = Generator.close(edges, tol=1.e-6) # the weakness
         # TFI in uv space
         try:
             als = Generator.allTFI(edges)
@@ -215,7 +215,7 @@ def reorderEdgesByFace__(edges):
     for c, e in enumerate(splitEdges):
         #e = Converter.convertBAR2Struct(e)
         #e = Transform.reorder(e, (1,2,3))
-        a = Generator.close(e, 1.e-4)
+        a = Generator.close(e, tol=1.e-4)
         try:
             a = Generator.T3mesher2D(e, triangulateOnly=1) # must not fail!
             v = Generator.getVolumeMap(a)
@@ -274,7 +274,7 @@ def reorderEdgesByFace__(edges):
         edgesOut.append(b)
     edgesOut = Converter.convertArray2Tetra(edgesOut)
     edgesOut = Transform.join(edgesOut)
-    edgesOut = Generator.close(edgesOut, 1.e-6)
+    edgesOut = Generator.close(edgesOut, tol=1.e-6)
     return edgesOut
 
 # mesh with constant N
@@ -291,10 +291,10 @@ def meshTRIN__(hook, N=11, order=1, faceSubset=None, faceNo=None):
         edges = switch2UV(edges)
         T = _scaleUV(edges)
         # force loop closure
-        edges = Generator.close(edges, 1.e-4) # the weakness
+        edges = Generator.close(edges, tol=1.e-4) # the weakness
         edges = Converter.convertArray2Tetra(edges)
         edges = Transform.join(edges)
-        edges = Generator.close(edges, 1.e-6)
+        edges = Generator.close(edges, tol=1.e-6)
         edges = reorderEdgesByFace__(edges)
         try:
             a = Generator.T3mesher2D(edges, grading=1.)
@@ -322,11 +322,11 @@ def meshTRIU__(hook, globalEdges, order=1, faceSubset=None, faceNo=None):
         edges = switch2UV(edges)
         T = _scaleUV(edges)
         # force loop closure
-        edges = Generator.close(edges, 1.e-4) # the weakness
+        edges = Generator.close(edges, tol=1.e-4) # the weakness
         # Delaunay in uv space
         edges = Converter.convertArray2Tetra(edges)
         edges = Transform.join(edges)
-        edges = Generator.close(edges, 1.e-6)
+        edges = Generator.close(edges, tol=1.e-6)
         try:
             a = Generator.T3mesher2D(edges, grading=1.)
             _unscaleUV([a], T)
@@ -352,10 +352,10 @@ def meshTRIH__(hook, hmax=-1., hausd=-1, order=1, faceSubset=None, faceNo=None):
         # edges in uv space
         edges = switch2UV(edges)
         T = _scaleUV(edges)
-        edges = Generator.close(edges, 1.e-4) # the weakness
+        edges = Generator.close(edges, tol=1.e-4) # the weakness
         edges = Converter.convertArray2Tetra(edges)
         edges = Transform.join(edges)
-        edges = Generator.close(edges, 1.e-6)
+        edges = Generator.close(edges, tol=1.e-6)
         edges = reorderEdgesByFace__(edges)
         try:
             a = Generator.T3mesher2D(edges, grading=1.)
@@ -382,7 +382,7 @@ def meshTRIH2__(hook, hmax=-1., hausd=-1, order=1, faceSubset=None, faceNo=None)
         _scaleUV(edges, vu='u', vv='v')
         edges = Converter.convertArray2Tetra(edges)
         edges = Transform.join(edges)
-        edges = Generator.close(edges, 1.e-6)
+        edges = Generator.close(edges, tol=1.e-6)
         #edges = reorderEdgesByFace__(edges)
         try:
             #edges must contain coords + normalized uv to enter trimesh
@@ -447,7 +447,7 @@ def meshQUAD__(hook, N=11, order=1, faceSubset=None, faceNo=None):
         # scale uv
         T = _scaleUV(edges)
         # force loop closure
-        edges = Generator.close(edges, 1.e-6) # the weakness
+        edges = Generator.close(edges, tol=1.e-6) # the weakness
         # TFI in uv space
         try:
             als = Generator.allTFI(edges)
@@ -559,7 +559,7 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, close, aniso, mesh, FA
     T = _scaleUV(edges)
     edges = Converter.convertArray2Tetra(edges)
     edges = Transform.join(edges)
-    edges = Generator.close(edges, 1.e-10)
+    edges = Generator.close(edges, tol=1.e-10)
     _unscaleUV([edges], T)
 
     pt = edges[1]
@@ -571,7 +571,7 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, close, aniso, mesh, FA
     if edges[2].shape[1] == 0: return True # pass
 
     # removes collapsed edges
-    #edges2 = Generator.close(edges, 1.e-6)
+    #edges2 = Generator.close(edges, tol=1.e-6)
 
     # Scale UV of edges
     _scaleUV([edges], vu='u', vv='v')
@@ -579,7 +579,7 @@ def meshFaceWithMetric(hook, i, edges, hmin, hmax, hausd, close, aniso, mesh, FA
         a = occ.trimesh(hook, edges, i, hmin, hmax, hausd, 1.1, aniso)
         _enforceEdgesInFace(a, edgesSav)
         if close:
-            a = Generator.close(a, 1.e-10) # needed for periodic faces
+            a = Generator.close(a, tol=1.e-10) # needed for periodic faces
         if occ.getFaceOrientation(hook, i) == 0:
             a = Transform.reorder(a, (-1,))
         _unscaleUV([a], T, vu='u', vv='v')
@@ -613,7 +613,7 @@ def meshFaceInUV(hook, i, edges, grading, close, mesh, FAILED):
         o = occ.evalFace(hook, a, i)
         _enforceEdgesInFace(o, edgesSav)
         if close:
-            a = Generator.close(a, 1.e-10) # needed for periodic faces
+            a = Generator.close(a, tol=1.e-10) # needed for periodic faces
         if occ.getFaceOrientation(hook, i) == 0:
             o = Transform.reorder(o, (-1,))
         o = Converter.initVars(o, '{u}=0.')
@@ -648,12 +648,12 @@ def meshFaceWithPointedHat(hook, i, edges, close, mesh):
             a = Generator.pointedHat(e, X)
 
     a = Converter.convertArray2Tetra(a)
-    a = Generator.close(a, 1.e-10)
+    a = Generator.close(a, tol=1.e-10)
     _unscaleUV([a], T)
     o = occ.evalFace(hook, a, i)
     #_enforceEdgesInFace(o, edgesSav)
     if close:
-        a = Generator.close(a, 1.e-10) # needed for periodic faces
+        a = Generator.close(a, tol=1.e-10) # needed for periodic faces
     if occ.getFaceOrientation(hook, i) == 0:
         o = Transform.reorder(o, (-1,))
     o = Converter.initVars(o, '{u}=0.')
@@ -906,7 +906,7 @@ def meshAllFacesStruct(hook, dedges, faceList=[]):
         # scale uv
         T = _scaleUV(edges)
         # force loop closure
-        #edges = Generator.close(edges, 1.e-6) # the weakness
+        #edges = Generator.close(edges, tol=1.e-6) # the weakness
         # TFI in uv space
         try:
             als = Generator.allTFI(edges)

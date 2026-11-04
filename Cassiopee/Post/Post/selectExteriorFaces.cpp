@@ -18,7 +18,6 @@
 */
 
 // selectExteriorFaces
-
 #include <stdio.h>
 #include <string.h>
 #include <map>
@@ -479,9 +478,8 @@ PyObject* K_POST::exteriorFacesStructured(char* varString, FldArrayF& f,
     E_Int posz = K_ARRAY::isCoordinateZPresent(varString)+1;
     if (posx != 0 && posy != 0 && posz != 0)
     {
-      PyObject* tpl2 = K_CONNECT::V_cleanConnectivityME(
-        posx, posy, posz, varString,
-        *fnodes, *connect, newEltType, 1.e-12,
+      PyObject* tpl2 = K_CONNECT::V_cleanConnectivity(
+        varString, *fnodes, *connect, newEltType, 1.e-12,
         true, true, true, false, false
       );
       RELEASESHAREDU(tpl, fnodes, connect);

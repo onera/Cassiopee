@@ -287,7 +287,7 @@ def cleanOffset__(offsetTmp):
     if Cmpi.master: print('Offset: Close value:: %g'%closeVal, flush=True)
     Internal._rmNodesFromType(offsetTmp, "FlowSolution_t")
     Internal._rmNodesFromType(offsetTmp, "UserDefinedData_t")
-    offsetTmp = G.close(offsetTmp, closeVal)
+    offsetTmp = G.close(offsetTmp, tol=closeVal)
     return offsetTmp
 
 def _autoRemeshGeom__(tb):

@@ -134,7 +134,7 @@ print(" ")
 print(" $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ ")
 print(" 6. collapse")
 t = XOR.collapseUncomputableFaces(t)
-t = G.close(t, -1.)
+t = G.close(t, tol=-1.)
 
 C.convertPyTree2File(t, "collapse.cgns")
 
