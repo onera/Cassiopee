@@ -298,7 +298,7 @@ E_Int K_IO::GenIO::tpread(
     strcpy(keyword, nextKeyword);
   }
 
-  printf("standard header: nil=%d np=%d nvar=%d\n", nil, np, nvar); fflush(stdout);
+  //printf("standard header: nil=%d np=%d nvar=%d\n", nil, np, nvar); fflush(stdout);
 
   // Allocating arrays
   if (nil == 0 && np == 0)

@@ -60,11 +60,5 @@ elif [ $PRODMODE -eq 3 ]; then # pip no isolation
     [ $? -ne 0 ] && exit 1;
 fi
 
-# Copie les applications
-cp CPlot/apps/cassiopee.bat "$INSTALLPATH"
-cp CPlot/apps/cassiopeeRunWin32.bat "$INSTALLPATH"
-cp CPlot/apps/cassiopeeRunWin64.bat "$INSTALLPATH"
-python installThemes.py
-
 # Test l'installation
 python test/t1.py

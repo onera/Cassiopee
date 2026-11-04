@@ -1,5 +1,5 @@
 #!/bin/sh
-INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD"
+INSTALLPATH="$CASSIOPEE/Dist/bin/$ELSAPROD/bin"
 echo 'Installing tree_grep'
 cp tree_grep "$INSTALLPATH"
 cp tree_grep.py "$INSTALLPATH"

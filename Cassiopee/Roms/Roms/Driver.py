@@ -3004,7 +3004,7 @@ class Driver:
         """Trigger the GUI enabling interactive manipulation and visualization."""
         import CPlot.Tk as CTK
         (win, menu, file, tools) = CTK.minimal("Driver", mode=1)
-        module = __import__("tkDriver")
+        module = __import__("CPlot.apps.tkDriver", fromlist=['tkDriver'])
         CTK.TKMODULES["tkDriver"] = module
         tools.add_command(label="tkDriver", command=module.showApp)
         if part is None:

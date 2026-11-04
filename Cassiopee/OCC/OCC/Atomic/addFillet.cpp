@@ -54,7 +54,8 @@ PyObject* K_OCC::addFillet(PyObject* self, PyObject* args)
     PyObject* noEdgeO = PyList_GetItem(listEdges, no);
     E_Int noEdge = PyInt_AsLong(noEdgeO);
     const TopoDS_Edge& E = TopoDS::Edge(edges(noEdge));
-    try {
+    try 
+    {
       mkFillet.Add(radius, E);
     } catch (StdFail_NotDone& e) { fail = true; }
   }
@@ -65,7 +66,8 @@ PyObject* K_OCC::addFillet(PyObject* self, PyObject* args)
   }
 
   TopoDS_Shape shc;
-  try {
+  try
+  {
     shc = mkFillet.Shape();
   } catch (StdFail_NotDone& e) { fail = true; }
   if (fail) 

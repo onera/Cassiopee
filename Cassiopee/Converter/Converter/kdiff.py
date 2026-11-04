@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# Usage: kcgnsdiff file1 file2
 import os
 import sys
 import KCore.test as test
@@ -30,7 +29,7 @@ FILE_FORMATS = {
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: kcgnsdiff file reffile [atol] [rtol]")
+        print("Usage: kdiff file reffile [atol] [rtol]")
         sys.exit(1)
     # Parse arguments
     file1, file2 = sys.argv[1:3]
