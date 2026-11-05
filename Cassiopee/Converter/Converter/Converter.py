@@ -761,7 +761,7 @@ def convertExt2Format__(fileName):
         '.stp': 'fmt_step',
         '.step': 'fmt_step',
         '.csv': 'fmt_free',
-        '.tsv': 'fmt_free',     
+        '.tsv': 'fmt_free',
         '.ref': 'bin_pickle',
         '.ref1': 'bin_pickle',
         '.ref2': 'bin_pickle',
@@ -840,7 +840,7 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
         data = []; others = []
         for l in lines:
             l = l.strip()
-            if not l or l.startswith('#'): continue          
+            if not l or l.startswith('#'): continue
             tokens = re.split(r"[,\s]+", l)
             try:
                 row = [float(token) for token in tokens]
@@ -881,7 +881,7 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
             matches = re.findall(pattern, o)
             tokens = [group[0] or group[1] for group in matches if any(group)]
             if len(tokens) == nvar:
-                tokens = [re.sub(r"[,\s()]", "", to) for to in tokens]                
+                tokens = [re.sub(r"[,\s()]", "", to) for to in tokens]
                 varString = ''
                 for i in range(nvar-1): varString += '%s,'%tokens[i]
                 if nvar > 0: varString += '%s'%tokens[nvar-1]
@@ -890,7 +890,7 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
         a = array(varString, np, 1, 1)
         pt = a[1]
         for i in range(np):
-            pt[:,i] = data[i][:]        
+            pt[:,i] = data[i][:]
         print('done.')
         if zoneNames is not None: zoneNames.append('Zone0')
         return [a]
