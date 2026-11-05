@@ -5,7 +5,7 @@ if [ -z "$CASSIOPEE" ]; then
     echo "CASSIOPEE identifies the root directory of the Cassiopee repository."
     exit
 fi
-	
+
 PRODUCTION=1
 # Destination docs
 DEST="$CASSIOPEE/docs/doc"
