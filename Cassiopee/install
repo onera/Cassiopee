@@ -65,10 +65,13 @@ do
             [ $? -ne 0 ] && exit 1;
         fi
         if [ "$INSTALL_DOCS" -eq 1 ]; then
-            cd doc
-            ./install
-            [ $? -ne 0 ] && exit 1;
-            cd ..
+            if test -e doc
+            then
+                cd doc
+                ./install
+                [ $? -ne 0 ] && exit 1;
+                cd ..
+            fi
         fi
         cd ..
     else
