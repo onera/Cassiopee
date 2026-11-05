@@ -470,14 +470,14 @@ Exchanges
     Gather a distributed dict on all processors.
     All processors then see the same dict.
     There are four ways to build the gathered dict:
-      - method 0 (default) - Unique values: for a given key, the gathered data
+    * method 0 (default) - Unique values: for a given key, the gathered data
         is a single list containing unique values only.
-      - method 1 - All values found: for a given key, the gathered data is a
+    * method 1 - All values found: for a given key, the gathered data is a
         list containing all values.
-      - method 2 - All values, fill missing with fillValue: for a given key, the
+    * method 2 - All values, fill missing with fillValue: for a given key, the
         gathered data is a list containing all values. If the key is not found
         on one rank, add fillValue (default None).
-      - method 3 - Single value: for a given key, the gathered data is a single
+    * method 3 - Single value: for a given key, the gathered data is a single
         value. If a key is found multiple times, choose the corresponding value
         in the lowest rank.
 
@@ -521,11 +521,11 @@ Exchanges
     Reduce a distributed dict to all procs (using pickle, small data) applying op.
     All processors then see the same dict.
     There are three ways to build the gathered dict:
-      - method 0 (default) - Unique values: for a given key, the gathered data
+    * method 0 (default) - Unique values: for a given key, the gathered data
         is a single list containing unique values only.
-      - method 1 - All values found: for a given key, the gathered data is a
+    * method 1 - All values found: for a given key, the gathered data is a
         list containing all values.
-      - method 2 - All values, fill missing with fillValue: for a given key, the
+    * method 2 - All values, fill missing with fillValue: for a given key, the
         gathered data is a list containing all values. If the key is not found
         on one rank, add fillValue (default None).
     Valid reduce ops to apply to the gathered dict are Cmpi.SUM, Cmpi.MIN, Cmpi.MAX, Cmpi.LOR, and Cmpi.LAND.
