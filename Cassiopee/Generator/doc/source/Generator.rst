@@ -1215,7 +1215,7 @@ Cartesian grid generators
 ---------------------------------------
 
 Hierarchical mesh adaptation
------------------------
+-----------------------------
 
 .. py:function:: Generator.PyTree.adaptMesh(a, indicator="indicator", hook=None, dim=3, conformize=False, splitInfos=None)
 
@@ -1335,8 +1335,8 @@ Operations on meshes
     
     Exists also as in place version (_rmOrphans) that modifies a and returns None. 
 
-    :param a:  input mesh
-    :type  a:  array or pyTree
+    :param a: input mesh
+    :type  a: array or pyTree
     :return: modified reference copy of a
     :rtype: array or pyTree
 

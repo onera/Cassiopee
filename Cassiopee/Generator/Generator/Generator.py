@@ -856,6 +856,13 @@ def close(array, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True,
             indices.append(indirl)
         return out
 
+def rmOrphans(a, indices=None, status=None):
+    """Remove orphan vertices."""
+    return close(a, rmOverlappingPts=False, rmOrphanPts=True,
+                 rmDuplicatedFaces=False, rmDuplicatedElts=False,
+                 rmDegeneratedFaces=False, rmDegeneratedElts=False,
+                 indices=indices, status=status)
+
 def zip(array, tol=1e-12):
     """Zip a set of meshes defined by gathering exterior points closer than tol.
     Usage: zip(array, tol)"""

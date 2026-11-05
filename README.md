@@ -119,6 +119,7 @@ Building from source may require a suitable compiler toolchain and external libr
 |---|---|
 | `cassiopee` | Main graphical user interface (GUI) for pyTree visualization and pre-/post-processing. |
 | `cplot` | Cassiopee's lightweight display application, supporting a wide range of mesh and visualization formats. |
+| `kcgnsview` | Cassiopee's lightweight pyTree display application, for displaying tree structure and loading data on demand. |
 | `validCassiopee` | Cassiopee's continuous integration (CI) tool for running regression tests and CFD validation cases, comparing results against local/global references, and tracking test status and execution times. |
 | `kpython` | Cassiopee's Python executable wrapper to facilitate the launch of Python scripts sequentially or in parallel via MPI and OpenMP. Additional options include profiling, sanitizer, and GNU Debugger (GDB) support. |
 | `kdiff` | Cassiopee's own diff tool for comparing two files across a wide range of file formats. |
