@@ -59,12 +59,10 @@ def update(event=None):
     paramName = VARS[0].get()
     paramValue = CTK.varsFromWidget(VARS[1].get(), type=1)[0]
     PARAMS[paramName] = paramValue
+    updatePLB()
     q = DB.query(PARAMS)
     t = DB.fetchTree(q)
-    #tp = P.exteriorFaces(t)
-    #tp = T.splitSharpEdges(tp)
-    #tp = Internal.getZones(tp)[0]
-    tp = T.scale(t, (1,0.00001,1))
+    tp = T.scale(t, (1,0.00001,1)) # specific to 2D
     CPlot.display(tp, bgColor=1)
 
 #==============================================================================
@@ -96,6 +94,25 @@ def setParameterName(event=None):
     v = (value-vmin)/(vmax-vmin)*100.
     WIDGETS['valueSlider'].set(v)
     update()
+
+#==============================================================================
+def updatePLB(event=None):
+    lb = WIDGETS['PLB']
+    lb.delete(0, TK.END)
+    i = 0
+    for k in PARAMS:
+        value = f"{k}: {PARAMS[k]} ({RANGEMIN[k]} to {RANGEMAX[k]})"
+        lb.insert(i, value)
+        i += 1
+
+#==============================================================================
+def updateParameterFromPLB(event=None):
+    selection = WIDGETS['PLB'].curselection()
+    for s in selection:
+        t = WIDGETS['PLB'].get(s)
+        p = t.split(':')[0]
+        VARS[0].set(p)
+        setParameterName()
 
 #==============================================================================
 # Create app widgets
@@ -172,6 +189,26 @@ def createApp(win):
     WIDGETS['valueSlider'] = B
     B.grid(row=2, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[2])
+
+    # - parameter list box (PLB) to display parameters and their range -
+    LBFrame = TTK.Frame(Frame)
+    LBFrame.grid(row=6, column=0, columnspan=2, sticky=TK.EW)
+    LBFrame.rowconfigure(0, weight=1)
+    LBFrame.rowconfigure(1, weight=0)
+    LBFrame.columnconfigure(0, weight=1)
+    LBFrame.columnconfigure(1, weight=0)
+    SBV = TTK.Scrollbar(LBFrame, orient=TK.VERTICAL)
+    SBH = TTK.Scrollbar(LBFrame, orient=TK.HORIZONTAL)
+    LB  = TTK.Listbox(LBFrame, selectmode=TK.EXTENDED, height=8)
+    LB.bind('<Double-1>', updateParameterFromPLB)
+    SBV.config(command=LB.yview)
+    SBH.config(command=LB.xview)
+    LB.config(yscrollcommand=SBV.set)
+    LB.config(yscrollcommand=SBH.set)
+    LB.grid(row=0, column=0, sticky=TK.NSEW)
+    SBV.grid(row=0, column=1, sticky=TK.NSEW)
+    SBH.grid(row=1, column=0, sticky=TK.NSEW)
+    WIDGETS['PLB'] = LB
 
     # update for first time
     update()

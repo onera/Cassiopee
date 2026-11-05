@@ -148,6 +148,7 @@ def update(event=None):
     params = getParamFromPart()
     params[paramName] = paramValue
     PART.instantiate(params)
+    updatePLB()
     if MODE == 0: # mesh
         out = []
         for E in ENTITIES:
@@ -179,6 +180,28 @@ def switchMode(event=None):
     if MODE == 0: WIDGETS['Mode'].config(text='dXdmu')
     elif MODE == 1: WIDGETS['Mode'].config(text='mesh')
     update()
+
+#==============================================================================
+def updatePLB(event=None):
+    lb = WIDGETS['PLB']
+    lb.delete(0, TK.END)
+    params = getParamFromPart()
+    i = 0
+    for k in params:
+        v = PART.scalars[k].v
+        r = PART.scalars[k].range
+        value = f"{k}: {v} ({r[0]} to {r[1]})"
+        lb.insert(i, value)
+        i += 1
+
+#==============================================================================
+def updateParameterFromPLB(event=None):
+    selection = WIDGETS['PLB'].curselection()
+    for s in selection:
+        t = WIDGETS['PLB'].get(s)
+        p = t.split(':')[0]
+        VARS[0].set(p)
+        setParameterName()
 
 #==============================================================================
 # Create app widgets
@@ -313,11 +336,31 @@ def createApp(win):
     B.grid(row=4, column=0, columnspan=2, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B, textVariable=VARS[4])
 
-    # - trigger mode -
+    # - trigger mode (mesh, sensitivities) -
     B = TTK.Button(Frame, text="dXdmu", command=switchMode)
     B.grid(row=5, column=0, columnspan=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Switch mode.')
+    BB = CTK.infoBulle(parent=B, text='Switch mode between mesh and sensitivities.')
     WIDGETS['Mode'] = B
+
+    # - parameter list box (PLB) to display parameters and their range -
+    LBFrame = TTK.Frame(Frame)
+    LBFrame.grid(row=6, column=0, columnspan=2, sticky=TK.EW)
+    LBFrame.rowconfigure(0, weight=1)
+    LBFrame.rowconfigure(1, weight=0)
+    LBFrame.columnconfigure(0, weight=1)
+    LBFrame.columnconfigure(1, weight=0)
+    SBV = TTK.Scrollbar(LBFrame, orient=TK.VERTICAL)
+    SBH = TTK.Scrollbar(LBFrame, orient=TK.HORIZONTAL)
+    LB  = TTK.Listbox(LBFrame, selectmode=TK.EXTENDED, height=8)
+    LB.bind('<Double-1>', updateParameterFromPLB)
+    SBV.config(command=LB.yview)
+    SBH.config(command=LB.xview)
+    LB.config(yscrollcommand=SBV.set)
+    LB.config(yscrollcommand=SBH.set)
+    LB.grid(row=0, column=0, sticky=TK.NSEW)
+    SBV.grid(row=0, column=1, sticky=TK.NSEW)
+    SBH.grid(row=1, column=0, sticky=TK.NSEW)
+    WIDGETS['PLB'] = LB
 
     # update for first time
     if PART is not None:
