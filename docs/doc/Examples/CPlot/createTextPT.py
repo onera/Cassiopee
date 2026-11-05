@@ -1,4 +1,4 @@
-# - Decorator.createArraow (pyTree) -
+# - createText (pyTree) -
 import CPlot.PyTree as CPlot
 import CPlot.Decorator as Decorator
 import Generator.PyTree as G

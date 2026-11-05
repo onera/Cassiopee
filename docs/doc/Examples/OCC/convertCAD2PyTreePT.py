@@ -1,4 +1,4 @@
-# - convertIGES2PyTree (PyTree) -
+# - convertCAD2PyTree (pyTree) -
 import OCC.PyTree as OCC
 import Converter.PyTree as C
 

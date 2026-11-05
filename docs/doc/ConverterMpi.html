@@ -850,21 +850,30 @@ connected to local zones through the graph.</p>
 <span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">allgatherDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fillValue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Gather a distributed dict on all processors.
 All processors then see the same dict.
-There are four ways to build the gathered dict:</p>
+There are four ways to build the gathered dict:
+* method 0 (default) - Unique values: for a given key, the gathered data</p>
 <blockquote>
-<div><ul class="simple">
-<li><p>method 0 (default) - Unique values: for a given key, the gathered data
-is a single list containing unique values only.</p></li>
-<li><p>method 1 - All values found: for a given key, the gathered data is a
-list containing all values.</p></li>
-<li><p>method 2 - All values, fill missing with fillValue: for a given key, the
-gathered data is a list containing all values. If the key is not found
-on one rank, add fillValue (default None).</p></li>
-<li><p>method 3 - Single value: for a given key, the gathered data is a single
-value. If a key is found multiple times, choose the corresponding value
-in the lowest rank.</p></li>
-</ul>
+<div><p>is a single list containing unique values only.</p>
 </div></blockquote>
+<ul class="simple">
+<li><dl class="simple">
+<dt>method 1 - All values found: for a given key, the gathered data is a</dt><dd><p>list containing all values.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>method 2 - All values, fill missing with fillValue: for a given key, the</dt><dd><p>gathered data is a list containing all values. If the key is not found
+on one rank, add fillValue (default None).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>method 3 - Single value: for a given key, the gathered data is a single</dt><dd><p>value. If a key is found multiple times, choose the corresponding value
+in the lowest rank.</p>
+</dd>
+</dl>
+</li>
+</ul>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -976,18 +985,24 @@ All processors then see the same tree.</p>
 <span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">allreduceDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fillValue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">op</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Cmpi.SUM</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Reduce a distributed dict to all procs (using pickle, small data) applying op.
 All processors then see the same dict.
-There are three ways to build the gathered dict:</p>
+There are three ways to build the gathered dict:
+* method 0 (default) - Unique values: for a given key, the gathered data</p>
 <blockquote>
-<div><ul class="simple">
-<li><p>method 0 (default) - Unique values: for a given key, the gathered data
-is a single list containing unique values only.</p></li>
-<li><p>method 1 - All values found: for a given key, the gathered data is a
-list containing all values.</p></li>
-<li><p>method 2 - All values, fill missing with fillValue: for a given key, the
-gathered data is a list containing all values. If the key is not found
-on one rank, add fillValue (default None).</p></li>
-</ul>
+<div><p>is a single list containing unique values only.</p>
 </div></blockquote>
+<ul class="simple">
+<li><dl class="simple">
+<dt>method 1 - All values found: for a given key, the gathered data is a</dt><dd><p>list containing all values.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>method 2 - All values, fill missing with fillValue: for a given key, the</dt><dd><p>gathered data is a list containing all values. If the key is not found
+on one rank, add fillValue (default None).</p>
+</dd>
+</dl>
+</li>
+</ul>
 <p>Valid reduce ops to apply to the gathered dict are Cmpi.SUM, Cmpi.MIN, Cmpi.MAX, Cmpi.LOR, and Cmpi.LAND.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>

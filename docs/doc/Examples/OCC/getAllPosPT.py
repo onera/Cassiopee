@@ -1,4 +1,4 @@
-# - getAllPos (PyTree) -
+# - getAllPos (pyTree) -
 import Converter.Mpi as Cmpi
 import OCC.PyTree as OCC
 

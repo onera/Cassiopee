@@ -8,7 +8,7 @@ a = D.sphere((0,0,0), 1, N=200)
 
 # Multi images
 CPlot.display(a, offscreen=2, bgColor=1, mode=0, meshStyle=2,
-              solidStyle=1, posCam=(0,6,0), export='one.png')
+              solidStyle=1, posCam=(0,6,0), export='one.png', exportAA=1)
 CPlot.finalizeExport(2) # wait for end of file write
 for i in range(5):
     a = T.rotate(a, (0,0,0), (0,0,1), 1.)

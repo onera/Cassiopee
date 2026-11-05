@@ -5,7 +5,7 @@ import OCC.occ as occ
 import Converter.PyTree as C
 import Converter.Internal as Internal
 import Intersector.PyTree as XOR
-import numpy as np
+import numpy
 import sys
 
 
@@ -51,7 +51,7 @@ t = C.initVars(t, 'hz', sys.float_info.max)
 t = C.initVars(t, 'ncadid', -1)
 
 # Initialisation fcadid
-fcadid = np.empty((XOR.nb_faces(t)), dtype=np.int32)
+fcadid = numpy.empty((XOR.nb_faces(t)), dtype=numpy.int32)
 fcadid[:] = -1
 
 XOR._setZonesAndJoinsUId(t)
@@ -63,11 +63,11 @@ hmsh = XOR.createHMesh(t, 0)
 # Get zones
 z = Internal.getZones(t)
 # Get Information
-c = C.getFields(Internal.__GridCoordinates__, z[0])
-hx = C.getFields('CADData', C.extractVars(z, ['hx']))
-hy = C.getFields('CADData', C.extractVars(z, ['hy']))
-hz = C.getFields('CADData', C.extractVars(z, ['hz']))
-ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']))
+c = C.getFields(Internal.__GridCoordinates__, z[0], api=1)
+hx = C.getFields('CADData', C.extractVars(z, ['hx']), api=1)
+hy = C.getFields('CADData', C.extractVars(z, ['hy']), api=1)
+hz = C.getFields('CADData', C.extractVars(z, ['hz']), api=1)
+ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']), api=1)
 
 # Get BC points
 wall_face_ids = XOR.getBCPtListOfType(z, WALLBCS)
@@ -79,7 +79,6 @@ t = C.setFields(hx,t, 'nodes')
 t = C.setFields(hy,t, 'nodes')
 t = C.setFields(hz,t, 'nodes')
 t = C.setFields(ncadid,t, 'nodes')
-
 
 #-------------------------------------------
 # updateFcadidFromNcadid
@@ -93,7 +92,7 @@ occ.updateFcadidFromNcadid( c, wall_face_ids, ncadid, fcadid)
 # adaptCells
 #-------------------------------------------
 n = C.getNPts(t)
-nv = np.empty((n,), dtype=np.int32)
+nv = numpy.empty((n,), dtype=numpy.int32)
 nv[:] = 1
 
 t = XOR.adaptCells(t,nv, sensor_type=2,hmesh=hmsh)
@@ -123,11 +122,11 @@ t = C.setFields(ncadid, t, 'nodes')
 # Get zones
 z = Internal.getZones(t)
 # Get Information
-c = C.getFields(Internal.__GridCoordinates__, z[0])
-hx = C.getFields('CADData', C.extractVars(z, ['hx']))
-hy = C.getFields('CADData', C.extractVars(z, ['hy']))
-hz = C.getFields('CADData', C.extractVars(z, ['hz']))
-ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']))
+c = C.getFields(Internal.__GridCoordinates__, z[0], api=1)
+hx = C.getFields('CADData', C.extractVars(z, ['hx']), api=1)
+hy = C.getFields('CADData', C.extractVars(z, ['hy']), api=1)
+hz = C.getFields('CADData', C.extractVars(z, ['hz']), api=1)
+ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']), api=1)
 
 occ.linkNodes2CAD( c, wall_face_ids, hook, hx, hy, hz, ncadid )
 
@@ -136,9 +135,6 @@ t = C.setFields(hx,t, 'nodes')
 t = C.setFields(hy,t, 'nodes')
 t = C.setFields(hz,t, 'nodes')
 t = C.setFields(ncadid,t, 'nodes')
-
-#C.convertPyTree2File(t, 'out.cgns')
-
 
 #-------------------------------------------
 # QUANTUM

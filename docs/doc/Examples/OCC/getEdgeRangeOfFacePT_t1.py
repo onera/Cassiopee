@@ -1,4 +1,4 @@
-# - getEdgeRangeOfFace (PyTree) -
+# - getEdgeRangeOfFace (pyTree) -
 import Converter.Mpi as Cmpi
 import OCC.PyTree as OCC
 import KCore.test as test

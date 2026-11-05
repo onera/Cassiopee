@@ -3,7 +3,7 @@ import OCC
 import Converter as C
 import Generator as G
 
-hook = OCC.occ.readCAD("cube.step", "fmt_step")
+hook = OCC.readCAD("cube.step", "fmt_step")
 
 out = []
 for i in range(6):

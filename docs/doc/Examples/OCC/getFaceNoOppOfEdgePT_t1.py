@@ -1,4 +1,4 @@
-# - getFaceNoOppOfEdge (PyTree) -
+# - getFaceNoOppOfEdge (pyTree) -
 import Converter.PyTree as C
 import OCC.PyTree as OCC
 import KCore.test as test
