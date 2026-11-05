@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Converter: CFD data conversion module &#8212; Converter 4.2 documentation</title>
+    <title>Converter: CFD data conversion module &#8212; Converter 2026.11 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Converter 4.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Converter 2026.11 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Converter: CFD data conversion module</a></li> 
       </ul>
     </div>  
@@ -253,82 +253,85 @@ recognised. Naming convention is described in the following table.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.sliceNGonFaces" title="Converter.PyTree.sliceNGonFaces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.sliceNGonFaces</span></code></a></p></td>
 <td><p>Slice an NGON connectivity using a list of face indices.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.deleteEmptyZones" title="Converter.PyTree.deleteEmptyZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.deleteEmptyZones</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.deleteEmptyBases" title="Converter.PyTree.deleteEmptyBases"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.deleteEmptyBases</span></code></a></p></td>
+<td><p>Delete bases that do not contain a single zone.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.deleteEmptyZones" title="Converter.PyTree.deleteEmptyZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.deleteEmptyZones</span></code></a></p></td>
 <td><p>Delete zones with null number of points or elements.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#id2" title="Converter.PyTree.addState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addState</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#id2" title="Converter.PyTree.addState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addState</span></code></a></p></td>
 <td><p>Add single state value or a full reference state.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.addChimera2Base" title="Converter.PyTree.addChimera2Base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addChimera2Base</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.addChimera2Base" title="Converter.PyTree.addChimera2Base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addChimera2Base</span></code></a></p></td>
 <td><p>Add chimera setting as node in base.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.addBC2Zone" title="Converter.PyTree.addBC2Zone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addBC2Zone</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.addBC2Zone" title="Converter.PyTree.addBC2Zone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addBC2Zone</span></code></a></p></td>
 <td><p>Add a BC to a zone node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.fillEmptyBCWith" title="Converter.PyTree.fillEmptyBCWith"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.fillEmptyBCWith</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.fillEmptyBCWith" title="Converter.PyTree.fillEmptyBCWith"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.fillEmptyBCWith</span></code></a></p></td>
 <td><p>Fill empty BCs with given type.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCOfType" title="Converter.PyTree.rmBCOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCOfType</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCOfType" title="Converter.PyTree.rmBCOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCOfType</span></code></a></p></td>
 <td><p>Remove BCs of given type.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCOfName" title="Converter.PyTree.rmBCOfName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCOfName</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCOfName" title="Converter.PyTree.rmBCOfName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCOfName</span></code></a></p></td>
 <td><p>Remove BCs of given name.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCDataVars" title="Converter.PyTree.rmBCDataVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCDataVars</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.rmBCDataVars" title="Converter.PyTree.rmBCDataVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.rmBCDataVars</span></code></a></p></td>
 <td><p>Remove variables var from t in every BCDataSet.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCOfType" title="Converter.PyTree.extractBCOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCOfType</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCOfType" title="Converter.PyTree.extractBCOfType"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCOfType</span></code></a></p></td>
 <td><p>Extract the grid coordinates of given BC type as zones.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCOfName" title="Converter.PyTree.extractBCOfName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCOfName</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCOfName" title="Converter.PyTree.extractBCOfName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCOfName</span></code></a></p></td>
 <td><p>Extract the grid coordinates of given BC name as zones.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getEmptyBC" title="Converter.PyTree.getEmptyBC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getEmptyBC</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getEmptyBC" title="Converter.PyTree.getEmptyBC"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getEmptyBC</span></code></a></p></td>
 <td><p>Return the range or facelist of unset boundary conditions.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getBCs" title="Converter.PyTree.getBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getBCs</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getBCs" title="Converter.PyTree.getBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getBCs</span></code></a></p></td>
 <td><p>Return geometry, names and types of boundary conditions.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.recoverBCs" title="Converter.PyTree.recoverBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.recoverBCs</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.recoverBCs" title="Converter.PyTree.recoverBCs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.recoverBCs</span></code></a></p></td>
 <td><p>Recover given BCs on a tree.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCFields" title="Converter.PyTree.extractBCFields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCFields</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.extractBCFields" title="Converter.PyTree.extractBCFields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.extractBCFields</span></code></a></p></td>
 <td><p>Extract fields on BCs.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getConnectedZones" title="Converter.PyTree.getConnectedZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getConnectedZones</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getConnectedZones" title="Converter.PyTree.getConnectedZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getConnectedZones</span></code></a></p></td>
 <td><p>Return the list of zones connected to a through match or nearMatch.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.addFamily2Base" title="Converter.PyTree.addFamily2Base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addFamily2Base</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.addFamily2Base" title="Converter.PyTree.addFamily2Base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addFamily2Base</span></code></a></p></td>
 <td><p>Add a family node to a base node.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.tagWithFamily" title="Converter.PyTree.tagWithFamily"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.tagWithFamily</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.tagWithFamily" title="Converter.PyTree.tagWithFamily"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.tagWithFamily</span></code></a></p></td>
 <td><p>Tag a zone node or a BC node with a familyName.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyZones" title="Converter.PyTree.getFamilyZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyZones</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyZones" title="Converter.PyTree.getFamilyZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyZones</span></code></a></p></td>
 <td><p>Return all zones that have this familyName.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyZoneNames" title="Converter.PyTree.getFamilyZoneNames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyZoneNames</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyZoneNames" title="Converter.PyTree.getFamilyZoneNames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyZoneNames</span></code></a></p></td>
 <td><p>Return the family zone names in a tree or a base.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyBCNamesDict" title="Converter.PyTree.getFamilyBCNamesDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyBCNamesDict</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getFamilyBCNamesDict" title="Converter.PyTree.getFamilyBCNamesDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getFamilyBCNamesDict</span></code></a></p></td>
 <td><p>Return the dictionary of familyBCs.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.getValue" title="Converter.PyTree.getValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getValue</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.getValue" title="Converter.PyTree.getValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.getValue</span></code></a></p></td>
 <td><p>Return the values for a point of index ind or (i,j,k).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.setValue" title="Converter.PyTree.setValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.setValue</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.setValue" title="Converter.PyTree.setValue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.setValue</span></code></a></p></td>
 <td><p>Set the values in an array for a point of index ind or (i,j,k).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.setPartialFields" title="Converter.PyTree.setPartialFields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.setPartialFields</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.setPartialFields" title="Converter.PyTree.setPartialFields"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.setPartialFields</span></code></a></p></td>
 <td><p>Set some field values for given indices.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.addVars" title="Converter.PyTree.addVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addVars</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.addVars" title="Converter.PyTree.addVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.addVars</span></code></a></p></td>
 <td><p>Add variables to a pyTree.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.fillMissingVariables" title="Converter.PyTree.fillMissingVariables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.fillMissingVariables</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.fillMissingVariables" title="Converter.PyTree.fillMissingVariables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.fillMissingVariables</span></code></a></p></td>
 <td><p>Fill FlowSolution nodes with variables, such that all the zones have the same variables.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.PyTree.cpVars" title="Converter.PyTree.cpVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.cpVars</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.PyTree.cpVars" title="Converter.PyTree.cpVars"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.PyTree.cpVars</span></code></a></p></td>
 <td><p>Copy field variables.</p></td>
 </tr>
 </tbody>
@@ -361,7 +364,7 @@ recognised. Naming convention is described in the following table.</p>
 <td><p>Convert a array in an unstructured tetra array.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#.Converter.convertArray2Hexa" title=".Converter.convertArray2Hexa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.convertArray2Hexa</span></code></a></p></td>
-<td><p>Convert a array in an unstructured hexa array.</p></td>
+<td><p>Convert an array in an unstructured hexa array.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#.Converter.convertArray2NGon" title=".Converter.convertArray2NGon"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.convertArray2NGon</span></code></a></p></td>
 <td><p>Convert a array in a NGON array.</p></td>
@@ -822,7 +825,7 @@ attached zones eventually. See below example for all possibilities of input.</p>
 <span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">addBase2PyTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cellDim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Add a base named &#8216;baseName&#8217; to a pyTree. Third argument specifies the cell
 dimension (cellDim=3 for volume meshes, cellDim=2 for surface meshes).</p>
-<p>Exists also as in place version (_addBase2PyTree) that modifies a and
+<p>Also available as an in-place version (_addBase2PyTree) that modifies a and
 returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1065,11 +1068,45 @@ arrays: an array of face vertices and an array of face offsets.</p>
 
 <hr class="docutils" />
 <dl class="py function">
+<dt class="sig sig-object py" id="Converter.PyTree.deleteEmptyBases">
+<span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">deleteEmptyBases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Delete bases that do not contain a single zone.</p>
+<p>Also available as an in-place version (_deleteEmptyBases) that modifies a and
+returns None.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>a</strong> (<em>[</em><em>pyTree</em><em>]</em>) &#8211; Input data</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Identical to input</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/deleteEmptyBasesPT.py">Delete empty bases (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - deleteEmptyBases (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+<span class="kn">import</span> <span class="nn">KCore.test</span> <span class="k">as</span> <span class="nn">test</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base1&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="s1">&#39;Base2&#39;</span><span class="p">,</span> <span class="s1">&#39;Base3&#39;</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">deleteEmptyBases</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
 <dt class="sig sig-object py" id="Converter.PyTree.deleteEmptyZones">
 <span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">deleteEmptyZones</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Delete structured zones with a null ni, nj or nk, delete unstructured
 zones with a null number of nodes or elements.</p>
-<p>Exists also as in place version (_deleteEmptyZones) that modifies a and
+<p>Also available as an in-place version (_deleteEmptyZones) that modifies a and
 returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1104,7 +1141,7 @@ returns None.</p>
 <dt class="sig sig-object py" id="Converter.PyTree.addState">
 <span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">addState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Add a FlowEquation or a ReferenceState data.</p>
-<p>Exists also as in place version (_addState) that modifies a and
+<p>Also available as an in-place version (_addState) that modifies a and
 returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1124,7 +1161,7 @@ returns None.</p>
 <dt class="sig sig-object py" id="id2">
 <span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">addState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'adim1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaZ</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alphaY</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ReInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">UInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RoInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">LInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Mus</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MutSMuInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TurbLevelInf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">EquationDimension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GoverningEquations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Add a full reference state built from Adim. See Initiator documentation.</p>
-<p>Exists also as in place version (_addState) that modifies a and
+<p>Also available as an in-place version (_addState) that modifies a and
 returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1210,7 +1247,7 @@ They are used to define priority in grid assembly, setting of xray blanking,
 tolerance in double wall, and the kind of relationship for assembling
 components. &#8216;+&#8217; means union, &#8216;-&#8217; means difference, &#8216;0&#8217; means inactive,
 &#8216;N&#8217;: means neutral.</p>
-<p>Exists also as in place version (_addChimera2Base) that modifies base and
+<p>Also available as an in-place version (_addChimera2Base) that modifies base and
 returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1248,7 +1285,7 @@ returns None.</p>
 <dt class="sig sig-object py" id="Converter.PyTree.addBC2Zone">
 <span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">addBC2Zone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bndName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bndType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wrange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoneDonor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rangeDonor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trirac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1,</span> <span class="pre">2,</span> <span class="pre">3]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotationCenter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotationAngle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">translation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faceList</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elementList</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elementRange</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subzone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faceListDonor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elementListDonor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elementRangeDonor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.e-12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unitAngle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Add a physical boundary condition (BC) or a grid connectivity (GC) to a structured/basic element/NGON zone of a PyTree. Parameter bndName is the
-name of the BC or GC. Exists also as in place version (_addBC2Zone) modifying zone and returning None.</p>
+name of the BC or GC. Also available as an in-place version (_addBC2Zone) modifying zone and returning None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1339,7 +1376,7 @@ name of the BC or GC. Exists also as in place version (_addBC2Zone) modifying zo
 <span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">fillEmptyBCWith</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bndName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bndType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Fill empty boundary conditions of grids with the
 given boundary condition. Parameter dim can be 2 or 3.</p>
-<p>Exists also as in place version (_fillEmptyBCWith) that modifies a and
+<p>Also available as an in-place version (_fillEmptyBCWith) that modifies a and
 returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1379,7 +1416,7 @@ returns None.</p>
 bndType can also be a family
 BC name. In this case, to remove a family named &#8216;myFamily&#8217;, you
 must set bndType to &#8216;FamilySpecified:myFamily&#8217;.</p>
-<p>Exists also as in place version (_rmBCOfType) that modifies a and
+<p>Also available as an in-place version (_rmBCOfType) that modifies a and
 returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1431,7 +1468,7 @@ bndName accepts wildcards.
 bndName can also be a family
 BC name. In this case, to remove a family named &#8216;myFamily&#8217;, you
 must set bndName to &#8216;FamilySpecified:myFamily&#8217;.</p>
-<p>Exists also as in place version (_rmBCOfName) that modifies a and
+<p>Also available as an in-place version (_rmBCOfName) that modifies a and
 returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1481,7 +1518,7 @@ returns None.</p>
 <dd><p>Remove variables given by varName in all BCDataSet.
 a can be tree, zone or list of zones.
 varName can be single variable name or a list of variable name.</p>
-<p>Exists also as in place version (_rmBCDataVars) that modifies a and
+<p>Also available as an in-place version (_rmBCDataVars) that modifies a and
 returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1696,7 +1733,7 @@ angle between neighbouring elements exceeds splitFactor in degrees
 <span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">recoverBCs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">(BCs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BCNames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">BCTypes)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tol=1.e-11</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">removeBC=True</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Recover given BCs onto a NGon tree. BCs are given by a tuple of geometries, names and types has obtained
 by getBCs.
-Exists also as in place version (_recoverBCs) that modifies t and returns None.</p>
+Also available as an in-place version (_recoverBCs) that modifies t and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1832,7 +1869,7 @@ a set of boundary conditions (family of BCs).
 If the family designates a family BC, then bndType must be defined
 with a CGNS BC type or with &#8216;UserDefined&#8217;.
 This family name can then be referenced in zones or in boundary conditions.</p>
-<p>Exists also as in place version (_addFamily2Base) that modifies a and
+<p>Also available as an in-place version (_addFamily2Base) that modifies a and
 returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1872,7 +1909,7 @@ If a is a BC node or a list of BC nodes, family is supposed to
 be a familyBC.
 If add=True and a family already exists, the family is
 added as a AdditionalFamilyName.</p>
-<p>Exists also as in place version (_tagWithFamily) that modifies a and
+<p>Also available as an in-place version (_tagWithFamily) that modifies a and
 returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2131,7 +2168,7 @@ it is better to use setPartialFields.</p>
 list of arrays in F (one array for each zone), indices are given as
 a list of numpys in I (one numpy for each zone),
 loc can be &#8216;nodes&#8217; or &#8216;centers&#8217;.</p>
-<p>Exists also as in place version (_setPartialFields) that modifies a
+<p>Also available as an in-place version (_setPartialFields) that modifies a
 and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2215,7 +2252,7 @@ version (_addVars) that modifies a and returns None.</p>
 <span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">fillMissingVariables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Add missing variables and reorder variables for all zones, such that
 all zones have the same variables at the end.</p>
-<p>Exists also as in place version (_fillMissingVariables) that modifies a
+<p>Also available as an in-place version (_fillMissingVariables) that modifies a
 and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2252,7 +2289,7 @@ and returns None.</p>
 <span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">cpVars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var2</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Copy a variable from zone a1, with name var1, to zone a2, with name var2.
 The var location must be coherent. a1 and a2 can be identical.</p>
-<p>Exists also as in place version (_cpVars) that modifies a2
+<p>Also available as an in-place version (_cpVars) that modifies a2
 and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -2508,7 +2545,7 @@ contain varName.</p>
 <p>For initialisation by a function or by a constant, varNameString can be a string
 or a list of strings.</p>
 <p>If the function is vectorized (can be interpreted as a numpy formula), set isVectorized to True.</p>
-<p>Exists also as in place version (_initVars) that modifies a and returns None.</p>
+<p>Also available as an in-place version (_initVars) that modifies a and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -2722,7 +2759,7 @@ or a list of strings.</p>
 <dt class="sig sig-object py" id=".Converter.rmVars">
 <span class="sig-prename descclassname"><span class="pre">Converter.</span></span><span class="sig-name descname"><span class="pre">rmVars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varNames</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Remove variable(s) from a. varNames is a string name or a list of string names.</p>
-<p>Exists also as in place version (_rmVars) that modifies a and returns None.</p>
+<p>Also available as an in-place version (_rmVars) that modifies a and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -3186,7 +3223,7 @@ mesh with hanging nodes will be made conform.</p>
 <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mf">1.</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">11</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mf">2.</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 <span class="n">res2</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">conformizeNGon</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">res2</span><span class="p">,</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
 </pre></div>
@@ -3201,7 +3238,7 @@ mesh with hanging nodes will be made conform.</p>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">11</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cartNGon</span><span class="p">((</span><span class="mf">1.</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.2</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">11</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">conformizeNGon</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
 </pre></div>
@@ -3343,7 +3380,7 @@ If adaptBCs=1, Zone BCs are adapted to fit grid with ghost cells.
 If fillCorner=1, edges and corners are filled
 according to the grid connectivity (geometrically, the corners and edges can be wrong).
 If fillCorner=0, neighbouring vectors are extrapolated to build edge cells, no filling with flow field.
-Exists also as in place version (_addGhostCells) that modifies a and returns None.</p>
+Also available as an in-place version (_addGhostCells) that modifies a and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -3387,7 +3424,7 @@ Exists also as in place version (_addGhostCells) that modifies a and returns Non
 <dt class="sig sig-object py" id="Converter.PyTree.rmGhostCells">
 <span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">rmGhostCells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adaptBCs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modified</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Remove ghost cells to structured grids. See addGhostCells.</p>
-<p>Exists also as in place version (_rmGhostCells) that modifies a and returns None.</p>
+<p>Also available as an in-place version (_rmGhostCells) that modifies a and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -3435,7 +3472,7 @@ Exists also as in place version (_addGhostCells) that modifies a and returns Non
 <dt class="sig sig-object py" id="Converter.PyTree.signNGonFaces">
 <span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">signNGonFaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>For NGON zones, sign the NFACE connectivity with cell external normals.</p>
-<p>Exists also as in place version (_signNGonFaces) that modifies t and returns None.</p>
+<p>Also available as an in-place version (_signNGonFaces) that modifies t and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -3467,7 +3504,7 @@ Exists also as in place version (_addGhostCells) that modifies a and returns Non
 <dt class="sig sig-object py" id="Converter.PyTree.unsignNGonFaces">
 <span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">unsignNGonFaces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>For NGON zones, unsign the NFACE connectivity.</p>
-<p>Exists also as in place version (_unsignNGonFaces) that modifies t and returns None.</p>
+<p>Also available as an in-place version (_unsignNGonFaces) that modifies t and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>t</strong> (<em>pyTree</em>) &#8211; tree</p>
@@ -3519,7 +3556,7 @@ Exists also as in place version (_addGhostCells) that modifies a and returns Non
 <span class="sig-prename descclassname"><span class="pre">Converter.PyTree.</span></span><span class="sig-name descname"><span class="pre">makeParentElements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>For NGON zones, construct parent elements array from NFACE connectivity.
 Always checks the validity of input mesh. Raises error if mesh is invalid.</p>
-<p>Exists also as in place version (_makeParentElements) that modifies t and returns None.</p>
+<p>Also available as an in-place version (_makeParentElements) that modifies t and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>t</strong> (<em>pyTree</em>) &#8211; tree</p>
@@ -3907,7 +3944,7 @@ value of F for the 30% lowest values.</p>
 <dd><p>Normalize a vector defined by its 3 vector components.
 The vector component values are modified such that the
 vector (a.sx,a.sy,a.sz) has a unit norm for each point.</p>
-<p>Exists also as in place version (_normalize) that modifies a and returns None.</p>
+<p>Also available as an in-place version (_normalize) that modifies a and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -3960,7 +3997,7 @@ vector (a.sx,a.sy,a.sz) has a unit norm for each point.</p>
 <dd><p>Get the magnitude of a vector defined by its 3 vector components for each point.
 The name of created field is composed from the components names.
 For instance &#8216;sx,sy,sz&#8217; will create a &#8216;sMagnitude&#8217; field.</p>
-<p>Exists also as in place version (_magnitude) that modifies a and returns None.</p>
+<p>Also available as an in-place version (_magnitude) that modifies a and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -4010,7 +4047,7 @@ For instance &#8216;sx,sy,sz&#8217; will create a &#8216;sMagnitude&#8217; field
 <span class="sig-prename descclassname"><span class="pre">Converter.</span></span><span class="sig-name descname"><span class="pre">randomizeVar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deltaMin</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deltaMax</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Randomize a fied varName. The modified field is bounded by
 [f-deltaMin,f+deltaMax] where f is the local field value.</p>
-<p>Exists also as in place version (_randomizeVar) that modifies a and returns None.</p>
+<p>Also available as an in-place version (_randomizeVar) that modifies a and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -4349,35 +4386,39 @@ For a list of available options, see <a class="reference internal" href="#writeo
 <td><p>.ply</p></td>
 <td><p>binary PLY file (STANFORD)</p></td>
 </tr>
-<tr class="row-even"><td><p>bin_pickle</p></td>
+<tr class="row-even"><td><p>fmt_free</p></td>
+<td><p>.csv</p></td>
+<td><p>simple column data</p></td>
+</tr>
+<tr class="row-odd"><td><p>bin_pickle</p></td>
 <td><p>.ref</p></td>
 <td><p>binary python pickle file</p></td>
 </tr>
-<tr class="row-odd"><td><p>bin_wav</p></td>
+<tr class="row-even"><td><p>bin_wav</p></td>
 <td><p>.wav</p></td>
 <td><p>binary wav 8 bits sound file</p></td>
 </tr>
-<tr class="row-even"><td><p>fmt_xfig</p></td>
+<tr class="row-odd"><td><p>fmt_xfig</p></td>
 <td><p>.fig</p></td>
 <td><p>formatted XFIG file</p></td>
 </tr>
-<tr class="row-odd"><td><p>fmt_svg</p></td>
+<tr class="row-even"><td><p>fmt_svg</p></td>
 <td><p>.svg</p></td>
 <td><p>formatted SVG file (INKSCAPE)</p></td>
 </tr>
-<tr class="row-even"><td><p>bin_png</p></td>
+<tr class="row-odd"><td><p>bin_png</p></td>
 <td><p>.png</p></td>
 <td><p>binary PNG file</p></td>
 </tr>
-<tr class="row-odd"><td><p>bin_jpg</p></td>
+<tr class="row-even"><td><p>bin_jpg</p></td>
 <td><p>.jpg</p></td>
 <td><p>binary JPEG file</p></td>
 </tr>
-<tr class="row-even"><td><p>fmt_iges</p></td>
+<tr class="row-odd"><td><p>fmt_iges</p></td>
 <td><p>.igs</p></td>
 <td><p>formatted IGES CAD file</p></td>
 </tr>
-<tr class="row-odd"><td><p>fmt_step</p></td>
+<tr class="row-even"><td><p>fmt_step</p></td>
 <td><p>.stp</p></td>
 <td><p>formatted STEP CAD file</p></td>
 </tr>
@@ -5690,7 +5731,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Converter 4.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Converter 2026.11 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Converter: CFD data conversion module</a></li> 
       </ul>
     </div>

@@ -247,12 +247,13 @@ docker run -it --rm --network=host --privileged \
 <p>To run the container interactively using Docker Compose:</p>
 <pre><code class="language-sh">xhost +local:docker
 cd $CASSIOPEE
-cp .env.template .env  # configure any environment variables if needed
+cp etc/.env .env  # configure any environment variables if needed
 docker compose run --rm cassiopee
 </code></pre>
 <p>Docker Compose automatically sets up the container with the correct volumes, display, and privileges.</p>
 <p>As with manual execution, <code>--rm</code> ensures the container is removed when you exit.</p>
-<p>Use the <code>.env</code> file to configure the tag and python version used without modifying the Compose file directly.</p>
+<p>Use the <code>.env</code> file to configure the tag and python version used without modifying the Compose file directly. A template
+is available in etc/templates/.env and the user can store his own copy in etc/.env.</p>
 <p><br></br></p>
 <h2 id="4-deleting-a-docker-image">4. Deleting a Docker image</h2>
 <p>To delete an outdated docker image, first list all existing images, copy the <em>hash</em> of the image you would like to delete and remove from hash as</p>

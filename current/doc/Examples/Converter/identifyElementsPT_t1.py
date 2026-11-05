@@ -67,19 +67,17 @@ test.testO(elts, 7)
 a = G.cartNGon((0,0,0), (1,1,0), (10,10,1), api=1)
 f = P.exteriorElts(a)
 hook = C.createHook(a, function='elementCenters')
-#elts = C.identifyElements(hook, f)
-#print(elts)
+elts = C.identifyElements(hook, f)
 C.freeHook(hook)
-#test.testO(elts, 8)
+test.testO(elts, 8)
 
 # 3D NGon v3
 a = G.cartNGon((0,0,0), (1,1,1), (10,10,10), api=1)
 f = P.exteriorElts(a)
 hook = C.createHook(a, function='elementCenters')
-#elts = C.identifyElements(hook, f)
-#print(elts)
+elts = C.identifyElements(hook, f)
 C.freeHook(hook)
-#test.testO(elts, 9)
+test.testO(elts, 9)
 
 # 2D NGon v4
 a = G.cartNGon((0,0,0), (1,1,0), (10,10,1), api=3)

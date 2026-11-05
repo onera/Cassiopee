@@ -180,20 +180,20 @@
 and install it.</p>
 <h2 id="install-dependencies">Install dependencies</h2>
 <p>In an msys2 mingw64 terminal:</p>
-<pre><code class="language-shell">pacman -S mingw64/mingw-w64-x86_64-gcc
-pacman -S mingw64/mingw-w64-x86_64-gcc-fortran
-pacman -S mingw64/mingw-w64-x86_64-python
-pacman -S mingw64/mingw-w64-x86_64-python-numpy
-pacman -S mingw64/mingw-w64-x86_64-scons
-pacman -S mingw64/mingw-w64-x86_64-python-pip
-pacman -S mingw64/mingw-w64-x86_64-python-pip-tools
-pacman -S mingw64/mingw-w64-x86_64-hdf5
-pacman -S mingw64/mingw-w64-x86_64-opencascade
+<pre><code class="language-shell">pacman -S ucrt64/mingw-w64-ucrt-x86_64-gcc
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-gcc-fortran
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-python
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-python-numpy
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-scons
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-python-pip
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-python-pip-tools
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-hdf5
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-opencascade
 </code></pre>
 <p>For parallel:
 First install Microsoft mpi redistribution. Then:</p>
-<pre><code class="language-shell">pacman -S mingw64/mingw-w64-x86_64-msmpi
-pacman -S mingw-w64-x86_64-python-mpi4py
+<pre><code class="language-shell">pacman -S ucrt64/mingw-w64-ucrt-x86_64-msmpi
+pacman -S ucrt64/mingw-w64-ucrt-x86_64-python-mpi4py
 </code></pre>
 <p>&lt;!-- For optional tigl:</p>
 <pre><code class="language-shell">pacman -S mingw64/mingw-w64-x86_64-libxml2
@@ -212,7 +212,7 @@ export LD_LIBRARY_PATH=/mingw64/lib:$LD_LIBRARY_PATH
 export MACHINE=msys2
 
 source $CASSIOPEE/Cassiopee/Envs/sh_Cassiopee_r8
-cd $CASSIOPEE/Cassiopee
+cd $CASSIOPEE
 ./install
 </code></pre>
 <h2 id="some-usefull-pacman-commands">Some usefull pacman commands</h2>

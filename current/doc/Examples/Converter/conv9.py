@@ -1,8 +1,8 @@
 # - convertArrays2File -
 import Converter as C
-from numpy import *
+import numpy
 
-a = zeros((2,2), float64)
+a = numpy.zeros((2,2), numpy.float64)
 # x et y du point 0
 a[0,0] = 1
 a[1,0] = 0.1
