@@ -760,6 +760,8 @@ def convertExt2Format__(fileName):
         '.igs': 'fmt_iges',
         '.stp': 'fmt_step',
         '.step': 'fmt_step',
+        '.csv': 'fmt_free',
+        '.tsv': 'fmt_free',     
         '.ref': 'bin_pickle',
         '.ref1': 'bin_pickle',
         '.ref2': 'bin_pickle',
@@ -826,42 +828,72 @@ def convertFile2Arrays(fileName, format=None, nptsCurve=20, nptsLine=2,
         if zoneNames is not None:
             for c in range(len(a)): zoneNames.append('zone%d'%c)
         return a
-    elif format == 'fmt_free':
+    elif format == 'fmt_free': # ok for csv,tsv,bsv and basic column data
         print('Reading '+fileName+' (fmt_free)...', end="")
         try:
             file = open(fileName, 'r')
-            f = file.read()
+            lines = file.readlines()
             file.close()
-            f = f.split('\n')
-            np = len(f) # number of records
-            if f[np-1] == '' or f[np-1] == ' ': np = np-1
-            nv = 1 # number of variables
-            if np > 2: line = f[2]
-            elif np > 1: line = f[1]
-            elif np > 0: line = f[0]
-            else: line = ''
-            line = line.split(' ')
-            nv = 0
-            for l in line:
-                if l != '': nv += 1
-            # varstring
-            varString = ''
-            for i in range(nv-1): varString += 'v%d,'%(i+1)
-            if nv > 0: varString += 'v%d'%nv
-            a = array(varString, np, 1, 1)
-            pt = a[1]
-            for i in range(np):
-                line = f[i]
-                line = line.split(' ')
-                n = 0
-                for l in line:
-                    if l != '': pt[n,i] = float(l); n += 1
-            print('done.')
-            if zoneNames is not None:
-                zoneNames.append('Zone0')
-            return [a]
         except:
             raise TypeError("convertFile2Arrays: file %s can not be read."%fileName)
+        import re
+        data = []; others = []
+        for l in lines:
+            l = l.strip()
+            if not l or l.startswith('#'): continue          
+            tokens = re.split(r"[,\s]+", l)
+            try:
+                row = [float(token) for token in tokens]
+                data.append(row)
+            except:
+                others.append(l)
+        if len(data) == 0:
+            raise TypeError("convertFile2Arrays: file %s contains no readable data."%fileName)
+        nvar = len(data[0])
+        np = len(data)
+        for d in data:
+            if len(d) != nvar:
+                nvar = max(nvar, len(d))
+        # suppress lines with different nvar
+        data2 = []
+        for d in data:
+            if len(d) != nvar:
+                print("Warning: line with different number of columns (suppressed).")
+            else: data2.append(d)
+        data = data2
+        # try to find varstring in a line
+        varString = ''
+        for i in range(nvar-1): varString += 'v%d,'%(i+1)
+        if nvar > 0: varString += 'v%d'%nvar
+        for o in others:
+            # separateur comma
+            pattern = r'"([^"]*)"|([^,]+)'
+            matches = re.findall(pattern, o)
+            tokens = [group[0] or group[1] for group in matches if any(group)]
+            if len(tokens) == nvar:
+                tokens = [re.sub(r"[,\s()]", "", to) for to in tokens]
+                varString = ''
+                for i in range(nvar-1): varString += '%s,'%tokens[i]
+                if nvar > 0: varString += '%s'%tokens[nvar-1]
+                break
+            # separateur blank or tab
+            pattern = r'"([^"]*)"|([^\s]+)'
+            matches = re.findall(pattern, o)
+            tokens = [group[0] or group[1] for group in matches if any(group)]
+            if len(tokens) == nvar:
+                tokens = [re.sub(r"[,\s()]", "", to) for to in tokens]                
+                varString = ''
+                for i in range(nvar-1): varString += '%s,'%tokens[i]
+                if nvar > 0: varString += '%s'%tokens[nvar-1]
+                break
+        # put data in array
+        a = array(varString, np, 1, 1)
+        pt = a[1]
+        for i in range(np):
+            pt[:,i] = data[i][:]        
+        print('done.')
+        if zoneNames is not None: zoneNames.append('Zone0')
+        return [a]
     else:
         try:
             return converter.convertFile2Arrays(
@@ -927,7 +959,7 @@ def convertArrays2File(arrays, fileName, format=None, isize=8, rsize=8,
         print('done.')
     elif format == 'fmt_free':
         file = open(fileName, 'w')
-        print('Writing %s (fmt_free)...'%fileName),
+        print('Writing %s (fmt_free)...'%fileName, end='')
         for a in arrays:
             out = ''
             pt = a[1]
@@ -936,7 +968,7 @@ def convertArrays2File(arrays, fileName, format=None, isize=8, rsize=8,
             for i in range(s):
                 for n in range(nv-1):
                     out += dataFormat%(pt[n,i])
-                    out += ' '
+                    out += ', '
                 out += dataFormat%(pt[nv-1,i])
                 out += '\n'
             file.write(out)

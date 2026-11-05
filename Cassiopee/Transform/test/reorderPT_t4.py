@@ -8,7 +8,7 @@ import Generator.PyTree as G
 import KCore.test as test
 import Transform.PyTree as T
 
-
+# record PointRange, ... of match in t
 def records(t):
     out = {}
     for z in Internal.getZones(t):
@@ -19,11 +19,11 @@ def records(t):
             ]
     return out
 
-
-def case(dim, n, order, no):
+# compare the result of reorder and connectMatch
+def case(dim, n, order):
     a = G.cart((0, 0, 0), (1, 1, 1), n)
     a[0] = "a"
-    b = G.cart((n[0] - 1, 0, 0), (1, 1, 1), n)
+    b = G.cart((n[0]-1, 0, 0), (1, 1, 1), n)
     b[0] = "b"
     t = C.newPyTree(["Base", dim, a, b])
     t = X.connectMatch(t, dim=dim)
@@ -33,11 +33,13 @@ def case(dim, n, order, no):
     r = X.connectMatch(r, dim=dim)
     if records(t) != records(r):
         print(f"FAILED: reorder {order} on {n}")
-    test.testT(t, no)
-
+    return t
 
 # 2D, rotation de 90 degres
-case(2, (5, 9, 1), (2, -1, 3), 1)
+t = case(2, (5, 9, 1), (2, -1, 3))
+test.testT(t, 1)
 # 3D, rotations
-case(3, (5, 7, 9), (3, -1, -2), 2)
-case(3, (5, 7, 9), (1, -3, 2), 3)
+t = case(3, (5, 7, 9), (3, -1, -2))
+test.testT(t, 2)
+t = case(3, (5, 7, 9), (1, -3, 2))
+test.testT(t, 3)

@@ -168,6 +168,7 @@ fileTypes=[
     ('converter', '*.bstl'),
     ('converter', '*.cgns'),
     ('converter', '*.dat'),
+    ('converter', '*.csv'),
     ('converter', '*.fv3d'),
     ('converter', '*.grid'),
     ('converter', '*.cdf'),
@@ -218,6 +219,8 @@ fileTypes=[
     ('fmt tau', '*.CDF'),
     ('fmt fsdm', '*.h5'),
     ('fmt fsdm', '*.H5'),
+    ('fmt free', '*.CSV'),
+    ('fmt free', '*.csv'),
     ('All files', '*')
 ]
 

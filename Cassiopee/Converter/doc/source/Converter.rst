@@ -2453,6 +2453,8 @@ Array / PyTree input/output
     +------------+-----------+---------------------------------------+
     |bin_ply     | .ply      | binary PLY file (STANFORD)            |
     +------------+-----------+---------------------------------------+
+    |fmt_free    | .csv      | simple column data                    |
+    +------------+-----------+---------------------------------------+
     |bin_pickle  | .ref      | binary python pickle file             |
     +------------+-----------+---------------------------------------+
     |bin_wav     | .wav      | binary wav 8 bits sound file          |

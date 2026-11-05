@@ -64,7 +64,7 @@ E_Int K_IO::GenIO::stlread(
   ret = fread(&nd, sizeof(uint32_t), 1, ptrFile);
   if (ret != 1) { fclose(ptrFile); return 1; }
   if (nd < 0) 
-  { fclose(ptrFile); return 1;} // cette valeur est arbitraire
+  { fclose(ptrFile); return 1; } // cette valeur est arbitraire
   
   // Champ des vertex
   float buf[12];
@@ -105,7 +105,7 @@ E_Int K_IO::GenIO::stlread(
   }
 
   K_CONNECT::cleanConnectivity(1, 2, 3, 
-                               1.e-14,  "TRI",
+                               1.e-14, "TRI",
                                *unstructField[0], *connect[0]);
 
   // Cree les noms de zones

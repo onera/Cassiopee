@@ -72,7 +72,7 @@ E_Int K_IO::GenIO::tpread(
   E_Int np = 0; E_Int ne = 0; E_Int nfaces = 0;
   E_Int sizeElt = 0;
   E_LONG pos = 0;
-  char lastSeparator='\0';
+  char lastSeparator = '\0';
   /* Local vector for structured and unstructured zones names */
   vector<char*> structZoneNames, unstructZoneNames;
   char zoneName[BUFSIZE+1];
@@ -133,7 +133,6 @@ E_Int K_IO::GenIO::tpread(
   while (res == 0) // boucle sur les keywords
   {
     compressString(keyword);
-
     pos = KFTELL(ptrFile);
     res = readDataAndKeyword(ptrFile, buf,
                              knownKeywords,
@@ -141,7 +140,7 @@ E_Int K_IO::GenIO::tpread(
 
     // Pour une zone avec des petites data, le ZONE_T, VARIABLES ou
     // DATAPACKING a deja ete trouve, mais les data non lues
-    if (strcmp(nextKeyword, "TEXT") == 0) res=1;
+    if (strcmp(nextKeyword, "TEXT") == 0) res = 1;
     if (strcmp(nextKeyword, "ZONE") == 0 && ZONETFound == 1) res = 1;
     if (strcmp(nextKeyword, "VARIABLES") == 0 && VARIABLESFound == 1) res = 1;
 
@@ -250,8 +249,8 @@ E_Int K_IO::GenIO::tpread(
       else if (matchInString(prevData, "ORDERED") == 1)
       { ; }
       else
-      {printf("Warning: tpread: unknown element type.\n");
-        fclose(ptrFile); return 1;}
+      { printf("Warning: tpread: unknown element type.\n");
+        fclose(ptrFile); return 1; }
     }
     else if (strcmp(keyword, "FACES") == 0)
     {
@@ -298,7 +297,7 @@ E_Int K_IO::GenIO::tpread(
     strcpy(keyword, nextKeyword);
   }
 
-  //printf("standard header: nil=%d np=%d nvar=%d\n", nil, np, nvar); fflush(stdout);
+  printf("found header: nil=%d np=%d nvar=%d\n", nil, np, nvar); fflush(stdout);
 
   // Allocating arrays
   if (nil == 0 && np == 0)
@@ -322,7 +321,7 @@ E_Int K_IO::GenIO::tpread(
       } 
       if ('\n' == c) 
       {
-        ++ndatalines;
+        ndatalines++;
       } 
       else if (c == EOF) 
       { // Verifie que la derniere ligne est vide sinon ajoute une ligne
@@ -344,20 +343,20 @@ E_Int K_IO::GenIO::tpread(
     { // read one line
       if (firstline[i] == '\n' || firstline[i] == '\0') break;
 
-      if (firstline[i] != ' ')
+      if (firstline[i] != ' ' && firstline[i] != '\t') // separator
       {
         ncol++;
         do
         {
           ch = firstline[i++];
-        } while (ch != ' ' && ch != '\n' && ch != '\0');
+        } while (ch != ' ' && ch != '\n' && ch != '\0' && ch != '\t');
       }
-      else // blank
+      else // blank or tab as a separator
       {
         do
         {
           ch = firstline[i++];
-        } while (ch == ' ' && ch != '\n' && ch != '\0');
+        } while ((ch == ' ' || ch == '\t') && ch != '\n' && ch != '\0');
       }
     } while (ch != '\n' && ch != '\0');
 
@@ -387,6 +386,7 @@ E_Int K_IO::GenIO::tpread(
         packing = 0;
       }
     }
+    //printf("ncol=%d %d %d\n", ncol, nvar, ndatalines);
     if (nil == 0) 
     {
       printf("Warning: tpread: can not read ni,nj,nk or np.\n");
@@ -754,12 +754,14 @@ E_Int K_IO::GenIO::tpread(
             if (c != 0) {varString[c] = ','; c++;}
           }
         }
-        else if ((prevData[i] == ' ' || prevData[i] == '\n' || prevData[i] == ','
-               || prevData[i] == '\r') && lastSeparator=='\0')
+        else if ((prevData[i] == ' ' || prevData[i] == '\t' || 
+                  prevData[i] == '\n' || prevData[i] == ',' || 
+                  prevData[i] == '\r') && lastSeparator == '\0')
         {
           if (i > 0 && prevData[i-1] == ' ') ;
           else if (i > 0 && prevData[i-1] == '\n') ;
           else if (i > 0 && prevData[i-1] == '\r') ;
+          else if (i > 0 && prevData[i-1] == '\t') ;
           else if (i > 0 && prevData[i-1] == ',') ;
           else if (i == 0) ;
           else
@@ -902,14 +904,14 @@ E_Int K_IO::GenIO::tpread(
         c = fgetc(ptrFile);
         if (c != EOF) buf[i++] = (char)c;
       } while(c != EOF && c != '\n');
-      buf[i]='\0';
+      buf[i] = '\0';
       if (ndatalines == 0) 
       {
-        strcpy(firstline,buf);
+        strcpy(firstline, buf);
       } 
       if ('\n' == c) 
       {
-        ++ndatalines;
+        ndatalines++;
       } else if (c == EOF) 
       { // Verifie que la derniere ligne est vide sinon ajoute une ligne
         i = 0;
@@ -931,20 +933,20 @@ E_Int K_IO::GenIO::tpread(
     { // read one line
       if (firstline[i] == '\n' || firstline[i] == '\0') break;
 
-      if (firstline[i] != ' ')
+      if (firstline[i] != ' ' && firstline[i] != '\t') // separator
       {
         ncol++;
         do
         {
           ch = firstline[i++];
-        } while (ch != ' ' && ch != '\n' && ch != '\0');
+        } while (ch != ' ' && ch != '\n' && ch != '\0' && ch != '\t');
       }
-      else // blank
+      else // blank or tab as a separator
       {
         do
         {
           ch = firstline[i++];
-        } while (ch == ' ' && ch != '\n' && ch != '\0');
+        } while ((ch == ' ' || ch != '\t') && ch != '\n' && ch != '\0');
       }
     } while (ch != '\n' && ch != '\0');
 
@@ -961,6 +963,8 @@ E_Int K_IO::GenIO::tpread(
       varString[strlen(varString)-1] = '\0';
     }
     
+    //printf("ncol=%d %d %d\n", ncol, nvar, ndatalines);
+
     if (ncol == nvar) 
     { // Format point
       nil = ndatalines;
