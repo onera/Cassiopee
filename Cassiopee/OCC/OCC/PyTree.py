@@ -1036,7 +1036,7 @@ def _meshAllFacesStruct(hook, t, faceList=None):
 
 # project t on CAD faces
 def _projectOnFaces(hook, t, faceList=None):
-    """Project t on CAD."""
+    """Project mesh on CAD faces."""
     zones = Internal.getZones(t)
     for z in zones:
         a = C.getFields(Internal.__GridCoordinates__, z, api=3)[0]
@@ -1045,7 +1045,7 @@ def _projectOnFaces(hook, t, faceList=None):
 
 # project t on CAD edges
 def _projectOnEdges(hook, t, edgeList=None):
-    """Project t on CAD edges."""
+    """Project mesh on CAD edges."""
     zones = Internal.getZones(t)
     for z in zones:
         a = C.getFields(Internal.__GridCoordinates__, z, api=3)[0]

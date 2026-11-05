@@ -11,8 +11,6 @@ PRODUCTION=1
 DEST="$CASSIOPEE/docs/doc"
 # Destination tests unitaires
 DEST2="$DEST/Examples/Initiator"
-# Destination des release notes
-DEST3="$CASSIOPEE/docs/Download"
 
 # Copy examples to global dir (production mod)
 if ([ $PRODUCTION -eq 1 ])
@@ -29,11 +27,6 @@ then
     then 
         mkdir $DEST2
     fi
-    if test ! -e $DEST3
-    then 
-        mkdir $DEST3
-    fi
-
     cp ../test/*.py $DEST2
 fi
 
@@ -71,14 +64,4 @@ then
     sed -i 's/Initiator.Initiator/Initiator/g' build/Initiator.html
     cp build/Initiator.html $DEST
     cp build/Initiator.pdf $DEST
-fi
-
-# Copie des release Notes
-if ([ $PRODUCTION -eq 1 ])
-then
-    version=`grep -e __version__ ../Initiator/Initiator.py`
-    version1=${version:15:4}
-    version1=${version1/"'"/""}
-    v='Initiator-'$version1'.txt'
-    cp Initiator.txt $DEST3/$v
 fi

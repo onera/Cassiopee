@@ -11,8 +11,6 @@ PRODUCTION=1
 DEST="$CASSIOPEE/docs/doc"
 # Destination tests unitaires
 DEST2="$DEST/Examples/Intersector"
-# Destination des release notes
-DEST3="$CASSIOPEE/docs/Download"
 
 # Copy examples to global dir (production mod)
 if ([ $PRODUCTION -eq 1 ])
@@ -29,11 +27,6 @@ then
     then 
         mkdir $DEST2
     fi
-    if test ! -e $DEST3
-    then 
-        mkdir $DEST3
-    fi
-
     cp ../test/*.py $DEST2
 fi
 
@@ -72,14 +65,4 @@ then
     cp build/Intersector.html $DEST
     cp build/Intersector.pdf $DEST
     cp build/_images/* $DEST/_images
-fi
-
-# Copie des release Notes
-if ([ $PRODUCTION -eq 1 ])
-then
-    version=`grep -e __version__ ../Intersector/Intersector.py`
-    version1=${version:15:4}
-    version1=${version1/"'"/""}
-    v='Intersector-'$version1'.txt'
-    cp Intersector.txt $DEST3/$v
 fi

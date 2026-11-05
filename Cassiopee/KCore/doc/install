@@ -9,8 +9,6 @@ fi
 DEST="$CASSIOPEE/docs/doc"
 # Destination tests unitaires
 DEST2="$DEST/Examples/Cassiopee"
-# Destination des release notes
-DEST3="$CASSIOPEE/docs/Download"
 
 # Copy all docs locally
 cp $CASSIOPEE/Cassiopee/Converter/doc/source/Internal.rst source/

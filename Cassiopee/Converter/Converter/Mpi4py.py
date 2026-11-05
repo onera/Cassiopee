@@ -153,6 +153,7 @@ def Allreduce(dataIn, dataOut, op=SUM):
 # See allgatherDict for more info on the methods used to gather data
 #==============================================================================
 def allreduceDict(data, method=0, fillValue=None, op=SUM):
+    """Reduce a dict to all procs."""
     if method not in [0, 1, 2]:
         raise ValueError(f"allreduceDict: method can either be 0, 1 or 2, not {method}.")
     ret = allgatherDict(data, method=method, fillValue=fillValue)
@@ -310,6 +311,7 @@ def allgather(data):
 #   return dict[key] = value
 #==============================================================================
 def allgatherDict(data, method=0, fillValue=None):
+    """Gather a dict identical to all procs."""
     if method not in [0, 1, 2, 3]:
         raise ValueError(f"allgatherDict: method can either be 0, 1, 2 or 3, not {method}.")
     if not isinstance(data, dict):
@@ -387,6 +389,7 @@ def allgatherTree(t):
 # Partage les variables renseignees et supprime les autres
 #==============================================================================
 def allgatherZones(zones, coord=True, variables=[]):
+    """Gather a list of zones on all processors."""
     # Chaque processeur bcast ses zones vers les autres ranks
     zones = Internal.getZones(zones)
     lenZones = KCOMM.allgather(len(zones))

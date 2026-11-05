@@ -11,8 +11,6 @@ PRODUCTION=1
 DEST="$CASSIOPEE/docs/doc"
 # Destination tests unitaires
 DEST2="$DEST/Examples/Connector"
-# Destination des release notes
-DEST3="$CASSIOPEE/docs/Download"
 
 # Copy examples to global dir (production mod)
 if ([ $PRODUCTION -eq 1 ])
@@ -90,14 +88,4 @@ then
     sed -i 's/Connector\.pdf/Connector_IBM\.pdf/g' build/Connector_IBM.html
     cp build/Connector_IBM.html $DEST
     cp build/Connector_IBM.pdf $DEST
-fi
-
-# Copie des release Notes
-if ([ $PRODUCTION -eq 1 ])
-then
-    version=`grep -e __version__ ../Connector/Connector.py`
-    version1=${version:15:4}
-    version1=${version1/"'"/""}
-    v='Connector-'$version1'.txt'
-    cp Connector.txt $DEST3/$v
 fi

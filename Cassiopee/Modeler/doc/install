@@ -13,8 +13,6 @@ PRODUCTION=1
 DEST="$CASSIOPEE/docs/doc"
 # Destination tests unitaires
 DEST2="$DEST/Examples/Modeler"
-# Destination des release notes
-DEST3="$CASSIOPEE/docs/Download"
 
 # Copy examples to global dir (production mod)
 if ([ $PRODUCTION -eq 1 ])
@@ -30,10 +28,6 @@ then
     if test ! -e $DEST2
     then 
         mkdir $DEST2
-    fi
-    if test ! -e $DEST3
-    then 
-        mkdir $DEST3
     fi
     cp ../test/*.py $DEST2
 fi
@@ -74,10 +68,3 @@ then
     sed -i 's/Modeler.Modeler/Modeler/g' build/Modeler.html
     cp build/Modeler.html $DEST
 fi
-
-# Copie des release Notes
-version=`grep -e __version__ ../Modeler/Modeler.py`
-version1=${version:15:4}
-version1=${version1/"'"/""}
-v='Modeler-'$version1'.txt'
-cp Modeler.txt $DEST3/$v

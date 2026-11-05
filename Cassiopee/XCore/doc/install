@@ -10,7 +10,5 @@ PRODUCTION=1
 DEST="$CASSIOPEE/docs/doc"
 # Destination tests unitaires
 DEST2="$DEST/Examples/XCore"
-# Destination des release notes
-DEST3="$CASSIOPEE/docs/Download"
 
 # do nothing for now

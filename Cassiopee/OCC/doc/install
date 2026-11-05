@@ -11,8 +11,6 @@ PRODUCTION=1
 DEST="$CASSIOPEE/docs/doc"
 # Destination tests unitaires
 DEST2="$DEST/Examples/OCC"
-# Destination des release notes
-DEST3="$CASSIOPEE/docs/Download"
 
 # Copy examples to global dir (production mod)
 if ([ $PRODUCTION -eq 1 ])
@@ -29,11 +27,6 @@ then
     then 
         mkdir $DEST2
     fi
-    if test ! -e $DEST3
-    then 
-        mkdir $DEST3
-    fi
-
     cp ../test/*.py $DEST2
 fi
 
@@ -71,14 +64,4 @@ then
     sed -i 's/OCC.OCC/OCC/g' build/OCC.html
     cp build/OCC.html $DEST
     cp build/OCC.pdf $DEST
-fi
-
-# Copie des release Notes
-if ([ $PRODUCTION -eq 1 ])
-then
-    version=`grep -e __version__ ../OCC/OCC.py`
-    version1=${version:15:4}
-    version1=${version1/"'"/""}
-    v='OCC-'$version1'.txt'
-    cp OCC.txt $DEST3/$v
 fi

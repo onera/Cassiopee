@@ -454,9 +454,9 @@ def adaptBox(a, box_ratio=10., smoothing_type=0, itermax=-1):
 
 #==============================================================================
 # createHMesh : Returns a hierarchical zone hook
-# IN: a : 3D NGON array
-# IN: subdiv_type : isotropic currently
-# OUT: Returns a hierarchical zone hook
+# IN: a: 3D NGON array
+# IN: subdiv_type: isotropic currently
+# OUT: returns a hierarchical zone hook
 #==============================================================================
 def createHMesh(a, subdiv_type=0): # 0 : ISO, 1: ISO_HEX
     """Returns a hierarchical zone hook.
@@ -465,8 +465,8 @@ def createHMesh(a, subdiv_type=0): # 0 : ISO, 1: ISO_HEX
     return intersector.createHMesh(a, subdiv_type, 0)
 
 #==============================================================================
-# deleteHMesh : Releases a hierachical zone hook
-# IN: hmesh : hierarchcial mesh hook
+# deleteHMesh: releases a hierachical zone hook
+# IN: hmesh: hierarchcial mesh hook
 # OUT: Nothing
 #==============================================================================
 def deleteHMesh(hmesh):
@@ -475,9 +475,9 @@ def deleteHMesh(hmesh):
     return intersector.deleteHMesh(hmesh)
 
 #==============================================================================
-# conformizeHMesh : Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.
+# conformizeHMesh: Converts the basic element leaves of a hierarchical mesh to a conformal polyhedral mesh.
 #
-# IN: hmesh : hierarchcial mesh hook
+# IN: hmesh: hierarchcial mesh hook
 # OUT: Nothing
 #==============================================================================
 def conformizeHMesh(hmesh):
@@ -489,17 +489,20 @@ def interpolateHMeshNodalField(hooks, fieldN):
     return intersector.interpolateHMeshNodalField(hooks, fieldN)
 
 def createSensor(hmesh, sensor_type=0, smoothing_type=0 , itermax=-1, sensor_metric_policy=0):
+    """Create sensor."""
     return intersector.createSensor(hmesh, sensor_type, smoothing_type, itermax, sensor_metric_policy)
 
 def assignData2Sensor(hmesh, sensdata):
+    """DSet data to sensor."""
     return intersector.assignData2Sensor(hmesh, sensdata)
 
 def deleteSensor(hmesh):
+    """Delete sensor."""
     return intersector.deleteSensor(hmesh)
 
 #==============================================================================
-# extractUncomputables : Extracts any entity that will probably cause trouble to a CFD solver
-# IN: t:         : 3D NGON mesh
+# extractUncomputables: extracts any entity that will probably cause trouble to a CFD solver
+# IN: t: 3D NGON mesh
 # IN: neigh_level: number of neighbor layers (surounding pathologies) to extract as well
 # OUT: returns a 3D NGON Mesh with seprate zones for pathologies
 #==============================================================================
@@ -509,8 +512,8 @@ def extractUncomputables(a, neigh_level=2):
     return intersector.extractUncomputables(a, neigh_level)
 
 #==============================================================================
-# extractPathologicalCells : Extracts cells that will cause a CFD solver run failure
-# IN: a          : 3D NGON mesh
+# extractPathologicalCells: Extracts cells that will cause a CFD solver run failure
+# IN: a: 3D NGON mesh
 # IN: neigh_level: number of neighbor layers (surounding pathologies) to extract as well
 # OUT: returns a 3D NGON Mesh with seprate zones for pathologies
 #==============================================================================
