@@ -7,13 +7,17 @@ a = D.sphere6( (0,0,0), 1., N=20, ntype='TRI' )
 
 # Optimisation
 b = G.mmgs(a, optim=1)
-C.convertArrays2File(b, 'out.plt')
+C.convertArrays2File(b, 'out1.plt')
 
-# Remaillage avec parametres
-b = G.mmgs(a, hausd=0.01, hmax=0.1)
-C.convertArrays2File(b, 'out.plt')
+# Remaillage isotrope avec hmin/hmax/hausd
+b = G.mmgs(a, hausd=0.001, hmin=0.001, hmax=0.1, grow=1.3)
+C.convertArrays2File(b, 'out2.plt')
 
-# Raffinement avec sizemap
+# Raffinement aniso avec hmin/hmax/hausd
+b = G.mmgs(a, hausd=0.001, hmin=0.001, hmax=0.1, grow=1.3, anisotropy=1)
+C.convertArrays2File(b, 'out3.plt')
+
+# Raffinement isotrope avec sizemap scalar
 a = C.initVars(a, 'sizemap=0.2*abs({x})+0.05')
-b = G.mmgs(a, hausd=10.)
-C.convertArrays2File(b, 'out.plt')
+b = G.mmgs(a)
+C.convertArrays2File(b, 'out4.plt')

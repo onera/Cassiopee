@@ -11,7 +11,7 @@ def f(t,u):
     return (x,y,z)
 
 # surface grids
-a = D.surface(f)
+a = D.surface(f, isVectorized=True)
 t = C.newPyTree(['Base', 2])
 b = []
 i1 = 1

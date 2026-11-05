@@ -8,19 +8,19 @@ import Converter as C
 import Post as P
 import Generator as G
 import KCore.test as test
-import math
+import numpy
 
 tol = 1.e-6
 
 # Create a function
-def F(x,y,z): return math.cos(x)
+def F(x,y,z): return numpy.cos(x)
 
 # Maillage en noeuds
 ni = 11; nj = 11; nk = 11;
 m = G.cartTetra((0,0,0), (1./(ni-1),1./(nj-1),1./(nk-1)), (ni,nj,nk))
 
 # init by function
-m = C.initVars(m, 'F', F, ['x','y','z'])
+m = C.initVars(m, 'F', F, ['x','y','z'], isVectorized=True)
 
 # Cree un maillage d'extraction
 a = G.cart((0.,0.,0.), (0.1, 0.1, 0.1), (20, 20, 1))
@@ -35,7 +35,7 @@ ni2 = 20; nj2 = 15; nk2 = 12
 m2 = G.cart((0.5,0.1,0), (1./(ni2-1),1./(nj2-1),1./(nk2-1)), (ni2,nj2,nk2))
 
 # init by function
-m2 = C.initVars(m2, 'F', F, ['x','y','z'])
+m2 = C.initVars(m2, 'F', F, ['x','y','z'], isVectorized=True)
 
 #Extrait la solution sur le maillage d'extraction a partir de
 # grilles structurees et non structurees

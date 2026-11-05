@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Generator: mesh generation module &#8212; Generator 4.2 documentation</title>
+    <title>Generator: mesh generation module &#8212; Generator 2026.11 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Generator 4.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Generator 2026.11 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Generator: mesh generation module</a></li> 
       </ul>
     </div>  
@@ -70,10 +70,10 @@ containing grid information (coordinates must be defined).</p>
 <td><p>Create a structured cartesian mesh with geometric distribution fixing last point.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#Generator.cartHexa" title="Generator.cartHexa"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.cartHexa</span></code></a></p></td>
-<td><p>Create a cartesian mesh defined by an hexaedrical array.</p></td>
+<td><p>Create a cartesian mesh defined by an hexahedral array.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#Generator.cartTetra" title="Generator.cartTetra"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.cartTetra</span></code></a></p></td>
-<td><p>Create a cartesian mesh defined by a tetraedrical array.</p></td>
+<td><p>Create a cartesian mesh defined by a tetrahedral array.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#Generator.cartPenta" title="Generator.cartPenta"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.cartPenta</span></code></a></p></td>
 <td><p>Create a cartesian mesh defined by a prismatic array.</p></td>
@@ -200,43 +200,46 @@ containing grid information (coordinates must be defined).</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#Generator.close" title="Generator.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.close</span></code></a></p></td>
 <td><p>Close an unstructured mesh defined by an array gathering points closer than tol.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Generator.zip" title="Generator.zip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.zip</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Generator.rmOrphans" title="Generator.rmOrphans"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.rmOrphans</span></code></a></p></td>
+<td><p>Remove orphan vertices.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Generator.zip" title="Generator.zip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.zip</span></code></a></p></td>
 <td><p>Zip a set of meshes defined by gathering exterior points closer than tol.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Generator.selectInsideElts" title="Generator.selectInsideElts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.selectInsideElts</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Generator.selectInsideElts" title="Generator.selectInsideElts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.selectInsideElts</span></code></a></p></td>
 <td><p>Select elements whose center is in the surface delimited by curves.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Generator.map" title="Generator.map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.map</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Generator.map" title="Generator.map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.map</span></code></a></p></td>
 <td><p>Map a distribution on a curve or a surface.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Generator.mapSplit" title="Generator.mapSplit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.mapSplit</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Generator.mapSplit" title="Generator.mapSplit"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.mapSplit</span></code></a></p></td>
 <td><p>Split a curve and map a distribution on the set of split curves.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Generator.refine" title="Generator.refine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.refine</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Generator.refine" title="Generator.refine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.refine</span></code></a></p></td>
 <td><p>Refine a mesh of power power along all the directions or on a specified one.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Generator.mapCurvature" title="Generator.mapCurvature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.mapCurvature</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Generator.mapCurvature" title="Generator.mapCurvature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.mapCurvature</span></code></a></p></td>
 <td><p>Remesh with a step proportional to curvature.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Generator.densify" title="Generator.densify"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.densify</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Generator.densify" title="Generator.densify"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.densify</span></code></a></p></td>
 <td><p>Densify a mesh.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Generator.grow" title="Generator.grow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.grow</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Generator.grow" title="Generator.grow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.grow</span></code></a></p></td>
 <td><p>Grow a surface array of one layer by deplacing points of vector.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Generator.stack" title="Generator.stack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.stack</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Generator.stack" title="Generator.stack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.stack</span></code></a></p></td>
 <td><p>Stack two meshes (with same nixnj) into a single mesh.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Generator.addNormalLayers" title="Generator.addNormalLayers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.addNormalLayers</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Generator.addNormalLayers" title="Generator.addNormalLayers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.addNormalLayers</span></code></a></p></td>
 <td><p>Generate N layers to a surface following normals.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Generator.TTM" title="Generator.TTM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.TTM</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Generator.TTM" title="Generator.TTM"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.TTM</span></code></a></p></td>
 <td><p>Smooth a mesh with Thompson-Mastin elliptic generator.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Generator.snapFront" title="Generator.snapFront"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.snapFront</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Generator.snapFront" title="Generator.snapFront"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.snapFront</span></code></a></p></td>
 <td><p>Adapt meshes to a given surface (cellN defined).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Generator.snapSharpEdges" title="Generator.snapSharpEdges"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.snapSharpEdges</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Generator.snapSharpEdges" title="Generator.snapSharpEdges"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.snapSharpEdges</span></code></a></p></td>
 <td><p>Adapt meshes to a given surface sharp edges.</p></td>
 </tr>
 </tbody>
@@ -292,13 +295,13 @@ containing grid information (coordinates must be defined).</p>
 <td><p>Return the map of smoothed surface normals in an array.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#Generator.getOrthogonalityMap" title="Generator.getOrthogonalityMap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.getOrthogonalityMap</span></code></a></p></td>
-<td><p>Return the orthogonality map in an array.</p></td>
+<td><p>Return the cell skewness map in an array.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#Generator.getRegularityMap" title="Generator.getRegularityMap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.getRegularityMap</span></code></a></p></td>
-<td><p>Return the regularity map in an array.</p></td>
+<td><p>Return the volume ratio map in an array.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#Generator.getAngleRegularityMap" title="Generator.getAngleRegularityMap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.getAngleRegularityMap</span></code></a></p></td>
-<td><p>Return the regularity map in an array.</p></td>
+<td><p>Return the grid skewness map in an array.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#Generator.getTriQualityMap" title="Generator.getTriQualityMap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Generator.getTriQualityMap</span></code></a></p></td>
 <td><p>Return a TRI quality measure map in an array.</p></td>
@@ -1011,7 +1014,7 @@ box is kept in the final triangulation.</p>
 <span class="c1"># Triangulation respecting given contour</span>
 <span class="n">tri</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">constrainedDelaunay</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">checkDelaunay</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">tri</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">res</span><span class="p">],</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -1599,7 +1602,7 @@ N1, the number of points of a1 and N2, the number of points of a2 must be odd.</
 <span class="n">Ni</span> <span class="o">=</span> <span class="mi">300</span><span class="p">;</span> <span class="n">Nj</span> <span class="o">=</span> <span class="mi">50</span>
 <span class="n">distrib</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">Ni</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mf">0.5</span><span class="o">/</span><span class="p">(</span><span class="n">Nj</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">Ni</span><span class="p">,</span><span class="n">Nj</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">hyper2D</span><span class="p">(</span><span class="n">msh</span><span class="p">,</span> <span class="n">distrib</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">a</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -1656,7 +1659,7 @@ In the pyTree version, it returns a list [zones,hs,densities], where zones is a 
 
 <span class="c1"># Read a 2D geometry created with tecplot</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertFile2Arrays</span><span class="p">(</span><span class="s1">&#39;fusee.plt&#39;</span><span class="p">)</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="mf">1e-2</span><span class="p">);</span> <span class="n">a</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">reorder</span><span class="p">(</span><span class="n">a</span><span class="p">,(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">);</span> <span class="n">a</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">reorder</span><span class="p">(</span><span class="n">a</span><span class="p">,(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;input.plt&#39;</span><span class="p">)</span>
 
 <span class="c1"># Data</span>
@@ -1685,7 +1688,7 @@ In the pyTree version, it returns a list [zones,hs,densities], where zones is a 
 <span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
 
 <span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertFile2PyTree</span><span class="p">(</span><span class="s1">&#39;fusee.plt&#39;</span><span class="p">)</span>
-<span class="n">tb</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span><span class="mf">1e-2</span><span class="p">);</span> <span class="n">tb</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">reorder</span><span class="p">(</span><span class="n">tb</span><span class="p">,(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">tb</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">);</span> <span class="n">tb</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">reorder</span><span class="p">(</span><span class="n">tb</span><span class="p">,(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
 <span class="n">h</span> <span class="o">=</span> <span class="mf">0.02</span><span class="p">;</span> <span class="n">hf</span> <span class="o">=</span> <span class="mf">0.0001</span><span class="p">;</span> <span class="n">density</span> <span class="o">=</span> <span class="mi">500</span>
 
 <span class="n">res</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">polyLineMesher</span><span class="p">(</span><span class="n">tb</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">h</span><span class="p">,</span> <span class="n">hf</span><span class="p">,</span> <span class="n">density</span><span class="p">)</span>
@@ -1933,7 +1936,7 @@ In the pyTree version, it returns a list [zones,hs,densities], where zones is a 
     <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">)</span>
 
 <span class="c1"># Array definition of geometry</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">surface</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">surface</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">isVectorized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="n">c</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">circle</span><span class="p">((</span><span class="mf">1.2</span><span class="p">,</span><span class="mf">1.7</span><span class="p">,</span><span class="mf">0.6</span><span class="p">),</span> <span class="mf">0.1</span><span class="p">)</span>
 <span class="n">c</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="p">(</span><span class="mf">1.2</span><span class="p">,</span><span class="mf">1.7</span><span class="p">,</span><span class="mf">0.6</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="mf">90.</span><span class="p">)</span>
@@ -2545,7 +2548,7 @@ cleaned (removal of unreferenced and duplicated vertices, multiply-defined or to
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">10.</span><span class="p">,</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2Tetra</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mf">1.e-3</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-3</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2562,7 +2565,7 @@ cleaned (removal of unreferenced and duplicated vertices, multiply-defined or to
 <span class="n">a4</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mf">9.0001</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">10</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">a5</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">9.01</span><span class="p">,</span><span class="mf">9.0002</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="mi">10</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="n">a1</span><span class="p">,</span><span class="n">a2</span><span class="p">,</span><span class="n">a3</span><span class="p">,</span><span class="n">a4</span><span class="p">,</span><span class="n">a5</span><span class="p">])</span>
-<span class="n">t</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="mf">1.e-1</span><span class="p">)</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-1</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2598,8 +2601,8 @@ cleaned (removal of unreferenced and duplicated vertices, multiply-defined or to
 <span class="n">norphans</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">insertPos</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">_addOrphans</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">api</span><span class="p">):</span>
-    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">numpy</span>
+    <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
 
     <span class="n">gc</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromType2</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;GridCoordinates_t&#39;</span><span class="p">)</span>
     <span class="n">n_x</span> <span class="o">=</span> <span class="n">Internal</span><span class="o">.</span><span class="n">getNodeFromName1</span><span class="p">(</span><span class="n">gc</span><span class="p">,</span> <span class="s1">&#39;CoordinateX&#39;</span><span class="p">)</span>
@@ -2611,41 +2614,41 @@ cleaned (removal of unreferenced and duplicated vertices, multiply-defined or to
 
     <span class="n">npts</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">npts2</span> <span class="o">=</span> <span class="n">npts</span> <span class="o">+</span> <span class="n">norphans</span>
-    <span class="n">indir</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">npts2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">Internal</span><span class="o">.</span><span class="n">E_NpyInt</span><span class="p">)</span>
-    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">npts2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">indir</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">npts2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">Internal</span><span class="o">.</span><span class="n">E_NpyInt</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">npts2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
     <span class="n">mask</span><span class="p">[</span><span class="n">insertPos</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">indir</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">npts</span><span class="p">)</span>
+    <span class="n">indir</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">npts</span><span class="p">)</span>
     <span class="n">origPts</span> <span class="o">=</span> <span class="n">indir</span> <span class="o">&gt;=</span> <span class="mi">0</span>
 
     <span class="c1"># New coords: copy existing coords and add new ones</span>
-    <span class="n">x2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">npts2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-    <span class="n">y2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">npts2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">y</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-    <span class="n">z2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">npts2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">z</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">x2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">npts2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">y2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">npts2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">y</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">z2</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">npts2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">z</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
 
     <span class="n">x2</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">indir</span><span class="p">[</span><span class="n">mask</span><span class="p">]]</span>
     <span class="n">y2</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">indir</span><span class="p">[</span><span class="n">mask</span><span class="p">]]</span>
     <span class="n">z2</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="n">indir</span><span class="p">[</span><span class="n">mask</span><span class="p">]]</span>
 
-    <span class="n">x2</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span> <span class="mf">11.</span><span class="p">,</span> <span class="n">norphans</span><span class="p">)</span>
-    <span class="n">y2</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span> <span class="mf">11.</span><span class="p">,</span> <span class="n">norphans</span><span class="p">)</span>
-    <span class="n">z2</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span> <span class="mf">11.</span><span class="p">,</span> <span class="n">norphans</span><span class="p">)</span>
+    <span class="n">x2</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span> <span class="mf">11.</span><span class="p">,</span> <span class="n">norphans</span><span class="p">)</span>
+    <span class="n">y2</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span> <span class="mf">11.</span><span class="p">,</span> <span class="n">norphans</span><span class="p">)</span>
+    <span class="n">z2</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mf">10.</span><span class="p">,</span> <span class="mf">11.</span><span class="p">,</span> <span class="n">norphans</span><span class="p">)</span>
 
     <span class="n">Internal</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">n_x</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
     <span class="n">Internal</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">n_y</span><span class="p">,</span> <span class="n">y2</span><span class="p">)</span>
     <span class="n">Internal</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">n_z</span><span class="p">,</span> <span class="n">z2</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">api</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">ec</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">ec</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">ec</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
             <span class="n">nvert</span> <span class="o">=</span> <span class="n">ec</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
             <span class="n">mask</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="o">+</span><span class="n">nvert</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="n">nvert</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">ec</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">ec</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
 
-    <span class="n">invIndir</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">npts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">Internal</span><span class="o">.</span><span class="n">E_NpyInt</span><span class="p">)</span>
-    <span class="n">invIndir</span><span class="p">[</span><span class="n">indir</span><span class="p">[</span><span class="n">origPts</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">origPts</span><span class="p">)</span>
+    <span class="n">invIndir</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">npts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">Internal</span><span class="o">.</span><span class="n">E_NpyInt</span><span class="p">)</span>
+    <span class="n">invIndir</span><span class="p">[</span><span class="n">indir</span><span class="p">[</span><span class="n">origPts</span><span class="p">]]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">origPts</span><span class="p">)</span>
     <span class="n">ec</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">invIndir</span><span class="p">[</span><span class="n">ec</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
 
     <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">norphans</span>
@@ -2891,7 +2894,7 @@ cleaned (removal of unreferenced and duplicated vertices, multiply-defined or to
 <span class="n">dist</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">Ni</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),(</span><span class="n">Ni</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">dist</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">enforceX</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="mf">15.5</span><span class="o">/</span><span class="p">(</span><span class="n">Ni</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mf">0.005</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
 <span class="n">dist</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">enforceX</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="mf">27.5</span><span class="o">/</span><span class="p">(</span><span class="n">Ni</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mf">0.005</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">mapSplit</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">dist</span><span class="p">,</span><span class="mf">0.25</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">mapSplit</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">dist</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -3001,7 +3004,7 @@ cleaned (removal of unreferenced and duplicated vertices, multiply-defined or to
 <span class="n">b</span> <span class="o">=</span> <span class="n">D</span><span class="o">.</span><span class="n">bezier</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">10.</span><span class="p">)</span>
 
 <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">mapCurvature</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">power</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">b</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -3754,16 +3757,20 @@ through given hardPoints (NODES). If refine=0, no inside points are added.</p>
 
 <span class="c1"># Optimisation</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">mmgs</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">optim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out1.plt&#39;</span><span class="p">)</span>
 
-<span class="c1"># Remaillage avec parametres</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">mmgs</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">hausd</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">hmax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
+<span class="c1"># Remaillage isotrope avec hmin/hmax/hausd</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">mmgs</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">hausd</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">hmin</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">hmax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">grow</span><span class="o">=</span><span class="mf">1.3</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out2.plt&#39;</span><span class="p">)</span>
 
-<span class="c1"># Raffinement avec sizemap</span>
+<span class="c1"># Raffinement aniso avec hmin/hmax/hausd</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">mmgs</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">hausd</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">hmin</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">hmax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">grow</span><span class="o">=</span><span class="mf">1.3</span><span class="p">,</span> <span class="n">anisotropy</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out3.plt&#39;</span><span class="p">)</span>
+
+<span class="c1"># Raffinement isotrope avec sizemap scalar</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;sizemap=0.2*abs(</span><span class="si">{x}</span><span class="s1">)+0.05&#39;</span><span class="p">)</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">mmgs</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">hausd</span><span class="o">=</span><span class="mf">10.</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">mmgs</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out4.plt&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -3780,13 +3787,13 @@ through given hardPoints (NODES). If refine=0, no inside points are added.</p>
 <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">mmgs</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">optim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out1.cgns&#39;</span><span class="p">)</span>
 
-<span class="c1"># Remaillage avec parametres</span>
+<span class="c1"># Remaillage isotrope avec hmin/hmax/hausd</span>
 <span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">mmgs</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">hausd</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">hmax</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out2.cgns&#39;</span><span class="p">)</span>
 
-<span class="c1"># Raffinement avec sizemap</span>
+<span class="c1"># Raffinement isotrope avec sizemap</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{sizemap}</span><span class="s1">=0.2*abs(</span><span class="si">{CoordinateX}</span><span class="s1">)+0.05&#39;</span><span class="p">)</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">mmgs</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">hausd</span><span class="o">=</span><span class="mf">10.</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">mmgs</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;out3.cgns&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -4266,12 +4273,12 @@ through given hardPoints (NODES). If refine=0, no inside points are added.</p>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Transform</span> <span class="k">as</span> <span class="nn">T</span>
 
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),(</span><span class="mi">1</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">b</span><span class="p">,(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span><span class="mf">45.</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">45.</span><span class="p">)</span>
 <span class="n">c</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">convertArray2Hexa</span><span class="p">([</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">])</span>
-<span class="n">c</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">c</span><span class="p">);</span> <span class="n">c</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">reorder</span><span class="p">(</span><span class="n">c</span><span class="p">,(</span><span class="mi">1</span><span class="p">,))</span>
-<span class="n">c</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">c</span><span class="p">,(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span><span class="mf">15.</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">c</span><span class="p">);</span> <span class="n">c</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">reorder</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,))</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">15.</span><span class="p">)</span>
 <span class="n">s</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">getSmoothNormalMap</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">niter</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 <span class="n">c</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addVars</span><span class="p">([</span><span class="n">c</span><span class="p">,</span><span class="n">s</span><span class="p">])</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
@@ -4318,13 +4325,13 @@ through given hardPoints (NODES). If refine=0, no inside points are added.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/getOrthogonalityMap.py">Computation of cells orthogonality (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getOrthogonalityMap (array) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getCellSkewnessMap (array) -</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">,</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 <span class="n">ac</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="n">ortho</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">getOrthogonalityMap</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">ortho</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">getCellSkewnessMap</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">ortho</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addVars</span><span class="p">([</span><span class="n">ac</span><span class="p">,</span>  <span class="n">ortho</span><span class="p">])</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">ortho</span><span class="p">],</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
 </pre></div>
@@ -4332,12 +4339,12 @@ through given hardPoints (NODES). If refine=0, no inside points are added.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/getOrthogonalityMapPT.py">Computation of cells orthogonality (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getOrthogonalityMap (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getCellSkewnessMap (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cylinder</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">,</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">getOrthogonalityMap</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">getCellSkewnessMap</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -4367,14 +4374,14 @@ Exists also as parallel distributed version (G.Mpi.getRegularityMap).</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/getRegularityMap.py">Computation of cells regularity with respect to volumes (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getRegularityMap (array) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getVolumeRatioMap (array) -</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">(</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">enforceX</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 <span class="n">ac</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="n">reg</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">getRegularityMap</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">reg</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">getVolumeRatioMap</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">reg</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addVars</span><span class="p">([</span><span class="n">ac</span><span class="p">,</span>  <span class="n">reg</span><span class="p">])</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">reg</span><span class="p">],</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
 </pre></div>
@@ -4382,13 +4389,13 @@ Exists also as parallel distributed version (G.Mpi.getRegularityMap).</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/getRegularityMapPT.py">Computation of cells regularity with respect to volumes (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getRegularityMap (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getVolumeRatioMap (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">enforceX</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">getRegularityMap</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">getVolumeRatioMap</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -4419,7 +4426,7 @@ Exists also as parallel distributed version (G.Mpi.getAngleRegularityMap).</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/getAngleRegularityMap.py">Computation of cells regularity with respect to angles (array)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getAngleRegularityMap (array) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getGridSkewnessMap (array) -</span>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Transform</span> <span class="k">as</span> <span class="nn">T</span>
@@ -4427,7 +4434,7 @@ Exists also as parallel distributed version (G.Mpi.getAngleRegularityMap).</p>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">deformPoint</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mi">25</span><span class="p">,</span><span class="mi">25</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">)</span>
 <span class="n">ac</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="n">reg</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">getAngleRegularityMap</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">reg</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">getGridSkewnessMap</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">reg</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addVars</span><span class="p">([</span><span class="n">ac</span><span class="p">,</span>  <span class="n">reg</span><span class="p">])</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">reg</span><span class="p">],</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
 </pre></div>
@@ -4435,14 +4442,14 @@ Exists also as parallel distributed version (G.Mpi.getAngleRegularityMap).</p>
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/Generator/getAngleRegularityMapPT.py">Computation of cells regularity with respect to angles (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getAngleRegularityMap (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - getGridSkewnessMap (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span><span class="mi">50</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">deformPoint</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="mi">25</span><span class="p">,</span><span class="mi">25</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">,</span><span class="mf">0.</span><span class="p">),</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">)</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">getAngleRegularityMap</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">getGridSkewnessMap</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -5105,7 +5112,7 @@ Exists also for Y and Z directions: Generator.enforceMoinsY, Generator.enforcePl
 <span class="n">h</span> <span class="o">=</span> <span class="p">(</span><span class="n">p2</span><span class="o">-</span><span class="n">p1</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">Ni</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">distrib</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="n">p1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="mf">0.25</span><span class="o">/</span><span class="n">Nj</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">Ni</span><span class="p">,</span><span class="n">Nj</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">distrib</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">enforceCurvature</span><span class="p">(</span><span class="n">distrib</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">distrib</span><span class="p">],</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">distrib</span><span class="p">,</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -5321,7 +5328,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Generator 4.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Generator 2026.11 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Generator: mesh generation module</a></li> 
       </ul>
     </div>

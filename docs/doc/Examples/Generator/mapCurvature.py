@@ -14,4 +14,4 @@ C.setValue(a, (2,3,1), [2.,3.,2.])
 b = D.bezier(a, density=10.)
 
 b = G.mapCurvature(b, N=100, power=0.5, dir=1)
-C.convertArrays2File([b], 'out.plt')
+C.convertArrays2File(b, 'out.plt')

@@ -10,10 +10,13 @@ def f(t,u):
     return (x,y,z)
 
 a = D.surface(f)
-test.testA([a],1)
+test.testA([a], 1)
+
+a = D.surface(f, isVectorized=True)
+test.testA([a], 11)
 
 # Definition by formula
 a = D.surface('{x} = cos(pi*{t}); {y} = sin(pi*{u}); {z} = {t}*{u}')
-test.testA([a],2)
+test.testA([a], 2)
 
 test.writeCoverage(100)

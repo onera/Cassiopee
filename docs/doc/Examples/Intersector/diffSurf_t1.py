@@ -25,4 +25,4 @@ x = XOR.diffSurf(t, s, tol=0., preserve_right=1, agg_mode=2) # agg_mode=2 : full
 
 #C.convertPyTree2File(s, 's.cgns')
 #C.convertPyTree2File(t, 'o.cgns')
-test.testA(x,1)
+test.testA(x, 1)

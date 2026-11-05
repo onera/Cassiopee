@@ -9,14 +9,14 @@ def F(x,y): return 2*x+x*y
 # cas 3D structure
 ni = 30; nj = 40; nk = 3
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-m = C.initVars(m, 'ro', F, ['x','y'])
+m = C.initVars(m, 'ro', F, ['x','y'], isVectorized=True)
 p = P.computeNormGrad(m, 'ro') # p is defined on centers
 test.testA([p], 1)
 
 # cas 2D structure
 ni = 10; nj = 20; nk = 1
 m2 = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-m2 = C.initVars(m2, 'ro', F, ['x','y'])
+m2 = C.initVars(m2, 'ro', F, ['x','y'], isVectorized=True)
 p2 = P.computeNormGrad(m2, 'ro') # p is defined on centers
 test.testA([p2], 2)
 

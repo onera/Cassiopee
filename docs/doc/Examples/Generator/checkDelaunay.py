@@ -9,4 +9,4 @@ A = C.convertArray2Tetra(A); a = T.join(A)
 # Triangulation respecting given contour
 tri = G.constrainedDelaunay(a)
 res = G.checkDelaunay(a, tri)
-C.convertArrays2File([res], "out.plt")
+C.convertArrays2File(res, "out.plt")

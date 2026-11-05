@@ -19,9 +19,9 @@ for signed in [0,1]:
             c += 1
 # la moitie de la sphere est masquee
 def cellN0__(x):
-    if x < 0.5: return 0.
-    else: return 1.
-cellns = C.initVars(cellns,'cellN',cellN0__,['x'])
+    return (x >= 0.5).astype(float)
+
+cellns = C.initVars(cellns,'cellN',cellN0__,['x'], isVectorized=True)
 
 for signed in [0,1]:
     for loc in ['nodes','centers']:
@@ -32,9 +32,9 @@ for signed in [0,1]:
 
 # la moitie de la sphere est interpolee
 def cellN2__(x):
-    if x < 0.5: return 2.
-    else: return 1.
-cellns = C.initVars(cellns,'cellN',cellN2__,['x'])
+    return (x < 0.5).astype(float) + 1
+
+cellns = C.initVars(cellns,'cellN',cellN2__,['x'], isVectorized=True)
 
 for signed in [0,1]:
     for loc in ['nodes','centers']:

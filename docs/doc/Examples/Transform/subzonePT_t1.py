@@ -12,7 +12,7 @@ def dens(x,y): return 3*x*y
 #---------------
 # structure 3D + CL + champs sur une zone
 a = G.cart((0,0,0), (1,1,1), (10,20,10))
-C._initVars(a, 'Density', dens, ['CoordinateX','CoordinateY'])
+C._initVars(a, 'Density', dens, ['CoordinateX','CoordinateY'], isVectorized=True)
 C._initVars(a,'centers:cellN',1)
 a = C.addBC2Zone(a, 'wall1', 'BCWall', 'jmin')
 a = C.addBC2Zone(a, 'match1', 'BCMatch', 'imax', a, 'imin',[1,2,3])
@@ -23,7 +23,7 @@ test.testT(t, 1)
 
 # structure 2D + CL
 a = G.cart((0,0,0), (1,1,1), (10,20,1))
-C._initVars(a,'Density',dens,['CoordinateX','CoordinateY'])
+C._initVars(a,'Density',dens,['CoordinateX','CoordinateY'], isVectorized=True)
 C._initVars(a,'centers:cellN',1)
 a = C.addBC2Zone(a, 'wall1','BCWall', 'jmin')
 a = C.addBC2Zone(a, 'match1', 'BCMatch', 'imax', a, 'imin',[1,2])
@@ -37,7 +37,7 @@ test.testT(t, 2)
 #---------------
 # structure 3D + CL + champs sur une zone
 a = G.cart((0,0,0), (1,1,1), (10,20,10))
-C._initVars(a,'Density',dens,['CoordinateX','CoordinateY'])
+C._initVars(a,'Density',dens,['CoordinateX','CoordinateY'], isVectorized=True)
 C._initVars(a,'centers:cellN',1)
 a = C.addBC2Zone(a, 'wall1', 'BCWall', 'jmin')
 a = C.addBC2Zone(a, 'match1', 'BCMatch', 'imax', a, 'imin',[1,2,3])
@@ -49,7 +49,7 @@ test.testT(t, 3)
 
 # structure 2D + CL
 a = G.cart((0,0,0), (1,1,1), (10,20,1))
-C._initVars(a,'Density',dens,['CoordinateX','CoordinateY'])
+C._initVars(a,'Density',dens,['CoordinateX','CoordinateY'], isVectorized=True)
 C._initVars(a,'centers:cellN',1)
 a = C.addBC2Zone(a, 'wall1','BCWall', 'jmin')
 a = C.addBC2Zone(a, 'match1', 'BCMatch', 'imax', a, 'imin',[1,2])
@@ -61,7 +61,7 @@ test.testT(t, 4)
 
 # Indices negatifs
 a = G.cart((0,0,0), (1,1,1), (10,20,10))
-C._initVars(a, 'Density', dens, ['CoordinateX','CoordinateY'])
+C._initVars(a, 'Density', dens, ['CoordinateX','CoordinateY'], isVectorized=True)
 C._initVars(a,'centers:cellN',1)
 a = C.addBC2Zone(a, 'wall1', 'BCWall', 'jmin')
 a = C.addBC2Zone(a, 'match1', 'BCMatch', 'imax', a, 'imin',[1,2,3])

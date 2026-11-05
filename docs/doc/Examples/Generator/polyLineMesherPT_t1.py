@@ -6,7 +6,7 @@ import Converter.PyTree as C
 
 a = D.polyline([(0.,0.,0.),(1.,0.,0.),(1.,1.,0.),(0.,1.,0.),(0.,0.,0.)])
 a = C.convertArray2Tetra(a)
-a = G.close(a, 1.e-2)
+a = G.close(a, tol=1.e-2)
 
 # Donnees
 h = 0.05; hf = 0.0001; density = 200

@@ -6,7 +6,7 @@ import Geom.PyTree as D
 import Post.PyTree as P
 import Dist2Walls.PyTree as DTW
 import Converter.Internal as Internal
-import Connector.ToolboxIBM as IBM
+import Post.IBM as P_IBM
 import KCore.test as test
 import numpy
 
@@ -46,7 +46,7 @@ vars=['Density','VelocityX','VelocityY','VelocityZ','Temperature']
 X.miseAPlatDonorTree__(t, tc, graph=None)
 # attention compact=0 car t n est pas compacte
 X._setInterpTransfers(t,tc, bcType=0,varType=2,variablesIBC=vars,compact=0,compactD=1)
-z = IBM.extractIBMWallFields(tc, tb=tb)
+z = P_IBM.extractIBMWallFields(tc, tb=tb)
 test.testT(z,1)
 #
 Internal._rmNodesFromName(t,"Parameter_int")
@@ -55,5 +55,5 @@ tc = C.node2Center(t)
 X._setIBCData(t, tc, loc='centers', storage='inverse', bcType=3)
 X.miseAPlatDonorTree__(t, tc, graph=None)
 X._setInterpTransfers(t, tc, bcType=3, varType=2,variablesIBC=vars,compact=0,compactD=1)
-tb_out = IBM.extractIBMWallFields(tc, tb=tb)
+tb_out = P_IBM.extractIBMWallFields(tc, tb=tb)
 test.testT(tb_out,2)

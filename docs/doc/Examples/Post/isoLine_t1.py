@@ -8,7 +8,7 @@ def F(x, y): return x*x+y*y
 
 # Test sur un array
 a = G.cartTetra( (0,0,0), (1,1,1), (10,10,1))
-a = C.initVars(a, 'field', F, ['x','y'])
+a = C.initVars(a, 'field', F, ['x','y'], isVectorized=True)
 isos = []
 min = C.getMinValue(a, 'field')
 max = C.getMaxValue(a, 'field')
@@ -22,7 +22,7 @@ test.testA(isos, 1)
 
 # Test sur une liste d'arrays
 b = G.cartTetra((12,0,0), (1,1,1), (10,10,1))
-b = C.initVars(b, 'field', F, ['x','y'])
+b = C.initVars(b, 'field', F, ['x','y'], isVectorized=True)
 isos = []
 min = C.getMinValue([a,b], 'field')
 max = C.getMaxValue([a,b], 'field')
@@ -36,7 +36,7 @@ test.testA(isos, 2)
 
 # Essai sur des BARs
 a = G.cartTetra((0,0,0), (1,1,1), (10,1,1))
-a = C.initVars(a, 'field', F, ['x','y'])
+a = C.initVars(a, 'field', F, ['x','y'], isVectorized=True)
 isos = []
 min = C.getMinValue(a, 'field')
 max = C.getMaxValue(a, 'field')

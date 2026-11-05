@@ -1,10 +1,10 @@
 # - connectMatch 3D MPI (pyTree) -
-import Generator.PyTree    as G
-import Converter.PyTree    as C
-import Converter.Mpi       as Cmpi
-import Connector.Mpi       as Xmpi
-import Converter.Filter    as Filter
-import KCore.test          as test
+import Generator.PyTree as G
+import Converter.PyTree as C
+import Converter.Mpi as Cmpi
+import Connector.Mpi as Xmpi
+import Converter.Filter as Filter
+import KCore.test as test
 
 LOCAL = test.getLocal()
 
@@ -21,15 +21,15 @@ if Cmpi.rank == 0:
     C._initVars(a2, 'centers:Density', 1.)
     # --- champ aux noeuds
     C._initVars(a2, 'cellN', 2.)
-    t = C.newPyTree(['Base',a,a2])
+    t = C.newPyTree(['Base', a, a2])
     # --- Equation state
     t[2][1] = C.addState(t[2][1], 'EquationDimension', 3)
     C.convertPyTree2File(t, LOCAL+'/in.cgns')
 Cmpi.barrier()
 
-h  = Filter.Handle(LOCAL+'/in.cgns')
-a  = h.loadAndDistribute()
-a  = Xmpi.connectMatch(a)
+h = Filter.Handle(LOCAL+'/in.cgns')
+a = h.loadAndDistribute()
+a = Xmpi.connectMatch(a)
 
 if Cmpi.rank == 0:
-    test.testT(t,1)
+    test.testT(t, 1)

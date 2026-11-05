@@ -11,8 +11,8 @@ def f2(x,y): return 3*x*y + 4
 # STRUCT 2D
 ni = 30; nj = 40
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,1))
-C._initVars(m,'vx', f1, ['CoordinateX','CoordinateY'])
-C._initVars(m,'vy', f2, ['CoordinateX','CoordinateY'])
+C._initVars(m,'vx', f1, ['CoordinateX','CoordinateY'], isVectorized=True)
+C._initVars(m,'vy', f2, ['CoordinateX','CoordinateY'], isVectorized=True)
 C._initVars(m,'vz', 1.)
 res = P.integMoment(m, center=(5.,5.,1.), vector=['vx','vy','vz'])
 test.testO(res,1)
@@ -20,8 +20,8 @@ test.testO(res,1)
 #TRI
 ni = 30; nj = 40
 m2 = G.cartTetra((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,1))
-C._initVars(m2,'vx', f1, ['CoordinateX','CoordinateY'])
-C._initVars(m2,'vy', f2, ['CoordinateX','CoordinateY'])
+C._initVars(m2,'vx', f1, ['CoordinateX','CoordinateY'], isVectorized=True)
+C._initVars(m2,'vy', f2, ['CoordinateX','CoordinateY'], isVectorized=True)
 C._initVars(m2,'vz', 1.)
 res = P.integMoment(m2,center=(5.,5.,1.),vector=['vx','vy','vz'])
 test.testO(res,2)

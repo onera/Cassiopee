@@ -12,7 +12,7 @@ def f(t,u):
     return (x,y,z)
 
 # surface grids
-a = D.surface(f)
+a = D.surface(f, isVectorized=True)
 a = C.initVars(a, 'F', 1.)
 b = T.splitSize(a, 100)
 b1 = T.merge(b)
@@ -33,9 +33,9 @@ a = T.merge([a1,a2,a3],alphaRef=45.)
 test.testA(a,3)
 
 # mix types
-a = D.surface(f)
-a = C.initVars(a,'F',1.)
-b = T.splitSize(a,100)
+a = D.surface(f, isVectorized=True)
+a = C.initVars(a, 'F', 1.)
+b = T.splitSize(a, 100)
 b[0] = C.convertArray2Tetra(b[0])
 b[1] = C.convertArray2Tetra(b[1])
 b1 = T.merge(b)

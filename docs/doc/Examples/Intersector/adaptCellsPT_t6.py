@@ -1,3 +1,4 @@
+# - adaptCells (pyTree) -
 import Geom.PyTree as D
 import Converter.PyTree as C
 import Intersector.PyTree as XOR
@@ -5,7 +6,6 @@ import Generator.PyTree as G
 import Transform.PyTree as T
 import Post.PyTree as P
 import Converter.Internal as I
-import time
 import KCore.test as test
 
 a = D.triangle((0,0,0), (0,1,0), (1, 0, 0))
@@ -35,7 +35,7 @@ m1 = XOR.closeCells(m1)
 #C.convertPyTree2File(m1, 'PT_t6_1.cgns')
 I._rmNodesByName(m1, 'zid')
 I._rmNodesByName(m1, 'rid')
-test.testT(m1,1)
+test.testT(m1, 1)
 
 a = C.fillEmptyBCWith(a, 'wall', 'BCWall')
 a = C.initVars(a, '{centers:Density} = {centers:CoordinateX} + {centers:CoordinateY}')
@@ -47,4 +47,4 @@ m2 = XOR.closeCells(m2)
 #C.convertPyTree2File(m2, 'PT_t6_2.cgns')
 I._rmNodesByName(m2, 'zid')
 I._rmNodesByName(m2, 'rid')
-test.testT(m2,2)
+test.testT(m2, 2)

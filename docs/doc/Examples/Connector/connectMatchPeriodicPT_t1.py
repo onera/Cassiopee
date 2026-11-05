@@ -3,7 +3,7 @@ import Generator.PyTree as G
 import Connector.PyTree as X
 import Converter.PyTree as C
 import KCore.test as test
-import math
+import numpy
 
 # Un seul bloc
 a = G.cylinder((0.,0.,0.), 0.1, 1., 0., 90., 5., (11,11,11))
@@ -77,7 +77,7 @@ C._addBC2Zone(b,'wall','BCWall','jmin')
 C._addBC2Zone(b,'overlap','BCOverlap','jmax')
 t = C.newPyTree(['Base']); t[2][1][2] += [a,b]
 C._addState(t[2][1], 'EquationDimension', 3)
-t[2][1] = X.connectMatchPeriodic(t[2][1],rotationCenter=[0.,0.,0.],rotationAngle=[0.,0.,math.pi/2],unitAngle='Radian')
+t[2][1] = X.connectMatchPeriodic(t[2][1],rotationCenter=[0.,0.,0.],rotationAngle=[0.,0.,numpy.pi/2],unitAngle='Radian')
 t[2][1] = X.connectMatchPeriodic(t[2][1],translation=[0,0,5])
 test.testT(t,6)
 #

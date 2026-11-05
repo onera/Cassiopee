@@ -56,7 +56,7 @@ for x in mshList:
     angleLeft = 180.
     angleRight = 180.
 
-    if (c > 0):
+    if c > 0:
         # Left extension
         ln1 = distrib[1][0][1]; ln2 = distrib[1][0][0];
         dl = ln1-ln2
@@ -71,7 +71,7 @@ for x in mshList:
         curv = D.getCurvatureAngle( temp1 )
         angleLeft = curv[1][0][niv-dn+1]
 
-    if (c < n-1):
+    if c < n-1:
         # Right extension
         ln1 = distrib[1][0][ni-1]; ln2 = distrib[1][0][ni-2];
         dl = ln1-ln2

@@ -8,14 +8,14 @@ def F(x, y): return x*x+y*y
 
 # Test sur un champ en noeuds
 a = G.cartTetra( (0,0,0), (1,1,1), (10,10,1))
-a = C.initVars(a, 'field', F, ['CoordinateX','CoordinateY'])
+a = C.initVars(a, 'field', F, ['CoordinateX','CoordinateY'], isVectorized=True)
 iso = P.isoLine(a, 'field', 15.)
 test.testT(iso, 1)
 
 # Test sur un champ en centres
 b = G.cartTetra( (0,0,0), (1,1,1), (10,10,1))
 b = C.node2Center(b, ['CoordinateX', 'CoordinateY'])
-b = C.initVars(b, 'centers:field', F, ['centers:CoordinateX','centers:CoordinateY'])
+b = C.initVars(b, 'centers:field', F, ['centers:CoordinateX','centers:CoordinateY'], isVectorized=True)
 b = C.rmVars(b, ['centers:CoordinateX', 'centers:CoordinateY'])
 iso = P.isoLine(b, 'centers:field', 15.)
 t = C.newPyTree(['Base'])

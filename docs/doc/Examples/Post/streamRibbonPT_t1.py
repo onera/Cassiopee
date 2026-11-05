@@ -2,11 +2,11 @@
 import Converter.PyTree as C
 import Post.PyTree as P
 import Generator.PyTree as G
-import math as M
+import numpy
 import KCore.test as test
 
 ni = 30; nj = 40
-def F(x): return M.cos(x)
+def F(x): return numpy.cos(x)
 
 # Maillage en noeuds
 # 3D
@@ -14,7 +14,7 @@ m1 = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,2))
 m2 = G.cart((5.5,0,0), (9./(ni-1),9./(nj-1),1), (ni,nj,2))
 m = [m1,m2]
 m = C.initVars(m, 'u', 1.)
-m = C.initVars(m, 'v', F, ['CoordinateX'])
+m = C.initVars(m, 'v', F, ['CoordinateX'], isVectorized=True)
 m = C.initVars(m, 'w', 0.)
 m = C.initVars(m,'centers:G',1.)
 m = C.addBC2Zone(m,'wall','BCWall','imin')

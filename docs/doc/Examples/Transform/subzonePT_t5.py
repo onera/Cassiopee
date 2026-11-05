@@ -23,19 +23,6 @@ t[2][1] = C.addState(t[2][1], 'EquationDimension', 0)
 t = T.subzone(t, [1, 2, 11, 12, 201, 202, 211], dimOut=0)
 test.testT(t,2)
 
-# 3D ME -> 2D ME
-"""a = G.cartPyra((0.4,0.4,0.), (0.1,0.1,0.1), (5,5,5))
-b = G.cartPenta((0.,0.,0.), (0.1,0.1,0.1), (5,5,5))
-c = G.cartHexa((0.4,0.,0.), (0.1,0.1,0.1), (5,5,5))
-a = C.mergeConnectivity([a, b, c], None)
-t = C.newPyTree(['Base',1]); t[2][1][2].append(a)
-t[2][1] = C.addState(t[2][1], 'EquationDimension', 0)
-t = T.subzone(t, [i for i in range(1, 401)], dimOut=2)
-C.convertPyTree2File(t, "out1.cgns"); exit()
-test.testT(t,10)
-"""
-
-
 # 2D non structure
 # TRI -> BAR
 a = G.cartTetra((0,0,0), (1,1,1), (10,20,1))
@@ -53,17 +40,6 @@ t[2][1] = C.addState(t[2][1], 'EquationDimension', 0)
 t = T.subzone(t, [1, 2, 3, 4, 11, 12, 13, 14, 15], dimOut=0)
 test.testT(t,4)
 
-# 2D ME -> BAR
-"""a = G.cartTetra((0.,0.,0.), (0.1,0.1,0.2), (5,10,1))
-b = G.cartHexa((0.4,0.,0.), (0.1,0.1,0.2), (5,10,1))
-a = C.mergeConnectivity([a, b], None)
-t = C.newPyTree(['Base',2]); t[2][1][2].append(a)
-t[2][1] = C.addState(t[2][1], 'EquationDimension', 1)
-C.convertPyTree2File(t, "out1.cgns"); exit()
-#t = T.subzone(t, [1, 2, 3, 4, 11, 12, 13, 14, 15], dimOut=1)
-test.testT(t,11)"""
-
-
 # 1D non structure
 # BAR -> NODE
 a = G.cartTetra((0,0,0), (1,1,1), (10,1,1))
@@ -72,3 +48,26 @@ t = C.newPyTree(['Base',1]); t[2][1][2].append(a)
 t[2][1] = C.addState(t[2][1], 'EquationDimension', 0)
 t = T.subzone(t, [1, 2, 3, 4], dimOut=0)
 test.testT(t,5)
+
+# 3D ME -> 2D ME
+a = G.cartPyra((0.4,0.4,0.), (0.1,0.1,0.1), (5,5,5))
+b = G.cartPenta((0.,0.,0.), (0.1,0.1,0.1), (5,5,5))
+c = G.cartHexa((0.4,0.,0.), (0.1,0.1,0.1), (5,5,5))
+a = C.mergeConnectivity([a, b, c], None)  # 389 unique vertices
+C._initVars(a, '{F}=3*{CoordinateX}')
+C._initVars(a, '{centers:G}=2*{centers:CoordinateY}')
+t = C.newPyTree(['Base',1]); t[2][1][2].append(a)
+t[2][1] = C.addState(t[2][1], 'EquationDimension', 0)
+t = T.subzone(t, [i for i in range(1, 300)], dimOut=2)  # flowSol at centers dropped
+test.testT(t,10)
+
+# 2D ME -> BAR
+a = G.cartTetra((0.,0.,0.), (0.1,0.1,0.2), (5,10,1))
+b = G.cartHexa((0.4,0.,0.), (0.1,0.1,0.2), (5,10,1))
+a = C.mergeConnectivity([a, b], None)
+t = C.newPyTree(['Base',2]); t[2][1][2].append(a)
+C._initVars(a, '{F}=3*{CoordinateX}')
+C._initVars(a, '{centers:G}=2*{centers:CoordinateY}')
+t[2][1] = C.addState(t[2][1], 'EquationDimension', 1)
+t = T.subzone(t, [1, 2, 3, 4, 61, 62, 63, 64, 65], dimOut=1)
+test.testT(t,11)

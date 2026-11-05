@@ -3,11 +3,12 @@ import Converter as C
 import Post as P
 import Generator as G
 import KCore.test as test
+import numpy
 
 # Create a function
 def F(x,y,z):
     deg = 1
-    if deg == 0 : return 10.
+    if deg == 0 : return numpy.full_like(x, 10., dtype=float)
     elif deg == 1 : return x + 2.*y + 3.*z
     elif deg == 2 : return x*x + 2.*y*y + 3*z
     elif deg == 3 : return x*x*y + 2.*y*y*y + 3*z
@@ -18,7 +19,7 @@ def F(x,y,z):
 ni = 101; nj = 101; nk = 11
 m = G.cart((-5,-5,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
 # init by function
-m = C.initVars(m, 'F', F, ['x','y','z'])
+m = C.initVars(m, 'F', F, ['x','y','z'], isVectorized=True)
 
 # Cree un maillage d'extraction
 ni2 = 20; nj2 = 20

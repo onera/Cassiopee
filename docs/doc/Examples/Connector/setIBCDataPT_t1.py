@@ -7,7 +7,7 @@ import Post.PyTree as P
 import Dist2Walls.PyTree as DTW
 import Transform.PyTree as T
 import KCore.test as test
-import numpy as N
+import numpy
 
 a = G.cart((-1,-1,-1),(0.1,0.1,1),(21,21,3))
 s = G.cylinder((0,0,-1), 0, 0.4, 360, 0, 4, (31,31,5))
@@ -17,7 +17,7 @@ tb = C.newPyTree(['Base', s])
 
 # Blanking
 bodies = [[s]]
-BM = N.array([[1]], Internal.E_NpyInt)
+BM = numpy.array([[1]], Internal.E_NpyInt)
 t = X.blankCells(t, bodies, BM, blankingType='center_in')
 t = X.setHoleInterpolatedPoints(t, depth=-1)
 # Dist2Walls
@@ -34,7 +34,7 @@ test.testT(t2,2)
 t = C.newPyTree(['Base', a])
 # Blanking
 bodies = [[s]]
-BM = N.array([[1]], Internal.E_NpyInt)
+BM = numpy.array([[1]], Internal.E_NpyInt)
 t = X.blankCells(t,bodies,BM,blankingType='node_in')
 t = X.setHoleInterpolatedPoints(t,depth=-1)
 # Dist2Walls
@@ -52,7 +52,7 @@ t = C.newPyTree(['Base', a])
 
 # Blanking
 bodies = [[s]]
-BM = N.array([[1]], Internal.E_NpyInt)
+BM = numpy.array([[1]], Internal.E_NpyInt)
 t = X.blankCells(t,bodies,BM,blankingType='center_in')
 t = X.setHoleInterpolatedPoints(t,depth=-1)
 t = X.setHoleInterpolatedPoints(t,depth=2)

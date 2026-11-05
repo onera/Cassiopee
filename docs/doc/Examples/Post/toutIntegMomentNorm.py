@@ -3,11 +3,11 @@ import Generator as G
 import Converter as C
 import Transform as T
 import Post as P
-from numpy import *
-import math
+import numpy
+import numpy
 
-res1 = math.pi*10.
-res1c = (math.pi-math.pi/25.)*10.
+res1 = numpy.pi*10.
+res1c = (numpy.pi-numpy.pi/25.)*10.
 res2 = 2.
 res2c = 1.62
 # Lit le fichier et le met dans arrays
@@ -17,11 +17,11 @@ C.convertArrays2File([a], "new.plt", "bin_tp")
 
 # integMoment node2center, nj = 1
 ni = a[2]-1; nj = a[3]-1; nk = a[4]-1
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 
 res = P.integMomentNorm([a2],[densa],[], (0.,0.,5.))
-## if math.fabs(res[0]-res1) > 1.e-1:
+## if numpy.fabs(res[0]-res1) > 1.e-1:
 ##     print "pb in integMomentNodeCenter, nj=1"
 print(res, res1)
 del res
@@ -30,10 +30,10 @@ del res
 ni = a[2]
 nj = a[3]-1
 nk = a[4]
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 res = P.integMomentNorm([a2],[densa],[], (0.,0.,5.))
-## if math.fabs(res[0]-res1) > 1.e-1:
+## if numpy.fabs(res[0]-res1) > 1.e-1:
 ##     print "pb in integMoment, nj=1"
 print(res, res1)
 del res, a, a2, dens, densa
@@ -48,11 +48,11 @@ C.convertArrays2File([a2],'out.plt','bin_tp')
 ni = a[2]-1
 nj = a[3]-1
 nk = a[4]-1
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 
 res = P.integMomentNorm([a2],[densa],[], (0.5,1.,0.))
-## if math.fabs(res[0]-res2) > 1.e-1:
+## if numpy.fabs(res[0]-res2) > 1.e-1:
 ##     print "pb in integMomentNodeCenter, nk=1"
 print(res, res2)
 del res
@@ -62,11 +62,11 @@ del res
 ni = a[2]
 nj = a[3]
 nk = a[4]-1
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 
 res = P.integMomentNorm([a2],[densa],[], (0.5,1.,0.))
-## if math.fabs(res[0]-res2) > 1.e-1:
+## if numpy.fabs(res[0]-res2) > 1.e-1:
 ##     print "pb in integMoment, nk=1"
 ## print res[0], res2
 print(res, res2)
@@ -81,11 +81,11 @@ C.convertArrays2File([a2],'out.plt','bin_tp')
 ni = a[2]-1
 nj = a[3]-1
 nk = a[4]-1
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 
 res = P.integMomentNorm([a2],[densa],[], (0.,1.,0.5))
-## if math.fabs(res[0]-res2) > 1.e-1:
+## if numpy.fabs(res[0]-res2) > 1.e-1:
 ##     print "pb in integMomentNodeCenter, ni=1"
 print(res, res2)
 
@@ -94,10 +94,10 @@ print(res, res2)
 ni = a[2]-1
 nj = a[3]
 nk = a[4]
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 
 res = P.integMomentNorm([a2],[densa],[], (0.,1.,0.5))
-## if math.fabs(res[0]-res2) > 1.e-1:
+## if numpy.fabs(res[0]-res2) > 1.e-1:
 ##     print "pb in integMoment, ni=1"
 print(res, res2)

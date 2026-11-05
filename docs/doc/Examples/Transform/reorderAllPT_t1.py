@@ -8,7 +8,7 @@ def F(x,y): return x*x + 2*y
 ni = 30; nj = 40
 a = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,1))
 a = C.initVars(a, 'centers:cellN', 1.)
-a = C.initVars(a, 'Density', F, ['CoordinateX','CoordinateY'])
+a = C.initVars(a, 'Density', F, ['CoordinateX','CoordinateY'], isVectorized=True)
 a = C.addBC2Zone(a, 'wall1', 'BCWall', 'imax')
 a = C.addBC2Zone(a, 'overlap1', 'BCOverlap', 'jmax')
 
