@@ -49,7 +49,7 @@ sphinx-build -b html ./source ./build
 [ $? -ne 0 ] && exit 1;
 if ([ $PRODUCTION -eq 1 ])
 then
-# Build pdf
+    # Build pdf
     sphinx-build -b latex ./source ./build
     [ $? -ne 0 ] && exit 1;
     cd build

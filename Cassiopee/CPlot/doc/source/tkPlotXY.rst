@@ -21,7 +21,7 @@ For use in a python script, you have to import tkPlotXY module::
 
    import CPlot.apps.tkPlotXY as tkPlotXY
 
-.. py:module:: tkPlotXY
+.. py:module:: CPlot.apps.tkPlotXY
 
 
 One line plot function
@@ -29,7 +29,7 @@ One line plot function
 
 tkPlotXY can be used with a single function.
 
-.. py:function:: tkPlotXY.plot(a, varx, vary, rangex=None, rangey=None, export=None, ...)
+.. py:function:: CPlot.apps.tkPlotXY.plot(a, varx, vary, rangex=None, rangey=None, export=None, ...)
 
     Plot 1D zones of a.
 

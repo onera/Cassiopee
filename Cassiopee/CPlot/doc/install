@@ -5,7 +5,7 @@ if [ -z "$CASSIOPEE" ]; then
     echo "CASSIOPEE identifies the root directory of the Cassiopee repository."
     exit
 fi
-	
+
 PRODUCTION=1
 # Destination docs
 DEST="$CASSIOPEE/docs/doc"
@@ -97,7 +97,7 @@ fi
 # Copie des release Notes
 if ([ $PRODUCTION -eq 1 ])
 then
-    version=`grep -e __version__ ../CPlot/CPlot.py`
+    version=`grep -e __version__ ../CPlot/CPlot/CPlot.py`
     version1=${version:15:4}
     version1=${version1/"'"/""}
     v='CPlot-'$version1'.txt'

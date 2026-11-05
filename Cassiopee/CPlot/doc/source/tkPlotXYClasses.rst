@@ -19,14 +19,14 @@ For use in a python script, you have to import CPlot.apps.tkPlotXY module::
 
    import CPlot.apps.tkPlotXY
 
-.. py:module:: tkPlotXY
+.. py:module:: CPlot.apps.tkPlotXY
 
 
 One line plot function
 ######################
 tkPlotXY can be used with a single function.
 
-.. py:function:: tkPlotXY.plot(a, varx, vary, rangex=None, rangey=None, export=None, ...)
+.. py:function:: CPlot.apps.tkPlotXY.plot(a, varx, vary, rangex=None, rangey=None, export=None, ...)
 
     Plot 1D zones of a.
 
@@ -115,17 +115,17 @@ only classes without the suffix 'TK' should be used.
 
 GraphEditor
 ###########
-.. py:class:: tkPlotXY.GraphEditor
+.. py:class:: CPlot.apps.tkPlotXY.GraphEditor
 
 An object of class GraphEditor allows you to create a Desktop. Accessing to the Desktop will give you the possibility to plot all your graphs. Moreover, the Desktop contains all the data that can be used to generate plots.
 For python scripting interface, the first step is to create an object of this class GraphEditor and to access its Desktop. This is performed by the function openGraphEditor that directly returns the Desktop. Then the data can be added to this Desktop object. Finally it is used to generate all the graphs.
 
 The first step is to create a graphEditor and to get its Desktop using :
 
-.. py:function:: tkPlotXY.openGraphEditor
+.. py:function:: CPlot.apps.tkPlotXY.openGraphEditor
 
 .. autosummary:: 
-    tkPlotXY.openGraphEditor
+    CPlot.apps.tkPlotXY.openGraphEditor
 
 .. code-block:: python
 
@@ -135,7 +135,7 @@ The first step is to create a graphEditor and to get its Desktop using :
 
 Desktop
 ###########
-.. py:class:: tkPlotXY.Desktop
+.. py:class:: CPlot.apps.tkPlotXY.Desktop
 
 The Desktop deals with the data management and the graph plotting.
 
@@ -149,10 +149,10 @@ Several methods are available to set, update or even remove data :
 
 
 
-.. automethod:: tkPlotXY.Desktop.addZone
-.. automethod:: tkPlotXY.Desktop.setData
-.. automethod:: tkPlotXY.Desktop.replaceZone
-.. automethod:: tkPlotXY.Desktop.deleteZoneFromData
+.. automethod:: CPlot.apps.tkPlotXY.Desktop.addZone
+.. automethod:: CPlot.apps.tkPlotXY.Desktop.setData
+.. automethod:: CPlot.apps.tkPlotXY.Desktop.replaceZone
+.. automethod:: CPlot.apps.tkPlotXY.Desktop.deleteZoneFromData
 
 
 .. code-block:: python
@@ -214,7 +214,7 @@ Graph creation
 
 Once data have been loaded into the Desktop, you can create as many graphs as you need with the Desktop object. After that, all the drawing will be driven by the graph object itself. This is performed by the method :
 
-.. automethod:: tkPlotXY.Desktop.createGraph
+.. automethod:: CPlot.apps.tkPlotXY.Desktop.createGraph
 
 .. code-block:: python
 
@@ -244,7 +244,7 @@ Two possibilities are available: TightLayout or SubPlotParams.
 
 In order to improve your drawing using SubPlotParams, please use the method:
 
-.. automethod:: tkPlotXY.Graph.updateSubPlotParams
+.. automethod:: CPlot.apps.tkPlotXY.Graph.updateSubPlotParams
 
 where *params* is a dictionnary such that:
 
@@ -263,7 +263,7 @@ For example, let us create a Graph object *graph_3* with 4 plots inside ('2:2') 
 
 The other way to improve this kind of drawing is to use TightLayout:
 
-.. automethod:: tkPlotXY.Graph.updateTightLayout
+.. automethod:: CPlot.apps.tkPlotXY.Graph.updateTightLayout
 
 where:
 
@@ -299,7 +299,7 @@ Editing a curve
 
 To edit a curve, you can use the method :
 
-.. automethod:: tkPlotXY.Curve.setValue
+.. automethod:: CPlot.apps.tkPlotXY.Curve.setValue
 
 with *variable* according to the following tab:
 
@@ -340,7 +340,7 @@ Adding a curve to a given plot on a given graph
 
 To attach a curve to a given plot inside a given graph, use the method:
 
-.. automethod:: tkPlotXY.Graph.addCurve
+.. automethod:: CPlot.apps.tkPlotXY.Graph.addCurve
 
 where *iCurSubGraph* identifies the plot inside the graph thanks to its matricial position. For instance, to add a curve on the second line and first column of the graph *graph_1*:
 
@@ -351,8 +351,8 @@ where *iCurSubGraph* identifies the plot inside the graph thanks to its matricia
 Axis
 ######
 
-.. autoclass:: tkPlotXY.Axis
-.. autoclass:: tkPlotXY.DirAxis
+.. autoclass:: CPlot.apps.tkPlotXY.Axis
+.. autoclass:: CPlot.apps.tkPlotXY.DirAxis
 
 While a Graph object  is created, an axis system (X and Y DirAxis) is generated for each plot on the graph. This system of X and Y DirAxis is an Axis object.
 
@@ -362,7 +362,7 @@ Access the Axis system
 
 To get the Axis system of  given plot on a given graph, use the method on your graph:
 
-.. automethod:: tkPlotXY.Graph.getAxis
+.. automethod:: CPlot.apps.tkPlotXY.Graph.getAxis
 
 where *iCurSubGraph* identifies the plot inside the graph thanks to its matricial position. Moreover, in case of a multiple axis plot (2 or more Y DirAxis on the same plot for instance, see *Multiple axis system section*), you can specify the number identifying your axis system using *ind*. Note that the original axis system has the index 0 and then the index is increased for each new axis system.
 
@@ -375,7 +375,7 @@ Multiple axis system
 
 On the same plot, you can use multiple axis system. You can decide to twin your X or Y DirAxis or even to create a new independant axis system. to generate your new axis system (twin or independant), use the method:
 
-.. automethod:: tkPlotXY.Graph.addAxis
+.. automethod:: CPlot.apps.tkPlotXY.Graph.addAxis
 
 where *iCurSubGraph* identifies the plot inside the graph thanks to its matricial position, *shared* can take the value : 'x','X','y','Y' or None. If None is used, then an independant axis system will be created. If an other value is used, then *axis* allows you to specify the index of the axis system you want to clone. Remember, this index starts at 0 for each plot and is then locally increased for each new axis system in a plot. Or you can directly give the object Axis you want to clone by using the parameter 'axis'. This function returns the newly created axis object.
 
@@ -405,13 +405,13 @@ Editing the Axis system
 
 You can edit it by accessing to the Axis object and using the method:
 
-.. automethod:: tkPlotXY.Axis.setValue
+.. automethod:: CPlot.apps.tkPlotXY.Axis.setValue
 
 where *axis* has to be 'x' or 'y'.
 
 Or you can directly access the X (resp. Y) DirAxis object by using the attribute *x* (resp. *y*) of the class Axis that will return the X DirAxis (resp. Y DirAxis) and then you can use the method:
 
-.. automethod:: tkPlotXY.DirAxis.setValue
+.. automethod:: CPlot.apps.tkPlotXY.DirAxis.setValue
 
 with *variable* according to the following tab:
 
@@ -441,7 +441,7 @@ For instance, setting logscale on the Y-DirAxis of the *axis_3* previously defin
 Grid
 #######
 
-.. autoclass:: tkPlotXY.Grid
+.. autoclass:: CPlot.apps.tkPlotXY.Grid
 .. autoclass:: LevelGrid
 .. autoclass:: AxisGrid
 
@@ -454,7 +454,7 @@ Access a Grid object
 
 To access the associated Grid object to a given Axis on a given plot inside a given Graph, use the method:
 
-.. automethod:: tkPlotXY.Graph.getGrid
+.. automethod:: CPlot.apps.tkPlotXY.Graph.getGrid
 
 where *iCurSubGraph* identifies the plot inside the graph thanks to its matricial position. Moreover, in case of a multiple axis plot (2 or more Y DirAxis on the same plot for instance, see *Multiple axis system section*), you can specify the number identifying your axis system using *ind* or directly specify the axis object using *axis*. Note that the original axis system has the index 0 and then the index is increased for each new axis system.
 
@@ -481,19 +481,19 @@ Editing a Grid object
 
 You can edit a Grid object using the method:
 
-.. automethod:: tkPlotXY.Grid.setValue
+.. automethod:: CPlot.apps.tkPlotXY.Grid.setValue
 
 where *level* ('major' or 'minor' expected) and *direction* ('x' or 'y' expected) identify the AxisGrid to edit
 
 or the LevelGrid object using the method:
 
-.. automethod:: tkPlotXY.LevelGrid.setValue
+.. automethod:: CPlot.apps.tkPlotXY.LevelGrid.setValue
 
 where *direction* ('x' or 'y' expected) identifies the AxisGrid to edit
 
 or directly the AxisGrid object using the method:
 
-.. automethod:: tkPlotXY.AxisGrid.setValue
+.. automethod:: CPlot.apps.tkPlotXY.AxisGrid.setValue
 
 Authorized *variable* and *value* are described in the following tab:
 
@@ -521,7 +521,7 @@ For instance, to add the major grid as dashed lines for X and Y axis on the Grid
 Legend
 #######
 
-.. autoclass:: tkPlotXY.Legend
+.. autoclass:: CPlot.apps.tkPlotXY.Legend
 
 While a Graph object  is created, a Legend object is associated to each plot of the Graph. There is no need to create manually a Legend object. You just need to access it in order to edit it.
 
@@ -530,7 +530,7 @@ Accessing a Legend object
 
 To access a Legend object of a given plot inside a given Graph, use the method:
 
-.. automethod:: tkPlotXY.Graph.getLegend
+.. automethod:: CPlot.apps.tkPlotXY.Graph.getLegend
 
 where *iCurSubGraph* identifies the plot inside the graph thanks to its matricial position.
 
@@ -545,7 +545,7 @@ Editing a Legend object
 
 To edit a Legend object, you can use the method:
 
-.. automethod:: tkPlotXY.Legend.setValue
+.. automethod:: CPlot.apps.tkPlotXY.Legend.setValue
 
 Authorized *variable* and *value* are described in the following tab:
 
@@ -586,7 +586,7 @@ Update figures
 
 To update a given plot on a given Graph, use the method:
 
-.. automethod:: tkPlotXY.Graph.updateGraph
+.. automethod:: CPlot.apps.tkPlotXY.Graph.updateGraph
 
 where *iCurSubGraph* identifies the plot inside the graph thanks to its matricial position.
 
@@ -598,7 +598,7 @@ For instance, in order to update the plot on second line of *graph_2*:
 
 If you want to update all the plots of a given Graph, you can use the method:
 
-.. automethod:: tkPlotXY.Graph.drawFigure
+.. automethod:: CPlot.apps.tkPlotXY.Graph.drawFigure
 
 For example, to update the two plots on our *graph_2*:
 
@@ -613,7 +613,7 @@ Display on screen
 
 In order to display on screen a Graph, use the method:
 
-.. automethod:: tkPlotXY.Graph.showFigure
+.. automethod:: CPlot.apps.tkPlotXY.Graph.showFigure
 
 Do not forget to add a call to **time.sleep()** after this command in order to let the display active more longer than just a pop-up !
 
@@ -631,7 +631,7 @@ Save figures
 
 Use the method **save** of the class Graph to save your drawing in a file:
 
-.. automethod:: tkPlotXY.Graph.save
+.. automethod:: CPlot.apps.tkPlotXY.Graph.save
 
 where *path* is the output file path and format is the format you wish to use to save your figure (available formats are : 'emf', 'eps', 'pdf', 'png', 'ps', 'raw', 'rgba', 'svg', 'svgz').
 
