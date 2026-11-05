@@ -98,7 +98,7 @@ state = {
     'Roinf': 2.0,
     'Uinf': 1.0,
     'MomentumX': 2.0*numpy.cos(numpy.radians(2.)),
-    'MomentumY': 0., 
+    'MomentumY': 0.,
     'MomentumZ': 2.0*numpy.sin(numpy.radians(2.)),
     'Lref': 50.,
     'Gamma': 1.4,
