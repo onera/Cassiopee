@@ -65,7 +65,7 @@ t = C.newPyTree(['Base',2])
 a = T.join(a1, a2); t[2][1][2].append(a)
 test.testT(t, 4)
 
-# Join 2 STRUCT-1D
+# Join 2 STRUCT 1D
 a1 = D.line((0.,0.,0.), (1.,0.,0), 100)
 a2 = D.line((1.,0.,0.), (1.,1,0), 100)
 a1 = C.addBC2Zone(a1,'wall','BCWall','imin')
@@ -99,7 +99,7 @@ t = C.newPyTree(['Base',1])
 a = T.join(a1, a2); t[2][1][2].append(a)
 test.testT(t, 7)
 
-# Join 2  STRUCT 3D
+# Join 2 STRUCT 3D
 a1 = G.cart((0.,0.,0.), (1.,1.,1), (11,11,10))
 a2 = G.cart((10.,0.,0.), (1.,1.,1), (11,11,10))
 a1 = C.addBC2Zone(a1,'match1','BCMatch','imax',a2,'imin',[1,2,3])

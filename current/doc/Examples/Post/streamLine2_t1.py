@@ -2,19 +2,19 @@
 import Converter as C
 import Post as P
 import Generator as G
-import math as M
+import numpy
 import KCore.test as test
 
 ni = 30; nj = 40
 m1 = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,2))
 
-def F(x): return M.cos(x)
+def F(x): return numpy.cos(x)
 
 x0=0.1; y0=5.; z0=0.5
 
 m = [m1]
 m = C.initVars(m, 'rou', 1.)
-m = C.initVars(m, 'rov', F, ['x'])
+m = C.initVars(m, 'rov', F, ['x'], isVectorized=True)
 m = C.initVars(m, 'row', 0.)
 p2 = P.streamLine2(m, (x0,y0,z0),['rou','rov','row'])
 test.testA(p2, 1)
@@ -23,7 +23,7 @@ test.testA(p2, 1)
 m2 = G.cartHexa((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,2))
 m = [m2]
 m = C.initVars(m, 'rou', 1.)
-m = C.initVars(m, 'rov', F, ['x'])
+m = C.initVars(m, 'rov', F, ['x'], isVectorized=True)
 m = C.initVars(m, 'row', 0.)
 p2 = P.streamLine2(m, (x0,y0,z0),['rou','rov','row'])
 test.testA(p2, 2)
@@ -32,7 +32,7 @@ test.testA(p2, 2)
 m3 = G.cartTetra((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,2))
 m = [m3,]#,m2]
 m = C.initVars(m, 'rou', 1.)
-m = C.initVars(m, 'rov', F, ['x'])
+m = C.initVars(m, 'rov', F, ['x'], isVectorized=True)
 m = C.initVars(m, 'row', 0.)
 p2 = P.streamLine2(m, (x0,y0,z0),['rou','rov','row'])
 test.testA(p2, 3)
@@ -41,7 +41,7 @@ test.testA(p2, 3)
 m4 = G.cartPenta((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,2))
 m = [m4]
 m = C.initVars(m, 'rou', 1.)
-m = C.initVars(m, 'rov', F, ['x'])
+m = C.initVars(m, 'rov', F, ['x'], isVectorized=True)
 m = C.initVars(m, 'row', 0.)
 p2 = P.streamLine2(m, (x0,y0,z0),['rou','rov','row'])
 test.testA(p2, 4)
@@ -50,7 +50,7 @@ test.testA(p2, 4)
 m5 = G.cartPyra((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,2))
 m = [m5]
 m = C.initVars(m, 'rou', 1.)
-m = C.initVars(m, 'rov', F,['x'])
+m = C.initVars(m, 'rov', F,['x'], isVectorized=True)
 m = C.initVars(m, 'row', 0.)
 p2 = P.streamLine2(m, (x0,y0,z0),['rou','rov','row'])
 test.testA(p2, 5)
@@ -59,7 +59,7 @@ test.testA(p2, 5)
 m6 = G.cartNGon((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,2))
 m = [m6]
 m = C.initVars(m, 'rou', 1.)
-m = C.initVars(m, 'rov', F, ['x'])
+m = C.initVars(m, 'rov', F, ['x'], isVectorized=True)
 m = C.initVars(m, 'row', 0.)
 p2 = P.streamLine2(m, (x0,y0,z0),['rou','rov','row'])
 test.testA(p2, 6)

@@ -3,11 +3,10 @@ import Generator as G
 import Converter as C
 import Transform as T
 import Post as P
-from numpy import *
-import math
+import numpy
 
-res1 = math.pi*10.
-res1c = (math.pi-math.pi/25.)*10.
+res1 = numpy.pi*10.
+res1c = (numpy.pi-numpy.pi/25.)*10.
 res2 = 2.
 res2c = 1.62
 a = G.cylinder((0.,0.,0.), 0.5, 1., 360., 0., 10., (50,2,30))
@@ -15,20 +14,20 @@ a2 = T.subzone(a, (1,1,1), (50,1,30))
 
 # integNorm node2center, nj = 1
 ni = a[2]-1; nj = a[3]-1; nk = a[4]-1
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 res = P.integNorm([a2],[densa],[])
 res = res[0]
-if math.fabs(res[0]) > 1.e-1:
+if numpy.fabs(res[0]) > 1.e-1:
     print("pb in integNormNodeCenter, nj=1")
 
 # integNorm, nj = 1
 ni = a[2]; nj = a[3]-1; nk = a[4]
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 res = P.integNorm([a2],[densa],[])
 res = res[0]
-if math.fabs(res[0]) > 1.e-1:
+if numpy.fabs(res[0]) > 1.e-1:
     print("pb in integNorm, nj=1")
 
 ##############################################################
@@ -41,11 +40,11 @@ a2 = T.subzone(a, (1,1,1), (11,11,1))
 ni = a[2]-1
 nj = a[3]-1
 nk = a[4]-1
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 res = P.integNorm([a2],[densa],[])
 res = res[0]
-if math.fabs(res[2]-res2) > 1.e-1:
+if numpy.fabs(res[2]-res2) > 1.e-1:
     print("pb in integNormNodeCenter, nk=1")
 
 # integNorm, nk = 1
@@ -53,12 +52,12 @@ if math.fabs(res[2]-res2) > 1.e-1:
 ni = a[2]
 nj = a[3]
 nk = a[4]-1
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 
 res = P.integNorm([a2],[densa],[])
 res = res[0]
-if math.fabs(res[2]-res2) > 1.e-1:
+if numpy.fabs(res[2]-res2) > 1.e-1:
     print("pb in integNorm, nk=1")
 
 
@@ -71,12 +70,12 @@ a2 = T.subzone(a, (1,1,1), (1,11,11))
 ni = a[2]-1
 nj = a[3]-1
 nk = a[4]-1
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 
 res = P.integNorm([a2],[densa],[])
 res = res[0]
-if math.fabs(res[0]-res2) > 1.e-1:
+if numpy.fabs(res[0]-res2) > 1.e-1:
     print("pb in integNormNodeCenter, ni=1")
 
 
@@ -84,9 +83,9 @@ if math.fabs(res[0]-res2) > 1.e-1:
 ni = a[2]-1
 nj = a[3]
 nk = a[4]
-dens = ones( (1, ni*nj*nk), float64 )
+dens = numpy.ones( (1, ni*nj*nk), numpy.float64 )
 densa = ['t', dens, ni,nj,nk]
 res = P.integNorm([a2],[densa],[])
 res = res[0]
-if math.fabs(res[0]-res2) > 1.e-1:
+if numpy.fabs(res[0]-res2) > 1.e-1:
     print("pb in integ, ni=1")

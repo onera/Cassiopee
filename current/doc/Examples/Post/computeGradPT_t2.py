@@ -11,11 +11,11 @@ def F(x,y): return 2*x+x*y
 #-----
 ni = 30
 m = G.cart((0,0,0), (10./(ni-1),1,1), (ni,1,1))
-m = C.initVars(m, 'Density', F, ['CoordinateX','CoordinateY'])
+m = C.initVars(m, 'Density', F, ['CoordinateX','CoordinateY'], isVectorized=True)
 t = C.newPyTree(['Base',1]); t[2][1][2].append(m)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = P.computeGrad(t, 'Density')
-t = C.initVars(t, 'centers:Pressure', F, ['gradxDensity','gradyDensity'])
+t = C.initVars(t, 'centers:Pressure', F, ['gradxDensity','gradyDensity'], isVectorized=True)
 t = P.computeGrad(t, 'centers:Pressure')
 test.testT(t, 1)
 
@@ -24,12 +24,12 @@ test.testT(t, 1)
 #-----
 ni = 30; nj = 40
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,1))
-m = C.initVars(m, 'Density', F, ['CoordinateX','CoordinateY'])
+m = C.initVars(m, 'Density', F, ['CoordinateX','CoordinateY'], isVectorized=True)
 m = C.addBC2Zone(m,'ov','BCOverlap','imin')
 t = C.newPyTree(['Base',2]); t[2][1][2].append(m)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = P.computeGrad(t,'Density')
-t = C.initVars(t, 'centers:Pressure', F, ['gradxDensity','gradyDensity'])
+t = C.initVars(t, 'centers:Pressure', F, ['gradxDensity','gradyDensity'], isVectorized=True)
 t = P.computeGrad(t,'centers:Pressure')
 test.testT(t,2)
 
@@ -38,11 +38,11 @@ test.testT(t,2)
 #-----
 ni = 30; nj = 40
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,2))
-m = C.initVars(m, 'Density', F, ['CoordinateX','CoordinateY'])
+m = C.initVars(m, 'Density', F, ['CoordinateX','CoordinateY'], isVectorized=True)
 t = C.newPyTree(['Base',3]); t[2][1][2].append(m)
 t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t = C.fillEmptyBCWith(t, 'wall', 'BCWall', dim=2)
 t = P.computeGrad(t, 'Density')
-t = C.initVars(t, 'centers:Pressure', F, ['gradxDensity','gradyDensity'])
+t = C.initVars(t, 'centers:Pressure', F, ['gradxDensity','gradyDensity'], isVectorized=True)
 t = P.computeGrad(t, 'centers:Pressure')
 test.testT(t,3)

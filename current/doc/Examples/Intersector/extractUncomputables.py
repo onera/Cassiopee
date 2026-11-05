@@ -9,10 +9,9 @@ M2 = C.convertFile2Arrays('boolNG_M2.tp')
 M2 = C.convertArray2NGon(M2[0])
 
 tol = -0.5e-3
-
 m = XOR.booleanMinus(M1, M2, tol, preserve_right=1, solid_right=1, agg_mode=1)
 #C.convertArrays2File([m], 'i.plt')
 
-m=XOR.extractUncomputables(m)
+m = XOR.extractUncomputables(m)
 
 C.convertArrays2File(m, "out.plt")

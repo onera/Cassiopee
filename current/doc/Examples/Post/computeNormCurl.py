@@ -8,7 +8,7 @@ def F(x,y,z):
 
 ni = 30; nj = 40; nk = 3
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-m = C.initVars(m,'F1',F,['x','y','z'])
+m = C.initVars(m,'F1',F,['x','y','z'], isVectorized=True)
 m = C.initVars(m,'F2',0.); m = C.initVars(m,'F3',0.)
 
 varname = ['F1','F2','F3']

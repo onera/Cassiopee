@@ -6,7 +6,7 @@ import Post as P
 ni = 10; nj = 10; nk = 10;
 a = G.cart((0,0,0), (1./(ni-1),1./(nj-1),1./(nk-1)), (ni,nj,nk))
 def F(x,y,z): return x*x*x*x + 2.*y + z*z
-a = C.initVars(a, 'F', F, ['x','y','z'])
+a = C.initVars(a, 'F', F, ['x','y','z'], isVectorized=True)
 
 # Utilisation directe
 val = P.extractPoint([a], (0.55, 0.38, 0.12), 2); print(val)

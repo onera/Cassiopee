@@ -9,7 +9,7 @@ def F(x):
 
 # test 1D structure (i-array) + variable
 a = D.circle( (0,0,0), 1., 20., 60.)
-a = C.addVars(a, 'F'); a = C.initVars(a, 'F', F, ['y'])
+a = C.addVars(a, 'F'); a = C.initVars(a, 'F', F, ['y'], isVectorized=True)
 a = D.axisym(a, (0,0,0), (0,1,0), 360., 50)
 test.testA([a], 1)
 
@@ -21,7 +21,7 @@ test.testA([a], 2)
 # test BAR-array + variable
 a = D.circle((0,0,0), 1., 20., 60., 10)
 a = C.convertArray2Tetra(a)
-a = C.addVars(a, 'F'); a = C.initVars(a, 'F', F, ['y'])
+a = C.addVars(a, 'F'); a = C.initVars(a, 'F', F, ['y'], isVectorized=True)
 a = D.axisym(a, (0,0,0), (0,1,0), 360., 50)
 test.testA([a], 3)
 

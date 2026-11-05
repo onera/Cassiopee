@@ -12,16 +12,17 @@ a = C.fillEmptyBCWith(a, 'nref','BCFarfield')
 
 # Create a function
 def F(x,y,z): return 2*x*x*x*x*x + 2.*y*y*z + z*z
+
 val0 = F(0.55,0.38,0.) # reference
 # init by function
-a = C.initVars(a, 'F', F, ['CoordinateX','CoordinateY','CoordinateZ'])
+a = C.initVars(a, 'F', F, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
 val = P.extractPoint(a, (0.55, 0.38, 0.))
 test.testO(val)
 
 # sur un arbre
 t = C.newPyTree(['Base',2]); t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t[2][1][2].append(a)
-t = C.initVars(t, 'F', F, ['CoordinateX','CoordinateY','CoordinateZ'])
+t = C.initVars(t, 'F', F, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
 t = C.initVars(t, 'centers:G', 3.)
 val = P.extractPoint(t, (0.55, 0.38, 0.))
 test.testO(val,2)
@@ -30,6 +31,6 @@ test.testO(val,2)
 a = C.convertArray2Tetra(a)
 t = C.newPyTree(['Base',2]); t[2][1] = C.addState(t[2][1], 'Mach', 0.6)
 t[2][1][2].append(a)
-t = C.initVars(t, 'F', F, ['CoordinateX','CoordinateY','CoordinateZ'])
+t = C.initVars(t, 'F', F, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
 val = P.extractPoint(t, (0.55, 0.38, 0.))
 test.testO(val,3)

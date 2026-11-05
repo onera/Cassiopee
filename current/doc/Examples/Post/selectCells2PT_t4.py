@@ -8,8 +8,7 @@ import KCore.test         as test
 import Intersector.PyTree as XOR
 
 def F(x, y, z):
-    if (x+2*y+z > 20.): return True
-    else: return False
+    return x + 2*y + z > 20.
 
 # Test tag aux noeuds - sans champ en centre
 a = G.cartNGon( (0,0,0), (1,1,1), (21,11,11) )
@@ -17,7 +16,7 @@ a = G.cartNGon( (0,0,0), (1,1,1), (21,11,11) )
 a = Internal.createElsaHybrid(a,method=1,methodPE=1)
 a = Internal.rmNodesByName(a, ':elsA#Hybrid')
 
-a = C.initVars(a, 'tag', F, ['CoordinateX','CoordinateY','CoordinateZ'])
+a = C.initVars(a, 'tag', F, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
 b = P.selectCells2(a, 'tag')
 test.testT(a,1)
 
@@ -28,7 +27,7 @@ a = G.cartNGon( (0,0,0), (1,1,1), (21,11,11) )
 a = Internal.createElsaHybrid(a,method=1,methodPE=1)
 a = Internal.rmNodesByName(a, ':elsA#Hybrid')
 
-a = C.initVars(a, 'tag', F, ['CoordinateX','CoordinateY','CoordinateZ'])
+a = C.initVars(a, 'tag', F, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
 C._initVars(a,'{centers:var1}={centers:CoordinateZ}+{centers:CoordinateX}')
 b = P.selectCells2(a, 'tag')
 test.testT(a,2)
@@ -40,7 +39,7 @@ a = G.cartNGon( (0,0,0), (1,1,1), (21,11,11) )
 a = Internal.createElsaHybrid(a,method=1,methodPE=1)
 a = Internal.rmNodesByName(a, ':elsA#Hybrid')
 
-a = C.initVars(a, 'centers:tag', F, ['centers:CoordinateX','centers:CoordinateY','centers:CoordinateZ'])
+a = C.initVars(a, 'centers:tag', F, ['centers:CoordinateX','centers:CoordinateY','centers:CoordinateZ'], isVectorized=True)
 b = P.selectCells2(a, 'centers:tag')
 test.testT(a,3)
 
@@ -53,6 +52,6 @@ a = Internal.rmNodesByName(a, ':elsA#Hybrid')
 
 C._initVars(a,'{centers:var1}={centers:CoordinateZ}+{centers:CoordinateX}')
 C._initVars(a,'{var2}=1.')
-a = C.initVars(a, 'centers:tag', F, ['centers:CoordinateX','centers:CoordinateY','centers:CoordinateZ'])
+a = C.initVars(a, 'centers:tag', F, ['centers:CoordinateX','centers:CoordinateY','centers:CoordinateZ'], isVectorized=True)
 b = P.selectCells2(a, 'centers:tag')
 test.testT(a,4)

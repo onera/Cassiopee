@@ -9,7 +9,7 @@ import KCore.test as test
 a = D.circle((0.,0.,0.), 1., 0., 359.995, 500)
 C._addVars(a,'Density'); C._addVars(a,'centers:cellN')
 a = C.convertArray2Tetra(a)
-a2 = G.close(a, 1.e-4)
+a2 = G.close(a, tol=1.e-4)
 test.testT(a2,1)
 
 # test QUAD
@@ -18,14 +18,14 @@ a0 = G.cylinder((0.,0.,0.), 0., 1., 0., 359, 1., (ni,nj,nk))
 a = T.subzone(a0, (1,nj,1),(ni,nj,nk))
 C._addVars(a,'Density'); C._addVars(a,'centers:cellN')
 a = C.convertArray2Hexa(a)
-a2 = G.close(a, 1.e-1)
+a2 = G.close(a, tol=1.e-1)
 test.testT(a2,2)
 
 # test TRI
 a = T.subzone(a0, (1,nj,1),(ni,nj,nk))
 a = C.convertArray2Tetra(a)
 C._addVars(a,'Density'); C._initVars(a,'centers:cellN',1.)
-a2 = G.close(a, 1.e-1)
+a2 = G.close(a, tol=1.e-1)
 test.testT(a2,3)
 
 # test HEXA
@@ -34,23 +34,23 @@ a0 = G.cylinder((0.,0.,0.), 0., 1., 0., 359, 1., (ni,nj,nk))
 a0 = T.subzone(a0,(1,10,1),(20,13,5))
 a = C.convertArray2Hexa(a0)
 C._addVars(a,'Density'); C._initVars(a,'centers:cellN',1.)
-a2 = G.close(a, 1.e-2)
+a2 = G.close(a, tol=1.e-2)
 test.testT(a2,4)
 
 # test TETRA
 a = C.convertArray2Tetra(a0)
 C._addVars(a,'Density'); C._initVars(a,'centers:cellN',1.)
-a2 = G.close(a,2.e-2)
+a2 = G.close(a, tol=2.e-2)
 test.testT(a2,5)
 
 # test PENTA
 a = G.cartPenta((0.,0.,0.), (0.1,0.1,0.2), (10,10,10)); a = C.addVars(a,'F')
 C._addVars(a,'Density'); C._initVars(a,'centers:cellN',1.)
-a2 = G.close(a, 2.e-2)
+a2 = G.close(a, tol=2.e-2)
 test.testT([a2],6)
 
 # test PYRA
 a = G.cartPyra((0.,0.,0.), (0.1,0.1,0.2), (10,10,10)); a = C.addVars(a,'F')
 C._addVars(a,'Density'); C._initVars(a,'centers:cellN',1.)
-a2 = G.close(a, 2.e-2)
+a2 = G.close(a, tol=2.e-2)
 test.testT([a2],7)

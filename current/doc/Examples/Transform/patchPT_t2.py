@@ -14,7 +14,7 @@ c1 = C.addBC2Zone(c1,'wall1','BCWall','imin')
 c1 = C.addBC2Zone(c1,'match1','BCMatch','imax',c1,'imin',[1,2,3])
 c1 = C.addBC2Zone(c1, 'overlap1', 'BCOverlap', 'jmax')
 c1 = C.initVars(c1,'centers:celln',1.)
-c1 = C.initVars(c1,'Density',dens,['CoordinateX','CoordinateY'])
+c1 = C.initVars(c1,'Density',dens,['CoordinateX','CoordinateY'], isVectorized=True)
 
 c2 = G.cart((0,0,0), (0.01,0.01,1), (51,81,2))
 t = C.newPyTree(['Base']); t[2][1][2].append(c2)
@@ -22,7 +22,7 @@ c2 = T.rotate(c2, (0,0,0),(0,0,1),0.2)
 c2 = C.addBC2Zone(c2,'wall1','BCWall','imin')
 c2 = C.addBC2Zone(c2,'overlap1','BCOverlap','imax')
 c2 = C.initVars(c2, 'centers:celln',1.)
-c2 = C.initVars(c2,'Density',dens,['CoordinateX','CoordinateY'])
+c2 = C.initVars(c2,'Density',dens,['CoordinateX','CoordinateY'], isVectorized=True)
 # indice a partir duquel la zone est patchee
 im1 = 51; jm1 = 81; km1 = 2   # dimensions de la zone patchee
 im2 = 201; jm2 = 101; km2 = 2 # dimensions de la zone a patcher
@@ -46,14 +46,14 @@ c1 = C.addBC2Zone(c1,'wall1','BCWall','imin')
 c1 = C.addBC2Zone(c1,'match1','BCMatch','imax',c1,'imin',[1,2,3])
 c1 = C.addBC2Zone(c1, 'overlap1', 'BCOverlap', 'jmax')
 c1 = C.initVars(c1,'centers:celln',1.)
-c1 = C.initVars(c1,'Density',dens,['CoordinateX','CoordinateY'])
+c1 = C.initVars(c1,'Density',dens,['CoordinateX','CoordinateY'], isVectorized=True)
 
 c2 = G.cart((0,0,0), (0.01,0.01,1), (51,81,20))
 c2 = T.rotate(c2, (0,0,0),(0,0,1),0.2)
 c2 = C.addBC2Zone(c2,'wall1','BCWall','imin')
 c2 = C.addBC2Zone(c2,'overlap1','BCOverlap','imax')
 c2 = C.initVars(c2, 'centers:celln',1.)
-c2 = C.initVars(c2, 'Density', dens, ['CoordinateX','CoordinateY'])
+c2 = C.initVars(c2, 'Density', dens, ['CoordinateX','CoordinateY'], isVectorized=True)
 # indice a partir duquel la zone est patchee
 im1 = 51; jm1 = 81; km1 = 20   # dimensions de la zone patchee
 im2 = 201; jm2 = 101; km2 = 20 # dimensions de la zone a patcher

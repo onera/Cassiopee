@@ -13,10 +13,10 @@ def DF(y):
 # Test 3D
 ni = 30; nj = 40; nk = 3
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-m = C.initVars(m,'u',F,['x','y','z'])
+m = C.initVars(m,'u',F,['x','y','z'], isVectorized=True)
 m = C.initVars(m,'v',0.)
 m = C.initVars(m,'w',0.)
-m1 = C.initVars(m,'sol',DF,['y'])
+m1 = C.initVars(m,'sol',DF,['y'], isVectorized=True)
 p1 = P.computeCurl(m1,['u','v','w']) # defined on centers
 m = C.node2Center(m)
 p1 = C.addVars([m,p1])
@@ -25,7 +25,7 @@ test.testA([p1], 1)
 # Test 2D
 ni = 30; nj = 40; nk = 1
 m = G.cart((0,0,0), (10./(ni-1),10./(nj-1),1), (ni,nj,nk))
-m = C.initVars(m,'u',F,['x','y','z'])
+m = C.initVars(m,'u',F,['x','y','z'], isVectorized=True)
 m = C.initVars(m,'v',0.)
 m2 = C.initVars(m,'w',0.)
 p2 = P.computeCurl(m2,['u','v','w']) # defined on centers

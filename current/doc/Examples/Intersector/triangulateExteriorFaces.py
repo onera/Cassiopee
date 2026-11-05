@@ -6,4 +6,4 @@ m = C.convertFile2Arrays('boolNG_M1.tp')
 m = C.convertArray2NGon(m[0])
 
 m = XOR.triangulateExteriorFaces(m)
-C.convertArrays2File([m], 'out.plt')
+C.convertArrays2File(m, 'out.plt')

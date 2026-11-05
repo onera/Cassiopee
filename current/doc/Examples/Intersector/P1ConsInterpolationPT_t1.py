@@ -16,4 +16,4 @@ aR = C.convertArray2NGon(aR)
 aR = XOR.P1ConservativeInterpolation(aR, aD)
 #C.convertPyTree2File(aR, 'aR.cgns')
 
-test.testT(aR,1)
+test.testT(aR, 1)

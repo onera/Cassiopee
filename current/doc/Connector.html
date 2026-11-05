@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Connector: Grid connectivity module &#8212; Connector 4.2 documentation</title>
+    <title>Connector: Grid connectivity module &#8212; Connector 2026.11 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Connector 4.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Connector 2026.11 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Connector: Grid connectivity module</a></li> 
       </ul>
     </div>  
@@ -94,25 +94,28 @@ pre- and post-processor for CFD simulations.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#Connector.setHoleInterpolatedPoints" title="Connector.setHoleInterpolatedPoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.setHoleInterpolatedPoints</span></code></a></p></td>
 <td><p>Set interpolated points cellN=2 around cellN=0 points.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Connector.optimizeOverlap" title="Connector.optimizeOverlap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.optimizeOverlap</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Connector.addLayers" title="Connector.addLayers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.addLayers</span></code></a></p></td>
+<td><p>Add layers around a volume defined by cellN=0, with positive or negative depth controlling the side of the mask to expand.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.optimizeOverlap" title="Connector.optimizeOverlap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.optimizeOverlap</span></code></a></p></td>
 <td><p>Optimize the overlap of grids defined by nodes1 and nodes2 centers1 and centers2 define the coordinates of cell centers, modified by the double wall algorithm + cellN variable.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.maximizeBlankedCells" title="Connector.maximizeBlankedCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.maximizeBlankedCells</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Connector.maximizeBlankedCells" title="Connector.maximizeBlankedCells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.maximizeBlankedCells</span></code></a></p></td>
 <td><p>Maximize the blanked region.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Connector.PyTree.cellN2OversetHoles" title="Connector.PyTree.cellN2OversetHoles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.cellN2OversetHoles</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.PyTree.cellN2OversetHoles" title="Connector.PyTree.cellN2OversetHoles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.cellN2OversetHoles</span></code></a></p></td>
 <td><p>Create OversetHole nodes from cellN field.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.PyTree.setInterpData" title="Connector.PyTree.setInterpData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.setInterpData</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Connector.PyTree.setInterpData" title="Connector.PyTree.setInterpData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.setInterpData</span></code></a></p></td>
 <td><p>Compute interpolation data for abutting or chimera intergrid connectivity.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Connector.PyTree.setInterpData2" title="Connector.PyTree.setInterpData2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.setInterpData2</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.PyTree.setInterpData2" title="Connector.PyTree.setInterpData2"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.setInterpData2</span></code></a></p></td>
 <td><p>Compute interpolation data for 2 different trees.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.PyTree.getOversetInfo" title="Connector.PyTree.getOversetInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.getOversetInfo</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Connector.PyTree.getOversetInfo" title="Connector.PyTree.getOversetInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.getOversetInfo</span></code></a></p></td>
 <td><p>Return information on overset connectivities.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Connector.PyTree.extractChimeraInfo" title="Connector.PyTree.extractChimeraInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.extractChimeraInfo</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Connector.PyTree.extractChimeraInfo" title="Connector.PyTree.extractChimeraInfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Connector.PyTree.extractChimeraInfo</span></code></a></p></td>
 <td><p>Extract interpolated/extrapolated/orphan points as zones.</p></td>
 </tr>
 </tbody>
@@ -191,8 +194,8 @@ Set automatically the Transform node corresponding to the transformation from ma
 <span class="n">Ni</span> <span class="o">=</span> <span class="mi">300</span><span class="p">;</span> <span class="n">Nj</span> <span class="o">=</span> <span class="mi">50</span>
 <span class="n">distrib</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">Ni</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="mf">0.5</span><span class="o">/</span><span class="p">(</span><span class="n">Nj</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="n">Ni</span><span class="p">,</span><span class="n">Nj</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">naca</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">hyper2D</span><span class="p">(</span><span class="n">msh</span><span class="p">,</span> <span class="n">distrib</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">)</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">connectMatch</span><span class="p">(</span><span class="n">naca</span><span class="p">,</span><span class="n">naca</span><span class="p">,</span><span class="n">sameZone</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">naca</span><span class="p">],</span><span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">connectMatch</span><span class="p">(</span><span class="n">naca</span><span class="p">,</span> <span class="n">naca</span><span class="p">,</span> <span class="n">sameZone</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">(</span><span class="n">naca</span><span class="p">,</span> <span class="s2">&quot;out.plt&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -794,12 +797,11 @@ Blanked points are identified by the variable &#8216;cellN&#8217; located at mes
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 
 <span class="k">def</span> <span class="nf">sphere</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">x</span><span class="o">*</span><span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="o">*</span><span class="n">y</span><span class="o">+</span><span class="n">z</span><span class="o">*</span><span class="n">z</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="o">**</span><span class="mi">2</span> <span class="p">:</span> <span class="k">return</span> <span class="mf">0.</span>
-    <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="mf">1.</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="n">z</span><span class="o">*</span><span class="n">z</span> <span class="o">&gt;=</span> <span class="mf">0.5</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span><span class="o">-</span><span class="mf">1.</span><span class="p">),(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">))</span>
 <span class="n">celln</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-<span class="n">celln</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">celln</span><span class="p">,</span> <span class="s1">&#39;cellN&#39;</span><span class="p">,</span> <span class="n">sphere</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="s1">&#39;z&#39;</span><span class="p">])</span>
+<span class="n">celln</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">celln</span><span class="p">,</span> <span class="s1">&#39;cellN&#39;</span><span class="p">,</span> <span class="n">sphere</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="s1">&#39;z&#39;</span><span class="p">],</span> <span class="n">isVectorized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">celln</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">setHoleInterpolatedPoints</span><span class="p">(</span><span class="n">celln</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">celln</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
 </pre></div>
@@ -819,6 +821,75 @@ Blanked points are identified by the variable &#8216;cellN&#8217; located at mes
 <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="s1">&#39;{centers:cellN}=(1.-({centers:CoordinateX}*{centers:CoordinateX}+{centers:CoordinateY}*{centers:CoordinateY}+{centers:CoordinateZ}*{centers:CoordinateZ}&lt;0.25))&#39;</span><span class="p">)</span>
 
 <span class="n">X</span><span class="o">.</span><span class="n">_setHoleInterpolatedPoints</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Connector.addLayers">
+<span class="sig-prename descclassname"><span class="pre">Connector.</span></span><span class="sig-name descname"><span class="pre">addLayers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><p><em>Using the array interface:</em></p>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">addLayers</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cellNName</span><span class="o">=</span><span class="s1">&#39;cellN&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Add layers around a volume defined by a set of blanked points in a mesh a.
+Parameter depth is the number of layers to be added.
+If depth &gt; 0, layers are added outside the blanked zones, inside otherwise.
+If dir=0, uses a directional stencil of depth points, if dir=1, uses a star shape stencil,
+if dir=2, uses a diamond stencil, if dir=3, uses an octahedron stencil.
+Blanked points are identified by the variable &#8216;cellN&#8217;.
+The location, &#8216;nodes&#8217; or &#8216;centers&#8217;, must be encoded directly in cellNName.</p>
+</div></blockquote>
+<p><em>Using the pyTree interface:</em></p>
+<blockquote>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">addLayers</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cellNName</span><span class="o">=</span><span class="s1">&#39;centers:cellN&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Add layers around a volume defined by a set of blanked points in a pyTree t.
+Parameter depth is the number of layers to be added.
+If depth &gt; 0, layers are added outside the blanked zones, inside otherwise.
+If dir=0, uses a directional stencil of depth points, if dir=1, uses a star shape stencil,
+if dir=2, uses a diamond stencil, if dir=3, uses an octahedron stencil.
+Blanked points are identified by the variable &#8216;cellN&#8217;.
+The location, &#8216;nodes&#8217; or &#8216;centers&#8217;, must be encoded directly in cellNName.</p>
+</div></blockquote>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Connector/addLayers.py">Set the fringe of interpolated points near blanked points (array)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - addLayers (array) -</span>
+<span class="kn">import</span> <span class="nn">Converter</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Connector</span> <span class="k">as</span> <span class="nn">X</span>
+<span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="k">def</span> <span class="nf">sphere</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="n">z</span><span class="o">*</span><span class="n">z</span> <span class="o">&gt;=</span> <span class="mf">0.5</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span><span class="o">-</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">20</span><span class="p">))</span>
+<span class="n">celln</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+<span class="n">celln</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">celln</span><span class="p">,</span> <span class="s1">&#39;cellN&#39;</span><span class="p">,</span> <span class="n">sphere</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="s1">&#39;z&#39;</span><span class="p">],</span> <span class="n">isVectorized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">celln</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">addLayers</span><span class="p">(</span><span class="n">celln</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cellNName</span><span class="o">=</span><span class="s1">&#39;cellN&#39;</span><span class="p">)</span>
+<span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">celln</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Connector/addLayersPT.py">Set the fringe of interpolated points near the blanked points (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - addLayers (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
+<span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
+<span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">101</span>
+<span class="n">h</span> <span class="o">=</span> <span class="mf">2.</span><span class="o">/</span><span class="p">(</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span><span class="o">-</span><span class="mf">1.</span><span class="p">),</span> <span class="p">(</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">h</span><span class="p">),</span> <span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">N</span><span class="p">))</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Cart&#39;</span><span class="p">,</span> <span class="n">a</span><span class="p">])</span>
+<span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;{centers:cellN}=(1.-({centers:CoordinateX}*{centers:CoordinateX}+{centers:CoordinateY}*{centers:CoordinateY}+{centers:CoordinateZ}*{centers:CoordinateZ}&lt;0.25))&#39;</span><span class="p">)</span>
+
+<span class="n">X</span><span class="o">.</span><span class="n">_addLayers</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cellNName</span><span class="o">=</span><span class="s2">&quot;centers:cellN&quot;</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;out.cgns&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -913,12 +984,11 @@ uses a full depth x depth x depth stencil.</p>
 <span class="kn">import</span> <span class="nn">Generator</span> <span class="k">as</span> <span class="nn">G</span>
 
 <span class="k">def</span> <span class="nf">F</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">):</span> <span class="k">return</span> <span class="mi">1</span>
-    <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="o">&gt;=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
 
 <span class="n">Ni</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span> <span class="n">Nj</span> <span class="o">=</span> <span class="mi">50</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">Ni</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">Nj</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span><span class="mi">1</span><span class="p">),(</span><span class="n">Ni</span><span class="p">,</span><span class="n">Nj</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;cellN&#39;</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">])</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;cellN&#39;</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span><span class="s1">&#39;y&#39;</span><span class="p">],</span> <span class="n">isVectorized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">maximizeBlankedCells</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertArrays2File</span><span class="p">([</span><span class="n">a</span><span class="p">],</span> <span class="s1">&#39;out.plt&#39;</span><span class="p">)</span>
 </pre></div>
@@ -932,13 +1002,12 @@ uses a full depth x depth x depth stencil.</p>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 
 <span class="k">def</span> <span class="nf">F</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">):</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">):</span> <span class="k">return</span> <span class="mi">1</span>
-    <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="o">&gt;=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
 
 <span class="n">Ni</span> <span class="o">=</span> <span class="mi">50</span><span class="p">;</span> <span class="n">Nj</span> <span class="o">=</span> <span class="mi">50</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">Ni</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span><span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">Nj</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span><span class="mi">1</span><span class="p">),(</span><span class="n">Ni</span><span class="p">,</span><span class="n">Nj</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;cellN&#39;</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span>
-               <span class="p">[</span><span class="s1">&#39;CoordinateX&#39;</span><span class="p">,</span><span class="s1">&#39;CoordinateY&#39;</span><span class="p">])</span>
+               <span class="p">[</span><span class="s1">&#39;CoordinateX&#39;</span><span class="p">,</span><span class="s1">&#39;CoordinateY&#39;</span><span class="p">],</span> <span class="n">isVectorized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">node2Center</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;cellN&#39;</span><span class="p">)</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">rmVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="s1">&#39;cellN&#39;</span><span class="p">)</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="mi">2</span><span class="p">]);</span> <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
@@ -1651,7 +1720,7 @@ donor zones given by aD.</p>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
 <span class="kn">import</span> <span class="nn">Connector.PyTree</span> <span class="k">as</span> <span class="nn">X</span>
 <span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">N</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
 <span class="kn">import</span> <span class="nn">Dist2Walls.PyTree</span> <span class="k">as</span> <span class="nn">DTW</span>
 <span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
 
@@ -1661,7 +1730,7 @@ donor zones given by aD.</p>
 <span class="n">t</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">newPyTree</span><span class="p">([</span><span class="s1">&#39;Base&#39;</span><span class="p">,</span><span class="n">a</span><span class="p">])</span>
 <span class="c1"># Blanking</span>
 <span class="n">bodies</span> <span class="o">=</span> <span class="p">[[</span><span class="n">s</span><span class="p">]]</span>
-<span class="n">BM</span> <span class="o">=</span> <span class="n">N</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">]],</span><span class="n">N</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+<span class="n">BM</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">]],</span><span class="n">numpy</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">blankCells</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">bodies</span><span class="p">,</span><span class="n">BM</span><span class="p">,</span><span class="n">blankingType</span><span class="o">=</span><span class="s1">&#39;center_in&#39;</span><span class="p">)</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">setHoleInterpolatedPoints</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">depth</span><span class="o">=-</span><span class="mi">2</span><span class="p">)</span>
 <span class="c1"># Dist2Walls</span>
@@ -1714,7 +1783,7 @@ the fluid region</p></li>
 <span class="c1"># legacy</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
-<span class="kn">import</span> <span class="nn">Connector.ToolboxIBM</span> <span class="k">as</span> <span class="nn">IBM</span>
+<span class="kn">import</span> <span class="nn">Connector.IBM</span> <span class="k">as</span> <span class="nn">X_IBM</span>
 <span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
 <span class="kn">import</span> <span class="nn">Dist2Walls.PyTree</span> <span class="k">as</span> <span class="nn">DTW</span>
@@ -1727,7 +1796,7 @@ the fluid region</p></li>
 <span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addState</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;GoverningEquations&#39;</span><span class="p">,</span> <span class="s1">&#39;NSTurbulent&#39;</span><span class="p">)</span>
 <span class="n">DTW</span><span class="o">.</span><span class="n">_distance2Walls</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">bodies</span><span class="o">=</span><span class="n">tb</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ortho&#39;</span><span class="p">)</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">computeGrad</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;centers:TurbulentDistance&#39;</span><span class="p">)</span>
-<span class="n">t</span><span class="p">,</span><span class="n">tc</span><span class="o">=</span><span class="n">IBM</span><span class="o">.</span><span class="n">prepareIBMData_legacy</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">DEPTH</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">frontType</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">t</span><span class="p">,</span><span class="n">tc</span><span class="o">=</span><span class="n">X_IBM</span><span class="o">.</span><span class="n">prepareIBMData_legacy</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">tb</span><span class="p">,</span> <span class="n">DEPTH</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">frontType</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;t.cgns&#39;</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;tc.cgns&#39;</span><span class="p">)</span>
 </pre></div>
@@ -1752,7 +1821,7 @@ as updated points for the IBM approach and the corresponding wall and interpolat
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - extractIBMInfo (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
-<span class="kn">import</span> <span class="nn">Connector.ToolboxIBM</span> <span class="k">as</span> <span class="nn">IBM</span>
+<span class="kn">import</span> <span class="nn">Connector.IBM</span> <span class="k">as</span> <span class="nn">X_IBM</span>
 <span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
 <span class="kn">import</span> <span class="nn">Dist2Walls.PyTree</span> <span class="k">as</span> <span class="nn">DTW</span>
@@ -1766,8 +1835,8 @@ as updated points for the IBM approach and the corresponding wall and interpolat
 <span class="n">tb</span> <span class="o">=</span> <span class="n">C</span><span class="o">.</span><span class="n">addState</span><span class="p">(</span><span class="n">tb</span><span class="p">,</span> <span class="s1">&#39;GoverningEquations&#39;</span><span class="p">,</span> <span class="s1">&#39;NSTurbulent&#39;</span><span class="p">)</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">DTW</span><span class="o">.</span><span class="n">distance2Walls</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">bodies</span><span class="o">=</span><span class="n">tb</span><span class="p">,</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;centers&#39;</span><span class="p">,</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;ortho&#39;</span><span class="p">)</span>
 <span class="n">t</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">computeGrad</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="s1">&#39;centers:TurbulentDistance&#39;</span><span class="p">)</span>
-<span class="n">t</span><span class="p">,</span><span class="n">tc</span><span class="o">=</span><span class="n">IBM</span><span class="o">.</span><span class="n">prepareIBMData_legacy</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">tb</span><span class="p">,</span> <span class="n">DEPTH</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">res</span> <span class="o">=</span> <span class="n">IBM</span><span class="o">.</span><span class="n">extractIBMInfo</span><span class="p">(</span><span class="n">tc</span><span class="p">)</span>
+<span class="n">t</span><span class="p">,</span><span class="n">tc</span><span class="o">=</span><span class="n">X_IBM</span><span class="o">.</span><span class="n">prepareIBMData_legacy</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">tb</span><span class="p">,</span> <span class="n">DEPTH</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">X_IBM</span><span class="o">.</span><span class="n">extractIBMInfo</span><span class="p">(</span><span class="n">tc</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">res</span><span class="p">,</span><span class="s2">&quot;res.cgns&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1795,11 +1864,8 @@ on the vertices of the triangular mesh. a must contain the fields in the ZoneSub
 <span class="kn">import</span> <span class="nn">Geom.PyTree</span> <span class="k">as</span> <span class="nn">D</span>
 <span class="kn">import</span> <span class="nn">Post.PyTree</span> <span class="k">as</span> <span class="nn">P</span>
 <span class="kn">import</span> <span class="nn">Dist2Walls.PyTree</span> <span class="k">as</span> <span class="nn">DTW</span>
-<span class="kn">import</span> <span class="nn">Transform.PyTree</span> <span class="k">as</span> <span class="nn">T</span>
-<span class="kn">import</span> <span class="nn">Initiator.PyTree</span> <span class="k">as</span> <span class="nn">I</span>
 <span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
-<span class="kn">import</span> <span class="nn">Connector.ToolboxIBM</span> <span class="k">as</span> <span class="nn">IBM</span>
-<span class="kn">import</span> <span class="nn">KCore.test</span> <span class="k">as</span> <span class="nn">test</span>
+<span class="kn">import</span> <span class="nn">Post.IBM</span> <span class="k">as</span> <span class="nn">P_IBM</span>
 <span class="kn">import</span> <span class="nn">numpy</span>
 
 <span class="n">N</span> <span class="o">=</span> <span class="mi">41</span>
@@ -1839,7 +1905,7 @@ on the vertices of the triangular mesh. a must contain the fields in the ZoneSub
 <span class="n">X</span><span class="o">.</span><span class="n">miseAPlatDonorTree__</span><span class="p">(</span><span class="n">zones</span><span class="p">,</span> <span class="n">tc</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 <span class="c1"># attention compact=0 car t n est pas compacte</span>
 <span class="n">X</span><span class="o">.</span><span class="n">_setInterpTransfers</span><span class="p">(</span><span class="n">t</span><span class="p">,</span><span class="n">tc</span><span class="p">,</span> <span class="n">bcType</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">varType</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">variablesIBC</span><span class="o">=</span><span class="nb">vars</span><span class="p">,</span><span class="n">compact</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">compactD</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">IBM</span><span class="o">.</span><span class="n">extractIBMWallFields</span><span class="p">(</span><span class="n">tc</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="n">tb</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">P_IBM</span><span class="o">.</span><span class="n">extractIBMWallFields</span><span class="p">(</span><span class="n">tc</span><span class="p">,</span> <span class="n">tb</span><span class="o">=</span><span class="n">tb</span><span class="p">)</span>
 <span class="n">C</span><span class="o">.</span><span class="n">convertPyTree2File</span><span class="p">(</span><span class="n">z</span><span class="p">,</span><span class="s2">&quot;out.cgns&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -2088,7 +2154,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="#">Connector 4.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="#">Connector 2026.11 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Connector: Grid connectivity module</a></li> 
       </ul>
     </div>

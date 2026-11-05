@@ -19,15 +19,15 @@ tb = C.newPyTree(["BODY",a])
 Cmpi.barrier()
 
 t = G_AMR.generateAMRMesh(tb, vmins=[[5,5]], dim=dimPb, check=False, localDir=LOCAL)
-if Cmpi.rank == 0: test.testT(t,1)
-else: test.testT(t,12)
+if Cmpi.rank == 0: test.testT(t, 1)
+else: test.testT(t, 12)
 #Cmpi.convertPyTree2File(t,'check_m1_2D.cgns')
 
 # 3D
 a = D.sphere((0.,0.,0.),0.1)
 dimPb = 3
 D_IBM._setSnear(a, 0.5)
-D_IBM._setIBCType(a,"Musker")
+D_IBM._setIBCType(a, "Musker")
 D_IBM._setDfar(a, 5.)
 
 tb = C.newPyTree(["BODY",a])
@@ -37,8 +37,8 @@ toffset = C.newPyTree(['R1'])
 toffset[2][1][2] = [D.sphere((0.,0.,0.),0.5)]
 D_IBM._setSnear(toffset, 0.5)
 t = G_AMR.generateAMRMesh(tb, toffset=toffset, vmins=[[5]], dim=dimPb, check=False, localDir=LOCAL)
-if Cmpi.rank == 0: test.testT(t,2)
-else: test.testT(t,22)
+if Cmpi.rank == 0: test.testT(t, 2)
+else: test.testT(t, 22)
 #Cmpi.convertPyTree2File(t,'check_m1_3D.cgns')
 #Cmpi.convertPyTree2File(toffset,'check_m1_3D_offset.cgns')
 #Cmpi.convertPyTree2File(a,'check_m1_3D_sphere.cgns')

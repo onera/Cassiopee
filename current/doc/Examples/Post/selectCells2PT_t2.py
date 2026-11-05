@@ -8,17 +8,16 @@ import KCore.test as test
 def F(x, y, z): return x+2*y+z
 
 def F2(x):
-    if (x > 15.): return True
-    else: return False
+    return (x > 15.)
 
 # test sur une zone + tag aux centres
 a = G.cart((0,0,0),(1,1,1),(11,11,11))
 a = C.addBC2Zone(a, 'wall1', 'BCWall', 'imin')
 a = C.addBC2Zone(a, 'overlap1', 'BCOverlap', 'jmin')
 a = C.addBC2Zone(a, 'match1', 'BCMatch', 'imax', a, 'imin', [1,2,3])
-a = C.initVars(a, 'Density', F, ['CoordinateX','CoordinateY','CoordinateZ'])
+a = C.initVars(a, 'Density', F, ['CoordinateX','CoordinateY','CoordinateZ'], isVectorized=True)
 a = C.node2Center(a, 'Density')
-a = C.initVars(a, 'centers:tag', F2, ['centers:Density'])
+a = C.initVars(a, 'centers:tag', F2, ['centers:Density'], isVectorized=True)
 b = P.selectCells2(a, 'centers:tag')
 t = C.newPyTree(['Base']); t[2][1][2] += [b]
 test.testT(t, 1)
