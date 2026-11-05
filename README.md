@@ -6,12 +6,13 @@
 
 
 [![Documentation](https://img.shields.io/badge/Documentation-online-blue)](https://onera.github.io/Cassiopee/latest/)
+[![Source code](https://img.shields.io/badge/Source%20code-GitHub-blue?logo=github)](https://github.com/onera/Cassiopee)
 [![Latest release](https://img.shields.io/github/v/release/onera/Cassiopee?label=release)](https://github.com/onera/Cassiopee/releases)
 [![License: LGPL-3.0](https://img.shields.io/badge/License-LGPL--3.0-blue.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/onera/Cassiopee?style=social)](https://github.com/onera/Cassiopee/stargazers)
 
 
-Cassiopee is a collection of 19 Python modules developed by **ONERA, the French Aerospace Lab**, for computational fluid dynamics (CFD) workflows.
+Cassiopee is a collection of 19 Python modules developed by ONERA, the French Aerospace Lab, for computational fluid dynamics (CFD) workflows. Cassiopee has been in development at ONERA's Aerodynamics, Aeroelasticity, and Acoustics Department (DAAA) since the early 2000s and has been open-source since 2024.
 
 Its modular API provides building blocks for geometry processing, mesh generation and transformation, data conversion, and solution post-processing. Cassiopee is solver-agnostic and supports workflows involving structured and unstructured meshes, including advanced overset-grid and immersed-boundary methods.
 
