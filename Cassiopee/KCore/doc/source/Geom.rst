@@ -271,15 +271,15 @@ A polyline is defined as a C0 i-array which contains only the polyline points (w
 
 ---------------------------------------
 
-.. py:function:: Geom.profile(name=None)
+.. py:function:: Geom.airfoil(name=None)
 
-    Create a wing profile of given name. 
+    Create a wing airfoil of given name. 
     The name must be of type "series/profile".
     If name is not provided, list available profiles.
 
-    :param name: profile name
+    :param name: airfoil name
     :type name: string of type "series/profile"
-    :return: a profile
+    :return: a curve
     :rtype: one array/zone (1D STRUCT)
 
     *Example of use:*

@@ -1,0 +1,155 @@
+Running loadAndSplit.py with Nprocs=3 and Nthreads=1
+Reading and splitting ...
+[0]	 using HDF5 version 1.14.3
+[0]	 mesh data version 2
+[0]	 =============== Mesh Info ===============
+
+	     Attributes:
+	       'MeshFilename'     = 'case0.001M.h5'
+	       'MeshImportFormat' = 'HDF5'
+	     Number of 'Node'               = 729
+	     Number of 'Quad4'              = 384
+	     Number of 'Hexa8'              = 512
+	     Cell attributes of 'Quad4'     = ['CADGroupID']
+	     Cell attribute 'CADGroupID' value names = {1 : 'far'}
+	     Datasets:
+	       'CellAvgState' spanning across ( 'Hexa8' ):
+	         'Density'                      []
+	         'MomentumX'                    []
+	         'MomentumY'                    []
+	         'MomentumZ'                    []
+	         'EnergyStagnationDensity'      []
+	         'Viscosity_EddyMolecularRatio' []
+	       'Coordinates' spanning across ( 'Node' ):
+	         'CoordinateX'                  []
+	         'CoordinateY'                  []
+	         'CoordinateZ'                  []
+	     
+[0]	 reading unstructured mesh data ...
+[0]	 reading unstructured cell pool 'Node'
+[0]	 reading unstructured cell pool 'Quad4'
+[0]	 reading unstructured cell pool 'Hexa8'
+[0]	 reading unstructured datasets
+[0]	 reading unstructured dataset 'CellAvgState'
+[0]	 reading unstructured dataset 'Coordinates'
+[0]	 =============== Mesh Info ===============
+
+	     Attributes:
+	       'MeshFilename'     = 'case0.001M.h5'
+	       'MeshImportFormat' = 'HDF5'
+	     Cell-numbering             = Global
+	     Number of 'Node'           = 729
+	     Number of 'Quad4'          = 384
+	     Number of 'Hexa8'          = 512
+	     -- No parents --
+	     Cell attributes of 'Quad4' = ['CADGroupID']
+	     Cell attribute 'CADGroupID' value names = {1 : 'far'}
+	     Datasets:
+	       'CellAvgState' spanning across ( 'Hexa8' ):
+	         'Density'                     , range = [0.8375 <---> 1.3625]
+	         'MomentumX'                   , range = [-0.325 <---> 0.725]
+	         'MomentumY'                   , range = [-0.4375 <---> 0.4375]
+	         'MomentumZ'                   , range = [0.1375 <---> 0.6625]
+	         'EnergyStagnationDensity'     , range = [15.0375 <---> 15.5625]
+	         'Viscosity_EddyMolecularRatio', range = [7.02915e-189 <---> 70.9151]
+	       'Coordinates' spanning across ( 'Node' ):
+	         'CoordinateX'                 , range = [0 <---> 10]
+	         'CoordinateY'                 , range = [0 <---> 10]
+	         'CoordinateZ'                 , range = [0 <---> 10]
+	     
+[0]	 repartitioning mesh by RCB method ...
+[0]	 recursive coordinate bisection: 0.00125 [s] (wall clock time)
+
+[0]	 redistributing mesh ...
+[0]	 repartitioning mesh by RCB method: 0.00207 [s] (wall clock time)
+
+[0]	 using default constraints 'EqualNumberOfVertices', 'EqualNumberOfEdges'
+[0]	 repartitioning mesh by using FSMeshPartitionerPARMETIS ...
+[0]	 extraction of mesh graph ...
+[0]	 =============== Graph Info ===============
+
+	     Number of vertices                    = 896
+	     Min./max. number of edges at a vertex = 1 / 6
+	     Coordinates range:
+	         [0, 0, 0] x [10, 10, 10]
+	     Vertex attributes  = ['CellId', 'CellType']
+	     Vertex attribute 'CellId':
+	       Number of values = 1
+	       Min./max. values = { [315,757] }
+	     Vertex attribute 'CellType':
+	       Number of values = 1
+	       Min./max. values = { [4,8] }
+	     <edge attributes not initialized>
+	     <ghost vertices not initialized>
+[0]	 extraction of mesh graph: 0.00144 [s] (wall clock time)
+
+[0]	 computing partitioning for GRAPH ...
+
+[0]	 calling ParMETIS ...
+[0]	     partitioning constraints = [ 'EqualNumberOfVertices' 'EqualNumberOfEdges' ]
+[0]	     edge cut of graph computed by ParMETIS = 118
+[0]	 calling ParMETIS: 0.00647 [s] (wall clock time)
+
+[0]	 redistributing mesh ...
+[0]	 repartitioning mesh by using FSMeshPartitionerPARMETIS: 0.00898 [s] (wall clock time)
+
+[0]	 =============== Mesh Info ===============
+
+	     Attributes:
+	       'MeshFilename'     = 'case0.001M.h5'
+	       'MeshImportFormat' = 'HDF5'
+	       'is_balanced'      = '1'
+	       'preserve_piles'   = '0'
+	     Cell-numbering             = Local
+	     Number of 'Node'           = 729
+	     Number of 'Quad4'          = 384
+	     Number of 'Hexa8'          = 512
+	     -- No parents --
+	     Cell attributes of 'Quad4' = ['CADGroupID']
+	     Cell attribute 'CADGroupID' value names = {1 : 'far'}
+	     Datasets:
+	       'CellAvgState' spanning across ( 'Hexa8' ):
+	         'Density'                     , range = [0.8375 <---> 1.3625]
+	         'MomentumX'                   , range = [-0.325 <---> 0.725]
+	         'MomentumY'                   , range = [-0.4375 <---> 0.4375]
+	         'MomentumZ'                   , range = [0.1375 <---> 0.6625]
+	         'EnergyStagnationDensity'     , range = [15.0375 <---> 15.5625]
+	         'Viscosity_EddyMolecularRatio', range = [7.02915e-189 <---> 70.9151]
+	       'Coordinates' spanning across ( 'Node' ):
+	         'CoordinateX'                 , range = [0 <---> 10]
+	         'CoordinateY'                 , range = [0 <---> 10]
+	         'CoordinateZ'                 , range = [0 <---> 10]
+	     
+elapsed loadAndSplit:  0.014966964721679688
+Converting to CGNS ...
+Fetching FSDM mesh data.
+Fetching FS mesh coordinates.
+Initialising CGNS PyTree coordinates.
+Fetching FS mesh connectivity data.
+Markers associated with different surface element types: {1}.
+Initialising CGNS mesh connectivity from FS mesh info.
+Fetching FSDM flow solution data.
+  - Dataset: CellAvgState.
+Converting ME to NGon.
+Reorienting mesh for use in FFD.
+Fixing Flow Solution.
+Merging BCs: one CGNS BC per boundary marker.
+elapsed convert:  0.004481077194213867
+[0] 0: Creating match zone.2 for zone.0
+[2] 0: Creating match zone.1 for zone.2
+[0] 0: indices.size = 38
+[1] 0: Creating match zone.0 for zone.1
+[1] 0: indices.size = 35
+[2] 0: indices.size = 45
+[0] 1: Creating match zone.1 for zone.0
+[0] 1: indices.size = 0
+[2] 1: Creating match zone.0 for zone.2
+elapsed connectMatch:  0.0017805099487304688
+[1] 1: Creating match zone.2 for zone.1
+[2] 1: indices.size = 0
+[1] 1: indices.size = 0
+Writing out2.cgns (bin_cgns)...done.
+Writing out2.cgns [1 zones]...
+done.
+Writing out2.cgns [1 zones]...
+done.

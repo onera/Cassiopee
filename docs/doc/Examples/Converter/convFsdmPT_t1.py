@@ -46,6 +46,12 @@ T._contract(m, (0,0,0), (1,0,0), (0,1,0), dz)
 # Add BCs
 ext = []
 for i in m:
+    elts = Internal.getElementNodes(i)
+    for elt in elts:
+        eltName = Internal.eltNo2EltName(elt[1][0])[0]
+        if eltName in ['PENTA', 'PYRA']:
+            i = C.convertArray2NGon(i)
+            break
     e = P.exteriorFaces(i)
     ext += T.splitSharpEdges(e, 30.) # because of prisms, ext is in ngon
 
@@ -78,11 +84,9 @@ t = C.convertFile2PyTree(LOCAL+'/out.h5')
 test.testT(t, 1)
 
 # passage en NGON
-bcs = C.getBCs(m)
-m = C.breakConnectivity(m)
-m = C.convertArray2NGon(m, recoverBC=0)
-m = T.join(m)
-C._recoverBCs(m, bcs)
+zones = Internal.getZones(m)
+for z in zones:
+    C._convertArray2NGon(z, recoverBC=True, api=3)
 C._signNGonFaces(m)
 Internal._adaptNGon32NGon4(m)
 #C.convertPyTree2File(m, 'mesh.cgns')

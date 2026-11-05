@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Converter.Mpi: distributed pyTree services &#8212; Converter 4.2 documentation</title>
+    <title>Converter.Mpi: distributed pyTree services &#8212; Converter 2026.11 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 2026.11 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Converter.Mpi: distributed pyTree services</a></li> 
       </ul>
     </div>  
@@ -58,7 +58,7 @@ attributed to the current rank are fully loaded.</p>
 to the current rank fully loaded and no skeleton zones.
 It can be viewed as a <em>loaded skeleton tree</em> with skeleton zones suppressed.</p>
 <p>Generally, Cassiopee functions will operate seamlessly on
-a partial tree, if the function doesn&#8217;t requires data exchanges.
+a partial tree, if the function doesn&#8217;t require data exchanges.
 If the function requires exchanges, then a specific version exists
 in the Module.Mpi module. For instance, for Converter, only center2Node
 requires exchanges and is redefined in Converter.Mpi.</p>
@@ -136,8 +136,14 @@ requires exchanges and is redefined in Converter.Mpi.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.rmXZones" title="Converter.Mpi.rmXZones"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.rmXZones</span></code></a></p></td>
 <td><p>Remove zones added by addXZones.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.allgatherTree" title="Converter.Mpi.allgatherTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.allgatherTree</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.allgatherDict" title="Converter.Mpi.allgatherDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.allgatherDict</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#Converter.Mpi.allgatherTree" title="Converter.Mpi.allgatherTree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.allgatherTree</span></code></a></p></td>
 <td><p>Gather a distributed tree on all processors.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#Converter.Mpi.allreduceDict" title="Converter.Mpi.allreduceDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Converter.Mpi.allreduceDict</span></code></a></p></td>
+<td><p></p></td>
 </tr>
 </tbody>
 </table>
@@ -170,7 +176,7 @@ If maxDepth is specified, load is limited to maxDepth levels.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to read from</p></li>
 <li><p><strong>format</strong> (<em>string</em>) &#8211; bin_cgns, bin_adf, bin_hdf (optional)</p></li>
-<li><p><strong>maxFloatSize</strong> (<em>int</em>) &#8211; the maxSize of float array to load</p></li>
+<li><p><strong>maxFloatSize</strong> (<em>int</em>) &#8211; the maximum size of float arrays to load</p></li>
 <li><p><strong>maxDepth</strong> (<em>int</em>) &#8211; max depth of load</p></li>
 <li><p><strong>links</strong> (<em>list</em><em> of </em><em>list</em><em> of </em><em>4 strings</em>) &#8211; if not None, return a list of links in file</p></li>
 </ul>
@@ -271,7 +277,7 @@ and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; input data</p></li>
 <li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to read from</p></li>
 <li><p><strong>format</strong> (<em>string</em>) &#8211; bin_cgns, bin_adf, bin_hdf (optional)</p></li>
 <li><p><strong>rank</strong> (<em>int</em>) &#8211; the processor of zones to read</p></li>
@@ -326,7 +332,7 @@ Distributor2.distribute or setProc.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; input data</p></li>
 <li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to write to</p></li>
 <li><p><strong>format</strong> (<em>string</em>) &#8211; bin_cgns, bin_adf, bin_hdf (optional)</p></li>
 <li><p><strong>rank</strong> (<em>int</em>) &#8211; the processor of written zones</p></li>
@@ -364,7 +370,7 @@ partial tree (<strong>P</strong>) to a file (adf or hdf).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>]</em>) &#8211; input data</p></li>
+<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; input data</p></li>
 <li><p><strong>fileName</strong> (<em>string</em>) &#8211; file name to write to</p></li>
 <li><p><strong>format</strong> (<em>string</em>) &#8211; bin_cgns, bin_adf, bin_hdf (optional)</p></li>
 <li><p><strong>links</strong> (<em>list</em><em> of </em><em>list</em><em> of </em><em>4 strings</em>) &#8211; optional list of links to be written</p></li>
@@ -402,14 +408,14 @@ partial tree (<strong>P</strong>) to a file (adf or hdf).</p>
 <dt class="sig sig-object py" id="Converter.Mpi.convert2SkeletonTree">
 <span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">convert2SkeletonTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Convert a tree (<strong>LS</strong> or <strong>P</strong>) to a skeleton tree (S). In a skeleton tree,
-numpys in DataArray_t nodes are replaced by None.</p>
+numpy arrays in DataArray_t nodes are replaced by None.</p>
 <p>Exists also as in place version (_convert2SkeletonTree) that modifies t
 and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
-<li><p><strong>maxSize</strong> (<em>int</em>) &#8211; numpy bigger than maxSize are remplace by None</p></li>
+<li><p><strong>maxSize</strong> (<em>int</em>) &#8211; numpy arrays larger than maxSize are replaced by None</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -486,7 +492,7 @@ and returns None.</p>
 <dt class="sig sig-object py" id="Converter.Mpi.createBBoxTree">
 <span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">createBBoxTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'AABB'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepOldNodes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>From a partial tree (<strong>P</strong>) or a loaded skeleton tree (<strong>LS</strong>), create a full tree containing
-the bbox of zones. A bbox is a structured grid made of 8 points englobing
+the bbox of zones. A bbox is a structured grid made of 8 points surrounding a
 zone. The returned tree is identical on all processors.
 Argument method can be &#8216;AABB&#8217; (axis aligned bbox) or &#8216;OBB&#8217; (oriented bbox).</p>
 <dl class="field-list simple">
@@ -681,12 +687,12 @@ a dictionary proc[&#8216;zoneName&#8217;].</p>
 <li><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>, </em><em>base</em><em>, </em><em>zone</em><em>, </em><em>list</em><em> of </em><em>zones</em><em>]</em>) &#8211; input data</p></li>
 <li><p><strong>type</strong> (<em>string in 'bbox'</em><em>, </em><em>'bbox2'</em><em>, </em><em>'bbox3'</em><em>, </em><em>'match'</em><em>, </em><em>'ID'</em><em>, </em><em>'IBCD'</em><em>, </em><em>'ALLD'</em><em>, </em><em>'proc'</em>) &#8211; type of graph</p></li>
 <li><p><strong>t2</strong> (<em>pyTree</em>) &#8211; optional second tree for type=&#8217;bbox3&#8217;</p></li>
-<li><p><strong>procDict</strong> (<em>dictionary</em>) &#8211; if provided, used for zone affectation</p></li>
-<li><p><strong>intersectionDict</strong> (<em>python dictionary</em>) &#8211; dictionary of intersections</p></li>
+<li><p><strong>procDict</strong> (<em>dict</em>) &#8211; if provided, used for zone affectation</p></li>
+<li><p><strong>intersectionsDict</strong> (<em>dict</em>) &#8211; dictionary of intersections</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>python dictionary of communications</p>
+<dd class="field-even"><p>dict of communications</p>
 </dd>
 </dl>
 <p><em>Example of use:</em></p>
@@ -746,8 +752,8 @@ connected to local zones through the graph.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>]</em>) &#8211; input tree</p></li>
-<li><p><strong>graph</strong> (<em>dictionary</em>) &#8211; communication graph as defined by computeGraph</p></li>
+<li><p><strong>t</strong> (<em>pyTree</em>) &#8211; input tree</p></li>
+<li><p><strong>graph</strong> (<em>dict</em>) &#8211; communication graph as defined by computeGraph</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -798,7 +804,7 @@ connected to local zones through the graph.</p>
 <p>Exists also as in place version (_rmXZones) that modifies t and returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>]</em>) &#8211; input tree</p>
+<dd class="field-odd"><p><strong>t</strong> (<em>pyTree</em>) &#8211; input tree</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>tree with connected zones suppressed</p>
@@ -840,13 +846,95 @@ connected to local zones through the graph.</p>
 
 <hr class="docutils" />
 <dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.allgatherDict">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">allgatherDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fillValue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Gather a distributed dict on all processors.
+All processors then see the same dict.
+There are four ways to build the gathered dict:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>method 0 (default) - Unique values: for a given key, the gathered data
+is a single list containing unique values only.</p></li>
+<li><p>method 1 - All values found: for a given key, the gathered data is a
+list containing all values.</p></li>
+<li><p>method 2 - All values, fill missing with fillValue: for a given key, the
+gathered data is a list containing all values. If the key is not found
+on one rank, add fillValue (default None).</p></li>
+<li><p>method 3 - Single value: for a given key, the gathered data is a single
+value. If a key is found multiple times, choose the corresponding value
+in the lowest rank.</p></li>
+</ul>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>dict</em>) &#8211; input dict</p></li>
+<li><p><strong>method</strong> (<em>int</em>) &#8211; method index (0, 1, 2, or 3)</p></li>
+<li><p><strong>fillValue</strong> (<em>[</em><em>int</em><em>, </em><em>float</em><em>, </em><em>bool</em><em>, </em><em>list</em><em>, </em><em>NoneType</em><em>]</em>) &#8211; fill value when a key is not present on a rank</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>merged and gathered dict (identical on all processors)</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/allgatherDictPT.py">Gather a distributed dict (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Usage: kpython -n3 allgatherDictPT.py</span>
+<span class="c1"># - allgatherDict (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+
+<span class="c1"># Data set 1</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">bcNames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;inlet&quot;</span><span class="p">,</span> <span class="s2">&quot;wall&quot;</span><span class="p">]</span>
+<span class="k">elif</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="n">bcNames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;wall&quot;</span><span class="p">,</span> <span class="s2">&quot;inlet&quot;</span><span class="p">,</span> <span class="s2">&quot;outlet&quot;</span><span class="p">,</span> <span class="s2">&quot;symmetry&quot;</span><span class="p">]</span>
+<span class="k">else</span><span class="p">:</span> <span class="n">bcNames</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="c1"># Data set 2</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">bcNamesDict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;inlet&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">],</span> <span class="s2">&quot;wall&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">5.</span><span class="p">,</span> <span class="mf">6.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">]}</span>
+<span class="k">elif</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="n">bcNamesDict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;wall&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.</span><span class="p">],</span> <span class="s2">&quot;inlet&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.</span><span class="p">],</span> <span class="s2">&quot;outlet&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;symmetry&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">20.</span><span class="p">,</span> <span class="mf">21.</span><span class="p">]}</span>
+<span class="k">else</span><span class="p">:</span> <span class="n">bcNamesDict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;wall&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">9.</span><span class="p">,</span> <span class="mf">8.</span><span class="p">],</span> <span class="s2">&quot;outlet&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">11.</span><span class="p">],</span> <span class="s2">&quot;symmetry&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">20.</span><span class="p">,</span> <span class="mf">21.</span><span class="p">,</span> <span class="mf">22.</span><span class="p">]}</span>
+
+
+<span class="c1"># -- method 0: Return all unique values</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">allgatherDict</span><span class="p">(</span><span class="n">bcNamesDict</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">master</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="c1"># &gt;&gt; 0: {&#39;inlet&#39;: [1.0, 3.0, 2.0], &#39;wall&#39;: [5.0, 6.0, 10.0, 7.0, 9.0, 8.0], &#39;outlet&#39;: [11.0], &#39;symmetry&#39;: [20.0, 21.0, 22.0]}</span>
+
+
+<span class="c1"># -- method 1: Return all values</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">allgatherDict</span><span class="p">(</span><span class="n">bcNamesDict</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">master</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="c1"># &gt;&gt; 0: {&#39;inlet&#39;: [1.0, 3.0, 2.0], &#39;wall&#39;: [5.0, 6.0, 10.0, 7.0, 9.0, 8.0], &#39;outlet&#39;: [11.0], &#39;symmetry&#39;: [20.0, 21.0, 20.0, 21.0, 22.0]}</span>
+
+
+<span class="c1"># -- method 2: Return all values, add fillValue if missing</span>
+<span class="n">isBCPresent</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">isBCPresent</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">bcNames</span><span class="p">}</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">allgatherDict</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">fillValue</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">master</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="c1"># &gt;&gt; 0: {&#39;inlet&#39;: [True, True, False], &#39;wall&#39;: [True, True, False], &#39;outlet&#39;: [False, True, False], &#39;symmetry&#39;: [False, True, False]}</span>
+
+
+<span class="c1"># -- method 3: Return the single value, the first of the lowest rank</span>
+<span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">bcNames</span><span class="p">}</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">allgatherDict</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">master</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="c1"># &gt;&gt; 0: {&#39;inlet&#39;: 0, &#39;wall&#39;: 0, &#39;outlet&#39;: 1, &#39;symmetry&#39;: 1}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="py function">
 <dt class="sig sig-object py" id="Converter.Mpi.allgatherTree">
 <span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">allgatherTree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Gather a distributed tree on all processors.
 All processors then see the same tree.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>]</em>) &#8211; input tree</p>
+<dd class="field-odd"><p><strong>t</strong> (<em>pyTree</em>) &#8211; input tree</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>merged and gathered tree (identical on all processors)</p>
@@ -882,6 +970,85 @@ All processors then see the same tree.</p>
 </div>
 </dd></dl>
 
+<hr class="docutils" />
+<dl class="py function">
+<dt class="sig sig-object py" id="Converter.Mpi.allreduceDict">
+<span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">allreduceDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fillValue</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">op</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Cmpi.SUM</span></span></em><span class="sig-paren">)</span></dt>
+<dd><p>Reduce a distributed dict to all procs (using pickle, small data) applying op.
+All processors then see the same dict.
+There are three ways to build the gathered dict:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>method 0 (default) - Unique values: for a given key, the gathered data
+is a single list containing unique values only.</p></li>
+<li><p>method 1 - All values found: for a given key, the gathered data is a
+list containing all values.</p></li>
+<li><p>method 2 - All values, fill missing with fillValue: for a given key, the
+gathered data is a list containing all values. If the key is not found
+on one rank, add fillValue (default None).</p></li>
+</ul>
+</div></blockquote>
+<p>Valid reduce ops to apply to the gathered dict are Cmpi.SUM, Cmpi.MIN, Cmpi.MAX, Cmpi.LOR, and Cmpi.LAND.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>dict</em>) &#8211; input dict</p></li>
+<li><p><strong>method</strong> (<em>int</em>) &#8211; method index (0, 1, or 2)</p></li>
+<li><p><strong>fillValue</strong> (<em>[</em><em>int</em><em>, </em><em>float</em><em>, </em><em>bool</em><em>, </em><em>list</em><em>, </em><em>NoneType</em><em>]</em>) &#8211; fill value when a key is not present on a rank</p></li>
+<li><p><strong>op</strong> (<em>MPI object</em>) &#8211; reduce operator</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>reduced dict (identical on all processors)</p>
+</dd>
+</dl>
+<p><em>Example of use:</em></p>
+<ul class="simple">
+<li><p><a class="reference external" href="Examples/Converter/allreduceDictPT.py">Gather a distributed dict (pyTree)</a>:</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Usage: kpython -n3 allreduceDictPT.py</span>
+<span class="c1"># - allreduceDict (pyTree) -</span>
+<span class="kn">import</span> <span class="nn">Converter.Internal</span> <span class="k">as</span> <span class="nn">Internal</span>
+<span class="kn">import</span> <span class="nn">Converter.Mpi</span> <span class="k">as</span> <span class="nn">Cmpi</span>
+
+<span class="c1"># Data set 1</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">bcNames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;inlet&quot;</span><span class="p">,</span> <span class="s2">&quot;wall&quot;</span><span class="p">]</span>
+<span class="k">elif</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="n">bcNames</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;wall&quot;</span><span class="p">,</span> <span class="s2">&quot;inlet&quot;</span><span class="p">,</span> <span class="s2">&quot;outlet&quot;</span><span class="p">,</span> <span class="s2">&quot;symmetry&quot;</span><span class="p">]</span>
+<span class="k">else</span><span class="p">:</span> <span class="n">bcNames</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="c1"># Data set 2</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="n">bcNamesDict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;inlet&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">],</span> <span class="s2">&quot;wall&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">5.</span><span class="p">,</span> <span class="mf">6.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">]}</span>
+<span class="k">elif</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="n">bcNamesDict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;wall&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">7.</span><span class="p">],</span> <span class="s2">&quot;inlet&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.</span><span class="p">],</span> <span class="s2">&quot;outlet&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;symmetry&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">20.</span><span class="p">,</span> <span class="mf">21.</span><span class="p">]}</span>
+<span class="k">else</span><span class="p">:</span> <span class="n">bcNamesDict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;wall&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">9.</span><span class="p">,</span> <span class="mf">8.</span><span class="p">],</span> <span class="s2">&quot;outlet&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">11.</span><span class="p">],</span> <span class="s2">&quot;symmetry&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">20.</span><span class="p">,</span> <span class="mf">21.</span><span class="p">,</span> <span class="mf">22.</span><span class="p">]}</span>
+
+
+<span class="c1"># -- method 0: Return all unique values, then reduce with op</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">allreduceDict</span><span class="p">(</span><span class="n">bcNamesDict</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">SUM</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">master</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="c1"># &gt;&gt; 0: {&#39;inlet&#39;: 6.0, &#39;wall&#39;: 45.0, &#39;outlet&#39;: 11.0, &#39;symmetry&#39;: 63.0}</span>
+
+
+<span class="c1"># -- method 1: Return all values, then reduce with op</span>
+<span class="n">isBCPresent</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">isBCPresent</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">bcNames</span><span class="p">}</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">allreduceDict</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">SUM</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">master</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="c1"># &gt;&gt; 0: {&#39;inlet&#39;: 2, &#39;wall&#39;: 2, &#39;outlet&#39;: 1, &#39;symmetry&#39;: 1}</span>
+
+
+<span class="c1"># -- method 2: Return all values, add fillValue if missing, then reduce with op</span>
+<span class="n">isBCPresent</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">isBCPresent</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">bcNames</span><span class="p">}</span>
+<span class="n">d1</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">allreduceDict</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">fillValue</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">LOR</span><span class="p">)</span>
+<span class="n">d2</span> <span class="o">=</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">allreduceDict</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">fillValue</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">Cmpi</span><span class="o">.</span><span class="n">LAND</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">master</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">d1</span><span class="p">)</span>  <span class="c1"># all BC names are present on at least one rank</span>
+<span class="c1"># &gt;&gt; 0: {&#39;inlet&#39;: True, &#39;wall&#39;: True, &#39;outlet&#39;: True, &#39;symmetry&#39;: True}</span>
+<span class="k">if</span> <span class="n">Cmpi</span><span class="o">.</span><span class="n">master</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">d2</span><span class="p">)</span>  <span class="c1"># no BC names are present on all ranks</span>
+<span class="c1"># &gt;&gt; 0: {&#39;inlet&#39;: False, &#39;wall&#39;: False, &#39;outlet&#39;: False, &#39;symmetry&#39;: False}</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </section>
 <hr class="docutils" />
 <section id="actions">
@@ -891,7 +1058,7 @@ All processors then see the same tree.</p>
 <span class="sig-prename descclassname"><span class="pre">Converter.Mpi.</span></span><span class="sig-name descname"><span class="pre">trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'stdout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Enable to monitor CPU usage and memory usage for each node/process.
 If fileName=&#8221;stdout&#8221;, information is written to standard output with the processor number.
-If fileName is another name, information is written in &#8220;filenameXXX&#8221; files, one for each process. If filename does not have a format for the process number and/or an file extension, it is appended &#8220;%03d&#8221; and &#8220;.out&#8221;, respectively.
+If fileName is another name, information is written in &#8220;filenameXXX&#8221; files, one for each process. If filename does not have a format for the process number and/or a file extension, it is appended &#8220;%03d&#8221; and &#8220;.out&#8221;, respectively.
 If cpu=True, time elapsed since the previous call to &#8220;trace&#8221; by this node is written.
 If mem=True, the current usage of memory of each process is written.
 Method used to find memory: 0: Rss in smaps, 1: tracemalloc.</p>
@@ -934,7 +1101,7 @@ Then, center2Node is performed in the given field.
 Otherwise, the zone with its coordinates is moved to node.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>t</strong> (<em>[</em><em>pyTree</em><em>]</em>) &#8211; input tree</p>
+<dd class="field-odd"><p><strong>t</strong> (<em>pyTree</em>) &#8211; input tree</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>merged and gathered tree (identical on all processors)</p>
@@ -1125,7 +1292,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 4.2 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="Converter.html">Converter 2026.11 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Converter.Mpi: distributed pyTree services</a></li> 
       </ul>
     </div>
