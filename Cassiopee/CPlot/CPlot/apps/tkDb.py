@@ -68,7 +68,7 @@ def update(event=None):
     CPlot.display(tp, bgColor=1)
 
 #==============================================================================
-def setParameterValueWithScale(event=None):
+def setParameterValueWithScaleNoAction(event=None):
     val = WIDGETS['valueSlider'].get()
     paramName = VARS[0].get()
     vmax = RANGEMAX[paramName]
@@ -77,6 +77,12 @@ def setParameterValueWithScale(event=None):
     idx = numpy.searchsorted(POINTS[paramName], value)
     value = POINTS[paramName][idx] # nearest
     VARS[1].set(str(value))
+    VARS[2].set('Parameter value (%.2f).'%value)
+    return None
+
+#==============================================================================
+def setParameterValueWithScale(event=None):
+    setParameterValueWithScaleNoAction()
     update()
     return None
 
@@ -129,6 +135,9 @@ def createApp(win):
     # -1- Current parameter value -
     V = TK.StringVar(win); V.set(PARAMS[params[0]]); VARS.append(V)
 
+    # -2- Info bulle parameter value
+    V = TK.StringVar(win); V.set('Parameter value.'); VARS.append(V)
+
     # - Parameter chooser -
     B = TTK.Label(Frame, text="Parameter")
     B.grid(row=0, column=0, sticky=TK.EW)
@@ -158,11 +167,11 @@ def createApp(win):
 
     # - slider -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
-                  borderwidth=1) #, value=scaleValue)
+                  borderwidth=1, command=setParameterValueWithScaleNoAction) #, value=scaleValue)
     B.bind("<ButtonRelease-1>", setParameterValueWithScale)
     WIDGETS['valueSlider'] = B
     B.grid(row=2, column=0, columnspan=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Parameter value.')
+    BB = CTK.infoBulle(parent=B, textVariable=VARS[2])
 
     # update for first time
     update()

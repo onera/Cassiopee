@@ -35,7 +35,7 @@ def getParamFromPart():
 #==============================================================================
 # get the entities of part
 def getEntitiesFromPart():
-    entities = ['All sketches', 'All surfaces']
+    entities = ['All surfaces', 'All sketches']
     #for f in PART.edges:
     #    entities.append(f)
     for f in PART.sketches:
@@ -84,7 +84,7 @@ def setParameterValue(event=None):
     return None
 
 #==============================================================================
-def setParameterValueWithScale(event=None):
+def setParameterValueWithScaleNoAction(event=None):
     val = WIDGETS['valueSlider'].get()
     paramName = VARS[0].get()
     r = PART.scalars[paramName].range
@@ -92,6 +92,12 @@ def setParameterValueWithScale(event=None):
     vmin = r[0]
     value = vmin + val*(vmax-vmin)/100.
     VARS[1].set(str(value))
+    VARS[4].set('Parameter value (%.2f).'%value)
+    return None
+
+#==============================================================================
+def setParameterValueWithScale(event=None):
+    setParameterValueWithScaleNoAction()
     update()
     return None
 
@@ -222,10 +228,13 @@ def createApp(win):
     V = TK.StringVar(win); V.set(paramValue); VARS.append(V)
 
     # -2- Current entity
-    V = TK.StringVar(win); V.set('All sketches'); VARS.append(V)
+    V = TK.StringVar(win); V.set('All surfaces'); VARS.append(V)
 
     # -3- Current part
     V = TK.StringVar(win); V.set(PART.name); VARS.append(V)
+
+    # -4- Info bulle for parameter value
+    V = TK.StringVar(win); V.set('Parameter value.'); VARS.append(V)
 
     # - Part chooser -
     B = TTK.Label(Frame, text="Part")
@@ -298,11 +307,11 @@ def createApp(win):
 
     # - slider -
     B = TTK.Scale(Frame, from_=0, to=100, orient=TK.HORIZONTAL, showvalue=0,
-                  borderwidth=1, value=scaleValue)
+                  borderwidth=1, value=scaleValue, command=setParameterValueWithScaleNoAction)
     B.bind("<ButtonRelease-1>", setParameterValueWithScale)
     WIDGETS['valueSlider'] = B
     B.grid(row=4, column=0, columnspan=2, sticky=TK.EW)
-    BB = CTK.infoBulle(parent=B, text='Parameter value.')
+    BB = CTK.infoBulle(parent=B, textVariable=VARS[4])
 
     # - trigger mode -
     B = TTK.Button(Frame, text="dXdmu", command=switchMode)
@@ -311,6 +320,9 @@ def createApp(win):
     WIDGETS['Mode'] = B
 
     # update for first time
+    if PART is not None:
+        if PART.surfaces: VARS[2].set('All surfaces')
+        elif PART.sketches: VARS[2].set('All sketches')
     setEntityName()
     update()
 
