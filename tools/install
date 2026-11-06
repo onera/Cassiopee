@@ -20,3 +20,6 @@ echo 'Installing locateSymbol'
 cp locateSymbol "$INSTALLPATH"
 echo 'Installing codeExtract'
 cp codeExtract "$INSTALLPATH"
+cp codeExtract.py "$INSTALLPATH"
+echo 'Installing printFileStructure'
+cp printFileStructure.py "$INSTALLPATH"
