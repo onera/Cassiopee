@@ -80,7 +80,6 @@ namespace K_GENERATOR
   PyObject* hyper2D3(PyObject* self, PyObject* args);
   PyObject* hyper2D4(PyObject* self, PyObject* args);
   PyObject* closeMesh(PyObject* self, PyObject* args);
-  PyObject* closeMeshLegacy(PyObject* self, PyObject* args);
   PyObject* closeBorders(PyObject* self, PyObject* args);
   PyObject* pointedHat(PyObject* self, PyObject* args);
   PyObject* stitchedHat(PyObject* self, PyObject* args);
@@ -188,10 +187,7 @@ namespace K_GENERATOR
                                  FldArrayF& dist);
   /* close a structured mesh */
   void closeStructuredMesh(E_Float* xt, E_Float* yt, E_Float* zt,
-                           E_Int ni, E_Int nj, E_Int nk, E_Float eps);    
-  /* close an unstructured mesh */
-  void closeUnstructuredMesh(E_Int posx, E_Int posy,E_Int posz,E_Float eps,
-                             char* eltType, FldArrayF& f, FldArrayI& cn, E_Int removeDegen=0);
+                           E_Int ni, E_Int nj, E_Int nk, E_Float eps);
   /* close a BAR mesh */
   void closeBARMesh(E_Int posx, E_Int posy, E_Int posz, 
                     FldArrayF& f, FldArrayI& cn);
