@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+<script type="text/javascript" src="../../JavaScript/all.js" defer> </script>
+</head>
+<body>
+
+<h1>Connector : overset (Chimera) grid assembly</h1>
+<h2><em> Cassiopée tutorials</em></h2>
+<hr>
+<p>
+    This tutorial demonstrates how to perform Chimera assembly of a mesh composed by two overlapping cylinders and a Cartesian background grid. <br>
+</p>
+
+<hr>
+<br>
+<center>
+<img src="Assembly.png" onclick="img_box(this)" width=800><br>
+<strong> Chimera grids merged.</strong><br><br><br>
+</center>
+
+<p>
+    First, a cellN variable is created. cellN will be equal to 1 for 
+    computed cells, 0 for blanked cells and 2 for interpolated cells.<br>
+    To blank cells inside bodies defined by the two cylinders, we use the function <span style="font-family: courier new,monospace;">X.blankCells</span> of the Connector module.<br>
+    To perform an overlap optimization, we use first the function <span style="font-family: courier new,monospace;">X.applyBCOverlaps</span> to set the cellN to 2 to cells near overlap borders.
+    Then, functions <span style="font-family: courier new,monospace;">X.optimizeOverlap</span> and <span style="font-family: courier new,monospace;">X.maximizeBlankedCells</span> are applied to optimize the overlapping between grids. 
+<br><br>
+      
+      <a href="Assembly.py">[Download python script].</a><br><br>
+</p>
+
+
+<hr>
+  <p><a href="../Tutorials.html">Return to the tutorial page.</a></p>
+      
+  <footer class="footerIndex">
+    <a href="http://www.onera.fr"><img src="../../Images/logo-onera2.png"></a>
+  </footer>
+
+</body>
+</html>

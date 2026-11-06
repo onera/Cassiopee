@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+<script type="text/javascript" src="../../JavaScript/all.js" defer> </script>
+</head>
+
+<body>
+    <h1>Generator : generation and adaptation of a set of structured Cartesian grids</h1>
+    <h2><em> Cassiopée tutorials</em></h2>
+    <hr>
+    <p>
+      This tutorial demonstrates how to generate a set of structured Cartesian grids derived from an octree and adapt it with respect to a sensor field. <br>
+    </p>
+    <hr>
+    <table class="tableGalleryTwoColumns">
+      <tr>  
+        <td>
+          <img src="adaptCart0.png" onclick="img_box(this)"><br>
+          Generated Octree mesh.<br><br><br>
+        </td>
+        <td>
+          <img src="adaptCart1.png" onclick="img_box(this)"><br>
+          Adapted Octree mesh.<br><br><br>
+        </td>
+      </tr>
+    </table>
+    <!-- Cartesian mesh adaptation by S. P&eacute;ron.<br><br> -->
+    <p>
+      The generation is in two steps: we first generate a unstructured
+      octree using <span style="font-family: courier new,monospace;">G.octree</span>, then it is filled with structured Cartesian grids using 
+      <span style="font-family: courier new,monospace;">G.octree2Struct</span>.<br>
+
+      In the example, we define a model sensor field on the set of Cartesian grids. To adapt the set of Cartesian grids with respect to the sensor,
+      we first project it on the corresponding unstructured octree
+      and convert it to an indicator field with <span style="font-family: courier new,monospace;">P.computeIndicatorValue</span>.<br>
+      
+      Then the unstructured octree is adapted using <span style="font-family: courier new,monospace;">G.adaptOctree</span>. The adapted set of grids
+      is the generated using again <span style="font-family: courier new,monospace;">G.octree2Struct</span>.<br>
+    
+      <br><br>
+      <a href="adaptCart.py">[Download python script].</a><br>
+    </p>
+    <hr>
+    <br>
+      <p><a href="../Tutorials.html">Return to the tutorial page.</a></p>
+          
+      <footer class="footerIndex">
+        <a href="http://www.onera.fr"><img src="../../Images/logo-onera2.png"></a>
+      </footer>
+
+</body>
+</html>

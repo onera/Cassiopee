@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+<body>
+<hr>
+<h1>tkCassiopee : 2D structured meshing</h1>
+<hr>
+
+      This tutorial demonstrates how to generate a structured 
+      multiblock mesh around a 1D geometry.<br>
+      If you don't have a 1D geometry, try this sample file:<br>
+      <a href="try1DGeometry.cgns">[Dowload sample file].</a>
+<hr>
+     
+
+     First go to 2D mode using <strong>Visu::tkView</strong> and set 'XY'.<br>
+
+     <h3>Setting the point distribution</h3>
+
+     You first have to suit the point distribution to your need.
+     Open <strong>Edge::tkMapEdge</strong>. Perform 
+     Enforce where you want, with the desired mesh size.
+     For instance, try to enforce 1.e-3 at the trailing edge 
+     (shift+click on the second to last point).<br><br>
+     
+     <h3>Extrusion</h3>
+     Open <strong>Mesh::tkExtrusion</strong>. Set the height of the layers
+     to 5.e-2. Set the number of layers to 30. Select the profile and 
+     click on Add layers.<br><br>
+
+     &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      <a href="step1.png"><img border="0" src="step1_.png"></a><br>
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+     
+     Eventually, if the profile is badly oriented for extrusion and
+      the extruded mesh is growing in the wrong direction,
+     you can get it right: open 
+     <strong>Block::tkReorder</strong>. Select I->-I and click on 'Reorder'.<br>
+
+     The next steps of the tutorial
+     will show how to connect this mesh to an external given boundary.<br>
+
+     <h3>TFIs</h3>
+
+     Extract the external boundary of previously extruded mesh. First open 
+     <strong>Edge::tkExtractEdges</strong>. Then shift-click on 
+     the previously extruded mesh, and select 'External Edges'
+     in the applet.<br><br>
+
+     We will now create four TFI meshes.<br><br>
+
+     Open <strong>Edge::tkDraw</strong>. Select 'Line' and 10 points
+     in the applet settings. Click on Draw and ctrl-click
+     on a mesh point of the graphics window to obtain a line
+     as on the Figure. To make the point selection easier, you can
+     deactivate the previously extruded mesh by shift+right-click on
+     it in the graphics window.
+
+     Repeat the procedure to obtain 4 lines:<br><br>
+ 
+     &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      <a href="step2.png"><img border="0" src="step2_.png"></a><br>
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+
+
+      We are going to split
+      the external boundary at line connection points.
+      Go back to <strong>Edge::tkExtractEdges</strong>.
+      Select the four lines and the external boundary of the
+      extruded mesh. Finally, click on 'SplitTBranches'.<br><br>
+     
+     &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      <a href="step3.png"><img border="0" src="step3_.png"></a><br>
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+     
+      We have then to copy the point distributions to make them match 2 to 2.
+      Go again to <strong>Edge::tkMapEdge</strong>.
+      Select an edge on the graphics window of the previously
+      extruded mesh, press the arrow next 
+      to the copy button. Then, select
+      the opposite edge and press 'Copy'. Repeat the procedure
+      for the four parts of the split external boundary of the extruded
+      mesh.<br><br>
+
+      Generate the meshes by shift+clicking on four boundaries and
+      press 'TFI' of the applet <strong>Mesh::tkTFI</strong>.<br><br>
+      
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      <a href="step5.png"><img border="0" src="step5_.png"></a><br>
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+
+     Select all blocks and smooth them as you wish with 
+     <strong>Mesh::tkSmooth:Smooth</strong>.<br><br>
+     
+
+     Finally, add a stretching to capture the boundary layer.
+     Open <strong>Mesh::tkStretch</strong>. Select 'j indices'.
+     Set the Enforce setting to 1.e-4. Shift-click on the graphics
+     window on the mesh and near the wall. Finally, press Enforce.<br><br>
+
+     You should get someting like this:<br>
+
+     &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+      <a href="step6.png"><img border="0" src="step6_.png"></a><br>
+      &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp
+
+      <div style="filter:alpha(opacity=80);-moz-opacity:0.8;opacity:0.8;">
+      <table border="1", width="90%", height="40">
+      <tr>
+      <td>
+      <font size="-1" face="sans-serif">
+      <strong>More:</strong>
+      <a href="../../Tutorials/Tutorials.html">Tutorials</a> -  
+      <a href="../../Gallery/Gallery.html">Gallery</a> -
+      <a href="../../Support.html">Get support</a> - 
+      <a href="../../Download/Download.html">Download</a> -
+      <a href="../../Citations/Citations.html">Citation</a> -
+      <a href="../../Contribute.html">Contribute</a> -
+      <a href="../../Userguide.html">Reference documentation</a>
+      <br>
+
+      </td>
+      </tr>
+      </table>
+      </div> 
+
+
+      <hr>
+
+</body>
+</html>

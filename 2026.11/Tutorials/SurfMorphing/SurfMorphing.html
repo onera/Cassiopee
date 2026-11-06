@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+<body>
+
+<h1>Dist2Walls : surface morphing with distance field</h1>
+<h2><em>Cassiopée tutorials</em></h2>
+<hr>
+<p>
+    This tutorial demonstrates how to perform morphing between
+    two surfaces using the distance field. <br>
+</p>
+<hr>
+
+<br>
+<center>
+<img src="film.gif" onclick="img_box(this)" width=600><br>
+<strong> Surface morphing.</strong><br><br><br>
+</center>
+<br>
+
+<p>
+      To perform morphing between two given surfaces, the idea
+      is to use the distance field. We first compute a uniform 
+      Cartesian grid around both given surfaces. 
+      We then compute the distance field for
+      first surface (Dist1) and for second surface (Dist2)
+      by using <span style="font-family: courier new,monospace;">Dist2Walls.distance2Walls</span>
+      on the uniform Cartesian grid. Intermediate distance fields
+      are computed by linear interpolation of the two distance fields
+      Dist1 and Dist2. Intermediate surface is reconstructed 
+      by marching cubes (using <span style="font-family: courier new,monospace;">P.isoSurfMC</span>). 
+      <br><br>
+      
+      <a href="case3.plt">[Download case].</a><br><br>
+      <a href="meta3.py">[Download python script].</a><br> 
+</p>
+<hr>
+  <p><a href="../Tutorials.html">Return to the tutorial page.</a></p>
+      
+  <footer class="footerIndex">
+    <a href="http://www.onera.fr"><img src="../../Images/logo-onera2.png"></a>
+  </footer>
+
+</body>
+</html>

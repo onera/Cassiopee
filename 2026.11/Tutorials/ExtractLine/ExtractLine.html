@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+<body>
+
+<h1>Post : curve extraction from a surface</h1>
+<h2><em> Cassiopée tutorials</em></h2>
+<hr>
+<p>
+    This tutorial demonstrates how to extract a curve from a surface.
+</p>
+<hr>
+
+<br>
+<center>
+<img src="line.png" onclick="img_box(this)" width=600><br>
+<strong> Extraction of curves from a sphere.</strong><br><br><br>
+</center>
+
+
+<p>
+      To extract a curve defined by x=c on a given surface,
+      we use the function 
+      <span style="font-family: courier new,monospace;">P.isoSurfMC</span>.
+      If a solution is defined on the input surface, it is also defined
+      in the resulting curves.
+      If you want to extract the curves defined by a function of x, y, z,
+      say for instance, x+y = c, you must first defined an intermediate 
+      variable v = x+y in the surface by: <span style="font-family: courier new,monospace;">b = C.initVars(a, {v} = {CoordinateX}+{CoordinateY})</span> and use
+      v in the extraction.<br><br>
+      
+      <a href="extract.py">[Download python script].</a><br>
+</p>     
+
+
+<hr>
+  <p><a href="../Tutorials.html">Return to the tutorial page.</a></p>
+      
+  <footer class="footerIndex">
+    <a href="http://www.onera.fr"><img src="../../Images/logo-onera2.png"></a>
+  </footer>
+
+</body>
+</html>

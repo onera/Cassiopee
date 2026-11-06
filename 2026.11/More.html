@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+
+<html>
+
+<head> 
+  <meta charset="utf-8" />
+  <title>What is Cassiopée?</title>
+  <link href="Cassiopee.css" rel="stylesheet" type="text/css">
+  <link rel="icon" type="image/png" href="Images/iconc.png"> </link>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-L4031K45JM"></script
+  <script type="text/javascript" src="_static/jquery.js"></script>
+  <script type="text/javascript" src="_static/searchtools.js"></script>
+  <script type="text/javascript" src="JavaScript/all.js" defer> </script>
+</head>
+
+<body>
+<h1>What is Cassiopée?</h1>
+<h2><em>A set of Python modules for CFD pre- and post-processing</em></h2>
+<hr>
+
+<header class="headerMore">
+  <img src="Images/interface-grd.png" onclick="img_box(this)">
+</header>
+
+<p>Cassiopée (<strong>C</strong>FD <strong>A</strong>dvanced <strong>S</strong>et of <strong>S</strong>ervices <strong>I</strong>n an <strong>O</strong>pen <strong>P</strong>ython <strong>E</strong>nvironm<strong>E</strong>nt) is a set of Python modules providing advanced services for preparing CFD computations and post-processing CFD solutions. This is a research software developped by ONERA, the French Aerospace Lab and distributed as free software under LGPL3. Cassiopée is independent of any solver and can be used with any multiblock/overset structured/unstructured flow solver. <br><br>
+
+Provided services are low level functions, that are designed to be used for easily building your own applications.<br><br>
+ 
+Basically, all modules can manipulate two open data types (see <a href="Converter.html">Converter</a> introduction): the first one is called an array and is a direct encapsulation of a numpy array. The second one is called the CGNS Python tree. CGNS is a data model enabling the description of a numerical simulation case. CGNS is now widely used in the CFD community for exchanging data between the various softwares of a simulation pipeline (mesh generators, flow/structure/thermal solvers, post-processing tools). <br><br>
+
+The package contains the following Python modules among others:</p>
+
+<br> <ul>
+	<li><a href="doc/Converter.html"><strong>Converter:</strong></a> read/write arrays/CGNS Python trees to various file formats, such as Tecplot, CGNS/ADF, CGNS/HDF... </li>
+	<li><a href="doc/Geom.html"><strong>Geom:</strong></a> create basic surfaces such as bezier, splines, ... </li>
+        <li><a href="doc/Transform.html"><strong>Transform:</strong></a> perform grid transformations.</li>
+        <li><a href="doc/Generator.html"><strong>Generator:</strong></a> provide basic grid generation functions and more advanced features.</li>
+        <li><a href="doc/Intersector.html"><strong>Intersector:</strong></a> provide mesh intersection algorithms.</li>
+	<li><a href="doc/Connector.html"><strong>Connector:</strong></a> perform grid connectivity. Automatic matching boundaries detection, Overset grid assembly (blanking, interpolation cell search, ...)</li>
+        <li><a href="doc/Initiator.html"><strong>Initiator:</strong></a> provide solution initialization functions.</li>
+	<li><strong><a href="doc/Post.html"><strong>Post:</strong></a></strong> perform solution post-processing (streamLines, slices, isosurfaces, integration...)</li>
+        <li><a href="doc/Dist2Walls.html"><strong>Dist2Walls:</strong></a> compute distance to bodies.</li>
+        <li><a href="doc/RigidMotion.html"><strong>RigidMotion:</strong></a> enable definition of rigid motions.</li>
+        <li><a href="doc/Compressor.html"><strong>Compressor:</strong></a> enable CFD field in memory compression.</li>
+        <li><a href="doc/Distributor2.html"><strong>Distributor2:</strong></a> enable mesh distribution over processors.</li>
+        <li><a href="doc/OCC.html"><strong>OCC:</strong></a> interface to CAD using open-cascade.</li>
+        <li><a href="doc/CPlot.html"><strong>CPlot:</strong></a> display mesh and solution to screen or image/movie files.</li>
+</ul> <br>
+
+<p>All module functions are of course usable in Python scripts. In addition, a graphical user interface enabling to access the major modules functions [see Fig] is also available. These modules are successfully used for fixed wing, helicopter, propeller and turbomachinary complex applications.</p> <br>
+    
+<hr>
+
+<p><a href="index.html">Return to main page.</a></p>
+
+<footer>
+  <a href="http://www.onera.fr"><img src="Images/logo-onera2.png"></a>
+</footer>
+  
+</body>
+
+</html>

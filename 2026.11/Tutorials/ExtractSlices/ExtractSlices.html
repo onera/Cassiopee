@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+<body>
+
+<h1>Post : slices extraction from a surface</h1>
+<h2><em> Cassiopée tutorials</em></h2>
+<hr>
+<p>
+    This tutorial demonstrates how to extract slices from a surface. <br>
+</p>
+<hr>
+
+<br>
+<center>
+<img src="slice.png" onclick="img_box(this)" width=600><br>
+<strong> Extraction of curves from a sphere.</strong><br><br><br>
+</center>
+
+<p>
+
+      In this tutorial, we want to extract slices x=c of width dx.
+      We will make use of boolean operator intersection. 
+      We first create a box corresponding to a slice and 
+      we compute the boolean intersection of the volume defined by this box 
+      and the volume defined by the surface.
+      For this to work properly, the normals of the surface must be 
+      externally oriented.<br><br>
+      
+      <a href="bandes.py">[Download python script].</a><br>
+</p>
+
+<hr>
+  <p><a href="../Tutorials.html">Return to the tutorial page.</a></p>
+      
+  <footer class="footerIndex">
+    <a href="http://www.onera.fr"><img src="../../Images/logo-onera2.png"></a>
+  </footer>
+
+</body>
+</html>

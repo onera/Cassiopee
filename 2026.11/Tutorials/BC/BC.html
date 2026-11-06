@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>*Cassiop&eacute;e* Tutorials</title>
+<link href="../../Cassiopee.css" rel="stylesheet" type="text/css">
+<link rel="icon" type="image/png" href="../../iconc.png"> </link>
+</head>
+<body>
+<hr>
+<h1>tkCassiopee : boundary condition management </h1>
+<hr>
+
+      This tutorial is an example of the workflow performed for structured mesh preprocessing of a CFD simulation on 
+a NACA0012 curvilinear single mesh. At the beginning, only the grid coordinates and the solution located at cell centers are defined in the pyTree.<br>
+<hr>
+
+<table border="2" align="center" cellpadding="1" cellspacing="1">
+  <tr>
+  <td><img border="0" src="Step1.png" width = 280></td>
+  <td> <div align="center">Add state to the pyTree (problem dimension, reference state), using State::tkState applet. Define your parameters and press &quot Set State &quot button. </div></td>
+  </tr>
+  
+  <tr>
+  <td><img border="0" src="Step2.png" width = 280></td>
+  <td><div align="center"> Visualize the external borders of the mesh not defined by a BC or a connectivity, using BC::tkBC applet: press &quot View undefined BC &quot button. One can see here that no BC is defined.</div></td>
+  </tr>
+
+  <tr>
+  <td><img border="0" src="Step3.png" width = 280></td>
+  <td><div align="center"> Create the 1-to-1 grid connectivity (problem dimension must be already defined- see step 1), by pressing &quot ConnectMatch &quot button in the same applet.</div></td>
+  </tr>
+
+  <tr>
+  <td><img border="0" src="Step4.png" width = 280></td>
+  <td><div align="center"> Set wall BC to the border defining the body: if undefined windows are active, select the ones corresponding to the wall, and press  &quot setBCWith &quot with the &quot BCWall &quot option. 
+  Fill remaining undefined borders with BCFarfield BC, by using &quot FillEmptyBCWith &quot with &quot BCFarfield &quot option, instead of &quot BCWall &quot (default value).</div></td>
+  </tr>
+
+  <tr>
+  <td><img border="0" src="Step5.png" width = 280></td>
+  <td><div align="center"> Split the mesh into 4 parts, using Block::tkSplit applet: press the &quot SplitNParts &quot button. BCs are kept, only 1-to-1 (or 1-to-m generally) grid connectivities between split zones must be built.</div></td>
+  </tr>
+
+  <tr>
+  <td><img border="0" src="Step6.png" width = 280></td>
+  <td><div align="center"> Check the pyTree by pressing &quot Check &quot button in Tree:tkCheckPyTree applet. If a zone (resp. BC) name is assigned to several zones (resp. BCs), an error message is written in a separate window.
+  Grid connectivity (abutting) is also checked (if donor zone exists, and if size of abutting windows correspond). <br>
+  To correct the pyTree, press the &quot Correct &quot button in the same tkCheckPyTree applet.</div></td>
+  </tr>
+
+
+  <tr>
+  <td><img border="0" src="Step7.png" width = 280></td>
+  <td><div align="center"> Build remaining grid connectivity, resulting from the previous splitting, by using &quot ConnectMatch &quot function.</div></td>
+  </tr>
+
+   <tr>
+  <td><img border="0" src="Step8.png" width = 280></td>
+  <td><div align="center"> Distribute the zones among N processors. Here, we distribute the pyTree among 4 processors, by using Solver::tkDistribute applet. Select the number of processors and press the &quot Distribute tree &quot button. <br></div></td>
+  </tr>
+
+  <tr>
+  <td><img border="0" src="Step9.png" width = 280></td>
+  <td><div align="center">  Visualize the distribution among the processors: open Tree:tkFilter applet and select &quot By proc &quot in the list of options (default is &quot By name &quot). Enter a processor number (e.g. 0 here) on the right hand side of &quot Filter &quot and press &quot Filter &quot button. Only zones distributed on proc #0 are represented.<br></div></td>
+  </tr>
+
+  </table>
+ <div style="filter:alpha(opacity=80);-moz-opacity:0.8;opacity:0.8;">
+
+     <table border="1", width="90%", height="40">
+     <tr>
+     <td>
+     <font size="-1" face="sans-serif">
+     <strong>More:</strong>
+     <a href="../../Tutorials/Tutorials.html">Tutorials</a> -  
+     <a href="../../Gallery/Gallery.html">Gallery</a> -
+     <a href="../../Support.html">Get support</a> - 
+     <a href="../../Download/Download.html">Download</a> -
+     <a href="../../Citations/Citations.html">Citation</a> -
+     <a href="../../Contribute.html">Contribute</a> -
+     <a href="../../Userguide.html">Reference documentation</a>
+     <br>
+
+     </td>
+     </tr>
+     </table>
+     </div> 
+
+     <hr>
+</body>
+</html>
