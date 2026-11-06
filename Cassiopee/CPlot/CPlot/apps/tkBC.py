@@ -26,8 +26,8 @@ def getAllDefinedBC(t):
     zones = Internal.getZones(t)
 
     # FamilyBC
-    FamilyBC = C.getFamilyBCNamesDict(t)
-
+    familyBC = C.getFamilyBCNamesDict(t)
+    
     # Defined BC
     for z in zones:
         nodes = Internal.getNodesFromType2(z, 'BC_t')
@@ -38,7 +38,7 @@ def getAllDefinedBC(t):
                 f = Internal.getNodeFromType1(i, 'FamilyName_t')
                 if f is not None:
                     name = Internal.getValue(f)
-                    if name in FamilyBC: natives.add(FamilyBC[name])
+                    if name in familyBC: natives.add(familyBC[name])
 
     for z in zones:
         # BCMatch
@@ -67,8 +67,7 @@ def getAllDefinedBC(t):
     natives.sort(key=str.lower)
 
     # FamilyBC
-    fams = []
-    for i in FamilyBC: fams.append(i)
+    fams = list(familyBC)
     fams.sort(key=str.lower)
     return natives + fams
 
@@ -95,7 +94,9 @@ def updateBCNameList(event=None):
     lb = WIDGETS['BCLB']
     lb.focus_set()
     varsbc = ['-All BC-']+getAllDefinedBC(CTK.t)
-    if len(varsbc) == lb.size(): return # un peu brutal
+
+    lbvalues = lb.get(0, "end")
+    if varsbc == lbvalues: return # no need to update
 
     # Remplace tous les elements
     lb.delete(0, TK.END)
