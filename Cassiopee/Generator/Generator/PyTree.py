@@ -978,16 +978,20 @@ def _close(t, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True,
            rmDuplicatedFaces=True, rmDuplicatedElts=True,
            rmDegeneratedFaces=True, rmDegeneratedElts=True,
            indices=None, status=None):
-    """Merge vertices distant of tol and remove multiply defined vertices/faces/elements.
-    Usage: close(array, tol, rmOverlappingPts, rmOrphanPts, rmDuplicatedFaces,
-                 rmDuplicatedElts, rmDegeneratedFaces, rmDegeneratedElts,
-                 indices)"""
     fields = C.getAllFields(t, 'nodes', api=3)
-    fields = Generator.close(fields, tol, rmOverlappingPts, rmOrphanPts,
-                             rmDuplicatedFaces, rmDuplicatedElts,
-                             rmDegeneratedFaces, rmDegeneratedElts,
-                             indices=indices, status=status)
-    C.setFields(fields, t, 'nodes')
+    fieldsc = C.getAllFields(t, 'centers', api=3)
+    fields = Generator.close(
+        fields, fieldsc, tol, rmOverlappingPts, rmOrphanPts,
+        rmDuplicatedFaces, rmDuplicatedElts,
+        rmDegeneratedFaces, rmDegeneratedElts,
+        indices=indices, status=status
+    )
+    if isinstance(fields, tuple):
+        fields, fieldsc = fields
+        C.setFields(fields, t, 'nodes')
+        C.setFields(fieldsc, t, 'centers')
+    else:
+        C.setFields(fields, t, 'nodes')
     return None
 
 def rmOrphans(a, indices=None, status=None):

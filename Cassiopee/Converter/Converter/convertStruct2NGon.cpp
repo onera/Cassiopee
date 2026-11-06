@@ -378,20 +378,20 @@ PyObject* K_CONVERTER::convertStruct2NGon(PyObject* self, PyObject* args)
   E_Bool rmDuplicatedFaces = true; E_Bool rmDuplicatedElts = false;
   E_Bool rmDegeneratedFaces = true; E_Bool rmDegeneratedElts = false;
   PyObject* tplClean = K_CONNECT::V_cleanConnectivity(
-      varString, *f2, *cn2, "NGON", tol,
-      rmOverlappingPts, rmOrphanPts,
-      rmDuplicatedFaces, rmDuplicatedElts,
-      rmDegeneratedFaces, rmDegeneratedElts,
-      exportIndirPts
+    varString, *f2, *cn2, "NGON", tol,
+    rmOverlappingPts, rmOrphanPts,
+    rmDuplicatedFaces, rmDuplicatedElts,
+    rmDegeneratedFaces, rmDegeneratedElts,
+    exportIndirPts
   );
   
   RELEASESHAREDU(tpl, f2, cn2);
   Py_DECREF(tpl);
   if (exportIndirPts)
   {
-    PyObject* vmap = PyTuple_GetItem(tplClean, 1);
+    PyObject* vmap = PyList_GetItem(tplClean, 1);
     PyList_Append(indices, vmap);
-    PyObject* o = PyTuple_GetItem(tplClean, 0);
+    PyObject* o = PyList_GetItem(tplClean, 0);
     Py_INCREF(o);
     Py_DECREF(tplClean);
     return o;

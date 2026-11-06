@@ -22,17 +22,14 @@
 # include "Nuga/include/merge.h"
 # include "Nuga/include/KdTree.h"
 
-using namespace K_FUNC;
 using namespace K_FLD;
-using namespace K_CONST;
-using namespace std;
 
 // ============================================================================
 /* Close a mesh at epsilon */
 // ============================================================================
 PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
 {
-  PyObject* array;
+  PyObject* array; PyObject* arrayc;
   E_Float eps;
   E_Bool rmOverlappingPts = true;
   E_Bool rmOrphanPts = true;
@@ -43,137 +40,109 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
   E_Bool exportIndirPts = false;
   PyObject* status;
   
-  if (!PYPARSETUPLE_(args, O_ R_ BBBB_ BBB_ O_,
-                    &array, &eps, &rmOverlappingPts, &rmOrphanPts,
+  if (!PYPARSETUPLE_(args, OO_ R_ BBBB_ BBB_ O_,
+                    &array, &arrayc, &eps, &rmOverlappingPts, &rmOrphanPts,
                     &rmDuplicatedFaces, &rmDuplicatedElts,
                     &rmDegeneratedFaces, &rmDegeneratedElts,
                     &exportIndirPts, &status)) return NULL;
 
-  // Check array
+  // Check status dict
+  if (status != Py_None && !PyDict_Check(status))
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "closeMesh: status must be a dict.");
+    return NULL;
+  }
+  
+  // Check array at nodes
   E_Int im, jm, km;
   FldArrayF* f; FldArrayI* cn;
   char* varString; char* eltType;
 
   E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
+  if (res != 1 && res != 2)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "close: unrecognised type of array at nodes.");
+    return NULL;
+  }
+
   E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
   E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
   E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
   if (posx == -1 || posy == -1 || posz == -1)
   {
-    RELEASESHAREDB(res, array, f, cn);
     PyErr_SetString(PyExc_TypeError,
-                    "close: can't find coordinates in array.");
+                    "close: can't find coordinates in array at nodes.");
+    RELEASESHAREDB(res, array, f, cn);
     return NULL;
   }
   posx++; posy++; posz++;
 
+  // Check array at centers
+  E_Int resc = -1, imc = -1, jmc = -1, kmc = -1;
+  FldArrayF* fc = NULL; FldArrayI* cnc = NULL;
+  char* varStringc = NULL; char* eltTypec = NULL;
+
+  if (arrayc != Py_None)
+  {
+    resc = K_ARRAY::getFromArray3(arrayc, varStringc, fc, imc, jmc, kmc, cnc, eltTypec);
+    if (resc != 1 && resc != 2)
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "close: unrecognised type of array at centers.");
+      RELEASESHAREDB(res, array, f, cn);
+      return NULL;
+    }
+  }
+
   E_Int api = f->getApi();
-  PyObject* tpl = NULL;
+  PyObject* l = (arrayc == Py_None) ? NULL : PyList_New(0);
   E_Bool modified = true;
 
-  if (res != 1 && res != 2)
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "close: unrecognised type of array.");
-    return NULL;
-  }
-  else if (res == 1)
+  if (res == 1)
   {
     closeStructuredMesh(f->begin(posx), f->begin(posy), f->begin(posz), im, jm, km, eps);
-    tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km, api);
+    if (arrayc == Py_None)
+    {
+      l = K_ARRAY::buildArray3(*f, varString, im, jm, km, api);
+    }
+    else
+    {
+      PyObject* tpln = K_ARRAY::buildArray3(*f, varString, im, jm, km, api);
+      PyList_Append(l, tpln); Py_DECREF(tpln);
+      PyList_Append(l, Py_None);  // TODO
+    }
   }
   else  // res = 2
   { 
     if (strchr(eltType, '*') != NULL)
     {
-      RELEASESHAREDU(array, f, cn);
       PyErr_SetString(PyExc_TypeError,
                       "close: array must be defined at vertices.");
+      RELEASESHAREDU(array, f, cn);
+      if (arrayc != Py_None) RELEASESHAREDB(resc, arrayc, fc, cnc);
       return NULL;
     }
 
-    tpl = K_CONNECT::V_cleanConnectivity(
-      varString, *f, *cn, eltType, eps,
+    l = K_CONNECT::V_cleanConnectivity(
+      varString, *f, varStringc, fc, *cn, eltType, eps,
       rmOverlappingPts, rmOrphanPts, rmDuplicatedFaces, rmDuplicatedElts,
-      rmDegeneratedFaces, rmDegeneratedElts, exportIndirPts, &modified);
+      rmDegeneratedFaces, rmDegeneratedElts, exportIndirPts, &modified
+    );
   }
 
-  if (status != Py_None)
+  // Update status dictionary
+  if (PyDict_Check(status))
   {
-    if (!PyDict_Check(status))
-    {
-      Py_XDECREF(tpl);
-      RELEASESHAREDB(res, array, f, cn);
-      PyErr_SetString(PyExc_TypeError,
-                      "closeMesh: status must be a dict.");
-      return NULL;
-    }
-
     PyDict_SetItemString(status, "modified", modified ? Py_True : Py_False);
   }
 
   RELEASESHAREDB(res, array, f, cn);
-  return tpl;
+  if (arrayc != Py_None) RELEASESHAREDB(resc, arrayc, fc, cnc);
+  return l;
 }
 
-// ============================================================================
-PyObject* K_GENERATOR::closeMeshLegacy(PyObject* self, PyObject* args)
-{
-  PyObject* array;
-  E_Float eps;
-  E_Int removeDegen = 0;
-  
-  if (!PYPARSETUPLE_(args, O_ R_ I_, &array, &eps, &removeDegen)) return NULL;
-
-  // Check array
-  E_Int im, jm, km;
-  FldArrayF* f; FldArrayI* cn;
-  char* varString; char* eltType;
-
-  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, cn, eltType);
-  E_Int posx = K_ARRAY::isCoordinateXPresent(varString);
-  E_Int posy = K_ARRAY::isCoordinateYPresent(varString);
-  E_Int posz = K_ARRAY::isCoordinateZPresent(varString);
-  if (posx == -1 || posy == -1 || posz == -1)
-  {
-    RELEASESHAREDS(array, f);
-    PyErr_SetString(PyExc_TypeError,
-                    "close: can't find coordinates in array.");
-    return NULL;
-  }
-  posx++; posy++; posz++;
-
-  E_Int api = f->getApi();
-
-  if (res == 1)
-  {
-    closeStructuredMesh(f->begin(posx), f->begin(posy), f->begin(posz), im, jm, km, eps);
-    PyObject* tpl = K_ARRAY::buildArray3(*f, varString, im, jm, km, api); 
-    RELEASESHAREDS(array, f);
-    return tpl;
-  }
-  else if (res == 2)
-  { 
-    if (strchr(eltType, '*') != NULL)
-    {
-      RELEASESHAREDU(array, f, cn);
-      PyErr_SetString(PyExc_TypeError,
-                      "close: array must be defined at vertices.");
-      return NULL;
-    }
-
-    closeUnstructuredMesh(posx, posy, posz, eps, eltType, *f, *cn, removeDegen);
-    PyObject* tpl = K_ARRAY::buildArray3(*f, varString, *cn, eltType, api);
-    RELEASESHAREDU(array, f, cn);
-    return tpl;
-  }
-  else
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "close: unrecognised type of array.");
-    return NULL;
-  }
-}
 //=============================================================================
 /* Close a structured mesh. */
 //=============================================================================
@@ -270,7 +239,7 @@ void K_GENERATOR::closeStructuredMesh(E_Float* xt, E_Float* yt, E_Float* zt,
   }
   
   ArrayAccessor<FldArrayF> coordAcc(ftemp, 1, 2, 3);
-  vector<E_Int> newID(sizemax);
+  std::vector<E_Int> newID(sizemax);
   E_Int nbMerges = merge(coordAcc, eps, newID);
 
   E_Int ind, indtopp, indopp;
@@ -291,20 +260,6 @@ void K_GENERATOR::closeStructuredMesh(E_Float* xt, E_Float* yt, E_Float* zt,
 }
 
 //=============================================================================
-/* Close an unstructured mesh. */
-//=============================================================================
-void K_GENERATOR::closeUnstructuredMesh(E_Int posx, E_Int posy, E_Int posz,
-                                        E_Float eps, char* eltType,
-                                        FldArrayF& f, FldArrayI& cn, E_Int removeDegen)
-{
-  //E_Int nv = cn.getNfld();
-  //if (nv == 2)
-  //  closeBARMesh(posx, posy, posz, f, cn);
-  
-  K_CONNECT::cleanConnectivity(posx, posy, posz, eps, eltType, f, cn, removeDegen);
-}
-
-//=============================================================================
 // Traitement special pour les BAR-array uniquement dans le plan (x,y):
 // On supprime en plus les definitions redondantes des BARs (quand deux BARs
 // se superposent)
@@ -318,7 +273,7 @@ void K_GENERATOR::closeBARMesh(E_Int posx, E_Int posy, E_Int posz,
   K_COMPGEOM::boundingBoxUnstruct(npts, f.begin(posx), f.begin(posy), f.begin(posz),
                                   xmin, ymin, zmin,
                                   xmax, ymax, zmax);
-  if (fEqualZero(zmax-zmin) == false) return;
+  if (!K_FUNC::fEqualZero(zmax-zmin)) return;
 
   E_Int i = 0;
   while (i < cn.getSize())
@@ -391,7 +346,7 @@ E_Int K_GENERATOR::closeBARMeshElt(E_Int posx, E_Int posy, E_Int posz,
           +(pi0[1]-A2[1])*(pi0[1]-A2[1])
           +(pi0[2]-A2[2])*(pi0[2]-A2[2]);
         
-        if (fEqualZero(d1) == false && fEqualZero(d2) == false)
+        if (!K_FUNC::fEqualZero(d1) && !K_FUNC::fEqualZero(d2))
         {
           E_Float a = sqrt(d1) / (sqrt(d1) + sqrt(d2));
           for (E_Int nf = 1; nf <= nfield; nf++)
@@ -423,10 +378,8 @@ E_Int K_GENERATOR::closeBARMeshElt(E_Int posx, E_Int posy, E_Int posz,
           +(A2[1]-pi1[1])*(A2[1]-pi1[1])
           +(A2[2]-pi1[2])*(A2[2]-pi1[2]);
         
-        if (fEqualZero(d2) == false && 
-            fEqualZero(d3) == false &&
-            fEqualZero(d4) == false &&
-            fEqualZero(d5) == false &&
+        if (!K_FUNC::fEqualZero(d2) && !K_FUNC::fEqualZero(d3) &&
+            !K_FUNC::fEqualZero(d4) && !K_FUNC::fEqualZero(d5) &&
             d2 < d1 - 1.e-12 && d3 < d1 - 1.e-12) // insere les deux
         {
           if (d2 < d3)
@@ -458,8 +411,7 @@ E_Int K_GENERATOR::closeBARMeshElt(E_Int posx, E_Int posy, E_Int posz,
             goto end;
           }
         }
-        else if (fEqualZero(d2) == false && 
-                 fEqualZero(d4) == false && 
+        else if (!K_FUNC::fEqualZero(d2) && !K_FUNC::fEqualZero(d4) && 
                  d2 < d1 - 1.e-12) // insere pi0
         {
           E_Float a = sqrt(d2) / sqrt(d1);
@@ -470,8 +422,7 @@ E_Int K_GENERATOR::closeBARMeshElt(E_Int posx, E_Int posy, E_Int posz,
           cn2(elt, 1) = nv;
           goto end;
         }
-        else if (fEqualZero(d3) == false && 
-                 fEqualZero(d5) == false && 
+        else if (!K_FUNC::fEqualZero(d3) && !K_FUNC::fEqualZero(d5) && 
                  d3 < d1 - 1.e-12) // insere pi1
         {
           E_Float a = sqrt(d3) / sqrt(d1);

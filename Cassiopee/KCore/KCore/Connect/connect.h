@@ -439,10 +439,21 @@ namespace K_CONNECT
     E_Bool exportIndirPts=false,
     E_Bool* modified=NULL);
 
+  PyObject* V_cleanConnectivity(
+    const char* varString, K_FLD::FldArrayF& f,
+    const char* varStringc, K_FLD::FldArrayF* fc,
+    K_FLD::FldArrayI& cn, const char* eltType,
+    E_Float tol=0., E_Bool rmOverlappingPts=true, E_Bool rmOrphanPts=true,
+    E_Bool rmDuplicatedFaces=true, E_Bool rmDuplicatedElts=true,
+    E_Bool rmDegeneratedFaces=true, E_Bool rmDegeneratedElts=true,
+    E_Bool exportIndirPts=false,
+    E_Bool* modified=NULL);
+
   // Clean connectivity - NGON
   PyObject* V_cleanConnectivityNGon(
     E_Int posx, E_Int posy, E_Int posz, const char* varString,
-    K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn,
+    K_FLD::FldArrayF& f, const char* varStringc, K_FLD::FldArrayF* fc,
+    K_FLD::FldArrayI& cn,
     E_Float tol=0., E_Bool rmOverlappingPts=true, E_Bool rmOrphanPts=true,
     E_Bool rmDuplicatedFaces=true, E_Bool rmDuplicatedElts=true,
     E_Bool rmDegeneratedFaces=true, E_Bool rmDegeneratedElts=true,
@@ -472,9 +483,11 @@ namespace K_CONNECT
 
   // Clean connectivity - ME
   PyObject* V_cleanConnectivityME(
-    E_Int posx, E_Int posy, E_Int posz, const char* varString,
-    K_FLD::FldArrayF& f, K_FLD::FldArrayI& cn, const char* eltType,
-    E_Float tol=0., E_Bool rmOverlappingPts=true, E_Bool rmOrphanPts=true,
+    E_Int posx, E_Int posy, E_Int posz,
+    const char* varString, K_FLD::FldArrayF& f,
+    const char* varStringc, K_FLD::FldArrayF* fc,
+    K_FLD::FldArrayI& cn, const char* eltType, E_Float tol=0.,
+    E_Bool rmOverlappingPts=true, E_Bool rmOrphanPts=true,
     E_Bool rmDuplicatedElts=true, E_Bool rmDegeneratedElts=true,
     E_Bool exportIndirPts=false,
     E_Bool* modified=NULL);  

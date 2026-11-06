@@ -9,32 +9,34 @@ import Converter as C
 
 from .TFIs import allTFI, TFI, TFITri, TFITri2, TFIO, TFIHalfO, TFIMono, TFIStar, TFIStar2
 
-__all__ = ['cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 'cartPenta',
-           'cartPyra', 'cartNGon', 'cylinder', 'cylinder2', 'cylinder3', 'delaunay',
-           'checkDelaunay', 'constrainedDelaunay', 'check', 'bbox', 'BB',
-           'barycenter', 'CEBBIntersection', 'bboxIntersection', 'checkPointInCEBB',
-           'enforceX', 'enforceY', 'enforceZ', 'enforcePlusX', 'enforcePlusY',
-           'enforcePlusZ', 'enforceMoinsX', 'enforceMoinsY', 'enforceMoinsZ',
-           'enforceLine', 'enforcePoint', 'enforceCurvature', 'enforceCurvature2',
-           'addPointInDistribution', 'map', 'map1d', 'map1dpl', 'map2d',
-           'mapCurvature', 'refine', 'defineSizeMapForMMGs', 'mmgs', 'densify',
-           'hyper2D', 'hyper2D2', 'hyper2D3', 'hyper2D4', 'close', 'zip',
-           'pointedHat', 'stitchedHat', 'plaster', 'selectInsideElts', 'grow', 'stack',
-           'allTFI', 'TFI', 'TFITri', 'TFITri2', 'TFIO', 'TFIHalfO', 'TFIMono',
-           'TFIStar', 'TFIStar2',
-           'TTM', 'bboxOfCells', 'getCellPlanarity', 'getVolumeMap',
-           'getCellCenters', 'getFaceCentersAndAreas', 'getNormalMap',
-           'getSmoothNormalMap', 'getEdgeRatio', 'getEdgeLength', 'collarMesh',
-           'surfaceWalk', 'buildExtension', 'getCircumCircleMap', 'getInCircleMap',
-           'addNormalLayers', 'gencartmb', 'mapSplit', 'T3mesher2D', 'tetraMesher',
-           'modifyNormalWithMetric',
-           'fittingPlaster', 'gapfixer', 'gapsmanager', 'front2Hexa', 'front2Struct',
-           'snapFront', 'snapSharpEdges', 'fillWithStruct', 'octree2Struct',
-           'cutOctant', 'octree', 'conformOctree3', 'adaptOctree', 'expandLayer',
-           'forceMatch', '_forceMatch', 'getCellSkewnessMap', 'getVolumeRatioMap',
-           'getGridSkewnessMap', 'getTriQualityMap', 'getTriQualityStat',
-           'getRegularityMap', 'getAngleRegularityMap', 'getOrthogonalityMap', # aliases for backward compatibility
-           'quad2Pyra', 'extendCartGrids', 'checkMesh']
+__all__ = [
+    'cart', 'cartr1', 'cartr2', 'cartHexa', 'cartTetra', 'cartPenta',
+    'cartPyra', 'cartNGon', 'cylinder', 'cylinder2', 'cylinder3', 'delaunay',
+    'checkDelaunay', 'constrainedDelaunay', 'check', 'bbox', 'BB',
+    'barycenter', 'CEBBIntersection', 'bboxIntersection', 'checkPointInCEBB',
+    'enforceX', 'enforceY', 'enforceZ', 'enforcePlusX', 'enforcePlusY',
+    'enforcePlusZ', 'enforceMoinsX', 'enforceMoinsY', 'enforceMoinsZ',
+    'enforceLine', 'enforcePoint', 'enforceCurvature', 'enforceCurvature2',
+    'addPointInDistribution', 'map', 'map1d', 'map1dpl', 'map2d',
+    'mapCurvature', 'refine', 'defineSizeMapForMMGs', 'mmgs', 'densify',
+    'hyper2D', 'hyper2D2', 'hyper2D3', 'hyper2D4', 'close', 'zip',
+    'pointedHat', 'stitchedHat', 'plaster', 'selectInsideElts', 'grow', 'stack',
+    'allTFI', 'TFI', 'TFITri', 'TFITri2', 'TFIO', 'TFIHalfO', 'TFIMono',
+    'TFIStar', 'TFIStar2',
+    'TTM', 'bboxOfCells', 'getCellPlanarity', 'getVolumeMap',
+    'getCellCenters', 'getFaceCentersAndAreas', 'getNormalMap',
+    'getSmoothNormalMap', 'getEdgeRatio', 'getEdgeLength', 'collarMesh',
+    'surfaceWalk', 'buildExtension', 'getCircumCircleMap', 'getInCircleMap',
+    'addNormalLayers', 'gencartmb', 'mapSplit', 'T3mesher2D', 'tetraMesher',
+    'modifyNormalWithMetric',
+    'fittingPlaster', 'gapfixer', 'gapsmanager', 'front2Hexa', 'front2Struct',
+    'snapFront', 'snapSharpEdges', 'fillWithStruct', 'octree2Struct',
+    'cutOctant', 'octree', 'conformOctree3', 'adaptOctree', 'expandLayer',
+    'forceMatch', '_forceMatch', 'getCellSkewnessMap', 'getVolumeRatioMap',
+    'getGridSkewnessMap', 'getTriQualityMap', 'getTriQualityStat',
+    'getRegularityMap', 'getAngleRegularityMap', 'getOrthogonalityMap', # aliases for backward compatibility
+    'quad2Pyra', 'extendCartGrids', 'checkMesh'
+]
 
 def cart(Xo, H, N, api=1):
     """Create a cartesian mesh defined by a structured array.
@@ -95,7 +97,7 @@ def cylinder3(arrayxz, tetas, tetae, arrayteta):
 def delaunay(array, tol=1.e-10, keepBB=0):
     """Create a delaunay mesh given a set of points defined by array.
     Usage: delaunay(array, tol, keepBB)"""
-    array = close(array, tol)
+    array = close(array, tol=tol)
     return generator.delaunay(array, keepBB)
 
 def checkDelaunay(contour, tri):
@@ -818,43 +820,59 @@ def hyper2D4(array, arrayd, type):
     Usage: hyper2D4(array, arrayd, type)"""
     return generator.hyper2D4(array, arrayd, type)
 
-def close(array, tol=1.e-12, rmOverlappingPts=True, rmOrphanPts=True,
+def close(array, arrayc=None, tol=1.e-12,
+          rmOverlappingPts=True, rmOrphanPts=True,
           rmDuplicatedFaces=True, rmDuplicatedElts=True,
           rmDegeneratedFaces=True, rmDegeneratedElts=True,
           indices=None, status=None):
     """Close an unstructured mesh defined by an array gathering points closer than tol.
     Usage: close(array, tol)"""
+    import builtins
     exportIndirPts = False
     if isinstance(indices, list) and not indices: exportIndirPts = True
     if isinstance(array[0], list):
-        out = []
+        out = []; outc = []
         modified = False
-        for a in array:
-            indirl = None
+        if arrayc is None or not arrayc or all(not ac for ac in arrayc):
+            arrayc = [None for _ in range(len(array))]
+        for a, ac in builtins.zip(array, arrayc):
+            outcl = None; indirl = None
             if len(a) == 5: # merge intra-borders (C-type meshes)
                 outl = generator.closeBorders([a], [], tol)[0]
             else:
                 statusl = {}
-                outl = generator.closeMesh(a, tol, rmOverlappingPts,
-                                           rmOrphanPts, rmDuplicatedFaces,
-                                           rmDuplicatedElts, rmDegeneratedFaces,
-                                           rmDegeneratedElts, exportIndirPts,
-                                           statusl)
+                outl = generator.closeMesh(
+                    a, ac, tol, rmOverlappingPts, rmOrphanPts,
+                    rmDuplicatedFaces, rmDuplicatedElts,
+                    rmDegeneratedFaces, rmDegeneratedElts,
+                    exportIndirPts, statusl
+                )
                 modified |= statusl.get("modified", False)
-                if exportIndirPts: outl, indirl = outl
-            out.append(outl)
+                if exportIndirPts:
+                    if ac is None: outl, indirl = outl
+                    else: outl, outcl, indirl = outl
+                elif ac is not None: outl, outcl = outl
+            out.append(outl); outc.append(outcl)
             if exportIndirPts: indices.append(indirl)
         if isinstance(status, dict): status["modified"] = modified
-        return out
+        if not outc or all(ac is None for ac in outc): return out
+        return out, outc
     else:
-        out = generator.closeMesh(array, tol, rmOverlappingPts,
-                                  rmOrphanPts, rmDuplicatedFaces,
-                                  rmDuplicatedElts, rmDegeneratedFaces,
-                                  rmDegeneratedElts, exportIndirPts, status)
+        outc = None
+        if not arrayc: arrayc = None
+        out = generator.closeMesh(
+            array, arrayc, tol, rmOverlappingPts, rmOrphanPts,
+            rmDuplicatedFaces, rmDuplicatedElts,
+            rmDegeneratedFaces, rmDegeneratedElts,
+            exportIndirPts, status
+        )
         if exportIndirPts:
-            out, indirl = out
-            indices.append(indirl)
-        return out
+            if arrayc is None: out, indir = out
+            else: out, outc, indir = out
+            indices.append(indir)
+        elif arrayc is not None: out, outc = out
+        if outc is None: return out
+        return out, outc
 
 def rmOrphans(a, indices=None, status=None):
     """Remove orphan vertices."""
@@ -890,7 +908,7 @@ def stitchedHat(array, offset, tol=1.e-6, tol2=1.e-5):
     except: return generator.stitchedHat(array, tol)
     c = generator.stitchedHat(array, tol)
     t = T.subzone(c, (1,2,1),(c[2],2,1))
-    t = close(t, tol2)
+    t = close(t, tol=tol2)
     t = T.translate(t, offset)
     c = T.patch(c, t, (1,2,1))
     return c
