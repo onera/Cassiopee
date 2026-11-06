@@ -27,7 +27,7 @@ def getAllDefinedBC(t):
 
     # FamilyBC
     familyBC = C.getFamilyBCNamesDict(t)
-    
+
     # Defined BC
     for z in zones:
         nodes = Internal.getNodesFromType2(z, 'BC_t')
