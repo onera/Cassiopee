@@ -78,7 +78,7 @@ RUN python -m pip install \
         "numpy>=1.23.3" \
         "mpi4py>=3.1.3" \
         "scons>=4.4.0" \
-        "matplotlib>=3.10.0"
+        "matplotlib>=3.5.3"
 
 # Verify the version of Python and numpy
 RUN python3 --version && pip3 --version
