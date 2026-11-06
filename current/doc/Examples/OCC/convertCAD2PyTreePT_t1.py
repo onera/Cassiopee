@@ -1,4 +1,4 @@
-# - convertCAD2PyTree (PyTree) -
+# - convertCAD2PyTree (pyTree) -
 import OCC.PyTree as OCC
 import KCore.test as test
 

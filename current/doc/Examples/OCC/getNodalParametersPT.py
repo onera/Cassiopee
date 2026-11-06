@@ -1,18 +1,15 @@
+# - getNodalParameters -
 import OCC
 import OCC.PyTree
 import OCC.occ as occ
-import Converter
 import Converter.PyTree as C
-import Generator
 import Generator.PyTree as GP
 import Converter.Internal as Internal
 import Intersector.PyTree as XOR
-import numpy as np
+import numpy
 import sys
 
-
-import Ael.Quantum      as KDG
-
+import Ael.Quantum as KDG
 
 
 # get args
@@ -56,7 +53,7 @@ t = C.initVars(t, 'u', sys.float_info.max)
 t = C.initVars(t, 'v', sys.float_info.max)
 
 # Initialisation fcadid
-fcadid = np.empty((XOR.nb_faces(t)), dtype=np.int32)
+fcadid = numpy.empty((XOR.nb_faces(t)), dtype=numpy.int32)
 fcadid[:] = -1
 
 XOR._setZonesAndJoinsUId(t)
@@ -68,13 +65,13 @@ hmsh = XOR.createHMesh(t, 0)
 # Get zones
 z = Internal.getZones(t)
 # Get Information
-c = C.getFields(Internal.__GridCoordinates__, z[0])
-hx = C.getFields('CADData', C.extractVars(z, ['hx']))
-hy = C.getFields('CADData', C.extractVars(z, ['hy']))
-hz = C.getFields('CADData', C.extractVars(z, ['hz']))
-ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']))
-u = C.getFields('CADData', C.extractVars(z, ['u']))
-v = C.getFields('CADData', C.extractVars(z, ['v']))
+c = C.getFields(Internal.__GridCoordinates__, z[0], api=1)
+hx = C.getFields('CADData', C.extractVars(z, ['hx']), api=1)
+hy = C.getFields('CADData', C.extractVars(z, ['hy']), api=1)
+hz = C.getFields('CADData', C.extractVars(z, ['hz']), api=1)
+ncadid = C.getFields('CADData', C.extractVars(z, ['ncadid']), api=1)
+u = C.getFields('CADData', C.extractVars(z, ['u']), api=1)
+v = C.getFields('CADData', C.extractVars(z, ['v']), api=1)
 
 # Get BC points
 wall_face_ids = XOR.getBCPtListOfType(z, WALLBCS)
@@ -101,7 +98,7 @@ occ.updateFcadidFromNcadid( c, wall_face_ids, ncadid, fcadid)
 # adaptCells
 #-------------------------------------------
 n = C.getNPts(t)
-nv = np.empty((n,), dtype=np.int32)
+nv = numpy.empty((n,), dtype=numpy.int32)
 nv[:] = 1
 
 t = XOR.adaptCells(t,nv, sensor_type=2,hmesh=hmsh)
@@ -115,8 +112,8 @@ Internal._rmNodesByName(t, 'rid')
 #-------------------------------------------
 # Get input data
 z = Internal.getZones(t)
-c = C.getFields(Internal.__GridCoordinates__, z[0])
-ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']))
+c = C.getFields(Internal.__GridCoordinates__, z[0], api=1)
+ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']), api=1)
 fcadid = Internal.getChildFromName(Internal.getNodeFromName(z, 'CADData'), 'fcadid')[1]
 wall_face_ids = XOR.getBCPtListOfType(z, WALLBCS, None)
 
@@ -137,13 +134,13 @@ t = XOR.interpolateHMeshNodalField(t, hmsh, ['u', 'v'])
 # Get zones
 z = Internal.getZones(t)
 # Get Information
-c = C.getFields(Internal.__GridCoordinates__, z[0])
-hx = C.getFields('CADData', C.extractVars(z, ['hx']))
-hy = C.getFields('CADData', C.extractVars(z, ['hy']))
-hz = C.getFields('CADData', C.extractVars(z, ['hz']))
-ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']))
-u = C.getFields('CADData', C.extractVars(z, ['u']))
-v = C.getFields('CADData', C.extractVars(z, ['v']))
+c = C.getFields(Internal.__GridCoordinates__, z[0], api=1)
+hx = C.getFields('CADData', C.extractVars(z, ['hx']), api=1)
+hy = C.getFields('CADData', C.extractVars(z, ['hy']), api=1)
+hz = C.getFields('CADData', C.extractVars(z, ['hz']), api=1)
+ncadid =  C.getFields('CADData', C.extractVars(z, ['ncadid']), api=1)
+u = C.getFields('CADData', C.extractVars(z, ['u']), api=1)
+v = C.getFields('CADData', C.extractVars(z, ['v']), api=1)
 
 occ.getNodalParameters( c, wall_face_ids, hook, u, v, hx, hy, hz, ncadid)
 
@@ -179,8 +176,7 @@ C._initVars(wall, '{zn} = {hz} + {CoordinateZ}')
 
 C.convertPyTree2File(wall, 'deform.dat')
 
-
-#Parametres de la deformation de maillage
+# Parametres de la deformation de maillage
 DeformationArgs={"Approach"          :  "Quaternions",
                  "Epsilon"           :  0.15,
                  "Leafsize"          :  4,
@@ -199,15 +195,12 @@ C._initVars(tree,'{CoordinateX}={CoordinateX}+{DisplacementX}')
 C._initVars(tree,'{CoordinateY}={CoordinateY}+{DisplacementY}')
 C._initVars(tree,'{CoordinateZ}={CoordinateZ}+{DisplacementZ}')
 
-
 Internal.__FlowSolutionNodes__ = 'CADData'
 tree = C.initVars(tree, 'hx', 0)
 tree = C.initVars(tree, 'hy', 0)
 tree = C.initVars(tree, 'hz', 0)
 
-
 Internal.__FlowSolutionNodes__ = 'FlowSolution'
 tree = C.rmVars(tree, 'FlowSolution')
-
 
 C.convertPyTree2File(tree, 'out.cgns')

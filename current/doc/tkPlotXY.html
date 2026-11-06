@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>tkPlotXY: plot of curves &#8212; CPlot 4.1 documentation</title>
+    <title>tkPlotXY: plot of curves &#8212; CPlot 2026.11 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="CPlot.html">CPlot 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="CPlot.html">CPlot 2026.11 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">tkPlotXY: plot of curves</a></li> 
       </ul>
     </div>  
@@ -50,16 +50,16 @@ arrays or pyTrees.</p>
 define datas are available and will be exposed in this document.</p>
 <p>This module is part of Cassiopee, a free open-source pre- and post-processor for CFD simulations.</p>
 <p>For use in a python script, you have to import tkPlotXY module:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tkPlotXY</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">CPlot.apps.tkPlotXY</span> <span class="k">as</span> <span class="nn">tkPlotXY</span>
 </pre></div>
 </div>
-<span class="target" id="module-tkPlotXY"></span></section>
+<span class="target" id="module-CPlot.apps.tkPlotXY"></span></section>
 <section id="one-line-plot-function">
 <h2>One line plot function</h2>
 <p>tkPlotXY can be used with a single function.</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="tkPlotXY.tkPlotXY.plot">
-<span class="sig-prename descclassname"><span class="pre">tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rangex=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rangey=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">...</span></span></em><span class="sig-paren">)</span></dt>
+<dt class="sig sig-object py" id="CPlot.apps.tkPlotXY.CPlot.apps.tkPlotXY.plot">
+<span class="sig-prename descclassname"><span class="pre">CPlot.apps.tkPlotXY.</span></span><span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vary</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rangex=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rangey=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">...</span></span></em><span class="sig-paren">)</span></dt>
 <dd><p>Plot 1D zones of a.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -91,7 +91,7 @@ define datas are available and will be exposed in this document.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - tkPlotXY (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
-<span class="kn">import</span> <span class="nn">tkPlotXY</span>
+<span class="kn">import</span> <span class="nn">CPlot.apps.tkPlotXY</span> <span class="k">as</span> <span class="nn">tkPlotXY</span>
 
 <span class="c1"># Cas test</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
@@ -125,7 +125,7 @@ two simple examples, an interactive one and a batch one.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - tkPlotXY (interactive) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
-<span class="kn">import</span> <span class="nn">tkPlotXY</span>
+<span class="kn">import</span> <span class="nn">CPlot.apps.tkPlotXY</span> <span class="k">as</span> <span class="nn">tkPlotXY</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.e-3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">C</span><span class="o">.</span><span class="n">_initVars</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{F}</span><span class="s1">=</span><span class="si">{CoordinateX}</span><span class="s1">*</span><span class="si">{CoordinateX}</span><span class="s1">&#39;</span><span class="p">)</span>
@@ -152,7 +152,7 @@ two simple examples, an interactive one and a batch one.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - tkPlotXY (batch) -</span>
 <span class="kn">import</span> <span class="nn">Converter.PyTree</span> <span class="k">as</span> <span class="nn">C</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
-<span class="kn">import</span> <span class="nn">tkPlotXY</span>
+<span class="kn">import</span> <span class="nn">CPlot.apps.tkPlotXY</span> <span class="k">as</span> <span class="nn">tkPlotXY</span>
 <span class="n">tkPlotXY</span><span class="o">.</span><span class="n">setBatch</span><span class="p">()</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">cart</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">100</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
@@ -327,7 +327,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="CPlot.html">CPlot 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="CPlot.html">CPlot 2026.11 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">tkPlotXY: plot of curves</a></li> 
       </ul>
     </div>

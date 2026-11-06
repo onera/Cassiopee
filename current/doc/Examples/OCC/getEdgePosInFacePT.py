@@ -1,4 +1,4 @@
-# - getEdgePosInFace (PyTree) -
+# - getEdgePosInFace (pyTree) -
 import Converter.Mpi as Cmpi
 import OCC.PyTree as OCC
 

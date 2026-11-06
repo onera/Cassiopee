@@ -6,7 +6,7 @@
     <meta charset="ASCII" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>CPlot.Decorator: decoration of CPlot images using Matplotlib &#8212; CPlot 4.1 documentation</title>
+    <title>CPlot.Decorator: decoration of CPlot images using Matplotlib &#8212; CPlot 2026.11 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/classic.css" />
     
@@ -29,7 +29,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="CPlot.html">CPlot 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="CPlot.html">CPlot 2026.11 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">CPlot.Decorator: decoration of CPlot images using Matplotlib</a></li> 
       </ul>
     </div>  
@@ -126,13 +126,13 @@ further enhanced with any additional Matplotlib items using this module.</p>
 <span class="n">posCam</span><span class="p">,</span> <span class="n">posEye</span><span class="p">,</span> <span class="n">dirCam</span><span class="p">,</span> <span class="n">viewAngle</span><span class="p">,</span> <span class="n">exportResolution</span> <span class="o">=</span> <span class="n">Decorator</span><span class="o">.</span><span class="n">getInfo2DMode</span><span class="p">(</span><span class="n">xlim</span><span class="p">,</span> <span class="n">ylim</span><span class="p">,</span> <span class="n">zplane</span><span class="p">,</span> <span class="n">ppw</span><span class="p">)</span>
 
 <span class="n">CPlot</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;Scalar&#39;</span><span class="p">,</span> <span class="n">scalarField</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">,</span>
-    <span class="n">isoScales</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">,</span><span class="mi">25</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">1.9</span><span class="p">],</span> 
-    <span class="n">colormap</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="c1"># Jet colorbar</span>
-    <span class="n">export</span><span class="o">=</span><span class="n">CPlot</span><span class="o">.</span><span class="n">decorator</span><span class="p">,</span> <span class="c1"># Plot.decorator = &#39;.decorator.png&#39;</span>
-    <span class="n">offscreen</span><span class="o">=</span><span class="n">offscreen</span><span class="p">,</span> 
-    <span class="n">viewAngle</span><span class="o">=</span><span class="n">viewAngle</span><span class="p">,</span>
-    <span class="n">posCam</span><span class="o">=</span><span class="n">posCam</span><span class="p">,</span> <span class="n">posEye</span><span class="o">=</span><span class="n">posEye</span><span class="p">,</span> <span class="n">dirCam</span><span class="o">=</span><span class="n">dirCam</span><span class="p">,</span>
-    <span class="n">exportResolution</span><span class="o">=</span><span class="n">exportResolution</span><span class="p">)</span>
+              <span class="n">isoScales</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">,</span><span class="mi">25</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">1.9</span><span class="p">],</span>
+              <span class="n">colormap</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="c1"># Jet colorbar</span>
+              <span class="n">export</span><span class="o">=</span><span class="n">CPlot</span><span class="o">.</span><span class="n">decorator</span><span class="p">,</span> <span class="c1"># Plot.decorator = &#39;.decorator.png&#39;</span>
+              <span class="n">offscreen</span><span class="o">=</span><span class="n">offscreen</span><span class="p">,</span>
+              <span class="n">viewAngle</span><span class="o">=</span><span class="n">viewAngle</span><span class="p">,</span>
+              <span class="n">posCam</span><span class="o">=</span><span class="n">posCam</span><span class="p">,</span> <span class="n">posEye</span><span class="o">=</span><span class="n">posEye</span><span class="p">,</span> <span class="n">dirCam</span><span class="o">=</span><span class="n">dirCam</span><span class="p">,</span>
+              <span class="n">exportResolution</span><span class="o">=</span><span class="n">exportResolution</span><span class="p">)</span>
 
 <span class="n">CPlot</span><span class="o">.</span><span class="n">finalizeExport</span><span class="p">(</span><span class="n">offscreen</span><span class="p">)</span>
 
@@ -213,13 +213,13 @@ The returned figure and axes can be further modified with any Matplotlib command
 <span class="n">posCam</span><span class="p">,</span> <span class="n">posEye</span><span class="p">,</span> <span class="n">dirCam</span><span class="p">,</span> <span class="n">viewAngle</span><span class="p">,</span> <span class="n">exportResolution</span> <span class="o">=</span> <span class="n">Decorator</span><span class="o">.</span><span class="n">getInfo2DMode</span><span class="p">(</span><span class="n">xlim</span><span class="p">,</span> <span class="n">ylim</span><span class="p">,</span> <span class="n">zplane</span><span class="p">,</span> <span class="n">ppw</span><span class="p">)</span>
 
 <span class="n">CPlot</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;Scalar&#39;</span><span class="p">,</span> <span class="n">scalarField</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">,</span>
-    <span class="n">isoScales</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">,</span><span class="mi">25</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">1.9</span><span class="p">],</span> 
-    <span class="n">colormap</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="c1"># Jet colorbar</span>
-    <span class="n">export</span><span class="o">=</span><span class="n">CPlot</span><span class="o">.</span><span class="n">decorator</span><span class="p">,</span> <span class="c1"># Plot.decorator = &#39;.decorator.png&#39;</span>
-    <span class="n">offscreen</span><span class="o">=</span><span class="n">offscreen</span><span class="p">,</span> 
-    <span class="n">viewAngle</span><span class="o">=</span><span class="n">viewAngle</span><span class="p">,</span>
-    <span class="n">posCam</span><span class="o">=</span><span class="n">posCam</span><span class="p">,</span> <span class="n">posEye</span><span class="o">=</span><span class="n">posEye</span><span class="p">,</span> <span class="n">dirCam</span><span class="o">=</span><span class="n">dirCam</span><span class="p">,</span>
-    <span class="n">exportResolution</span><span class="o">=</span><span class="n">exportResolution</span><span class="p">)</span>
+              <span class="n">isoScales</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">,</span><span class="mi">25</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">1.9</span><span class="p">],</span>
+              <span class="n">colormap</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="c1"># Jet colorbar</span>
+              <span class="n">export</span><span class="o">=</span><span class="n">CPlot</span><span class="o">.</span><span class="n">decorator</span><span class="p">,</span> <span class="c1"># Plot.decorator = &#39;.decorator.png&#39;</span>
+              <span class="n">offscreen</span><span class="o">=</span><span class="n">offscreen</span><span class="p">,</span>
+              <span class="n">viewAngle</span><span class="o">=</span><span class="n">viewAngle</span><span class="p">,</span>
+              <span class="n">posCam</span><span class="o">=</span><span class="n">posCam</span><span class="p">,</span> <span class="n">posEye</span><span class="o">=</span><span class="n">posEye</span><span class="p">,</span> <span class="n">dirCam</span><span class="o">=</span><span class="n">dirCam</span><span class="p">,</span>
+              <span class="n">exportResolution</span><span class="o">=</span><span class="n">exportResolution</span><span class="p">)</span>
 
 <span class="n">CPlot</span><span class="o">.</span><span class="n">finalizeExport</span><span class="p">(</span><span class="n">offscreen</span><span class="p">)</span>
 
@@ -305,13 +305,13 @@ The returned figure and axes can be further modified with any Matplotlib command
 <span class="n">posCam</span><span class="p">,</span> <span class="n">posEye</span><span class="p">,</span> <span class="n">dirCam</span><span class="p">,</span> <span class="n">viewAngle</span><span class="p">,</span> <span class="n">exportResolution</span> <span class="o">=</span> <span class="n">Decorator</span><span class="o">.</span><span class="n">getInfo2DMode</span><span class="p">(</span><span class="n">xlim</span><span class="p">,</span> <span class="n">ylim</span><span class="p">,</span> <span class="n">zplane</span><span class="p">,</span> <span class="n">ppw</span><span class="p">)</span>
 
 <span class="n">CPlot</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;Scalar&#39;</span><span class="p">,</span> <span class="n">scalarField</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">,</span>
-    <span class="n">isoScales</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">,</span><span class="mi">25</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">1.9</span><span class="p">],</span> 
-    <span class="n">colormap</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="c1"># Default Blue2Red colorbar</span>
-    <span class="n">export</span><span class="o">=</span><span class="n">CPlot</span><span class="o">.</span><span class="n">decorator</span><span class="p">,</span> <span class="c1"># Plot.decorator = &#39;.decorator.png&#39;</span>
-    <span class="n">offscreen</span><span class="o">=</span><span class="n">offscreen</span><span class="p">,</span> 
-    <span class="n">viewAngle</span><span class="o">=</span><span class="n">viewAngle</span><span class="p">,</span>
-    <span class="n">posCam</span><span class="o">=</span><span class="n">posCam</span><span class="p">,</span> <span class="n">posEye</span><span class="o">=</span><span class="n">posEye</span><span class="p">,</span> <span class="n">dirCam</span><span class="o">=</span><span class="n">dirCam</span><span class="p">,</span>
-    <span class="n">exportResolution</span><span class="o">=</span><span class="n">exportResolution</span><span class="p">)</span>
+              <span class="n">isoScales</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;F&#39;</span><span class="p">,</span><span class="mi">25</span><span class="p">,</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">1.9</span><span class="p">],</span>
+              <span class="n">colormap</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="c1"># Default Blue2Red colorbar</span>
+              <span class="n">export</span><span class="o">=</span><span class="n">CPlot</span><span class="o">.</span><span class="n">decorator</span><span class="p">,</span> <span class="c1"># Plot.decorator = &#39;.decorator.png&#39;</span>
+              <span class="n">offscreen</span><span class="o">=</span><span class="n">offscreen</span><span class="p">,</span>
+              <span class="n">viewAngle</span><span class="o">=</span><span class="n">viewAngle</span><span class="p">,</span>
+              <span class="n">posCam</span><span class="o">=</span><span class="n">posCam</span><span class="p">,</span> <span class="n">posEye</span><span class="o">=</span><span class="n">posEye</span><span class="p">,</span> <span class="n">dirCam</span><span class="o">=</span><span class="n">dirCam</span><span class="p">,</span>
+              <span class="n">exportResolution</span><span class="o">=</span><span class="n">exportResolution</span><span class="p">)</span>
 
 <span class="n">CPlot</span><span class="o">.</span><span class="n">finalizeExport</span><span class="p">(</span><span class="n">offscreen</span><span class="p">)</span>
 
@@ -359,7 +359,7 @@ The returned figure and axes can be further modified with any Matplotlib command
 <ul class="simple">
 <li><p><a class="reference external" href="Examples/CPlot/createArrowPT.py">Create arrow on figure (pyTree)</a>:</p></li>
 </ul>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - Decorator.createArraow (pyTree) -</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># - createArrow (pyTree) -</span>
 <span class="kn">import</span> <span class="nn">CPlot.PyTree</span> <span class="k">as</span> <span class="nn">CPlot</span>
 <span class="kn">import</span> <span class="nn">CPlot.Decorator</span> <span class="k">as</span> <span class="nn">Decorator</span>
 <span class="kn">import</span> <span class="nn">Generator.PyTree</span> <span class="k">as</span> <span class="nn">G</span>
@@ -562,7 +562,7 @@ function resizeFunction() {
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="CPlot.html">CPlot 4.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="CPlot.html">CPlot 2026.11 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">CPlot.Decorator: decoration of CPlot images using Matplotlib</a></li> 
       </ul>
     </div>

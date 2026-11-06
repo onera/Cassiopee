@@ -1,10 +1,9 @@
 # - removeFaces (array) -
 import OCC
 
-hook = OCC.readCAD("cubeNoTrim.step", "fmt_step")
+hook = OCC.readCAD("cube.step")
 
-ret = OCC.getFaceNameInOCAF(hook)
-cube1 = ret[3]
-OCC._removeFaces(hook, cube1)
+#faceList = OCC.getFaceNos(hook, 'Cube')
+OCC._removeFaces(hook, [1,2])
 
-OCC.writeCAD(hook, 'out.step', 'fmt_step')
+OCC.writeCAD(hook, 'out.step')

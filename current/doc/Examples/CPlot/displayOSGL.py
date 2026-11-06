@@ -2,7 +2,6 @@
 # display offscreen using OpenGL
 import CPlot
 import Geom as D
-import KCore.config
 import KCore.test as test
 import os
 

@@ -1,4 +1,4 @@
-# - getFaceNoOppOfEdge (PyTree) -
+# - getFaceNoOppOfEdge (pyTree) -
 import Converter.Mpi as Cmpi
 import OCC.PyTree as OCC
 
