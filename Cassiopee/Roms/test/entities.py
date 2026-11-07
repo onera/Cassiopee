@@ -68,12 +68,12 @@ elif TEST == 'naca':
     naca1 = T1.Naca('naca1', M=v1, P=v1, e=12.)
     # naca canot be shifted or rotated
     sketch1 = T1.Sketch('sketch1', [naca1], h=0.01)
-    
+
 elif TEST == 'airfoil':
     airfoil1 = T1.Airfoil('airfoil1', 'ONERA/ONERAOA213AIRFOIL')
     # airfoil canot be shifted or rotated
     sketch1 = T1.Sketch('sketch1', [airfoil1], h=0.01)
-    
+
 T1.solve()
 T1.instantiate({'v1': 1.})
 

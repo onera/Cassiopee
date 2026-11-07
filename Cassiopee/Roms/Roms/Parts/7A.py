@@ -23,4 +23,3 @@ if __name__ == "__main__":
     # instantiate
     T1.instantiate({'angle': 0.})
     D.DRIVER.plot()
-

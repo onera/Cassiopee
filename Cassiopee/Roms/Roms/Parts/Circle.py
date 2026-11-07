@@ -31,4 +31,3 @@ if __name__ == "__main__":
     # instantiate
     T1.instantiate({'radius':1.})
     D.DRIVER.plot()
-

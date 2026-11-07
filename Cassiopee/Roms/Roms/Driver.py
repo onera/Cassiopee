@@ -743,7 +743,7 @@ def Naca(name=None, M=0., P=0., e=12., part=None):
 def Airfoil(name=None, type='ONERA/ONERAOA213AIRFOIL', part=None):
     """Define non parametric airfoil."""
     return Entity(name, [type], type="airfoil", part=part)
-    
+
 #============================================================
 class Sketch():
     """Define a parametric sketch from a list of entities."""
@@ -1334,7 +1334,7 @@ class Surface():
         import Post.PyTree as P
 
         # keep ref edges in x,y
-        self.h = getH(self.h, self.hook)        
+        self.h = getH(self.h, self.hook)
         (hmin,hmax,hausd) = self.h
         dedges = OCC.meshAllEdges(self.hook, hmin, hmax, hausd, -1)
         self.refEdges = dedges

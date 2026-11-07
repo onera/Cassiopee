@@ -96,7 +96,7 @@ def createPart(name):
 
     # solve result
     T1.solve()
-    
+
     return T1
 
 if __name__ == "__main__":
