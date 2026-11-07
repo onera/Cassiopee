@@ -20,7 +20,7 @@ T1.Eq(P3.y, v1)
 if TEST == 'line':
     line1 = T1.Line('line1', P1, P3)
     sketch1 = T1.Sketch('sketch1', [line1])
-    
+
 elif TEST == 'superellipse':
     superellipse1 = T1.SuperEllipse('superellipse1', P2, v1, 1.)
     sketch1 = T1.Sketch('sketch1', [superellipse1])

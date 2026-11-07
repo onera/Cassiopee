@@ -92,10 +92,10 @@ if __name__ == "__main__":
     T1 = createPart('nozzle1')
     # instantiate
     T1.instantiate({'P1.x':0.,
-                     'Hi': 1.,
-                     'Ht': 0.2,
-                     'He': 1.,
-                     'Lc': 2.,
-                     'Ld': 2.})
+                    'Hi': 1.,
+                    'Ht': 0.2,
+                    'He': 1.,
+                    'Lc': 2.,
+                    'Ld': 2.})
 
     D.DRIVER.plot()

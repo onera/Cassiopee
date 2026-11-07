@@ -136,7 +136,7 @@ class Scalar( sympy.core.symbol.Symbol ):
         S = Scalar(name, self.v)
         S.range = self.range
         return S
-    
+
     # Is parameter free? meaning that it can be set independently
     # OUT: True if parameter has a range (free), False otherwise
     def isFree(self):
@@ -844,7 +844,7 @@ class Sketch():
         self.rotAxis = P
         P = Scalar('%s.rotAngle'%self.name, 0., part=part)
         self.P.append(P)
-        self.rotAngle = P        
+        self.rotAngle = P
         P = Point('%s.scaleCenter'%self.name, (0.,0.,0.), part=part)
         self.P.append(P)
         self.scaleCenter = P
@@ -869,8 +869,8 @@ class Sketch():
         """Add an entity to sketch."""
         self.entities.append(entity)
 
-    def set(self, position=None, 
-            rotCenter=None, rotAxis=None, rotAngle=None, 
+    def set(self, position=None,
+            rotCenter=None, rotAxis=None, rotAngle=None,
             scaleCenter=None, scaleFactor=None):
         """Set sketch global position."""
         if position is not None:
