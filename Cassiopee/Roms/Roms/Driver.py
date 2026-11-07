@@ -130,6 +130,13 @@ class Scalar( sympy.core.symbol.Symbol ):
             if self.v > self.range[1]: return 0
         return 1
 
+    def Copy(self, name=None):
+        """Return a copy of this scalar."""
+        if name is None: name = getName(self.name+'C')
+        S = Scalar(name, self.v)
+        S.range = self.range
+        return S
+    
     # Is parameter free? meaning that it can be set independently
     # OUT: True if parameter has a range (free), False otherwise
     def isFree(self):
@@ -252,6 +259,24 @@ class Point:
         ret = self.z.check()
         if ret == 0: return 0
         return 1
+
+    # Create new point that is a copy of self
+    # IN: name: name of the new point (optional)
+    # OUT: new Point object copied
+    def Copy(self, name=None, vector=(0.,0.,0.)):
+        """Create new point copied from self."""
+        if name is None: name = getName(self.name+'C')
+        P = Point(name, part=self.part)
+        P.x.v = self.x.v
+        P.y.v = self.y.v
+        P.z.v = self.z.v
+        if self.x.range is not None:
+            Eq(P.x, self.x, part=self.part)
+        if self.y.range is not None:
+            Eq(P.y, self.y, part=self.part)
+        if self.z.range is not None:
+            Eq(P.z, self.z, part=self.part)
+        return P
 
     # Create new point shifted from self by a given vector
     # IN: name: name of the new point (optional)
@@ -555,6 +580,50 @@ class Entity:
             if ret == 0: return 0
         return 1
 
+    # Create new entity that is copied from self
+    # IN: name: name of the new entity (optional)
+    # OUT: new entity object copied from self
+    def Copy(self, name=None):
+        """Create new entity copied from self."""
+        if name is None: name = getName(self.name+'C')
+        if self.type == "line":
+            P1 = self.P[0].Copy()
+            P2 = self.P[1].Copy()
+            return Line(name, P1, P2, self.part)
+        elif self.type == "polyline":
+            Points = []
+            for P in self.P:
+                Points.append(P.Copy())
+            return Polyline(name, Points, self.part)
+        elif self.type == "spline1":
+            Points = []
+            for P in self.P:
+                Points.append(P.Copy())
+            return Spline1(name, Points, self.part)
+        elif self.type == "spline2":
+            Points = []
+            for P in self.P:
+                Points.append(P.Copy())
+            return Spline2(name, Points, self.part)
+        elif self.type == "circle":
+            C = self.P[0].Copy()
+            return Circle(name, C, self.P[1], self.part)
+        elif self.type == "superellipse":
+            C = self.P[0].Copy()
+            return SuperEllipse(name, C, self.P[1], self.P[2], self.P[3].v, self.P[4].v, self.part)
+        elif self.type == "arc":
+            P1 = self.P[0].Copy()
+            P2 = self.P[1].Copy()
+            P3 = self.P[2].Copy()
+            return Arc(name, P1, P2, P3, self.part)
+        elif self.type == "naca4":
+            return Naca(name, self.P[0].v, self.P[1].v, self.P[2].v, self.part)
+        elif self.type == "airfoil":
+            return Airfoil(name, self.P[0], self.part)
+        else:
+            raise NotImplementedError('no shift for this entity type.')
+        return None
+
     # Create new entity shifted from self by a given vector
     # IN: name: name of the new entity (optional)
     # IN: vector: shift vector (dx, dy, dz) (default: (0.,0.,0.))
@@ -775,7 +844,13 @@ class Sketch():
         self.rotAxis = P
         P = Scalar('%s.rotAngle'%self.name, 0., part=part)
         self.P.append(P)
-        self.rotAngle = P
+        self.rotAngle = P        
+        P = Point('%s.scaleCenter'%self.name, (0.,0.,0.), part=part)
+        self.P.append(P)
+        self.scaleCenter = P
+        P = Scalar('%s.scaleFactor'%self.name, 1., part=part)
+        self.P.append(P)
+        self.scaleFactor = P
         # register
         self.part = part
         if part is not None: part.registerSketch(self)
@@ -794,7 +869,9 @@ class Sketch():
         """Add an entity to sketch."""
         self.entities.append(entity)
 
-    def set(self, position=None, rotCenter=None, rotAxis=None, rotAngle=None):
+    def set(self, position=None, 
+            rotCenter=None, rotAxis=None, rotAngle=None, 
+            scaleCenter=None, scaleFactor=None):
         """Set sketch global position."""
         if position is not None:
             if isinstance(position, tuple) and len(position) == 3:
@@ -857,21 +934,46 @@ class Sketch():
                 self.rotAngle = rotAngle
             else:
                 raise ValueError('set: not a valid rotAngle.')
+        if scaleCenter is not None:
+            if isinstance(scaleCenter, tuple) and len(scaleCenter) == 3:
+                posx = scaleCenter[0]
+                posy = scaleCenter[1]
+                posz = scaleCenter[2]
+                if isinstance(posx, float): self.scaleCenter.x.v = posx
+                elif isinstance(posx, int): self.scaleCenter.x.v = float(posx)
+                elif isinstance(posx, Scalar): self.scaleCenter.x = posx
+                if isinstance(posy, float): self.scaleCenter.y.v = posy
+                elif isinstance(posy, int): self.scaleCenter.y.v = float(posy)
+                elif isinstance(posy, Scalar): self.scaleCenter.y = posy
+                if isinstance(posz, float): self.scaleCenter.z.v = posz
+                elif isinstance(posz, int): self.scaleCenter.z.v = float(posz)
+                elif isinstance(posz, Scalar): self.scaleCenter.z = posz
+            elif isinstance(scaleCenter, Point):
+                self.scaleCenter = scaleCenter
+            else:
+                raise ValueError('set: not a valid scaleCenter.')
+        if scaleFactor is not None:
+            if isinstance(scaleFactor, float): self.scaleFactor.v = scaleFactor
+            elif isinstance(scaleFactor, int): self.scaleFactor.v = float(scaleFactor)
+            elif isinstance(scaleFactor, Scalar):
+                self.scaleFactor = scaleFactor
+            else:
+                raise ValueError('set: not a valid scaleFactor.')
 
     def Copy(self, name=None):
         """Copy a sketch, return a new sketch."""
         if name is None: name = getName(self.name+'C')
         entities = []
         for e in self.entities:
-            entities.append(e.Shift(vector=(0,0,0)))
+            entities.append(e.Copy())
         S = Sketch(name, entities, h=self.h, part=self.part)
         return S
 
-    def Shift(self, name=None, vector=(0.,0.,0.)):
+    def shift(self, vector=(0.,0.,0.)):
         """Shift sketch of vector."""
         self.set(position=vector)
 
-    def Rotate(self, name=None, center=(0,0,0), alpha=90.):
+    def rotate(self, center=(0,0,0), alpha=90.):
         """Rotate sketch."""
         self.set(rotCenter=center, rotAxis=(0,0,1), rotAngle=alpha)
 
@@ -889,6 +991,7 @@ class Sketch():
         # global positionning
         OCC._rotate(self.hook, self.rotCenter.v(), self.rotAxis.v(), self.rotAngle.v)
         OCC._translate(self.hook, self.position.v())
+        OCC._scale(self.hook, self.scaleFactor.v, self.scaleCenter.v())
 
     # Check if parameters are valid
     # OUT: 0 if all parameters are valid, 1 if any parameter is invalid
@@ -1083,6 +1186,12 @@ class Surface():
         P = Scalar('%s.rotAngle'%self.name, 0., part=part)
         self.P.append(P)
         self.rotAngle = P
+        P = Point('%s.scaleCenter'%self.name, (0.,0.,0.), part=part)
+        self.P.append(P)
+        self.scaleCenter = P
+        P = Scalar('%s.scaleFactor'%self.name, 1., part=part)
+        self.P.append(P)
+        self.scaleFactor = P
         # register
         if part is not None: part.registerSurface(self)
         # meshing: (hmin,hmax,hausd). supersedes sketch settings.
@@ -1205,7 +1314,7 @@ class Surface():
             nedges = OCC.getNbEdges(self.hook)
             edgeList = [i for i in range(1, nedges+1)]
             OCC._fillHole(self.hook, edgeList, [], self.data['continuity'].v)
-            if self.data['reverse'].v == 1: OCC._reverse(self.hook)
+            if self.data['reverse'] == 1: OCC._reverse(self.hook)
 
         elif self.type == "mergeEdges": # for debug
             hooks = []

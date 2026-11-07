@@ -36,10 +36,10 @@ import Roms.Driver as D
 #T1 = D.DRIVER.Part('wing1', type='wing')
 #T1.instantiate({'tipPosx': 0., 'tipPosz': 2.})
 
-#T1 = D.DRIVER.Part('wing1', type='missile')
+#T1 = D.DRIVER.Part('missile1', type='missile')
 #T1.instantiate({'radius1': 10., 'radius2': 4.})
 
-#T1 = D.DRIVER.Part('wing1', type='ImbricatedSquares')
+#T1 = D.DRIVER.Part('square1', type='ImbricatedSquares')
 #T1.instantiate({'P0#2.y':1., 'P0#2.x':1., 'depth':1., 'angle':20., 'width':1.})
 #D.DRIVER.print()
 

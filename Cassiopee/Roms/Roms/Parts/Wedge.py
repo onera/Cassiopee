@@ -73,11 +73,15 @@ def createPart(name):
     #=======================
     T1.solve()
 
-    # example of instance
-    #T1.instantiate({'Lf': 2,
-    #                'Lb': 0.1,
-    #                'Ht': 0.1,
-    #                'Hb': 0.1,
-    #                'Ls': 1.})
-
     return T1
+
+if __name__ == "__main__":
+
+    T1 = createPart('wedge1')
+    # instantiate
+    T1.instantiate({'Lf': 2,
+                    'Lb': 0.1,
+                    'Ht': 0.1,
+                    'Hb': 0.1,
+                    'Ls': 1.})
+    D.DRIVER.plot()
