@@ -68,6 +68,15 @@ def exportEdges(edges):
         b[2].append(z)
     return t
 
+# if h is None, return h from hook analysis
+def getH(h, hook):
+    if h is None:
+        (hmin,hmax,hausd) = OCC.occ.analyseEdges(hook)
+        h = (hmin, 2*hmax, 0.1*hausd)
+    elif isinstance(h, float):
+        h = [h,h,1.]
+    return h
+
 #============================================================
 class Scalar( sympy.core.symbol.Symbol ):
     """Define a parametric scalar."""
@@ -427,6 +436,8 @@ class Entity:
                 self.P.append(P)
             elif isinstance(P, Grid):
                 self.P.append(P)
+            elif isinstance(P, str):
+                self.P.append(P)
             else:
                 raise(ValueError, "Wrong argument.")
             c += 1
@@ -508,12 +519,12 @@ class Entity:
             naca = Geom.naca("%01d%01d%02d"%(int(self.P[0].v),int(self.P[1].v),int(self.P[2].v)), N=51, sharpte=True)
             OCC._addSpline(self.hook, naca[1], 1, 3)
 
-        #elif self.type == "airfoil": # any airfoil
-        #    import Geom
-        #    airfoil = Geom.airfoil(name)
-        #    bbox = Generator.bbox(airfoil)
-        #    grid1 = Grid('grid1', bbox[0:3], bbox[3:], N=(3,3,1))
-        #    OCC._addSpline(self.hook, airfoil[1], 1, 3)
+        elif self.type == "airfoil": # any airfoil
+            import Geom
+            airfoil = Geom.airfoil(self.P[0])
+            #bbox = Generator.bbox(airfoil)
+            #grid1 = Grid('grid1', bbox[0:3], bbox[3:], N=(3,3,1))
+            OCC._addSpline(self.hook, airfoil[1], 1, 3)
 
         else:
             raise(ValueError, "Unknown entity type %s."%self.type)
@@ -581,8 +592,12 @@ class Entity:
             P2 = self.P[1].Shift(vector=vector)
             P3 = self.P[2].Shift(vector=vector)
             return Arc(name, P1, P2, P3, self.part)
+        elif self.type == "naca4":
+            raise ValueError('naca entity can not be shifted.')
+        elif self.type == "airfoil":
+            raise ValueError('airfoil entity can not be shifted.')
         else:
-            raise NotImplemented('no shift for this entity type.')
+            raise NotImplementedError('no shift for this entity type.')
         return None
 
     # Create new entity that is the symmetric of self considering a plane
@@ -623,8 +638,13 @@ class Entity:
             P2 = self.P[1].Symm(plane=plane, center=center)
             P3 = self.P[2].Symm(plane=plane, center=center)
             return Arc(name, P1, P2, P3, self.part)
+        elif self.type == "naca4":
+            raise ValueError('naca entity can not be symmetrized.')
+        elif self.type == "airfoil":
+            raise ValueError('airfoil entity can not be symmetrized.')
+
         else:
-            raise NotImplemented('no shift for this entity type.')
+            raise NotImplementedError('no symmetrize for this entity type.')
         return None
 
     # Create new entity that is the rotation of self
@@ -665,8 +685,12 @@ class Entity:
             P2 = self.P[1].Rotate(center=center, alpha=alpha)
             P3 = self.P[2].Rotate(center=center, alpha=alpha)
             return Arc(name, P1, P2, P3, self.part)
+        elif self.type == "naca4":
+            raise ValueError('naca entity can not be rotated.')
+        elif self.type == "airfoil":
+            raise ValueError('airfoil entity can not be rotated.')
         else:
-            raise NotImplemented('no shift for this entity type.')
+            raise NotImplementedError('no rotate for this entity type.')
         return None
 
 #============================================================
@@ -715,6 +739,11 @@ def Naca(name=None, M=0., P=0., e=12., part=None):
     """Define parametric NACA profile."""
     return Entity(name, [M, P, e], type="naca4", part=part)
 
+# airfoil fo any type (no parametric)
+def Airfoil(name=None, type='ONERA/ONERAOA213AIRFOIL', part=None):
+    """Define non parametric airfoil."""
+    return Entity(name, [type], type="airfoil", part=part)
+    
 #============================================================
 class Sketch():
     """Define a parametric sketch from a list of entities."""
@@ -838,6 +867,14 @@ class Sketch():
         S = Sketch(name, entities, h=self.h, part=self.part)
         return S
 
+    def Shift(self, name=None, vector=(0.,0.,0.)):
+        """Shift sketch of vector."""
+        self.set(position=vector)
+
+    def Rotate(self, name=None, center=(0,0,0), alpha=90.):
+        """Rotate sketch."""
+        self.set(rotCenter=center, rotAxis=(0,0,1), rotAngle=alpha)
+
     # Update CAD hook from parameters
     def update(self):
         """Update CAD hook."""
@@ -887,15 +924,14 @@ class Sketch():
     # OUT: list of meshed edge arrays
     def mesh(self, method=1):
         """Mesh edges."""
+        self.h = getH(self.h, self.hook)
         if self.distribs is not None:
             edges = []
             for c, e in enumerate(self.distrib):
                 e = OCC.occ.meshOneEdge(self.hook, c+1, -1, -1, -1, -1, e)
             edges.append(e)
-        elif self.h is not None:
-            edges = OCC.meshAllEdges(self.hook, self.h[0], self.h[1], self.h[2], -1)
         else:
-            raise ValueError("mesh: no meshing settings in sketch.")
+            edges = OCC.meshAllEdges(self.hook, self.h[0], self.h[1], self.h[2], -1)
         return edges
 
     # Mesh sketch, return zones
@@ -1260,10 +1296,7 @@ class Surface():
     # OUT: list of meshed face arrays
     def mesh(self, close=True, method=1):
         """Mesh surface."""
-        if self.h is None:
-            #raise ValueError("mesh: h settings are undefined.")
-            (hmin,hmax,hausd) = OCC.occ.analyseEdges(self.hook)
-            self.h = (hmin, 2*hmax, 0.1*hausd)
+        self.h = getH(self.h, self.hook)
         (hmin,hmax,hausd) = self.h
         if method == 1: # isotropic hmin,hmax,hausd
             edges = OCC.meshAllEdges(self.hook, hmin, hmax, hausd, -1)
@@ -1301,7 +1334,7 @@ class Surface():
         import Post.PyTree as P
 
         # keep ref edges in x,y
-        if self.h is None: raise ValueError("mesh: h settings are undefined.")
+        self.h = getH(self.h, self.hook)        
         (hmin,hmax,hausd) = self.h
         dedges = OCC.meshAllEdges(self.hook, hmin, hmax, hausd, -1)
         self.refEdges = dedges
@@ -1970,12 +2003,16 @@ class Part:
         s = Entity(name, [M, P, e], type="naca4", part=self)
         return s
 
+    def Airfoil(self, name=None, type="ONERA/ONERAOA213AIRFOIL"):
+        s = Entity(name, [type], type="airfoil", part=self)
+        return s
+
     def Sketch(self, name=None, listEntities=[], h=None):
-        s = Sketch(name, listEntities, h, self)
+        s = Sketch(name, listEntities, h, part=self)
         return s
 
     def Surface(self, name=None, listSketches=[], listSketches2=[], listSurfaces=[], listSurfaces2=[], data={}, h=None, type="loft"):
-        s = Surface(name, listSketches, listSketches2, listSurfaces, listSurfaces2, data, h, type, self)
+        s = Surface(name, listSketches, listSketches2, listSurfaces, listSurfaces2, data, h, type, part=self)
         return s
 
     def Loft(self, name="loft", listSketches=[], listGuides=[], close=True, h=None):

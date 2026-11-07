@@ -107,14 +107,17 @@ def createPart(name):
         surface = T1.Merge('surface', [surface1, surface2])
         #surface = T1.Union('surface', [surface1], [surface2])
 
-    #=======================
-    # solve and instantiate
-    #======================
-
     # solve
     T1.solve()
 
-    # instantiate
-    #T1.instantiate({'tipPosx': 0., 'tipPosz': 2.})
-
     return T1
+
+if __name__ == "__main__":
+
+    T1 = createPart('diamondWing1')
+    # instantiate
+    T1.instantiate({'chord1': 1., 'thickness1': 0.1, 'angle1': 2.,
+                    'chord2': 0.2, 'thickness2': 0.01, 'angle2': 2.,
+                    'spanLength': 2., 'tipShift': 0.})
+
+    D.DRIVER.plot()

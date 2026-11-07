@@ -11,8 +11,6 @@ def createPart(name):
 
     # Create points
     P1 = T1.Point('P1', (0,0,0))
-    T1.Eq(P1.x, 0.)
-    T1.Eq(P1.y, 0.)
 
     # Create edges
     circle1 = T1.Circle('circle1', P1, radius)
@@ -25,7 +23,12 @@ def createPart(name):
     # solve result
     T1.solve()
 
-    # example of instantiation
-    #T1.instantiate({'width':1., 'height':2.})
-
     return T1
+
+if __name__ == "__main__":
+
+    T1 = createPart('circle1')
+    # instantiate
+    T1.instantiate({'radius':1.})
+    D.DRIVER.plot()
+

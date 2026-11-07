@@ -80,13 +80,13 @@ def airfoil(name=None):
                 print("%s/%s\n"%(b[0],z[0]))
         return None
     if len(name) != 2:
-        raise ValueError('profile: name must be base/name.')
+        raise ValueError('airfoil: name must be base/name.')
     b = Internal.getNodeFromName1(t, name[0])
     if b is None:
-        raise ValueError('profile: base name not found.')
+        raise ValueError('airfoil: base name not found in airfoil database.')
     z = Internal.getNodeFromName1(b, name[1])
     if z is None:
-        raise ValueError('profile: zone name not found.')
+        raise ValueError('airfoil: second name not found in airfoil database.')
     a = C.getAllFields(z, 'nodes', api=1)[0]
     return a
 

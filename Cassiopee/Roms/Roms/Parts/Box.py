@@ -96,8 +96,12 @@ def createPart(name):
 
     # solve result
     T1.solve()
-
-    # example of instantiation
-    #T1.instantiate({'width':1., 'height':1., 'depth':1.})
-
+    
     return T1
+
+if __name__ == "__main__":
+
+    T1 = createPart('box1')
+    # instantiate
+    T1.instantiate({'width':1., 'height':1., 'depth':1.})
+    D.DRIVER.plot()
