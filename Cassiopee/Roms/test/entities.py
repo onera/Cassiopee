@@ -58,7 +58,7 @@ elif TEST == 'spline3':
     spline3 = spline1.Symm('spline1', plane='yz', center=(0,0,0))
     spline4 = spline1.Rotate('spline4', center=(0,0,0), alpha=-90.)
     sketch1 = T1.Sketch('sketch1', [spline1,spline2,spline3,spline4], h=0.01)
-    
+
 elif TEST == 'circle':
     circle1 = T1.Circle('circle1', P2, v1)
     circle2 = circle1.Shift('circle2', vector=(0,3,0))

@@ -428,10 +428,10 @@ class Grid:
     def Copy(self, name=None):
         """Create new grid copied from self."""
         if name is None: name = getName(self.name+'C')
-        grid1 = Grid(name, 
-                    (self.xo,self.yo,self.zo), 
-                    (self.xo+self.dx,self.yo+self.dy,self.zo+self.dz), 
-                    (self.ni,self.nj,self.nk), self.part)
+        grid1 = Grid(name,
+                     (self.xo,self.yo,self.zo),
+                     (self.xo+self.dx,self.yo+self.dy,self.zo+self.dz),
+                     (self.ni,self.nj,self.nk), self.part)
         for k in range(self.nk):
             for j in range(self.nj):
                 for i in range(self.ni):
@@ -441,10 +441,10 @@ class Grid:
     def Shift(self, name=None, vector=(0.,0.,0.)):
         """Create new grid shifted from self of a given vector."""
         if name is None: name = getName(self.name+'T')
-        grid1 = Grid(name, 
-                    (self.xo+vector[0],self.yo+vector[0],self.zo+vector[0]), 
-                    (self.xo+self.dx+vector[0],self.yo+self.dx+vector[1],self.zo+self.dx+vector[2]), 
-                    (self.ni,self.nj,self.nk), self.part)
+        grid1 = Grid(name,
+                     (self.xo+vector[0],self.yo+vector[0],self.zo+vector[0]),
+                     (self.xo+self.dx+vector[0],self.yo+self.dx+vector[1],self.zo+self.dx+vector[2]),
+                     (self.ni,self.nj,self.nk), self.part)
         for k in range(self.nk):
             for j in range(self.nj):
                 for i in range(self.ni):
@@ -457,20 +457,20 @@ class Grid:
         x0 = self.xo; y0 = self.yo; z0 = self.zo
         x1 = self.xo+self.dx; y1 = self.yo+self.dy; z1 = self.zo+self.dz
         if plane == 'yz':
-            grid1 = Grid(name, 
-                        (2*center[0]-x1,y0,z0), 
-                        (2*center[0]-x0,y1,z1), 
-                        (self.ni,self.nj,self.nk), self.part)
+            grid1 = Grid(name,
+                         (2*center[0]-x1,y0,z0),
+                         (2*center[0]-x0,y1,z1),
+                         (self.ni,self.nj,self.nk), self.part)
         elif plane == 'xz':
-            grid1 = Grid(name, 
-                        (x0,2*center[1]-y1,z0), 
-                        (x1,2*center[1]-y0,z1), 
-                        (self.ni,self.nj,self.nk), self.part)
+            grid1 = Grid(name,
+                         (x0,2*center[1]-y1,z0),
+                         (x1,2*center[1]-y0,z1),
+                         (self.ni,self.nj,self.nk), self.part)
         elif plane == 'xy':
-            grid1 = Grid(name, 
-                        (x0,y0,2*center[2]-z1), 
-                        (x1,y1,2*center[2]-z0), 
-                        (self.ni,self.nj,self.nk), self.part)
+            grid1 = Grid(name,
+                         (x0,y0,2*center[2]-z1),
+                         (x1,y1,2*center[2]-z0),
+                         (self.ni,self.nj,self.nk), self.part)
         for k in range(self.nk):
             for j in range(self.nj):
                 for i in range(self.ni):
@@ -488,8 +488,8 @@ class Grid:
         xf = center[0] + (x1 - center[0])*numpy.cos(alphar) - (y1 - center[1])*numpy.sin(alphar)
         yf = center[1] + (x1 - center[0])*numpy.sin(alphar) + (y1 - center[1])*numpy.cos(alphar)
         zf = z1
-        grid1 = Grid(name, (xo,yo,zo), (xf,yf,zf), 
-                    (self.ni,self.nj,self.nk), self.part)
+        grid1 = Grid(name, (xo,yo,zo), (xf,yf,zf),
+                     (self.ni,self.nj,self.nk), self.part)
         for k in range(self.nk):
             for j in range(self.nj):
                 for i in range(self.ni):
@@ -1087,12 +1087,12 @@ class Sketch():
             if e.hook is None:
                 print("sketch.update: %s has null hook."%e.name)
             else: hooks.append(e.hook)
-        self.hook = OCC.mergeCAD(hooks)            
+        self.hook = OCC.mergeCAD(hooks)
         # global positionning
         OCC._scale(self.hook, self.scaleFactor.v, self.scaleCenter.v())
         OCC._rotate(self.hook, self.rotCenter.v(), self.rotAxis.v(), self.rotAngle.v)
         OCC._translate(self.hook, self.position.v())
-        
+
     # Check if parameters are valid
     # OUT: 0 if all parameters are valid, 1 if any parameter is invalid
     def check(self):
