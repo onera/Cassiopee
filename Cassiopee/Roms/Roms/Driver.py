@@ -390,6 +390,7 @@ class Grid:
         # parameters
         self.P = [[[Point("%s.P.%d.%d.%d"%(self.name, i,j,k), (self.xo+i*self.dx, self.yo+j*self.dy, self.zo+k*self.dz), part=part) for k in range(self.nk)] for j in range(self.nj)] for i in range(self.ni)]
         # register
+        self.part = part
         if part is not None: part.registerGrid(self)
 
     # Return grid point value at index
@@ -420,6 +421,80 @@ class Grid:
                     ret = self.P[i][j][k].check()
                     if ret == 0: return 0
         return 1
+
+    # Create new grid that is copied from self
+    # IN: name: name of the new grid (optional)
+    # OUT: new grid object copied from self
+    def Copy(self, name=None):
+        """Create new grid copied from self."""
+        if name is None: name = getName(self.name+'C')
+        grid1 = Grid(name, 
+                    (self.xo,self.yo,self.zo), 
+                    (self.xo+self.dx,self.yo+self.dy,self.zo+self.dz), 
+                    (self.ni,self.nj,self.nk), self.part)
+        for k in range(self.nk):
+            for j in range(self.nj):
+                for i in range(self.ni):
+                    grid1.P[i][j][k] = self.P[i][j][k].Copy("%s.P.%d.%d.%d"%(name, i,j,k))
+        return grid1
+
+    def Shift(self, name=None, vector=(0.,0.,0.)):
+        """Create new grid shifted from self of a given vector."""
+        if name is None: name = getName(self.name+'T')
+        grid1 = Grid(name, 
+                    (self.xo+vector[0],self.yo+vector[0],self.zo+vector[0]), 
+                    (self.xo+self.dx+vector[0],self.yo+self.dx+vector[1],self.zo+self.dx+vector[2]), 
+                    (self.ni,self.nj,self.nk), self.part)
+        for k in range(self.nk):
+            for j in range(self.nj):
+                for i in range(self.ni):
+                    grid1.P[i][j][k] = self.P[i][j][k].Shift("%s.P.%d.%d.%d"%(name, i,j,k), vector)
+        return grid1
+
+    def Symm(self, name=None, plane='xz', center=(0,0,0)):
+        """Create new grid that is the symmetric of self considering a plane."""
+        if name is None: name = getName(self.name+'S')
+        x0 = self.xo; y0 = self.yo; z0 = self.zo
+        x1 = self.xo+self.dx; y1 = self.yo+self.dy; z1 = self.zo+self.dz
+        if plane == 'yz':
+            grid1 = Grid(name, 
+                        (2*center[0]-x1,y0,z0), 
+                        (2*center[0]-x0,y1,z1), 
+                        (self.ni,self.nj,self.nk), self.part)
+        elif plane == 'xz':
+            grid1 = Grid(name, 
+                        (x0,2*center[1]-y1,z0), 
+                        (x1,2*center[1]-y0,z1), 
+                        (self.ni,self.nj,self.nk), self.part)
+        elif plane == 'xy':
+            grid1 = Grid(name, 
+                        (x0,y0,2*center[2]-z1), 
+                        (x1,y1,2*center[2]-z0), 
+                        (self.ni,self.nj,self.nk), self.part)
+        for k in range(self.nk):
+            for j in range(self.nj):
+                for i in range(self.ni):
+                    grid1.P[i][j][k] = self.P[i][j][k].Symm("%s.P.%d.%d.%d"%(name, i,j,k), plane, center)
+        return grid1
+
+    def Rotate(self, name=None, center=(0,0,0), alpha=90.):
+        if name is None: name = getName(self.name+'R')
+        alphar = numpy.deg2rad(alpha)
+        x0 = self.xo; y0 = self.yo; z0 = self.zo
+        x1 = self.xo+self.dx; y1 = self.yo+self.dy; z1 = self.zo+self.dz
+        xo = center[0] + (x0 - center[0])*numpy.cos(alphar) - (y0 - center[1])*numpy.sin(alphar)
+        yo = center[1] + (x0 - center[0])*numpy.sin(alphar) + (y0 - center[1])*numpy.cos(alphar)
+        zo = z0
+        xf = center[0] + (x1 - center[0])*numpy.cos(alphar) - (y1 - center[1])*numpy.sin(alphar)
+        yf = center[1] + (x1 - center[0])*numpy.sin(alphar) + (y1 - center[1])*numpy.cos(alphar)
+        zf = z1
+        grid1 = Grid(name, (xo,yo,zo), (xf,yf,zf), 
+                    (self.ni,self.nj,self.nk), self.part)
+        for k in range(self.nk):
+            for j in range(self.nj):
+                for i in range(self.ni):
+                    grid1.P[i][j][k] = self.P[i][j][k].Rotate("%s.P.%d.%d.%d"%(name, i,j,k), center, alpha)
+        return grid1
 
 #============================================================
 # Entities (1D, parametric)
@@ -506,7 +581,7 @@ class Entity:
         elif self.type == "spline3": # by free form control points + mesh
             # self.P[0] is a Grid, mesh is an array
 
-            # rebuild control points
+            # rebuild control points from grid
             import Generator, Transform
             grid = self.P[0]
             ni, nj, nk = grid.ni, grid.nj, grid.nk
@@ -547,8 +622,6 @@ class Entity:
         elif self.type == "airfoil": # any airfoil
             import Geom
             airfoil = Geom.airfoil(self.P[0])
-            #bbox = Generator.bbox(airfoil)
-            #grid1 = Grid('grid1', bbox[0:3], bbox[3:], N=(3,3,1))
             OCC._addSpline(self.hook, airfoil[1], 1, 3)
 
         else:
@@ -605,6 +678,9 @@ class Entity:
             for P in self.P:
                 Points.append(P.Copy())
             return Spline2(name, Points, self.part)
+        elif self.type == "spline3":
+            # grid is shared, mesh is shared
+            return Spline3(name, self.P[0], self.mesh, self.part)
         elif self.type == "circle":
             C = self.P[0].Copy()
             return Circle(name, C, self.P[1], self.part)
@@ -650,6 +726,11 @@ class Entity:
             for P in self.P:
                 Points.append(P.Shift(vector=vector))
             return Spline2(name, Points, self.part)
+        elif self.type == "spline3":
+            # grid is shared, mesh is shifted
+            import Transform
+            mesh = Transform.translate(self.mesh, vector)
+            return Spline3(name, self.P[0], mesh, self.part)
         elif self.type == "circle":
             C = self.P[0].Shift(vector=vector)
             return Circle(name, C, self.P[1], self.part)
@@ -696,6 +777,16 @@ class Entity:
             for P in self.P:
                 Points.append(P.Symm(plane=plane, center=center))
             return Spline2(name, Points, self.part)
+        elif self.type == "spline3":
+            # grid is shared, mesh is symm
+            import Transform
+            if plane == 'yz':
+                mesh = Transform.symmetrize(self.mesh, center, (0,1,0), (0,0,1))
+            elif plane == 'xz':
+                mesh = Transform.symmetrize(self.mesh, center, (1,0,0), (0,0,1))
+            elif plane == 'xy':
+                mesh = Transform.symmetrize(self.mesh, center, (1,0,0), (0,1,0))
+            return Spline3(name, self.P[0], mesh, self.part)
         elif self.type == "circle":
             C = self.P[0].Symm(plane=plane, center=center)
             return Circle(name, C, self.P[1], self.part)
@@ -743,6 +834,11 @@ class Entity:
             for P in self.P:
                 Points.append(P.Rotate(center=center, alpha=alpha))
             return Spline2(name, Points, self.part)
+        elif self.type == "spline3":
+            # grid is shared, mesh is shifted
+            import Transform
+            mesh = Transform.rotate(self.mesh, center, (0,0,1), alpha)
+            return Spline3(name, self.P[0], mesh, self.part)
         elif self.type == "circle":
             C = self.P[0].Rotate(center=center, alpha=alpha)
             return Circle(name, C, self.P[1], self.part)
@@ -977,6 +1073,10 @@ class Sketch():
         """Rotate sketch."""
         self.set(rotCenter=center, rotAxis=(0,0,1), rotAngle=alpha)
 
+    def scale(self, center=(0,0,0), factor=1.):
+        """Scale sketch."""
+        self.set(scaleCenter=center, scaleFactor=factor)
+
     # Update CAD hook from parameters
     def update(self):
         """Update CAD hook."""
@@ -987,12 +1087,12 @@ class Sketch():
             if e.hook is None:
                 print("sketch.update: %s has null hook."%e.name)
             else: hooks.append(e.hook)
-        self.hook = OCC.mergeCAD(hooks)
+        self.hook = OCC.mergeCAD(hooks)            
         # global positionning
+        OCC._scale(self.hook, self.scaleFactor.v, self.scaleCenter.v())
         OCC._rotate(self.hook, self.rotCenter.v(), self.rotAxis.v(), self.rotAngle.v)
         OCC._translate(self.hook, self.position.v())
-        OCC._scale(self.hook, self.scaleFactor.v, self.scaleCenter.v())
-
+        
     # Check if parameters are valid
     # OUT: 0 if all parameters are valid, 1 if any parameter is invalid
     def check(self):

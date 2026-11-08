@@ -1,4 +1,4 @@
-# test sketches
+# test Driver sketches
 import Roms.Driver as D
 
 TEST = 'airfoil'

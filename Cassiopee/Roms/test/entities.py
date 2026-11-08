@@ -1,7 +1,7 @@
-# test all Driver entities
+# test Driver entities
 import Roms.Driver as D
 
-TEST = 'naca'
+TEST = 'spline3'
 
 T1 = D.Part('test')
 
@@ -23,10 +23,6 @@ if TEST == 'line':
     line2 = line1.Shift('line2', vector=(0,5,0))
     line3 = line1.Symm('lines3', plane='yz', center=(0,0,0))
     line4 = line1.Rotate('line4', center=(0,0,0), alpha=-90.)
-
-    line1.print()
-    line2.print()
-
     sketch1 = T1.Sketch('sketch1', [line1, line2, line3, line4])
 
 elif TEST == 'polyline':
@@ -43,6 +39,26 @@ elif TEST == 'spline1':
     spline4 = spline1.Rotate('spline4', center=(0,0,0), alpha=-90.)
     sketch1 = T1.Sketch('sketch1', [spline1,spline2,spline3,spline4])
 
+elif TEST == 'spline2':
+    spline1 = T1.Spline2('spline1', [P1, P2, P3])
+    spline2 = spline1.Shift('spline2', vector=(0,3,0))
+    spline3 = spline1.Symm('spline3', plane='yz', center=(0,0,0))
+    spline4 = spline1.Rotate('spline4', center=(0,0,0), alpha=-90.)
+    sketch1 = T1.Sketch('sketch1', [spline1,spline2,spline3,spline4])
+
+elif TEST == 'spline3':
+    import Geom, Generator
+    naca = Geom.naca(12, N=51)
+    bbox = Generator.bbox(naca)
+    grid1 = T1.Grid('grid1', bbox[0:3], bbox[3:], N=(3,2,1))
+    T1.Eq(grid1.P[1][0][0].y, -0.1*v1)
+    T1.Eq(grid1.P[1][1][0].y, +0.1*v1)
+    spline1 = T1.Spline3('spline1', grid1, mesh=naca)
+    spline2 = spline1.Shift('spline2', (0,2,0))
+    spline3 = spline1.Symm('spline1', plane='yz', center=(0,0,0))
+    spline4 = spline1.Rotate('spline4', center=(0,0,0), alpha=-90.)
+    sketch1 = T1.Sketch('sketch1', [spline1,spline2,spline3,spline4], h=0.01)
+    
 elif TEST == 'circle':
     circle1 = T1.Circle('circle1', P2, v1)
     circle2 = circle1.Shift('circle2', vector=(0,3,0))
