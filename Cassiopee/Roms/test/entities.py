@@ -1,7 +1,7 @@
 # test Driver entities
 import Roms.Driver as D
 
-TEST = 'spline3'
+TEST = 'line'
 
 T1 = D.Part('test')
 
@@ -29,8 +29,9 @@ elif TEST == 'polyline':
     # polyline
     polyline1 = T1.Polyline('polyline1', [P1, P2, P3])
     polyline2 = polyline1.Shift('polyline2', vector=(0,3,0))
-    # sketch for viz
-    sketch1 = T1.Sketch('sketch1', [polyline1,polyline2])
+    polyline3 = polyline1.Symm('polyline3', plane='yz', center=(0,0,0))
+    polyline4 = polyline1.Rotate('polyline4', center=(0,0,0), alpha=-90.)
+    sketch1 = T1.Sketch('sketch1', [polyline1,polyline2,polyline3,polyline4])
 
 elif TEST == 'spline1':
     spline1 = T1.Spline1('spline1', [P1, P2, P3])

@@ -78,6 +78,126 @@ def getH(h, hook):
     return h
 
 #============================================================
+class Transform:
+    """Define a rigid transformation."""
+
+    def __init__(self, name, part, position=None,
+                rotCenter=None, rotAxis=None, rotAngle=None,
+                scaleCenter=None, scaleFactor=None):
+        self.position = None
+        self.rotCenter = None
+        self.rotAxis = None
+        self.rotAngle = None
+        self.scaleCenter = None
+        self.scaleFactor = None
+        if position is not None:
+            P = Vec3('%s.position'%name, (0.,0.,0.), part=part)
+            self.position = P
+            if isinstance(position, tuple) and len(position) == 3:
+                posx = position[0]
+                posy = position[1]
+                posz = position[2]
+                if isinstance(posx, float): self.position.x.v = posx
+                elif isinstance(posx, int): self.position.x.v = float(posx)
+                elif isinstance(posx, Scalar): self.position.x = posx
+                if isinstance(posy, float): self.position.y.v = posy
+                elif isinstance(posy, int): self.position.y.v = float(posy)
+                elif isinstance(posy, Scalar): self.position.y = posy
+                if isinstance(posz, float): self.position.z.v = posz
+                elif isinstance(posz, int): self.position.z.v = float(posz)
+                elif isinstance(posz, Scalar): self.position.z = posz
+            elif isinstance(position, Point):
+                self.position = position
+            else:
+                raise ValueError('set: not a valid position.')
+        if rotCenter is not None:
+            if isinstance(rotCenter, tuple) and len(rotCenter) == 3:
+                P = Point('%s.rotCenter'%name, (0.,0.,0.), part=part)
+                self.rotCenter = P
+                posx = rotCenter[0]
+                posy = rotCenter[1]
+                posz = rotCenter[2]
+                if isinstance(posx, float): self.rotCenter.x.v = posx
+                elif isinstance(posx, int): self.rotCenter.x.v = float(posx)
+                elif isinstance(posx, Scalar): self.rotCenter.x = posx
+                if isinstance(posy, float): self.rotCenter.y.v = posy
+                elif isinstance(posy, int): self.rotCenter.y.v = float(posy)
+                elif isinstance(posy, Scalar): self.rotCenter.y = posy
+                if isinstance(posz, float): self.rotCenter.z.v = posz
+                elif isinstance(posz, int): self.rotCenter.z.v = float(posz)
+                elif isinstance(posz, Scalar): self.rotCenter.z = posz
+            elif isinstance(rotCenter, Point):
+                self.rotCenter = rotCenter
+            else:
+                raise ValueError('set: not a valid rotCenter.')
+        if rotAxis is not None:
+            P = Vec3('%s.rotAxis'%name, (0.,0.,1.), part=part)
+            self.rotAxis = P
+            if isinstance(rotAxis, tuple) and len(rotAxis) == 3:
+                posx = rotAxis[0]
+                posy = rotAxis[1]
+                posz = rotAxis[2]
+                if isinstance(posx, float): self.rotAxis.x.v = posx
+                elif isinstance(posx, int): self.rotAxis.x.v = float(posx)
+                elif isinstance(posx, Scalar): self.rotAxis.x = posx
+                if isinstance(posy, float): self.rotAxis.y.v = posy
+                elif isinstance(posy, int): self.rotAxis.y.v = float(posy)
+                elif isinstance(posy, Scalar): self.rotAxis.y = posy
+                if isinstance(posz, float): self.rotAxis.z.v = posz
+                elif isinstance(posz, int): self.rotAxis.z.v = float(posz)
+                elif isinstance(posz, Scalar): self.rotAxis.z = posz
+            elif isinstance(rotAxis, Point):
+                self.rotCenter = rotAxis
+            else:
+                raise ValueError('set: not a valid rotAxis.')
+        if rotAngle is not None:
+            P = Scalar('%s.rotAngle'%name, 0., part=part)
+            self.rotAngle = P
+            if isinstance(rotAngle, float): self.rotAngle.v = rotAngle
+            elif isinstance(rotAngle, int): self.rotAngle.v = float(rotAngle)
+            elif isinstance(rotAngle, Scalar):
+                self.rotAngle = rotAngle
+            else:
+                raise ValueError('set: not a valid rotAngle.')
+        if scaleCenter is not None:
+            P = Point('%s.scaleCenter'%name, (0.,0.,0.), part=part)
+            self.scaleCenter = P
+            if isinstance(scaleCenter, tuple) and len(scaleCenter) == 3:
+                posx = scaleCenter[0]
+                posy = scaleCenter[1]
+                posz = scaleCenter[2]
+                if isinstance(posx, float): self.scaleCenter.x.v = posx
+                elif isinstance(posx, int): self.scaleCenter.x.v = float(posx)
+                elif isinstance(posx, Scalar): self.scaleCenter.x = posx
+                if isinstance(posy, float): self.scaleCenter.y.v = posy
+                elif isinstance(posy, int): self.scaleCenter.y.v = float(posy)
+                elif isinstance(posy, Scalar): self.scaleCenter.y = posy
+                if isinstance(posz, float): self.scaleCenter.z.v = posz
+                elif isinstance(posz, int): self.scaleCenter.z.v = float(posz)
+                elif isinstance(posz, Scalar): self.scaleCenter.z = posz
+            elif isinstance(scaleCenter, Point):
+                self.scaleCenter = scaleCenter
+            else:
+                raise ValueError('set: not a valid scaleCenter.')
+        if scaleFactor is not None:
+            P = Scalar('%s.scaleFactor'%name, 1., part=part)
+            self.scaleFactor = P        
+            if isinstance(scaleFactor, float): self.scaleFactor.v = scaleFactor
+            elif isinstance(scaleFactor, int): self.scaleFactor.v = float(scaleFactor)
+            elif isinstance(scaleFactor, Scalar):
+                self.scaleFactor = scaleFactor
+            else:
+                raise ValueError('set: not a valid scaleFactor.')
+
+    def update(self, hook):
+        if self.scaleCenter is not None:
+            OCC._scale(hook, self.scaleFactor.v, self.scaleCenter.v())
+        if self.rotCenter is not None:
+            OCC._rotate(hook, self.rotCenter.v(), self.rotAxis.v(), self.rotAngle.v)
+        if self.position is not None:
+            OCC._translate(hook, self.position.v())
+ 
+#============================================================
 class Scalar( sympy.core.symbol.Symbol ):
     """Define a parametric scalar."""
 
@@ -927,26 +1047,8 @@ class Sketch():
         self.type = "sketch"
         # hook
         self.hook = None
-        # global parameters (always added)
-        self.P = []
-        P = Vec3('%s.position'%self.name, (0.,0.,0.), part=part)
-        self.P.append(P)
-        self.position = P
-        P = Point('%s.rotCenter'%self.name, (0.,0.,0.), part=part)
-        self.P.append(P)
-        self.rotCenter = P
-        P = Vec3('%s.rotAxis'%self.name, (0.,0.,1.), part=part)
-        self.P.append(P)
-        self.rotAxis = P
-        P = Scalar('%s.rotAngle'%self.name, 0., part=part)
-        self.P.append(P)
-        self.rotAngle = P
-        P = Point('%s.scaleCenter'%self.name, (0.,0.,0.), part=part)
-        self.P.append(P)
-        self.scaleCenter = P
-        P = Scalar('%s.scaleFactor'%self.name, 1., part=part)
-        self.P.append(P)
-        self.scaleFactor = P
+        # global positioning
+        self.transforms = []
         # register
         self.part = part
         if part is not None: part.registerSketch(self)
@@ -965,97 +1067,6 @@ class Sketch():
         """Add an entity to sketch."""
         self.entities.append(entity)
 
-    def set(self, position=None,
-            rotCenter=None, rotAxis=None, rotAngle=None,
-            scaleCenter=None, scaleFactor=None):
-        """Set sketch global position."""
-        if position is not None:
-            if isinstance(position, tuple) and len(position) == 3:
-                posx = position[0]
-                posy = position[1]
-                posz = position[2]
-                if isinstance(posx, float): self.position.x.v = posx
-                elif isinstance(posx, int): self.position.x.v = float(posx)
-                elif isinstance(posx, Scalar): self.position.x = posx
-                if isinstance(posy, float): self.position.y.v = posy
-                elif isinstance(posy, int): self.position.y.v = float(posy)
-                elif isinstance(posy, Scalar): self.position.y = posy
-                if isinstance(posz, float): self.position.z.v = posz
-                elif isinstance(posz, int): self.position.z.v = float(posz)
-                elif isinstance(posz, Scalar): self.position.z = posz
-            elif isinstance(position, Point):
-                self.position = position
-            else:
-                raise ValueError('set: not a valid position.')
-        if rotCenter is not None:
-            if isinstance(rotCenter, tuple) and len(rotCenter) == 3:
-                posx = rotCenter[0]
-                posy = rotCenter[1]
-                posz = rotCenter[2]
-                if isinstance(posx, float): self.rotCenter.x.v = posx
-                elif isinstance(posx, int): self.rotCenter.x.v = float(posx)
-                elif isinstance(posx, Scalar): self.rotCenter.x = posx
-                if isinstance(posy, float): self.rotCenter.y.v = posy
-                elif isinstance(posy, int): self.rotCenter.y.v = float(posy)
-                elif isinstance(posy, Scalar): self.rotCenter.y = posy
-                if isinstance(posz, float): self.rotCenter.z.v = posz
-                elif isinstance(posz, int): self.rotCenter.z.v = float(posz)
-                elif isinstance(posz, Scalar): self.rotCenter.z = posz
-            elif isinstance(rotCenter, Point):
-                self.rotCenter = rotCenter
-            else:
-                raise ValueError('set: not a valid rotCenter.')
-        if rotAxis is not None:
-            if isinstance(rotAxis, tuple) and len(rotAxis) == 3:
-                posx = rotAxis[0]
-                posy = rotAxis[1]
-                posz = rotAxis[2]
-                if isinstance(posx, float): self.rotAxis.x.v = posx
-                elif isinstance(posx, int): self.rotAxis.x.v = float(posx)
-                elif isinstance(posx, Scalar): self.rotAxis.x = posx
-                if isinstance(posy, float): self.rotAxis.y.v = posy
-                elif isinstance(posy, int): self.rotAxis.y.v = float(posy)
-                elif isinstance(posy, Scalar): self.rotAxis.y = posy
-                if isinstance(posz, float): self.rotAxis.z.v = posz
-                elif isinstance(posz, int): self.rotAxis.z.v = float(posz)
-                elif isinstance(posz, Scalar): self.rotAxis.z = posz
-            elif isinstance(rotAxis, Point):
-                self.rotCenter = rotAxis
-            else:
-                raise ValueError('set: not a valid rotAxis.')
-        if rotAngle is not None:
-            if isinstance(rotAngle, float): self.rotAngle.v = rotAngle
-            elif isinstance(rotAngle, int): self.rotAngle.v = float(rotAngle)
-            elif isinstance(rotAngle, Scalar):
-                self.rotAngle = rotAngle
-            else:
-                raise ValueError('set: not a valid rotAngle.')
-        if scaleCenter is not None:
-            if isinstance(scaleCenter, tuple) and len(scaleCenter) == 3:
-                posx = scaleCenter[0]
-                posy = scaleCenter[1]
-                posz = scaleCenter[2]
-                if isinstance(posx, float): self.scaleCenter.x.v = posx
-                elif isinstance(posx, int): self.scaleCenter.x.v = float(posx)
-                elif isinstance(posx, Scalar): self.scaleCenter.x = posx
-                if isinstance(posy, float): self.scaleCenter.y.v = posy
-                elif isinstance(posy, int): self.scaleCenter.y.v = float(posy)
-                elif isinstance(posy, Scalar): self.scaleCenter.y = posy
-                if isinstance(posz, float): self.scaleCenter.z.v = posz
-                elif isinstance(posz, int): self.scaleCenter.z.v = float(posz)
-                elif isinstance(posz, Scalar): self.scaleCenter.z = posz
-            elif isinstance(scaleCenter, Point):
-                self.scaleCenter = scaleCenter
-            else:
-                raise ValueError('set: not a valid scaleCenter.')
-        if scaleFactor is not None:
-            if isinstance(scaleFactor, float): self.scaleFactor.v = scaleFactor
-            elif isinstance(scaleFactor, int): self.scaleFactor.v = float(scaleFactor)
-            elif isinstance(scaleFactor, Scalar):
-                self.scaleFactor = scaleFactor
-            else:
-                raise ValueError('set: not a valid scaleFactor.')
-
     def Copy(self, name=None):
         """Copy a sketch, return a new sketch."""
         if name is None: name = getName(self.name+'C')
@@ -1067,16 +1078,24 @@ class Sketch():
 
     def shift(self, vector=(0.,0.,0.)):
         """Shift sketch of vector."""
-        self.set(position=vector)
-
+        self.transforms.append(Transform(self.name, self.part, vector=vector))
+        
     def rotate(self, center=(0,0,0), alpha=90.):
         """Rotate sketch."""
-        self.set(rotCenter=center, rotAxis=(0,0,1), rotAngle=alpha)
-
+        self.transforms.append(Transform(self.name, self.part, rotCenter=center, rotAxis=(0,0,1), rotAngle=alpha))
+                
     def scale(self, center=(0,0,0), factor=1.):
         """Scale sketch."""
-        self.set(scaleCenter=center, scaleFactor=factor)
+        self.transforms.append(Transform(self.name, self.part, scaleCenter=center, scaleFactor=factor))
 
+    def set(self, position=None,
+                rotCenter=None, rotAxis=None, rotAngle=None,
+                scaleCenter=None, scaleFactor=None):
+        """Rigid transform sketch."""        
+        self.transforms.append(Transform(self.name, self.part, position=position,
+                rotCenter=rotCenter, rotAxis=rotAxis, rotAngle=rotAngle,
+                scaleCenter=scaleCenter, scaleFactor=scaleFactor))
+        
     # Update CAD hook from parameters
     def update(self):
         """Update CAD hook."""
@@ -1089,10 +1108,9 @@ class Sketch():
             else: hooks.append(e.hook)
         self.hook = OCC.mergeCAD(hooks)
         # global positionning
-        OCC._scale(self.hook, self.scaleFactor.v, self.scaleCenter.v())
-        OCC._rotate(self.hook, self.rotCenter.v(), self.rotAxis.v(), self.rotAngle.v)
-        OCC._translate(self.hook, self.position.v())
-
+        for t in self.transforms:
+            t.update(self.hook)
+            
     # Check if parameters are valid
     # OUT: 0 if all parameters are valid, 1 if any parameter is invalid
     def check(self):
