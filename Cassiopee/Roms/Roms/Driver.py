@@ -82,8 +82,8 @@ class Transform:
     """Define a rigid transformation."""
 
     def __init__(self, name, part, position=None,
-                rotCenter=None, rotAxis=None, rotAngle=None,
-                scaleCenter=None, scaleFactor=None):
+                 rotCenter=None, rotAxis=None, rotAngle=None,
+                 scaleCenter=None, scaleFactor=None):
         self.position = None
         self.rotCenter = None
         self.rotAxis = None
@@ -181,7 +181,7 @@ class Transform:
                 raise ValueError('set: not a valid scaleCenter.')
         if scaleFactor is not None:
             P = Scalar('%s.scaleFactor'%name, 1., part=part)
-            self.scaleFactor = P        
+            self.scaleFactor = P
             if isinstance(scaleFactor, float): self.scaleFactor.v = scaleFactor
             elif isinstance(scaleFactor, int): self.scaleFactor.v = float(scaleFactor)
             elif isinstance(scaleFactor, Scalar):
@@ -196,7 +196,7 @@ class Transform:
             OCC._rotate(hook, self.rotCenter.v(), self.rotAxis.v(), self.rotAngle.v)
         if self.position is not None:
             OCC._translate(hook, self.position.v())
- 
+
 #============================================================
 class Scalar( sympy.core.symbol.Symbol ):
     """Define a parametric scalar."""
@@ -1079,23 +1079,23 @@ class Sketch():
     def shift(self, vector=(0.,0.,0.)):
         """Shift sketch of vector."""
         self.transforms.append(Transform(self.name, self.part, vector=vector))
-        
+
     def rotate(self, center=(0,0,0), alpha=90.):
         """Rotate sketch."""
         self.transforms.append(Transform(self.name, self.part, rotCenter=center, rotAxis=(0,0,1), rotAngle=alpha))
-                
+
     def scale(self, center=(0,0,0), factor=1.):
         """Scale sketch."""
         self.transforms.append(Transform(self.name, self.part, scaleCenter=center, scaleFactor=factor))
 
     def set(self, position=None,
-                rotCenter=None, rotAxis=None, rotAngle=None,
-                scaleCenter=None, scaleFactor=None):
-        """Rigid transform sketch."""        
+            rotCenter=None, rotAxis=None, rotAngle=None,
+            scaleCenter=None, scaleFactor=None):
+        """Rigid transform sketch."""
         self.transforms.append(Transform(self.name, self.part, position=position,
-                rotCenter=rotCenter, rotAxis=rotAxis, rotAngle=rotAngle,
-                scaleCenter=scaleCenter, scaleFactor=scaleFactor))
-        
+                                         rotCenter=rotCenter, rotAxis=rotAxis, rotAngle=rotAngle,
+                                         scaleCenter=scaleCenter, scaleFactor=scaleFactor))
+
     # Update CAD hook from parameters
     def update(self):
         """Update CAD hook."""
@@ -1110,7 +1110,7 @@ class Sketch():
         # global positionning
         for t in self.transforms:
             t.update(self.hook)
-            
+
     # Check if parameters are valid
     # OUT: 0 if all parameters are valid, 1 if any parameter is invalid
     def check(self):

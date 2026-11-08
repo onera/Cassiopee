@@ -21,7 +21,7 @@ def createPart(name):
 
     #sketch2 = sketch1.Copy('sketch1')
     #sketch2.shift(
-    
+
 
     # solve
     T1.solve()
