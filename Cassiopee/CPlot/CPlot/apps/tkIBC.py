@@ -236,7 +236,7 @@ def updateIBCNameList(event=None):
 #==============================================================================
 # View specific IBC
 #==============================================================================
-def ViewIBC(event=None):
+def viewIBC(event=None):
     if CTK.t == []: return
 
     nz  = len(Internal.getZones(CTK.t))
@@ -418,7 +418,7 @@ def createApp(win):
     B.grid(row=4, column=1, columnspan=2, sticky=TK.EW)
 
     # - View type de IBC -
-    B = TTK.Button(Frame, text="View IBC", command=ViewIBC)
+    B = TTK.Button(Frame, text="View IBC", command=viewIBC)
     B.grid(row=5, column=0, sticky=TK.EW)
     BB = CTK.infoBulle(parent=B,
                        text='View specified IBC.\nTree is NOT modified.')
@@ -431,7 +431,8 @@ def createApp(win):
     LBFrame.columnconfigure(1, weight=0)
     SB  = TTK.Scrollbar(LBFrame)
     LB  = TTK.Listbox(LBFrame, selectmode=TK.EXTENDED, height=5)
-    LB.bind('<Double-1>', ViewIBC)
+    #LB.bind('<Double-1>', viewIBC)
+    LB.bind('<<ListboxSelect>>', viewIBC)
     LB.bind('<Enter>', updateIBCNameList)
     for i, value in enumerate(['-All IBC-']+ViewAllDefinedIBC(CTK.t)): LB.insert(i, value)
     SB.config(command=LB.yview)

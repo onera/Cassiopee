@@ -190,7 +190,6 @@ def view(event=None):
         if t not in Internal.KNOWNBCS: t = 'FamilySpecified:'+t
         BCTypes.append(t)
     if 'FamilySpecified:-All BC-' in BCTypes: BCTypes = ['*']
-
     if CTK.__MAINTREE__ == 1:
         CTK.__MAINACTIVEZONES__ = CPlot.getActiveZones()
 
@@ -199,7 +198,6 @@ def view(event=None):
     CTK.dt = C.newPyTree(['Base', 'Edges'])
     active = []
     for z in CTK.__MAINACTIVEZONES__: active.append(tp[2][CTK.Nb[z]+1][2][CTK.Nz[z]])
-
     Z = []
     for type in BCTypes:
         Z += C.extractBCOfType(active, type, topTree=tp)
@@ -779,9 +777,9 @@ def createApp(win):
     LBFrame.columnconfigure(1, weight=0)
     SB = TTK.Scrollbar(LBFrame)
     LB  = TTK.Listbox(LBFrame, selectmode=TK.EXTENDED, height=6)
-    LB.bind('<Double-1>', view)
+    #LB.bind('<Double-1>', view)
+    LB.bind('<<ListboxSelect>>', view)
     LB.bind('<Enter>', updateBCNameList)
-    # LB.bind('<ButtonRelease-1>', view)
     for i, value in enumerate(['-All BC-']+getAllDefinedBC(CTK.t)): LB.insert(i, value)
     SB.config(command=LB.yview)
     LB.config(yscrollcommand=SB.set)
