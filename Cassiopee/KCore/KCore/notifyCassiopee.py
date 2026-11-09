@@ -548,7 +548,7 @@ def compareSessionLogs(logFiles=[], showExecTimeDiffs=False,
     if update:
         # If the state of the Base is OK, set the new session log to be the
         # reference
-        if (any(st in baseState for st in ['OK', 'ADDITIONS', 'DELETIONS']) and
+        if (any(st in baseState for st in ['OK', 'ADDITIONS', 'DELETIONS', 'ADDS & DELS']) and
                 os.path.basename(logFiles[0]).startswith('REF-')):
             if os.access(logFiles[0], os.W_OK):
                 import shutil
