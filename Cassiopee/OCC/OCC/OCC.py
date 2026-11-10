@@ -22,7 +22,8 @@ __all__ = ['convertCAD2Arrays',
            'getNbEdges', 'getNbFaces', 'getFileAndFormat',
            'printOCAF', 'getFaceNameInOCAF', 'getEdgeNameInOCAF',
            'getFaceNos', 'getEdgeNos', 'getEdgesByFace',
-           'getEdgeLength', 'getMinMaxEdgeLength', 'getFaceArea',
+           'getEdgeLength', 'getMinMaxEdgeLength', 
+           'getEdgeVertices', 'getFaceArea',
            'getFaceVolume', 'getFaceMassCenter', 'getBoundingBox',
            'checkFaceOverlap',
            '_translate', '_rotate', '_scale',
@@ -1064,6 +1065,13 @@ def getMinMaxEdgeLength(hook, faceList=None):
     faceList = getFaceList__(hook, faceList)
     return occ.getMinMaxEdgeLength(hook, faceList)
 
+# Return the extremal points of edge with mid point
+def getEdgeVertices(hook, edgeList=None):
+    """Return the min and max edge length by faces."""
+    edgeList = getEdgeList__(hook, edgeList)
+    return occ.getEdgeVertices(hook, edgeList)
+
+
 # Check if face overlaps
 def checkFaceOverlap(hook, face1, face2, tol=1.e-12):
     """Check if two faces overlap."""
@@ -1329,10 +1337,11 @@ def _sewing(hook, tol=1.e-6, faceList=None):
     return None
 
 # reverse a set of faces
-def _reverse(hook, faceList=None):
+def _reverse(hook, faceList=None, edgeList=None, method=1):
     """Reverse some faces."""
     faceList = getFaceList__(hook, faceList)
-    occ.reverse(hook, faceList)
+    edgeList = getEdgeList__(hook, edgeList)
+    occ.reverse(hook, faceList, edgeList, method)
     return None
 
 # add fillet from edges with given radius

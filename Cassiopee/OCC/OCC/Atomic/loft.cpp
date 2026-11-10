@@ -66,12 +66,34 @@ PyObject* K_OCC::loft(PyObject* self, PyObject* args)
     for (E_Int i = 0; i < nprofiles; i++)
     {
       PyObject* noO = PyList_GetItem(listProfiles, i);
-      E_Int no = PyInt_AsLong(noO);
-      const TopoDS_Edge& E = TopoDS::Edge(edges(no));
-      TopoDS_Wire W = BRepBuilderAPI_MakeWire(E);
-      Standard_Boolean isClosed = BRep_Tool::IsClosed(W);
-      if (isClosed) printf("Warning: close wire may fail loft.\n");
-      loftBuilder.AddWire(W);
+      printf("i=%d\n", i);
+      if (PyList_Check(noO))
+      {
+        // list of edges for wire
+        E_Int nedges = PyList_Size(noO);
+        BRepBuilderAPI_MakeWire wireMaker;
+        for (E_Int ne = 0; ne < nedges; ne++)
+        {
+          PyObject* noL = PyList_GetItem(noO, ne);
+          E_Int no = PyInt_AsLong(noL);
+          const TopoDS_Edge& E = TopoDS::Edge(edges(no));
+          wireMaker.Add(E);
+        }
+        TopoDS_Wire W = wireMaker.Wire();
+        Standard_Boolean isClosed = BRep_Tool::IsClosed(W);
+        if (isClosed) printf("Warning: close wire may fail loft.\n");
+        loftBuilder.AddWire(W);
+      }
+      else
+      {
+        // each edge must be a wire
+        E_Int no = PyInt_AsLong(noO);
+        const TopoDS_Edge& E = TopoDS::Edge(edges(no));
+        TopoDS_Wire W = BRepBuilderAPI_MakeWire(E);
+        Standard_Boolean isClosed = BRep_Tool::IsClosed(W);
+        if (isClosed) printf("Warning: close wire may fail loft.\n");
+        loftBuilder.AddWire(W);
+      }
     }
     try { loftBuilder.Build(); }
     catch (...) 
@@ -97,6 +119,7 @@ PyObject* K_OCC::loft(PyObject* self, PyObject* args)
       Handle(Geom_Curve) baseCurve = BRep_Tool::Curve(E, firstParam, lastParam);
       ucurves.push_back(baseCurve);
     }
+    printf("done extracting curves\n"); fflush(stdout);
 
     // Get curves from guides
     for (E_Int i = 0; i < nguides; i++)
@@ -107,14 +130,17 @@ PyObject* K_OCC::loft(PyObject* self, PyObject* args)
       Handle(Geom_Curve) baseCurve = BRep_Tool::Curve(E, firstParam, lastParam);
       vcurves.push_back(baseCurve);
     }
-
+    printf("done extracting guides\n"); fflush(stdout);
+    
     Handle(Geom_BSplineSurface) surf;
     try { surf = occ_gordon::interpolate_curve_network(ucurves, vcurves, 1.e-4); }
-    catch (...)
+    catch (const std::exception& e)
     {
+      printf("Error: loft: %s\n", e.what());
       PyErr_SetString(PyExc_TypeError, "loft: fail to build.");
       return NULL;
     }
+    printf("done gordon\n"); fflush(stdout);    
     TopoDS_Face F = BRepBuilderAPI_MakeFace(surf, Precision::Confusion());
     newshp = new TopoDS_Shape(F);
   }

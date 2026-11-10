@@ -18,7 +18,7 @@ from OCC import readCAD, writeCAD, createEmptyCAD, freeHook, \
     getNbEdges, getNbFaces, getFileAndFormat, \
     printOCAF, getFaceNameInOCAF, getEdgeNameInOCAF, \
     getFaceNos, getEdgeNos, getEdgesByFace, \
-    getEdgeLength, getMinMaxEdgeLength, \
+    getEdgeLength, getMinMaxEdgeLength, getEdgeVertices, \
     getFaceArea, getFaceVolume, getFaceMassCenter, getBoundingBox, \
     checkFaceOverlap, \
     _translate, _rotate, _scale, _fixShape, \

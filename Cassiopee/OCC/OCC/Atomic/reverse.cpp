@@ -43,74 +43,100 @@
 //=====================================================================
 PyObject* K_OCC::reverse(PyObject* self, PyObject* args)
 {
-  PyObject* hook; PyObject* listFaces;
-  if (!PYPARSETUPLE_(args, O_ O_, &hook, &listFaces)) return NULL;
+  PyObject* hook; 
+  PyObject* listFaces; PyObject* listEdges;
+  E_Int method;
+  if (!PYPARSETUPLE_(args, O_ OO_ I_, &hook, &listFaces, &listEdges, &method)) return NULL;
 
   GETPACKET;
   GETSHAPE;
+  GETMAPEDGES;
   GETMAPSURFACES;
   
-  TopoDS_Shape* newshp = NULL;
-  if (listFaces == Py_None)
+  if (method == 0) // in place
   {
-    newshp = new TopoDS_Shape(shape->Reversed());
-  }
-  else
-  {
+    E_Int nedges = PyList_Size(listEdges);
+    for (E_Int no = 0; no < nedges; no++)
+    {
+      PyObject* noEdgeO = PyList_GetItem(listEdges, no);
+      E_Int noEdge = PyInt_AsLong(noEdgeO);
+      TopoDS_Edge E = TopoDS::Edge(edges(noEdge));
+      E.Orientation(TopAbs::Complement(E.Orientation()));
+    }
+
     E_Int nfaces = PyList_Size(listFaces);
-    // Build a compound
-    BRep_Builder builder;
-    TopoDS_Compound shc;
-    builder.MakeCompound(shc);
-    E_Int nf = surfaces.Extent();
-    std::vector<E_Int> nos(nf);
-    for (E_Int i = 0; i < nf; i++) nos[i] = -1;
-    
     for (E_Int no = 0; no < nfaces; no++)
     {
       PyObject* noFaceO = PyList_GetItem(listFaces, no);
       E_Int noFace = PyInt_AsLong(noFaceO);
-      nos[noFace-1] = no;
-      const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
-      builder.Add(shc, F);
+      TopoDS_Face F = TopoDS::Face(surfaces(noFace));
+      F.Orientation(TopAbs::Complement(F.Orientation()));
     }
-
-    TopoDS_Shape shp = TopoDS_Shape(shc); 
-    shp = shp.Reversed();
-
-    // Rebuild
-    TopTools_IndexedMapOfShape surfaces2;
-    TopExp::MapShapes(shp, TopAbs_FACE, surfaces2);  
-
-    BRep_Builder builder2;
-    TopoDS_Compound shc2;
-    builder2.MakeCompound(shc2);
-    for (E_Int i = 0; i < nf; i++)
-    {
-      if (nos[i] == -1)
-      {
-        const TopoDS_Face& F = TopoDS::Face(surfaces(i+1));
-        builder2.Add(shc2, F);
-      }
-      else
-      {
-        const TopoDS_Face& F = TopoDS::Face(surfaces2(nos[i]+1));
-        builder2.Add(shc2, F);
-      }
-    }
-
-    BRepBuilderAPI_Sewing sewer(1.e-6);
-    sewer.Add(shc2);
-    sewer.Perform();
-    *newshp = sewer.SewedShape();
   }
+  else if (method == 1) // by shape reverse
+  {
+    TopoDS_Shape* newshp = NULL;
+    if (listFaces == Py_None)
+    {
+      newshp = new TopoDS_Shape(shape->Reversed());
+    }
+    else
+    {
+      E_Int nfaces = PyList_Size(listFaces);
+      // Build a compound
+      BRep_Builder builder;
+      TopoDS_Compound shc;
+      builder.MakeCompound(shc);
+      E_Int nf = surfaces.Extent();
+      std::vector<E_Int> nos(nf);
+      for (E_Int i = 0; i < nf; i++) nos[i] = -1;
+      
+      for (E_Int no = 0; no < nfaces; no++)
+      {
+        PyObject* noFaceO = PyList_GetItem(listFaces, no);
+        E_Int noFace = PyInt_AsLong(noFaceO);
+        nos[noFace-1] = no;
+        const TopoDS_Face& F = TopoDS::Face(surfaces(noFace));
+        builder.Add(shc, F);
+      }
 
-  // export
-  delete shape;
-  SETSHAPE(newshp);
-  
-  printf("INFO: after reverse: Nb edges=%d\n", se->Extent());
-  printf("INFO: after reverse: Nb faces=%d\n", sf->Extent());
+      TopoDS_Shape shp = TopoDS_Shape(shc); 
+      shp = shp.Reversed();
+
+      // Rebuild
+      TopTools_IndexedMapOfShape surfaces2;
+      TopExp::MapShapes(shp, TopAbs_FACE, surfaces2);  
+
+      BRep_Builder builder2;
+      TopoDS_Compound shc2;
+      builder2.MakeCompound(shc2);
+      for (E_Int i = 0; i < nf; i++)
+      {
+        if (nos[i] == -1)
+        {
+          const TopoDS_Face& F = TopoDS::Face(surfaces(i+1));
+          builder2.Add(shc2, F);
+        }
+        else
+        {
+          const TopoDS_Face& F = TopoDS::Face(surfaces2(nos[i]+1));
+          builder2.Add(shc2, F);
+        }
+      }
+
+      BRepBuilderAPI_Sewing sewer(1.e-6);
+      sewer.Add(shc2);
+      sewer.Perform();
+      *newshp = sewer.SewedShape();
+    }
+
+    // export
+    delete shape;
+    SETSHAPE(newshp);
+
+    printf("INFO: after reverse: Nb edges=%d\n", se->Extent());
+    printf("INFO: after reverse: Nb faces=%d\n", sf->Extent());
+  }
 
   Py_INCREF(Py_None);
   return Py_None;

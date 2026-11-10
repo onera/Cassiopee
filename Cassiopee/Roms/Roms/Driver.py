@@ -1078,7 +1078,7 @@ class Sketch():
 
     def shift(self, vector=(0.,0.,0.)):
         """Shift sketch of vector."""
-        self.transforms.append(Transform(self.name, self.part, vector=vector))
+        self.transforms.append(Transform(self.name, self.part, position=vector))
 
     def rotate(self, center=(0,0,0), alpha=90.):
         """Rotate sketch."""
@@ -1353,7 +1353,7 @@ class Surface():
                 OCC._fillHole(h1, [1], [], 0)
                 self.hook = OCC.mergeCAD([h0,self.hook,h1])
 
-        if self.type == "loft": # by lofting
+        elif self.type == "loft3": # by lofting
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
 
@@ -1391,27 +1391,87 @@ class Surface():
                 self.hook = OCC.mergeCAD([h0,self.hook,h1])
             OCC._sewing(self.hook)
 
-        if self.type == "loftSet": # by loft set
+        elif self.type == "loft": # by lofting between isomorphe sketches (gordon)
+            hooks = []
+            for e in self.sketches: hooks.append(e.hook)
+
+            # check sketches consistency
+            ns = len(self.sketches)
+            ne = -1
+            for n in range(ns): # for all sketches
+                ne1 = OCC.getNbEdges(hooks[n]) # suppose all the same for all sketches
+                if ne == -1: ne = ne1
+                elif ne != ne1:
+                    raise ValueError('loft: the number of edges in sketches must be the same.')
+            n1 = ne*ns
+
+            # build loft
+            import Geom
+            if 'degree' in self.data: degree = self.data['degree'].v
+            else: degree = 3
+            out = []
+            for e in range(ne):
+                ghook = OCC.createEmptyCAD()
+                p0 = []; p1 = []; pm = []
+                for s in range(ns): # nbre de sketches
+                    p = OCC.getEdgeVertices(hooks[s], [e+1])
+                    p0.append(p[0][0])
+                    p1.append(p[0][1])
+                    pm.append(p[0][2])
+                
+                points0 = Geom.polyline(p0)
+                points1 = Geom.polyline(p1)
+                pointsm = Geom.polyline(pm)
+                OCC._addSpline(ghook, points0[1], method=1, degree=degree)
+                OCC._addSpline(ghook, points1[1], method=1, degree=degree)
+                OCC._addSpline(ghook, pointsm[1], method=1, degree=degree)
+                                                
+                h = OCC.mergeCAD(hooks+[ghook])
+                edgeList = [i for i in range(e+1, n1+1, ne)]
+                guideList = [i for i in range(n1+1, n1+4)]
+                #OCC.writeCAD(h, 'debug.step')
+                OCC._loft(h, edgeList, guideList)
+                out.append(h)
+            self.hook = OCC.mergeCAD(out)
+
+            if 'close' in self.data and self.data['close'].v:
+                h0 = hooks[0]; h1 = hooks[-1]
+                edgeList0 = [i for i in range(1, OCC.getNbEdges(h0)+1)]
+                edgeList1 = [i for i in range(1, OCC.getNbEdges(h1)+1)]
+                OCC._fillHole(h0, edgeList0, [], 0)
+                OCC._reverse(h0)
+                OCC._fillHole(h1, edgeList1, [], 0)
+                self.hook = OCC.mergeCAD([h0,self.hook,h1])
+            OCC._sewing(self.hook)
+
+        elif self.type == "loftSet": # by lofting linearly between sketches
             hooks = []
             for e in self.sketches:
                 hooks.append(e.hook)
-            n = len(self.sketches)
+            ns = len(self.sketches)
             out = []
-            for i in range(1,n):
+            for i in range(1,ns):
+                profiles = []
                 h0 = hooks[i-1]
+                ne0 = OCC.getNbEdges(h0)
+                profiles.append([i for i in range(1,ne0+1)])
                 h1 = hooks[i]
-                hook = OCC.mergeCAD(hooks)
-                OCC._loft(hook, [1,2])
+                ne1 = OCC.getNbEdges(h1)
+                profiles.append([i for i in range(ne0+1,ne0+ne1+1)])
+                hook = OCC.mergeCAD([h0,h1])
+                OCC._loft(hook, profiles, [])
                 out.append(hook)
             if len(out) > 1:
                 self.hook = OCC.mergeCAD(out)
             else: self.hook = out[0]
             if 'close' in self.data and self.data['close'].v:
                 h0 = hooks[0]; h1 = hooks[-1]
-                OCC._fillHole(h0, [1], [], 0)
-                OCC._fillHole(h1, [1], [], 0)
+                ne0 = OCC.getNbEdges(h0)
+                ne1 = OCC.getNbEdges(h1)                
+                OCC._fillHole(h0, [i+1 for i in range(ne0)], [], 0)
+                OCC._fillHole(h1, [i+1 for i in range(ne1)], [], 0)
                 self.hook = OCC.mergeCAD([h0,self.hook,h1])
-
+            
         elif self.type == "revolve": # by revolving sketches
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
@@ -1756,15 +1816,22 @@ class Surface():
 
         return self.RefMesh
 
-def Loft(name="loft", listSketches=[], listGuides=[], close=True, h=None, part=None):
+def Loft(name="loft", listSketches=[], listGuides=[], close=True, degree=3, h=None, part=None):
     """Create a loft surface from sketches."""
     return Surface(name=name, listSketches=listSketches, listSketches2=listGuides,
-                   type="loft", data={'close':close}, h=h, part=part)
+                   type="loft", data={'close':close, 'degree':degree}, h=h, part=part)
 
 def LoftSet(name="loftset", listSketches=[], listGuides=[], close=True, h=None, part=None):
     """Create a set of loft surfaces from sketches."""
     return Surface(name=name, listSketches=listSketches, listSketches2=listGuides,
-                   type="loft", data={'close':close}, h=h, part=part)
+                   type="loftSet", data={'close':close}, h=h, part=part)
+
+def Extrude(name="extrude", sketch=None, vector=(0,0,0), close=True, h=None, part=None):
+    """Create a extruded surface from a sketch."""
+    sketch1 = sketch.Copy()
+    sketch1.shift(vector)
+    return Surface(name=name, listSketches=[sketch,sketch1], listSketches2=[],
+                   type="loftSet", data={'close':close}, h=h, part=part)
 
 def Revolve(name='revolve', sketch=None, center=(0,0,0), axis=(0,0,1), angle=360., h=None, part=None):
     """Create a revolution surface from a sketch."""
@@ -2242,16 +2309,23 @@ class Part:
         s = Surface(name, listSketches, listSketches2, listSurfaces, listSurfaces2, data, h, type, part=self)
         return s
 
-    def Loft(self, name="loft", listSketches=[], listGuides=[], close=True, h=None):
+    def Loft(self, name="loft", listSketches=[], listGuides=[], close=True, degree=3, h=None):
         s = Surface(name=name, listSketches=listSketches, listSketches2=listGuides,
-                    type="loft", data={'close':close}, h=h, part=self)
+                    type="loft", data={'close':close, 'degree':degree}, h=h, part=self)
         return s
 
     def LoftSet(self, name="loftset", listSketches=[], listGuides=[], close=True, h=None):
         s = Surface(name=name, listSketches=listSketches, listSketches2=listGuides,
-                    type="loft", data={'close':close}, h=h, part=self)
+                    type="loftSet", data={'close':close}, h=h, part=self)
         return s
 
+    def Extrude(self, name="extrude", sketch=None, vector=(0,0,0), close=True, h=None, part=None):
+        sketch1 = sketch.Copy()
+        sketch1.shift(vector)
+        s = Surface(name=name, listSketches=[sketch,sketch1], listSketches2=[],
+                   type="loftSet", data={'close':close}, h=h, part=self)
+        return s
+    
     def Revolve(self, name='revolve', sketch=None, center=(0,0,0), axis=(0,0,1), angle=360., h=None):
         s = Surface(name=name, listSketches=[sketch],
                     data={'center':center, 'axis':axis, 'angle':angle},
