@@ -49,7 +49,7 @@ elif TEST == 'loft2':
     line2 = T1.Spline1('line2', [P2, P3])
     line3 = T1.Spline1('line3', [P3, P4])
     line4 = T1.Spline1('line4', [P4, P1])
-        
+
     sketch1 = T1.Sketch('sketch1', [line1,line2,line3,line4])
 
     sketch2 = sketch1.Copy('sketch2')
@@ -126,7 +126,7 @@ elif TEST == 'loft8':
     sketch1 = T1.Sketch('sketch1', [line1,line2,line3,line4])
 
     circle1 = T1.Circle('circle1', (0,0,0), v1)
-    sketch2 = T1.Sketch('sketch2', [circle1]) 
+    sketch2 = T1.Sketch('sketch2', [circle1])
     sketch2.set(position=(0,0,2), scaleCenter=(0,0,0), scaleFactor=0.6)
 
     sketch3 = sketch1.Copy('sketch3')

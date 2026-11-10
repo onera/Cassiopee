@@ -1418,14 +1418,14 @@ class Surface():
                     p0.append(p[0][0])
                     p1.append(p[0][1])
                     pm.append(p[0][2])
-                
+
                 points0 = Geom.polyline(p0)
                 points1 = Geom.polyline(p1)
                 pointsm = Geom.polyline(pm)
                 OCC._addSpline(ghook, points0[1], method=1, degree=degree)
                 OCC._addSpline(ghook, points1[1], method=1, degree=degree)
                 OCC._addSpline(ghook, pointsm[1], method=1, degree=degree)
-                                                
+
                 h = OCC.mergeCAD(hooks+[ghook])
                 edgeList = [i for i in range(e+1, n1+1, ne)]
                 guideList = [i for i in range(n1+1, n1+4)]
@@ -1467,11 +1467,11 @@ class Surface():
             if 'close' in self.data and self.data['close'].v:
                 h0 = hooks[0]; h1 = hooks[-1]
                 ne0 = OCC.getNbEdges(h0)
-                ne1 = OCC.getNbEdges(h1)                
+                ne1 = OCC.getNbEdges(h1)
                 OCC._fillHole(h0, [i+1 for i in range(ne0)], [], 0)
                 OCC._fillHole(h1, [i+1 for i in range(ne1)], [], 0)
                 self.hook = OCC.mergeCAD([h0,self.hook,h1])
-            
+
         elif self.type == "revolve": # by revolving sketches
             hooks = []
             for e in self.sketches: hooks.append(e.hook)
@@ -2323,9 +2323,9 @@ class Part:
         sketch1 = sketch.Copy()
         sketch1.shift(vector)
         s = Surface(name=name, listSketches=[sketch,sketch1], listSketches2=[],
-                   type="loftSet", data={'close':close}, h=h, part=self)
+                    type="loftSet", data={'close':close}, h=h, part=self)
         return s
-    
+
     def Revolve(self, name='revolve', sketch=None, center=(0,0,0), axis=(0,0,1), angle=360., h=None):
         s = Surface(name=name, listSketches=[sketch],
                     data={'center':center, 'axis':axis, 'angle':angle},
