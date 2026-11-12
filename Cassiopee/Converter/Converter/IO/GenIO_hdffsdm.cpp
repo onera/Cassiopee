@@ -188,18 +188,105 @@ E_Int createGridElements(hid_t id, E_Int eltType, const char* name, E_Int istart
 /* ------------------------------------------------------------------------- */
 // Create GridElement node for polyedral connectivity (create NGON and NFACES)
 /* ------------------------------------------------------------------------- */
-E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex, 
-  PyObject*& NGON, PyObject*& NFACE, E_Int& nfaces, E_Int& ncells)
+E_Int createGridElementsNGon(hid_t fid, E_Int istart,
+  PyObject*& NGON, PyObject*& NFACE, E_Int& nfaces, E_Int& ncells,
+  int32_t*& bct, E_Int& size, std::map<E_Int, E_Int>& tagmap)
 {
-  E_Int size;
+  hid_t id = H5Gopen(fid, "/FS:Mesh/UnstructuredCells/Poly3D", H5P_DEFAULT);
   hsize_t dims[3];
   std::vector<npy_intp> npy_dim_vals(1);
-  hid_t tid;
+  E_Int sizeLoc, nface2Node, ndims;
+  E_Int nfacesBC = 0;
+  E_Int nface2NodeBC = 0;
+  E_Int* f2nc2 = new E_Int [0];
+  E_Int* f2n2 = new E_Int [0];
+  hid_t tid, did, sid, gid, mid;
+
+  // NGon BCs
+  if (H5Lexists(fid, "/FS:Mesh/UnstructuredCells/Poly2D", H5P_DEFAULT) > 0)
+  {
+    hid_t id2 = H5Gopen(fid, "/FS:Mesh/UnstructuredCells/Poly2D", H5P_DEFAULT); 
+
+    // read cell2NodeCounts (number of vertex per BC face)  
+    did = H5Dopen2(id2, "Cell2NodeCounts", H5P_DEFAULT);
+    sid = H5Dget_space(did);
+    ndims = H5Sget_simple_extent_ndims(sid);
+    H5Sget_simple_extent_dims(sid, dims, NULL);
+    nfacesBC = 1;
+    for (E_Int i = 0; i < ndims; i++) nfacesBC *= dims[i];
+    npy_dim_vals[0] = nfacesBC;
+#ifdef E_DOUBLEINT
+      tid = H5Tcopy(H5T_NATIVE_INT64); H5Tset_precision(tid, 64);
+#else
+      tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 32);
+#endif
+    mid = H5S_ALL;
+    f2nc2 = new E_Int [nfacesBC];
+    H5Dread(did, tid, mid, sid, H5P_DEFAULT, f2nc2);
+    H5Dclose(did);
+
+    // read cell2node (BC face -> local nodes)  
+    did = H5Dopen2(id2, "Cell2NodeList", H5P_DEFAULT);
+    sid = H5Dget_space(did);
+    ndims = H5Sget_simple_extent_ndims(sid);
+    H5Sget_simple_extent_dims(sid, dims, NULL);
+    nface2NodeBC = 1;
+    for (E_Int i = 0; i < ndims; i++) nface2NodeBC *= dims[i];
+    npy_dim_vals[0] = nface2NodeBC;
+#ifdef E_DOUBLEINT  
+      tid = H5Tcopy(H5T_NATIVE_INT64); H5Tset_precision(tid, 64);
+#else
+      tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 32);
+#endif
+    mid = H5S_ALL;
+    f2n2 = new E_Int [nface2NodeBC];
+    H5Dread(did, tid, mid, sid, H5P_DEFAULT, f2n2);
+    H5Dclose(did);
+
+    // Get BC tag if any
+    gid = H5Lexists(id2, "CellAttributes", H5P_DEFAULT);
+    if (gid > 0) // read BC for NGon
+    {
+      gid = H5Gopen(id2, "CellAttributes", H5P_DEFAULT);
+      did = H5Dopen2(gid, "CADGroupID", H5P_DEFAULT);
+      sid = H5Dget_space(did);
+      ndims = H5Sget_simple_extent_ndims(sid);
+      H5Sget_simple_extent_dims(sid, dims, NULL);
+      E_Int size2 = 1;
+      for (E_Int i = 0; i < ndims; i++) size2 *= dims[i];
+      
+      npy_dim_vals[0] = size2;
+      tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 32);
+      mid = H5S_ALL;
+      // bct always int32
+      int32_t* bct2 = new int32_t [size2];
+      H5Dread(did, tid, mid, sid, H5P_DEFAULT, bct2);
+      H5Dclose(did); H5Gclose(gid);
+      // count tags
+      for (E_Int i = 0; i < size2; i++) 
+      {
+        if (tagmap.find(bct2[i]) == tagmap.end()) tagmap[bct2[i]] = 1;
+        else tagmap[bct2[i]] += 1;
+      }
+      if (bct == NULL) { bct = bct2; size = size2; } // first pass
+      else // second or third pass
+      {
+        // merge in fixed order (TRI then QUAD then NGON)
+        int32_t* bct3 = new int32_t [size+size2];
+        for (E_Int i = 0; i < size; i++) bct3[i] = bct[i];
+        for (E_Int i = 0; i < size2; i++) bct3[i+size] = bct2[i];
+        delete [] bct; delete [] bct2;
+        bct = bct3; size = size+size2;
+      }
+    }
+
+    H5Gclose(id2);
+  }
 
   // read Cell2NodeCounts (cell -> nodes)
-  hid_t did = H5Dopen2(id, "Cell2NodeCounts", H5P_DEFAULT);
-  hid_t sid = H5Dget_space(did);
-  E_Int ndims = H5Sget_simple_extent_ndims(sid);
+  did = H5Dopen2(id, "Cell2NodeCounts", H5P_DEFAULT);
+  sid = H5Dget_space(did);
+  ndims = H5Sget_simple_extent_ndims(sid);
   H5Sget_simple_extent_dims(sid, dims, NULL);
   ncells = 1;
   for (E_Int i = 0; i < ndims; i++) ncells *= dims[i];
@@ -209,7 +296,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
 #else
   tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 32);
 #endif
-  hid_t mid = H5S_ALL;
+  mid = H5S_ALL;
   E_Int* c2nc = new E_Int [ncells];
   H5Dread(did, tid, mid, sid, H5P_DEFAULT, c2nc);
   H5Dclose(did);
@@ -219,16 +306,16 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   sid = H5Dget_space(did);
   ndims = H5Sget_simple_extent_ndims(sid);
   H5Sget_simple_extent_dims(sid, dims, NULL);
-  size = 1;
-  for (E_Int i = 0; i < ndims; i++) size *= dims[i];
-  npy_dim_vals[0] = size;
+  sizeLoc = 1;
+  for (E_Int i = 0; i < ndims; i++) sizeLoc *= dims[i];
+  npy_dim_vals[0] = sizeLoc;
 #ifdef E_DOUBLEINT  
   tid = H5Tcopy(H5T_NATIVE_INT64); H5Tset_precision(tid, 64);
 #else
   tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 32);
 #endif
   mid = H5S_ALL;
-  E_Int* c2n = new E_Int [size];
+  E_Int* c2n = new E_Int [sizeLoc];
   H5Dread(did, tid, mid, sid, H5P_DEFAULT, c2n);
   H5Dclose(did);
 
@@ -237,23 +324,18 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   sid = H5Dget_space(did);
   ndims = H5Sget_simple_extent_ndims(sid);
   H5Sget_simple_extent_dims(sid, dims, NULL);
-  size = 1;
-  for (E_Int i = 0; i < ndims; i++) size *= dims[i];
-  npy_dim_vals[0] = size;
+  sizeLoc = 1;
+  for (E_Int i = 0; i < ndims; i++) sizeLoc *= dims[i];
+  npy_dim_vals[0] = sizeLoc;
 #ifdef E_DOUBLEINT  
   tid = H5Tcopy(H5T_NATIVE_INT64); H5Tset_precision(tid, 64);
 #else
   tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 32);
 #endif
   mid = H5S_ALL;
-  E_Int* c2fc = new E_Int [size];
+  E_Int* c2fc = new E_Int [sizeLoc];
   H5Dread(did, tid, mid, sid, H5P_DEFAULT, c2fc);
   H5Dclose(did);
-
-  // Check total number of faces and number of faces per element * number of elts
-  //E_Int size1 = 0;
-  //for (E_Int i = 0; i < size; i++) size1 += c2fc[i];
-  //printf("total number of faces by elements: " SF_D_ "\n", size1);
 
   // read face2nodecounts (face -> node cell indirect)  
   did = H5Dopen2(id, "Face2NodeCounts", H5P_DEFAULT);
@@ -272,23 +354,22 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   E_Int* f2nc = new E_Int [nfaces];
   H5Dread(did, tid, mid, sid, H5P_DEFAULT, f2nc);
   H5Dclose(did);
-  //printf("number of faces (duplicated): " SF_D_ "\n", nfaces);
 
   // read face2node (face -> node cell indirect from elt)
   did = H5Dopen2(id, "Face2NodeList", H5P_DEFAULT);
   sid = H5Dget_space(did);
   ndims = H5Sget_simple_extent_ndims(sid);
   H5Sget_simple_extent_dims(sid, dims, NULL);
-  size = 1;
-  for (E_Int i = 0; i < ndims; i++) size *= dims[i];
-  npy_dim_vals[0] = size;
+  nface2Node = 1;
+  for (E_Int i = 0; i < ndims; i++) nface2Node *= dims[i];
+  npy_dim_vals[0] = nface2Node;
 #ifdef E_DOUBLEINT  
   tid = H5Tcopy(H5T_NATIVE_INT64); H5Tset_precision(tid, 64);
 #else
   tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 32);
 #endif
   mid = H5S_ALL;
-  E_Int* f2n = new E_Int [size];
+  E_Int* f2n = new E_Int [nface2Node];
   H5Dread(did, tid, mid, sid, H5P_DEFAULT, f2n);
   H5Dclose(did);
 
@@ -314,13 +395,13 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   PyArrayObject* r2 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);
   int32_t* pp2 = (int32_t*)PyArray_DATA(r2);
 #endif
-  pp2[0] = istart; pp2[1] = istart+nfaces-1;
+  pp2[0] = istart; pp2[1] = istart+(nfaces+nfacesBC)-1;
   PyObject* children2 = PyList_New(0);
   PyObject* er = Py_BuildValue("[sOOs]", "ElementRange", r2, children2, "IndexRange_t");
   PyList_Append(children1, er); Py_DECREF(er);
 
   // Element connectivity du NGON
-  npy_dim_vals[0] = size;
+  npy_dim_vals[0] = (nface2NodeBC+nface2Node);
 #ifdef E_DOUBLEINT
   PyArrayObject* r3 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);  
   int64_t* pp3 = (int64_t*)PyArray_DATA(r3);
@@ -329,7 +410,8 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   int32_t* pp3 = (int32_t*)PyArray_DATA(r3);
 #endif
   //H5Dread(did, tid, mid, sid, H5P_DEFAULT, pp3);
-  for (E_Int i = 0; i < size; i++) pp3[i] = f2n[i];
+  for (E_Int i = 0; i < nface2NodeBC; i++) pp3[i] = f2n2[i]; // start with BC faces
+  for (E_Int i = nface2NodeBC; i < nface2NodeBC+nface2Node; i++) pp3[i] = f2n[i-nface2NodeBC];
   PyObject* children3 = PyList_New(0);
   PyObject* ec = Py_BuildValue("[sOOs]", "ElementConnectivity", r3, children3, "DataArray_t");
   PyList_Append(children1, ec); Py_DECREF(ec);
@@ -338,12 +420,21 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   E_Int lcount = 0; // local cell count
   E_Int ps = 0; // pointer faces pp3
   E_Int pcell = 0; // pointer cells
-  for (E_Int i = 0; i < nfaces; i++) // pour chaque face dup
+  for (E_Int i = 0; i < nfacesBC; i++) // loop over all BC faces
   {
-    for (E_Int j = 0; j < f2nc[i]; j++) // pour tous les noeuds de la face
+    for (E_Int j = 0; j < f2nc2[i]; j++) // loop over all face nodes
     {
-      E_Int lnode = f2n[ps]; // local node shift dans la cellule
-      E_Int node = c2n[pcell+lnode]; // reel node
+      E_Int node = f2n2[ps]; // global node index
+      pp3[ps] = node+1;
+      ps++;
+    }
+  }
+  for (E_Int i = 0; i < nfaces; i++) // loop over all faces (duplicated)
+  {
+    for (E_Int j = 0; j < f2nc[i]; j++) // loop over all face nodes
+    {
+      E_Int lnode = f2n[ps-nface2NodeBC]; // local node index (in the cell)
+      E_Int node = c2n[pcell+lnode]; // global node index
       pp3[ps] = node+1;
       ps++;
     }
@@ -352,7 +443,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   }
 
   // Element start offset du NGON
-  npy_dim_vals[0] = nfaces+1;
+  npy_dim_vals[0] = (nfacesBC+nfaces)+1;
 #ifdef E_DOUBLEINT
   PyArrayObject* r4 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);  
   int64_t* pp4 = (int64_t*)PyArray_DATA(r4);
@@ -361,7 +452,8 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   int32_t* pp4 = (int32_t*)PyArray_DATA(r4);
 #endif
   pp4[0] = 0;
-  for (E_Int i = 0; i < nfaces; i++) pp4[i+1] = pp4[i]+f2nc[i];
+  for (E_Int i = 0; i < nfacesBC; i++) pp4[i+1] = pp4[i]+f2nc2[i]; // start with BC faces
+  for (E_Int i = nfacesBC; i < nfacesBC+nfaces; i++) pp4[i+1] = pp4[i]+f2nc[i-nfacesBC];
   PyObject* children4 = PyList_New(0);
   PyObject* eso = Py_BuildValue("[sOOs]", "ElementStartOffset", r4, children4, "DataArray_t");
   PyList_Append(children1, eso); Py_DECREF(eso);
@@ -388,7 +480,7 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   PyArrayObject* r8 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);
   int32_t* pp8 = (int32_t*)PyArray_DATA(r8);
 #endif
-  pp8[0] = istart+nfaces; pp8[1] = istart+nfaces+ncells-1;
+  pp8[0] = istart+(nfacesBC+nfaces); pp8[1] = istart+(nfacesBC+nfaces)+ncells-1;
   PyObject* children8 = PyList_New(0);
   PyObject* er2 = Py_BuildValue("[sOOs]", "ElementRange", r8, children8, "IndexRange_t");
   PyList_Append(children5, er2); Py_DECREF(er2);
@@ -409,8 +501,8 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   for (E_Int i = 0; i < ncells; i++) pp6[i+1] = pp6[i]+c2fc[i];
   
   // rebuild Element connectivity du NFACE
-  size = pp6[ncells];
-  npy_dim_vals[0] = size;
+  sizeLoc = pp6[ncells];
+  npy_dim_vals[0] = sizeLoc;
 #ifdef E_DOUBLEINT
   PyArrayObject* r7 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT64, 1);
   int64_t* pp7 = (int64_t*)PyArray_DATA(r7);
@@ -424,84 +516,12 @@ E_Int createGridElementsNGon(hid_t id, E_Int istart, E_Int nvertex,
   E_Int c = 0;
   for (E_Int i = 0; i < ncells; i++)
     for (E_Int j = 0; j < c2fc[i]; j++)
-      { pp7[c] = c+1; c++; }
+      { pp7[c] = c+1+nfacesBC; c++; } // start face numbering after BC faces
 
+  if (nfacesBC > 0) { delete [] f2nc2; delete [] f2n2; }
   delete [] c2nc; delete [] c2n; delete [] c2fc; 
   delete [] f2nc; delete [] f2n; 
   return 0;
-
-  /*
-  // Invert Face2Node in Node2Face
-  std::vector< std::vector<E_Int> > node2Face(nvertex);
-  ps = 0;
-  for (E_Int i = 0; i < nfaces; i++)
-  {
-    for (E_Int j = 0; j < fc[i]; i++)
-    {
-      //printf("face=%d, node=%d\n", i, pp3[ps+j]);
-      node2Face[pp3[ps+j]-1].push_back(i);
-    }
-    ps += fc[i];
-  }
-
-  delete [] fc;
-
-  // read Cell2NodeCounts
-  did = H5Dopen2(id, "Face2NodeCounts", H5P_DEFAULT);
-  sid = H5Dget_space(did);
-  ndims = H5Sget_simple_extent_ndims(sid);
-  H5Sget_simple_extent_dims(sid, dims, NULL);
-  ncells = 1;
-  for (E_Int i = 0; i < ndims; i++) ncells *= dims[i];
-  npy_dim_vals[0] = nfaces;
-  tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 32);
-  yid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
-  mid = H5S_ALL;
-  int32_t* cc = new int32_t [ncells];
-  H5Dread(did, yid, mid, sid, H5P_DEFAULT, cc);
-  
-  // read Cell2NodeList
-  did = H5Dopen2(id, "Face2NodeList", H5P_DEFAULT);
-  sid = H5Dget_space(did);
-  ndims = H5Sget_simple_extent_ndims(sid);
-  H5Sget_simple_extent_dims(sid, dims, NULL);
-  size = 1;
-  for (E_Int i = 0; i < ndims; i++) size *= dims[i];
-  npy_dim_vals[0] = size;
-  tid = H5Tcopy(H5T_NATIVE_INT); H5Tset_precision(tid, 32);
-  yid = H5Tget_native_type(tid, H5T_DIR_ASCEND);
-  mid = H5S_ALL;
-  int32_t* cn = new int32_t [size];
-  H5Dread(did, yid, mid, sid, H5P_DEFAULT, cn);
-
-  // get cell2Face
-  ps = 0;
-  std::vector< std::vector<E_Int> > cell2Face(ncells);
-  for (E_Int i = 0; i < ncells; i++) // pour chaque cellule
-  {
-    std::map<E_Int, E_Int> facemap; // faces intervenants
-    for (E_Int j = 0; j < cc[i]; j++) // pour chaque noeud
-    {
-      E_Int node = cn[ps+j];
-      for (size_t k = 0; k < node2Face[node].size(); k++)
-      {
-        E_Int face = node2Face[node][k];
-        if (facemap.find(face) == facemap.end()) facemap[face] = 1;
-        else facemap[face] += 1;
-      }
-    }
-    ps += cc[i];
-    for (const auto& pair : facemap) // for each tag
-    {
-      E_Int face = pair.first;
-      E_Int nn = pair.second;
-      if (nn >= 3) cell2Face[i].push_back(face);
-    }
-  }
-
-  delete [] cc; delete [] cn;  
-  return 0;
-  */
 }
 
 //=============================================================================
@@ -676,8 +696,8 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
 
   // Create GridElements
   E_Int nhexa = 0; E_Int ntetra = 0; E_Int npenta = 0; E_Int npyra = 0; 
-  //E_Int ntri = 0; E_Int nquad = 0;
-  //E_Int npoly3d = 0; E_Int npoly2d = 0;
+  // E_Int ntri = 0; E_Int nquad = 0;
+  // E_Int npoly3d = 0; E_Int npoly2d = 0;
   /*
   hid_t* chids = HDF.getChildren(uc);
   E_Int nchildren = 0;
@@ -761,15 +781,12 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
 
   if (H5Lexists(fid, "/FS:Mesh/UnstructuredCells/Poly3D", H5P_DEFAULT) > 0)
   {
-    id = H5Gopen(fid, "/FS:Mesh/UnstructuredCells/Poly3D", H5P_DEFAULT);
     PyObject* NGON; PyObject* NFACE; E_Int nfaces;
-    createGridElementsNGon(id, istart, nvertex, NGON, NFACE, nfaces, ncells);
+    createGridElementsNGon(fid, istart, NGON, NFACE, nfaces, ncells, bct, size, tagmap);
     PyList_Append(children4, NGON); Py_DECREF(NGON);
     PyList_Append(children4, NFACE); Py_DECREF(NFACE);
     istart += ncells+nfaces;
-    //npoly3d = ncells;
     n3dcells += ncells;
-    H5Gclose(id);
   }
 
   pp4[1] = n3dcells;
