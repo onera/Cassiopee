@@ -111,7 +111,7 @@ PyObject* K_GENERATOR::closeMesh(PyObject* self, PyObject* args)
     {
       PyObject* tpln = K_ARRAY::buildArray3(*f, varString, im, jm, km, api);
       PyList_Append(l, tpln); Py_DECREF(tpln);
-      PyList_Append(l, Py_None);  // TODO
+      PyList_Append(l, Py_None);
     }
   }
   else  // res = 2

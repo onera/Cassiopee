@@ -306,7 +306,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
   if (rmDirtyFaces || rmDirtyElts)
   {
     j = 0; itrl = -1; k = 0; ind = 0;
-    eindir.resize(nelts, 1);
+    if (fc != NULL) eindir.resize(nelts, 1);
     for (E_Int i = 0; i < nelts; i++)
     {
       cn.getElt(i, nf, nface, indPH);
@@ -318,7 +318,7 @@ PyObject* K_CONNECT::V_cleanConnectivityNGon(
           (rmDirtyElts && itrl != -1 && indirPHi - indirPH[itrl] != 1))
       {
         // Shift read pointer and skip
-        eindir[i] = 0;
+        if (eindir.size()) eindir[i] = 0;
         ind += nf+shift;
         continue;
       }
@@ -984,7 +984,7 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
     E_Int k = 0; // write pointer
     E_Int itrl = -1;
     E_Int elOffset = 0;
-    eindir.resize(ntotElts, 1);
+    if (fc != NULL) eindir.resize(ntotElts, 1);
     for (E_Int ic = 0; ic < nc; ic++)
     {
       // Skip connectivity if none of its elements are duplicated/degenerated
@@ -998,7 +998,7 @@ PyObject* K_CONNECT::V_cleanConnectivityME(
         if (indirPH[elOffset+i] == COLLAPSED ||
             (itrl != -1 && indirPH[elOffset+i] - indirPH[elOffset+itrl] != 1))
         {
-          eindir[elOffset+i] = 0;
+          if (eindir.size()) eindir[elOffset+i] = 0;
           continue;
         }
         
