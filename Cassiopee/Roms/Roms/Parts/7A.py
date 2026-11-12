@@ -22,7 +22,7 @@ def createPart(name):
     #angle3 = 0.5*angle
     angle3 = T1.Scalar('angle3', 0.)
     T1.Eq(angle3, 0.6*angle)
-    
+
     # sketch = OA213, 0. incidence
     airfoil1 = T1.Airfoil('airfoil1', 'ONERA/ONERAOA213AIRFOIL')
     sketch1 = T1.Sketch('sketch1', [airfoil1], h=0.001)

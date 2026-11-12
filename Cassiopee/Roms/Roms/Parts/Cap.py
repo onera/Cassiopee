@@ -25,7 +25,7 @@ def createPart(name):
     arc1 = T1.Arc('arc1', P1, P2, P3)
     arc2 = T1.Arc('arc2', P4, P5, P6)
     arc3 = T1.Arc('arc3', P7, P8, P9)
-    
+
     sketch1 = T1.Sketch('sketch1', [arc1,arc2,arc3])
 
     surface1 = T1.Fill('surface1', sketch1, continuity=2)
