@@ -52,6 +52,10 @@ namespace K_OCC
   void buildOutfaceCompound(TopoDS_Shape& shape, PyObject* listFaces, TopoDS_Compound& compound);
   // sew a shape
   void sewShape(TopoDS_Shape& shape, E_Float tol);
+  // Get tag = 0 or 1 for given list of edges
+  void getEdgeTag(TopoDS_Shape& shape, PyObject* listEdges, std::vector<E_Int>& tag);
+  // Get tag = 0 or 1 for given list of faces
+  void getFaceTag(TopoDS_Shape& shape, PyObject* listFaces, std::vector<E_Int>& tag);
 
   PyObject* convertCAD2Arrays0(PyObject* self, PyObject* args); // with OCC internal
   PyObject* convertCAD2Arrays1(PyObject* self, PyObject* args); // with T3Mesher

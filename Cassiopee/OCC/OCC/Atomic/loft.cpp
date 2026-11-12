@@ -119,8 +119,7 @@ PyObject* K_OCC::loft(PyObject* self, PyObject* args)
       Handle(Geom_Curve) baseCurve = BRep_Tool::Curve(E, firstParam, lastParam);
       ucurves.push_back(baseCurve);
     }
-    printf("done extracting curves\n"); fflush(stdout);
-
+    
     // Get curves from guides
     for (E_Int i = 0; i < nguides; i++)
     {
@@ -130,7 +129,6 @@ PyObject* K_OCC::loft(PyObject* self, PyObject* args)
       Handle(Geom_Curve) baseCurve = BRep_Tool::Curve(E, firstParam, lastParam);
       vcurves.push_back(baseCurve);
     }
-    printf("done extracting guides\n"); fflush(stdout);
     
     Handle(Geom_BSplineSurface) surf;
     try { surf = occ_gordon::interpolate_curve_network(ucurves, vcurves, 1.e-4); }
@@ -140,7 +138,6 @@ PyObject* K_OCC::loft(PyObject* self, PyObject* args)
       PyErr_SetString(PyExc_TypeError, "loft: fail to build.");
       return NULL;
     }
-    printf("done gordon\n"); fflush(stdout);    
     TopoDS_Face F = BRepBuilderAPI_MakeFace(surf, Precision::Confusion());
     newshp = new TopoDS_Shape(F);
   }

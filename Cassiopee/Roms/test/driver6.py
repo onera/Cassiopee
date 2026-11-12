@@ -26,7 +26,7 @@ sketch1 = T1.Sketch('sketch1', [spline1])
 
 # Create sketch 2
 sketch2 = T1.Sketch('sketch2', [spline1])
-sketch2.position.z.v = 1.
+sketch2.set(position=(0,0,1.))
 
 # surface
 surface1 = T1.Loft('surface1', [sketch1, sketch2], h=[0.01,0.01,0.01])

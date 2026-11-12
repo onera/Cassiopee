@@ -39,7 +39,9 @@
 #include "BRepBuilderAPI_Sewing.hxx"
 
 //=====================================================================
-// Reverse faces
+// Reverse edges/faces
+// method=0, by edge or face
+// method=1, by shape
 //=====================================================================
 PyObject* K_OCC::reverse(PyObject* self, PyObject* args)
 {
@@ -53,25 +55,39 @@ PyObject* K_OCC::reverse(PyObject* self, PyObject* args)
   GETMAPEDGES;
   GETMAPSURFACES;
   
-  if (method == 0) // in place
+  if (method == 0) // by edge/face
   {
-    E_Int nedges = PyList_Size(listEdges);
-    for (E_Int no = 0; no < nedges; no++)
+    std::vector<E_Int> tage;
+    K_OCC::getEdgeTag(*shape, listEdges, tage);
+    std::vector<E_Int> tagf;
+    K_OCC::getFaceTag(*shape, listFaces, tagf);
+
+    BRep_Builder builder;
+    TopoDS_Compound shc;
+    builder.MakeCompound(shc);
+
+    for (E_Int i = 0; i < edges.Extent(); i++)
     {
-      PyObject* noEdgeO = PyList_GetItem(listEdges, no);
-      E_Int noEdge = PyInt_AsLong(noEdgeO);
-      TopoDS_Edge E = TopoDS::Edge(edges(noEdge));
-      E.Orientation(TopAbs::Complement(E.Orientation()));
+      TopoDS_Edge E = TopoDS::Edge(edges(i+1));
+      if (tage[i] == 1)
+      {
+        E.Orientation(TopAbs::Complement(E.Orientation()));
+      }
+      builder.Add(shc, E);
     }
 
-    E_Int nfaces = PyList_Size(listFaces);
-    for (E_Int no = 0; no < nfaces; no++)
+    for (E_Int i = 0; i < surfaces.Extent(); i++)
     {
-      PyObject* noFaceO = PyList_GetItem(listFaces, no);
-      E_Int noFace = PyInt_AsLong(noFaceO);
-      TopoDS_Face F = TopoDS::Face(surfaces(noFace));
-      F.Orientation(TopAbs::Complement(F.Orientation()));
+      TopoDS_Face F = TopoDS::Face(surfaces(i+1));
+      if (tagf[i] == 1)
+      {
+        F.Orientation(TopAbs::Complement(F.Orientation()));
+      }
+      builder.Add(shc, F);
     }
+    TopoDS_Shape* newshp = new TopoDS_Shape(shc);
+    delete shape;
+    SETSHAPE(newshp);
   }
   else if (method == 1) // by shape reverse
   {
@@ -139,5 +155,6 @@ PyObject* K_OCC::reverse(PyObject* self, PyObject* args)
   }
 
   Py_INCREF(Py_None);
+  printf("here3\n"); fflush(stdout);
   return Py_None;
 }

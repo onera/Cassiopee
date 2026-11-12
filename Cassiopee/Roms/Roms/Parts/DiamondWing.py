@@ -1,8 +1,5 @@
 # dimaon parametric wing
 import Roms.Driver as D
-import Geom
-import Generator
-import Transform
 
 def createPart(name):
 

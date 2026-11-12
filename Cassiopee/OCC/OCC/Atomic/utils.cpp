@@ -27,7 +27,7 @@
 #include "BRepBuilderAPI_Sewing.hxx"
 
 // Build a compound from list of faces
-void buildfaceCompound(TopoDS_Shape& shape, PyObject* listFaces, TopoDS_Compound& compound)
+void K_OCC::buildfaceCompound(TopoDS_Shape& shape, PyObject* listFaces, TopoDS_Compound& compound)
 {
   TopTools_IndexedMapOfShape sf;
   TopExp::MapShapes(shape, TopAbs_FACE, sf);
@@ -54,7 +54,7 @@ void buildfaceCompound(TopoDS_Shape& shape, PyObject* listFaces, TopoDS_Compound
 }
 
 // Build a compound from faces not in list
-void buildOutfaceCompound(TopoDS_Shape& shape, PyObject* listFaces, TopoDS_Compound& compound)
+void K_OCC::buildOutfaceCompound(TopoDS_Shape& shape, PyObject* listFaces, TopoDS_Compound& compound)
 {
   if (listFaces == Py_None) return;
   TopTools_IndexedMapOfShape sf;
@@ -84,9 +84,45 @@ void buildOutfaceCompound(TopoDS_Shape& shape, PyObject* listFaces, TopoDS_Compo
 }
 
 // sew a shape
-void sewShape(TopoDS_Shape& shape, E_Float tol)
+void K_OCC::sewShape(TopoDS_Shape& shape, E_Float tol)
 {
   BRepBuilderAPI_Sewing sewingTool;
   sewingTool.Add(shape);
   sewingTool.Perform();
+}
+
+// Get tag = 0 or 1 for given list of edges
+void K_OCC::getEdgeTag(TopoDS_Shape& shape, PyObject* listEdges, std::vector<E_Int>& tag)
+{
+  if (listEdges == Py_None) return;
+  TopTools_IndexedMapOfShape se;
+  TopExp::MapShapes(shape, TopAbs_EDGE, se);
+   
+  E_Int nedgesTot = se.Extent();
+  tag.resize(nedgesTot);
+  for (E_Int i = 0; i < nedgesTot; i++) tag[i] = 0;
+  for (E_Int no = 0; no < PyList_Size(listEdges); no++)
+  {
+    PyObject* noEdgeO = PyList_GetItem(listEdges, no);
+    E_Int noEdge = PyInt_AsLong(noEdgeO);
+    tag[noEdge-1] = 1;
+  }
+}
+
+// Get tag = 0 or 1 for given list of faces
+void K_OCC::getFaceTag(TopoDS_Shape& shape, PyObject* listFaces, std::vector<E_Int>& tag)
+{
+  if (listFaces == Py_None) return;
+  TopTools_IndexedMapOfShape sf;
+  TopExp::MapShapes(shape, TopAbs_FACE, sf);
+   
+  E_Int nfacesTot = sf.Extent();
+  tag.resize(nfacesTot);
+  for (E_Int i = 0; i < nfacesTot; i++) tag[i] = 0;
+  for (E_Int no = 0; no < PyList_Size(listFaces); no++)
+  {
+    PyObject* noFaceO = PyList_GetItem(listFaces, no);
+    E_Int noFace = PyInt_AsLong(noFaceO);
+    tag[noFace-1] = 1;
+  }
 }

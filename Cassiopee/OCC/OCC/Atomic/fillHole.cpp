@@ -70,7 +70,7 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
       const TopoDS_Edge& E = TopoDS::Edge(edges(noEdge));
       wireMaker.Add(E);
     }
-    else printf("Warning: fillHole: invalid edge.\n");
+    else printf("Warning: fillHole: invalid input edges.\n");
   }
 
   // Build wire
@@ -93,7 +93,7 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
   else if (continuity == 1) crit = GeomAbs_C1;
   else if (continuity == 2) crit = GeomAbs_C2;
 
-  // Build face from wire (C0)
+  // Build face from wire (C0). Use make face
   if (continuity == 0)
   {
     try {
@@ -145,7 +145,7 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
           //filler.Add(E, GeomAbs_G1, true);
           filler.Add(E, GeomAbs_C0, true);
         }
-        else printf("Warning: fillHole: invalid edge.\n");
+        else printf("Warning: fillHole: invalid input edge.\n");
       }
       filler.Build();
       if (not filler.IsDone()) { fail = true; }
@@ -194,8 +194,8 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
   }
   builder.Add(shc, F); // This add also the wire the face is built on
   
-  // a posteriori continuity improvement - no success for now (unnecessary?)
-  if (continuity > 0)
+  // a posteriori continuity improvement - no success for now (deactivated)
+  if (continuity > 4)
   {
     printf("Info: fillHole: imposing C" SF_D_ " continuity.\n", continuity);
     ShapeUpgrade_ShapeDivideContinuity shapeDivider(shc);
