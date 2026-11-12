@@ -404,9 +404,9 @@ PyObject* K_CONVERTER::convertUnstruct2NGon(PyObject* self, PyObject* args)
   Py_DECREF(tpl);
   if (exportIndirPts)
   {
-    PyObject* vmap = PyTuple_GetItem(tplClean, 1);
+    PyObject* vmap = PyList_GetItem(tplClean, 1);
     PyList_Append(indices, vmap);
-    PyObject* o = PyTuple_GetItem(tplClean, 0);
+    PyObject* o = PyList_GetItem(tplClean, 0);
     Py_INCREF(o);
     Py_DECREF(tplClean);
     return o;
