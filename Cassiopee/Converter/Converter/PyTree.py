@@ -1147,9 +1147,57 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
         return t
 
     elif format == 'bin_fsdm':
+        import Generator.PyTree as G
+
         t = converter.convertFile2PyTreeFsdm(fileName, 'bin_fsdm')
         t = Internal.createRootNode(children=t[2])
         _upgradeTree(t, uncompress, upgrade)
+
+        # separate NGon and BE connectivities (if any)
+        b = Internal.getBases(t)[0]
+        z = Internal.getZones(b)[0]
+        e = Internal.getNodesByType(t, 'Elements_t')
+        enames = [Internal.eltNo2EltName(i[1][0])[0] for i in e]
+        bcnames = [n[0] for n in Internal.getNodesFromType(z, 'BC_t')]
+
+        if len(enames) > 2 and 'NGON' in enames: # both BE and NGON
+            zBE = Internal.copyTree(z)
+            zNG = z
+
+            # clean BCs
+            NFaceElementsRange = Internal.getElementRange(z, 'NGonElements')
+            for name in bcnames:
+                BC = Internal.getNodeFromNameAndType(z, name, 'BC_t')
+                PL = Internal.getNodeFromName(BC, 'PointList')[1]
+                minFace = numpy.min(PL)
+                if minFace >= NFaceElementsRange[0] and minFace <= NFaceElementsRange[1]:
+                    Internal._rmNodesByNameAndType(zBE, name, 'BC_t')
+                else:
+                    Internal._rmNodesByNameAndType(zNG, name, 'BC_t')
+
+            # clean BE zone
+            zBE[0] = 'zoneBE'
+            for name in ['NGonElements', 'NFaceElements']:
+                Internal._rmNodesByName(zBE, name)
+            G._close(zBE)
+            
+            # clean NGON zone
+            zNG[0] = 'zoneNG'
+            for name in ['Tri3', 'Quad4', 'Tetra4', 'Pyra5', 'Prism6', 'Hexa8']:
+                Internal._rmNodesByName(zNG, name)
+            BCinfo = getBCs(zNG)
+            G._close(zNG)
+            _recoverBCs(zNG, BCInfo=BCinfo)
+
+            # finalize tree
+            b[2] += [zBE]
+
+        elif 'NGON' in enames:
+            # close NGON zone    
+            BCinfo = getBCs(z)
+            G._close(z)
+            _recoverBCs(z, BCInfo=BCinfo)            
+
         return t
 
     elif format == 'unknown':
