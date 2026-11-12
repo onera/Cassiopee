@@ -384,7 +384,7 @@ E_Int createGridElementsNGon(hid_t fid, E_Int istart,
 #endif
   pp1[0] = 22; pp1[1] = 0;
   PyObject* children1 = PyList_New(0);
-  NGON = Py_BuildValue("[sOOs]", "NGON", r1, children1, "Elements_t");
+  NGON = Py_BuildValue("[sOOs]", "NGonElements", r1, children1, "Elements_t");
 
   // Element range du NGON
   npy_dim_vals[0] = 2;
@@ -469,7 +469,7 @@ E_Int createGridElementsNGon(hid_t fid, E_Int istart,
 #endif
   pp5[0] = 23; pp5[1] = 0;
   PyObject* children5 = PyList_New(0);
-  NFACE = Py_BuildValue("[sOOs]", "NFACE", r5, children5, "Elements_t");
+  NFACE = Py_BuildValue("[sOOs]", "NFaceElements", r5, children5, "Elements_t");
   
   // Element range du NFACE
   npy_dim_vals[0] = 2;
