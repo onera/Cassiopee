@@ -1180,7 +1180,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
             for name in ['NGonElements', 'NFaceElements']:
                 Internal._rmNodesByName(zBE, name)
             G._close(zBE)
-            
+
             # clean NGON zone
             zNG[0] = 'zoneNG'
             for name in ['Tri3', 'Quad4', 'Tetra4', 'Pyra5', 'Prism6', 'Hexa8']:
@@ -1193,10 +1193,10 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
             b[2] += [zBE]
 
         elif 'NGON' in enames:
-            # close NGON zone    
+            # close NGON zone
             BCinfo = getBCs(z)
             G._close(z)
-            _recoverBCs(z, BCInfo=BCinfo)            
+            _recoverBCs(z, BCInfo=BCinfo)
 
         return t
 
