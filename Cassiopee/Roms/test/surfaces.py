@@ -1,7 +1,7 @@
 # test Driver surfaces
 import Roms.Driver as D
 
-TEST = 'extrude1'
+TEST = 'sweep1'
 
 T1 = D.Part('test')
 
@@ -144,6 +144,19 @@ elif TEST == 'extrude1':
 
     surface1 = T1.Extrude('surface1', sketch1, vector=(0,0,1))
 
+elif TEST == 'sweep1':
+    # sweep following path
+    line1 = T1.Line('line1', P1, P2)
+    line2 = T1.Line('line2', P2, P3)
+    line3 = T1.Line('line3', P3, P4)
+    line4 = T1.Line('line4', P4, P1)
+    sketch1 = T1.Sketch('sketch1', [line1,line2,line3,line4])
+
+    spline1 = T1.Spline1('spline1', [(0,0,0), (0,0,1), (0,2,2)]) 
+    sketch2 = T1.Sketch('sketch2', [spline1])
+
+    surface1 = T1.Sweep('surface1', sketch1, sketch2)
+    
 T1.solve()
 T1.instantiate({'v1': 1.})
 

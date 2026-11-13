@@ -49,42 +49,46 @@ PyObject* K_OCC::sweep(PyObject* self, PyObject* args)
 
   E_Int nprofiles = PyList_Size(listProfiles);
   E_Int npaths = PyList_Size(listPaths);
+
   TopoDS_Shape* newshp = NULL;
 
   // Try merge listProfiles in a single wire
-  TopoDS_Wire W1;
+  TopoDS_Wire W1, W2;
+  BRepBuilderAPI_MakeWire wireMaker;
   for (E_Int i = 0; i < nprofiles; i++)
   {
     PyObject* noO = PyList_GetItem(listProfiles, i);
     E_Int no = PyInt_AsLong(noO);
-
     const TopoDS_Edge& E = TopoDS::Edge(edges(no));
-    if (i == 0)
-    {
-      W1 = BRepBuilderAPI_MakeWire(E);
-    }
-    else
-    {
-      W1 = BRepBuilderAPI_MakeWire(W1, E);
-    }
+    wireMaker.Add(E);
+  }
+  try
+  {
+    W1 = wireMaker.Wire();
+  } 
+  catch (StdFail_NotDone& e)
+  {
+    PyErr_SetString(PyExc_TypeError, "sweep: input 1 is not a wire.");  
+    return NULL;
   }
 
   // Try merge listPaths in a single wire
-  TopoDS_Wire W2;
+  BRepBuilderAPI_MakeWire wireMaker2;
   for (E_Int i = 0; i < npaths; i++)
   {
     PyObject* noO = PyList_GetItem(listPaths, i);
     E_Int no = PyInt_AsLong(noO);
-
     const TopoDS_Edge& E = TopoDS::Edge(edges(no));
-    if (i == 0)
-    {
-      W2 = BRepBuilderAPI_MakeWire(E);
-    }
-    else
-    {
-      W2 = BRepBuilderAPI_MakeWire(W1, E);
-    }
+    wireMaker2.Add(E);
+  }
+  try
+  {
+    W2 = wireMaker2.Wire();
+  }
+  catch (StdFail_NotDone& e)
+  {
+    PyErr_SetString(PyExc_TypeError, "sweep: path is not a wire.");  
+    return NULL;
   }
 
   // Sweep

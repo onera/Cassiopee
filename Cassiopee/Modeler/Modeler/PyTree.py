@@ -7,14 +7,18 @@ def box(Pmin, Pmax, chamfer=-1.):
     a = Models.box(Pmin, Pmax, chamfer)
     return C.convertArrays2ZoneNode('box', [a])
 
-def box2D(Pmin, Pmax, r=0., uv=False):
+def box2D(Pmin, Pmax, r=0., fill=True, uv=False):
     """Create a 2D box."""
-    a = Models.box2D(Pmin, Pmax, r, uv)
+    a = Models.box2D(Pmin, Pmax, r, fill, uv)
     return C.convertArrays2ZoneNode('box', [a])
 
-def ellipse2D(Pmin, Pmax):
+def ellipse2D(Pmin, Pmax, fill=True, uv=False):
     """Create a 2D ellipse."""
-    a = Models.ellipse2D(Pmin, Pmax)
+    a = Models.ellipse2D(Pmin, Pmax, fill, uv)
+    return C.convertArrays2ZoneNode('ellipse', [a])
+
+def ellipseSpikes2D(Pmin, Pmax, r=0.1, fill=True):
+    a = Models.ellipse2D(Pmin, Pmax, r, fill)
     return C.convertArrays2ZoneNode('ellipse', [a])
 
 def star(R1=1., R2=2., shift=0.5, N=10, h=1.):

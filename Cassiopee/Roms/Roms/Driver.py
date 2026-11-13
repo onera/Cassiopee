@@ -1553,6 +1553,19 @@ class Surface():
             edges = [x for x in range(1,ne+1)]
             OCC._addFillet(self.hook, edges, self.data['radius'].v())
 
+        elif self.type == "sweep":
+            hooks = []; n1 = 0; n2 = 0
+            for e in self.sketches:
+                hooks.append(e.hook)
+                n1 += OCC.getNbEdges(e.hook)
+            for e in self.sketches2: 
+                hooks.append(e.hook)
+                n2 += OCC.getNbEdges(e.hook)
+            profiles = [i+1 for i in range(0, n1)]
+            paths = [i+1 for i in range(n1,n1+n2)]
+            self.hook = OCC.mergeCAD(hooks)
+            OCC._sweep(self.hook, profiles, paths)
+
         # global positionning
         OCC._rotate(self.hook, self.rotCenter.v(), self.rotAxis.v(), self.rotAngle.v)
         OCC._translate(self.hook, self.position.v())
@@ -1896,6 +1909,12 @@ def AddFillet(name="fillet", radius=1., h=None, part=None):
     surface1 = Surface(name=name, data={'radius':1.}, type='addFillet', h=h, part=part)
     return surface1
 
+def Sweep(name="sweep", sketch=None, path=None, h=None, part=None):
+    """Create a swept surface from sketch and path."""
+    surface1 = Surface(name=name, type='sweep', listSketches=[sketch],
+                       listSketches2=[path], h=h, part=part)
+    return surface1
+        
 #============================================================
 class Volume2D():
     """Define a parametric 2D volume."""
@@ -2371,6 +2390,11 @@ class Part:
 
     def Sphere(self, name="sphere", C=(0.,0.,0.), R=1., h=None):
         s = Surface(name=name, data={'center': C, 'radius': R}, type="sphere", h=h, part=self)
+        return s
+
+    def Sweep(self, name="sweep", sketch=None, path=None, h=None):
+        s = Surface(name=name, type='sweep', listSketches=[sketch],
+                    listSketches2=[path], h=h, part=self)
         return s
 
     def Eq(self, expr1, expr2=None):
