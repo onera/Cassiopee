@@ -48,7 +48,7 @@ def createPart(name):
     line4 = T1.Line('line4', P3, P1)
     sketch1 = T1.Sketch('sketch1', [line1,line2,line3,line4])
     sketch1.set(rotCenter=(0,0,0), rotAxis=(0,0,1), rotAngle=angle1)
-    
+
     # Sketch2
     P5 = T1.Point('P5', (0,0,0))
     P6 = T1.Point('P6', (0,0,0))
