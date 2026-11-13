@@ -72,13 +72,14 @@ for c, e  in enumerate(ext):
     elif c == 6: #6
         for r in res: C._addBC2Zone(m, 'far1', 'BCFarfield', subzone=r)
     elif c == 7: #7
-        for r in res: C._addBC2Zone(m, 'far2', 'BCFarfield', subzone=r)
+        pass
     elif c == 8: #8
         for r in res: C._addBC2Zone(m, 'far3', 'BCFarfield', subzone=r)
     elif c == 9: #9
         for r in res: C._addBC2Zone(m, 'far4', 'BCFarfield', subzone=r)
+    else: # 10
+        for r in res: C._addBC2Zone(m, 'far2', 'BCFarfield', subzone=r)
 
-#C.convertPyTree2File(m, 'mesh.cgns')
 C.convertPyTree2File(m, LOCAL+'/out.h5')
 t = C.convertFile2PyTree(LOCAL+'/out.h5')
 test.testT(t, 1)
@@ -89,7 +90,7 @@ for z in zones:
     C._convertArray2NGon(z, recoverBC=True, api=3)
 C._signNGonFaces(m)
 Internal._adaptNGon32NGon4(m)
-#C.convertPyTree2File(m, 'mesh.cgns')
+# C.convertPyTree2File(m, 'mesh.cgns')
 C.convertPyTree2File(m, LOCAL+'/out.h5')
 t = C.convertFile2PyTree(LOCAL+'/out.h5')
 test.testT(t, 2)
