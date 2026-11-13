@@ -152,11 +152,11 @@ elif TEST == 'sweep1':
     line4 = T1.Line('line4', P4, P1)
     sketch1 = T1.Sketch('sketch1', [line1,line2,line3,line4])
 
-    spline1 = T1.Spline1('spline1', [(0,0,0), (0,0,1), (0,2,2)]) 
+    spline1 = T1.Spline1('spline1', [(0,0,0), (0,0,1), (0,2,2)])
     sketch2 = T1.Sketch('sketch2', [spline1])
 
     surface1 = T1.Sweep('surface1', sketch1, sketch2)
-    
+
 T1.solve()
 T1.instantiate({'v1': 1.})
 

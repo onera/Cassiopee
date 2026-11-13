@@ -1558,7 +1558,7 @@ class Surface():
             for e in self.sketches:
                 hooks.append(e.hook)
                 n1 += OCC.getNbEdges(e.hook)
-            for e in self.sketches2: 
+            for e in self.sketches2:
                 hooks.append(e.hook)
                 n2 += OCC.getNbEdges(e.hook)
             profiles = [i+1 for i in range(0, n1)]
@@ -1914,7 +1914,7 @@ def Sweep(name="sweep", sketch=None, path=None, h=None, part=None):
     surface1 = Surface(name=name, type='sweep', listSketches=[sketch],
                        listSketches2=[path], h=h, part=part)
     return surface1
-        
+
 #============================================================
 class Volume2D():
     """Define a parametric 2D volume."""
