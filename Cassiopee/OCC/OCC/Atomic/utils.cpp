@@ -25,8 +25,12 @@
 #include "BRepLib.hxx"
 #include "BRep_Builder.hxx"
 #include "BRepBuilderAPI_Sewing.hxx"
+#include "BRepCheck_Analyzer.hxx"
+#include "TopExp_Explorer.hxx"
 
+//=================================================================
 // Build a compound from list of faces
+//=================================================================
 void K_OCC::buildfaceCompound(TopoDS_Shape& shape, PyObject* listFaces, TopoDS_Compound& compound)
 {
   TopTools_IndexedMapOfShape sf;
@@ -53,7 +57,9 @@ void K_OCC::buildfaceCompound(TopoDS_Shape& shape, PyObject* listFaces, TopoDS_C
   }
 }
 
+//=================================================================
 // Build a compound from faces not in list
+//=================================================================
 void K_OCC::buildOutfaceCompound(TopoDS_Shape& shape, PyObject* listFaces, TopoDS_Compound& compound)
 {
   if (listFaces == Py_None) return;
@@ -83,7 +89,9 @@ void K_OCC::buildOutfaceCompound(TopoDS_Shape& shape, PyObject* listFaces, TopoD
   }
 }
 
+//=================================================================
 // sew a shape
+//=================================================================
 void K_OCC::sewShape(TopoDS_Shape& shape, E_Float tol)
 {
   BRepBuilderAPI_Sewing sewingTool;
@@ -91,7 +99,9 @@ void K_OCC::sewShape(TopoDS_Shape& shape, E_Float tol)
   sewingTool.Perform();
 }
 
+//=================================================================
 // Get tag = 0 or 1 for given list of edges
+//=================================================================
 void K_OCC::getEdgeTag(TopoDS_Shape& shape, PyObject* listEdges, std::vector<E_Int>& tag)
 {
   if (listEdges == Py_None) return;
@@ -109,7 +119,9 @@ void K_OCC::getEdgeTag(TopoDS_Shape& shape, PyObject* listEdges, std::vector<E_I
   }
 }
 
+//=================================================================
 // Get tag = 0 or 1 for given list of faces
+//=================================================================
 void K_OCC::getFaceTag(TopoDS_Shape& shape, PyObject* listFaces, std::vector<E_Int>& tag)
 {
   if (listFaces == Py_None) return;
@@ -125,4 +137,64 @@ void K_OCC::getFaceTag(TopoDS_Shape& shape, PyObject* listFaces, std::vector<E_I
     E_Int noFace = PyInt_AsLong(noFaceO);
     tag[noFace-1] = 1;
   }
+}
+
+//=================================================================
+// check a face - is it valid, is the face wire valid?
+// return 0 (valid), 1 (invalid)
+//=================================================================
+E_Int K_OCC::checkFace(TopoDS_Face& F)
+{
+  if (F.IsNull()) 
+  {
+    printf("Error: checkFace: face is null.\n");    
+    return 1;
+  }
+  BRepCheck_Analyzer analyzer(F);
+  if (analyzer.IsValid()) 
+  {
+    printf("Info: checkFace: face is valid.\n");    
+    return 0;
+  }
+
+  E_Int ret = 0;
+
+  // Try to find error
+  TopExp_Explorer exp;
+  // 1. Check Face-level status
+  for (exp.Init(F, TopAbs_FACE); exp.More(); exp.Next()) 
+  {
+    const TopoDS_Face& f = TopoDS::Face(exp.Current());
+    const Handle(BRepCheck_Result)& res = analyzer.Result(f);
+    if (!res.IsNull()) 
+    {
+      for (const auto& stat : res->Status()) 
+      {
+        if (stat != 0) 
+        {
+          printf("Error: checkFace: face error code=%d.\n", (int)stat);
+          ret = 1;
+        }
+      }
+    }
+  }
+
+  // 2. Check Wire-level status (commonly catches boundary loops issues)
+  for (exp.Init(F, TopAbs_WIRE); exp.More(); exp.Next()) 
+  {
+    const TopoDS_Wire& w = TopoDS::Wire(exp.Current());
+    const Handle(BRepCheck_Result)& res = analyzer.Result(w);
+    if (!res.IsNull())
+    {
+      for (const auto& stat : res->Status()) 
+      {
+        if (stat != 0) 
+        {
+          printf("Error: checkFace: wire error code=%d.\n", (int)stat);
+          ret = 1;
+        }
+      }
+    }
+  }
+  return ret;
 }

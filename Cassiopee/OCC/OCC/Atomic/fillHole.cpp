@@ -125,7 +125,6 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
       {
         PyObject* noEdgeO = PyList_GetItem(listEdges, no);
         E_Int noEdge = PyInt_AsLong(noEdgeO);
-
         //PyObject* noFaceO = PyList_GetItem(listFaces, no); // support face
         //E_Int noFace = PyInt_AsLong(noFaceO);
         //const TopoDS_Face& supportF = TopoDS::Face(surfaces(noFace));
@@ -149,7 +148,11 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
       }
       filler.Build();
       if (not filler.IsDone()) { fail = true; }
-      else { F = filler.Face(); }
+      else 
+      { 
+        F = filler.Face();
+        if (F.IsNull()) fail = true;
+      }
     }
     catch (StdFail_NotDone& e) { fail = true; }
     catch (Standard_Failure& e) { fail = true; }

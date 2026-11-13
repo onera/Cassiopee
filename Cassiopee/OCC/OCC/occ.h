@@ -23,6 +23,7 @@
 #include "packet.h"
 
 #include "TopoDS_Shape.hxx"
+#include "TopoDS_Face.hxx"
 #include "TopoDS_Compound.hxx" 
 #include "TDocStd_Document.hxx"
 #include <map>
@@ -56,6 +57,8 @@ namespace K_OCC
   void getEdgeTag(TopoDS_Shape& shape, PyObject* listEdges, std::vector<E_Int>& tag);
   // Get tag = 0 or 1 for given list of faces
   void getFaceTag(TopoDS_Shape& shape, PyObject* listFaces, std::vector<E_Int>& tag);
+  // check a face - is it valid, return 0 (valid), 1 (invalid)
+  E_Int checkFace(TopoDS_Face& F);
 
   PyObject* convertCAD2Arrays0(PyObject* self, PyObject* args); // with OCC internal
   PyObject* convertCAD2Arrays1(PyObject* self, PyObject* args); // with T3Mesher

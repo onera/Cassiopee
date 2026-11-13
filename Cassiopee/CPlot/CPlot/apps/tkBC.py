@@ -96,7 +96,8 @@ def updateBCNameList(event=None):
     varsbc = ['-All BC-']+getAllDefinedBC(CTK.t)
 
     lbvalues = lb.get(0, "end")
-    if varsbc == lbvalues: return # no need to update
+    identical = all(a == b for a, b in zip(varsbc, lbvalues))
+    if identical: return # no need to update
 
     # Remplace tous les elements
     lb.delete(0, TK.END)

@@ -66,7 +66,6 @@ PyObject* K_OCC::loft(PyObject* self, PyObject* args)
     for (E_Int i = 0; i < nprofiles; i++)
     {
       PyObject* noO = PyList_GetItem(listProfiles, i);
-      printf("i=%d\n", i);
       if (PyList_Check(noO))
       {
         // list of edges for wire
