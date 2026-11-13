@@ -1147,7 +1147,8 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
         return t
 
     elif format == 'bin_fsdm':
-        import Generator.PyTree as G
+        try: import Generator.PyTree as G
+        except: raise ImportError("convertFile2PyTree: bin_fsdm format requires Generator module.")
 
         t = converter.convertFile2PyTreeFsdm(fileName, 'bin_fsdm')
         t = Internal.createRootNode(children=t[2])
@@ -1179,24 +1180,24 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
             zBE[0] = 'zoneBE'
             for name in ['NGonElements', 'NFaceElements']:
                 Internal._rmNodesByName(zBE, name)
-            G._close(zBE)
 
             # clean NGON zone
             zNG[0] = 'zoneNG'
             for name in ['Tri3', 'Quad4', 'Tetra4', 'Pyra5', 'Prism6', 'Hexa8']:
                 Internal._rmNodesByName(zNG, name)
-            BCinfo = getBCs(zNG)
-            G._close(zNG)
-            _recoverBCs(zNG, BCInfo=BCinfo)
 
             # finalize tree
             b[2] += [zBE]
+            for z in Internal.getZones(t):
+                BCInfo = getBCs(z)
+                G._close(z)
+                _recoverBCs(z, BCInfo=BCInfo)
 
         elif 'NGON' in enames:
             # close NGON zone
-            BCinfo = getBCs(z)
+            BCInfo = getBCs(z)
             G._close(z)
-            _recoverBCs(z, BCInfo=BCinfo)
+            _recoverBCs(z, BCInfo=BCInfo)
 
         return t
 
