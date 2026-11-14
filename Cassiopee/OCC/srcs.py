@@ -88,6 +88,7 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/getBoundingBox.cpp',
         'OCC/Atomic/areEdgeIdentical.cpp',
         'OCC/Atomic/checkFaceOverlap.cpp',
+        'OCC/Atomic/queryEdge.cpp',
 
         'OCC/Atomic/splitFaces.cpp',
         'OCC/Atomic/splitEdge.cpp',

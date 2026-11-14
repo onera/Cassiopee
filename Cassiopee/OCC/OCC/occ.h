@@ -135,6 +135,7 @@ namespace K_OCC
   PyObject* getFaceOrientation(PyObject* self, PyObject* args);
   PyObject* areEdgeIdentical(PyObject* self, PyObject* args);
   PyObject* checkFaceOverlap(PyObject* self, PyObject* args);
+  PyObject* queryEdge(PyObject* self, PyObject* args);
 
   PyObject* splitFaces(PyObject* self, PyObject* args);
   PyObject* splitEdge(PyObject* self, PyObject* args);

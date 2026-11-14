@@ -20,7 +20,7 @@ from OCC import readCAD, writeCAD, createEmptyCAD, freeHook, \
     getFaceNos, getEdgeNos, getEdgesByFace, \
     getEdgeLength, getMinMaxEdgeLength, getEdgeVertices, \
     getFaceArea, getFaceVolume, getFaceMassCenter, getBoundingBox, \
-    checkFaceOverlap, \
+    checkFaceOverlap, queryEdge, \
     _translate, _rotate, _scale, _fixShape, \
     _sewing, _reverse, _mergeEdges, _splitFaces, \
     _mergeFaces, _trimFaces, _removeFaces, _removeEdges, \

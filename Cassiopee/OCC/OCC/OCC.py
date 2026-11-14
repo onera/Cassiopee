@@ -25,7 +25,7 @@ __all__ = ['convertCAD2Arrays',
            'getEdgeLength', 'getMinMaxEdgeLength',
            'getEdgeVertices', 'getFaceArea',
            'getFaceVolume', 'getFaceMassCenter', 'getBoundingBox',
-           'checkFaceOverlap',
+           'checkFaceOverlap', 'queryEdge',
            '_translate', '_rotate', '_scale',
            '_fixShape', '_sewing', '_reverse', '_mergeEdges',
            '_splitFaces', '_mergeFaces', '_trimFaces', '_untrimFaces',
@@ -1076,6 +1076,11 @@ def getEdgeVertices(hook, edgeList=None):
 def checkFaceOverlap(hook, face1, face2, tol=1.e-12):
     """Check if two faces overlap."""
     return occ.checkFaceOverlap(hook, face1, face2, tol)
+
+# Return data dict for edge
+def queryEdge(hook, no):
+    """Query edge data."""
+    return occ.queryEdge(hook, no)
 
 #=============================================================================
 # CAD modeling
