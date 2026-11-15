@@ -21,6 +21,7 @@
 #include "occ.h"
 #include "BRepBuilderAPI_MakeWire.hxx"
 #include "BRepBuilderAPI_MakeFace.hxx"
+#include "StdFail_NotDone.hxx"
 #include "Precision.hxx"
 #include "BRep_Builder.hxx"
 #include "TopExp.hxx"
