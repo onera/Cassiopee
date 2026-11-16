@@ -16,7 +16,7 @@
     You should have received a copy of the GNU General Public License
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
-// split edge
+// split edge from parameter or vertex
 #include "occ.h"
 
 #include "TopoDS.hxx"
@@ -94,8 +94,8 @@ PyObject* K_OCC::splitEdge(PyObject* self, PyObject* args)
   delete shape;
   SETSHAPE(newshp);
 
-  printf("INFO: after split: Nb edges=%d\n", se->Extent());
-  printf("INFO: after split: Nb faces=%d\n", sf->Extent());
+  printf("INFO: after splitEdge: Nb edges=%d\n", se->Extent());
+  printf("INFO: after splitEdge: Nb faces=%d\n", sf->Extent());
 
   Py_INCREF(Py_None);
   return Py_None;

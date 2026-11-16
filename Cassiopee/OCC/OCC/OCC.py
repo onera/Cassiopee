@@ -27,7 +27,7 @@ __all__ = ['convertCAD2Arrays',
            'getFaceVolume', 'getFaceMassCenter', 'getBoundingBox',
            'checkFaceOverlap', 'queryEdge',
            '_translate', '_rotate', '_scale',
-           '_fixShape', '_sewing', '_reverse', '_mergeEdges',
+           '_fixShape', '_sewing', '_reverse', '_mergeEdges', '_splitFace',
            '_splitFaces', '_mergeFaces', '_trimFaces', '_untrimFaces',
            '_removeFaces', '_removeEdges', '_extractFaces',
            '_fillHole', '_addFillet', '_offset', 'mergeCAD', '_mergeCAD',
@@ -1180,8 +1180,6 @@ def _addDomain(hook, dfar=10., type="box", plane=None):
         dfarx = dfar; dfary = dfar; dfarz = dfar
     # BBox on hook
     bb = getBoundingBox(hook)
-    # starting number of faces
-    #nf1 = getNbFaces(hook)
     # add
     if type == "sphere":
         P0 = ((bb[3]+bb[0])*0.5, (bb[4]+bb[1])*0.5, (bb[5]+bb[2])*0.5)
@@ -1239,8 +1237,6 @@ def _addDomain(hook, dfar=10., type="box", plane=None):
         if plane is None:
             raise ValueError('addDomain: requires plane for half-box.')
         raise NotImplementedError('addDomain: not implemented for half-box.')
-    # tag as exterior
-    #nf2 = getNbFaces(hook)
     return None
 
 # revolve edges
@@ -1433,6 +1429,12 @@ def _untrimFaces(hook, faceList):
     """Untrim a set of faces."""
     faceList = getFaceList__(hook, faceList)
     occ.untrimFaces(hook, faceList)
+    return None
+
+# split one face with a curve passing through two points
+def _splitFace(hook, no, P0, P1):
+    """Split one face with a straight curve passing through two points."""
+    occ.splitFace(hook, no, P0, P1)
     return None
 
 # split all faces to be less than area

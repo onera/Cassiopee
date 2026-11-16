@@ -159,5 +159,6 @@ elif TEST == 'sweep1':
 
 T1.solve()
 T1.instantiate({'v1': 1.})
+T1.writeCAD('out.step')
 
 D.DRIVER.plot()

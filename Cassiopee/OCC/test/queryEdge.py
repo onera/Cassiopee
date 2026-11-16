@@ -16,9 +16,11 @@ print(d)
 # spline1
 hook = OCC.createEmptyCAD()
 import Geom
-a = Geom.polyline([(0,0,0), (1,1,0), (2,0,0)])
+a = Geom.polyline([(0,0,0), (1,1,0), (2,0,0), (3,0,0)])
 OCC._addSpline(hook, a[1], method=0, degree=3)
 d = OCC.queryEdge(hook, 1)
+array = d['Points']
+OCC._addSpline(hook, array, method=0, degree=d['degree'])
 print(d)
 
 # ellipse

@@ -137,8 +137,9 @@ namespace K_OCC
   PyObject* checkFaceOverlap(PyObject* self, PyObject* args);
   PyObject* queryEdge(PyObject* self, PyObject* args);
 
-  PyObject* splitFaces(PyObject* self, PyObject* args);
   PyObject* splitEdge(PyObject* self, PyObject* args);
+  PyObject* splitFace(PyObject* self, PyObject* args);
+  PyObject* splitFaces(PyObject* self, PyObject* args);
   PyObject* mergeFaces(PyObject* self, PyObject* args);
   PyObject* mergeEdges(PyObject* self, PyObject* args);
   PyObject* removeFaces(PyObject* self, PyObject* args);

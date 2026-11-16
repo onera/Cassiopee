@@ -90,8 +90,9 @@ srcs = ['OCC/import_OCC_CAD_wrapper.cpp',
         'OCC/Atomic/checkFaceOverlap.cpp',
         'OCC/Atomic/queryEdge.cpp',
 
-        'OCC/Atomic/splitFaces.cpp',
         'OCC/Atomic/splitEdge.cpp',
+        'OCC/Atomic/splitFace.cpp',
+        'OCC/Atomic/splitFaces.cpp',
         'OCC/Atomic/mergeFaces.cpp',
         'OCC/Atomic/mergeEdges.cpp',
 

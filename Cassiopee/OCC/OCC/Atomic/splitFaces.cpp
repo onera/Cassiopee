@@ -177,8 +177,8 @@ PyObject* K_OCC::splitFaces(PyObject* self, PyObject* args)
 
   SETSHAPE(newshp);
 
-  printf("INFO: after split: Nb edges=%d\n", se->Extent());
-  printf("INFO: after split: Nb faces=%d\n", sf->Extent());
+  printf("INFO: after splitFaces: Nb edges=%d\n", se->Extent());
+  printf("INFO: after splitFaces: Nb faces=%d\n", sf->Extent());
 
   Py_INCREF(Py_None);
   return Py_None;

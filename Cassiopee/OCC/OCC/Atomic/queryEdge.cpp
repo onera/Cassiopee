@@ -105,12 +105,15 @@ PyObject* queryEdge1(const TopoDS_Edge& E)
       E_Float* ap; E_Int size;
       K_NUMPY::getFromNumpyArray(array, ap, size);
   
-      for (Standard_Integer i = 1; i <= nbPoles; ++i) 
+      for (E_Int i = 1; i <= nbPoles; i++) 
       {
-        // Access each control point coordinate
-        ap[3*(i-1)] = poles(i).X();
-        ap[3*(i-1)+1] = poles(i).Y();
-        ap[3*(i-1)+2] = poles(i).Z();
+        ap[i-1] = poles(i).X();
+        ap[i-1+nbPoles] = poles(i).Y();
+        ap[i-1+2*nbPoles] = poles(i).Z();
+        //ap[3*(i-1)] = poles(i).X();
+        //ap[3*(i-1)+1] = poles(i).Y();
+        //ap[3*(i-1)+2] = poles(i).Z();
+        //printf("pole %g %g %g\n", poles(i).X(), poles(i).Y(), poles(i).Z());
       }
       E_Int degree = bspline->Degree();
       dict = Py_BuildValue("{s:s, s:O, s:i}", 
@@ -133,12 +136,14 @@ PyObject* queryEdge1(const TopoDS_Edge& E)
       E_Float* ap; E_Int size;
       K_NUMPY::getFromNumpyArray(array, ap, size);
   
-      for (Standard_Integer i = 1; i <= nbPoles; ++i) 
+      for (E_Int i = 1; i <= nbPoles; i++) 
       {
-        // Access each control point coordinate
-        ap[3*(i-1)] = poles(i).X();
-        ap[3*(i-1)+1] = poles(i).Y();
-        ap[3*(i-1)+2] = poles(i).Z();
+        ap[i-1] = poles(i).X();
+        ap[i-1+nbPoles] = poles(i).Y();
+        ap[i-1+2*nbPoles] = poles(i).Z();
+        //ap[3*(i-1)] = poles(i).X();
+        //ap[3*(i-1)+1] = poles(i).Y();
+        //ap[3*(i-1)+2] = poles(i).Z();
       }
       E_Int degree = bezier->Degree();
       dict = Py_BuildValue("{s:s, s:O, s:i}", 

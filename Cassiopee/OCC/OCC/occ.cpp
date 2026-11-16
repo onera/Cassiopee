@@ -110,8 +110,9 @@ static PyMethodDef Pyocc [] =
   {"checkFaceOverlap", K_OCC::checkFaceOverlap, METH_VARARGS},
   {"queryEdge", K_OCC::queryEdge, METH_VARARGS},
 
-  {"splitFaces", K_OCC::splitFaces, METH_VARARGS},
   {"splitEdge", K_OCC::splitEdge, METH_VARARGS},
+  {"splitFace", K_OCC::splitFace, METH_VARARGS},
+  {"splitFaces", K_OCC::splitFaces, METH_VARARGS},
   {"mergeFaces", K_OCC::mergeFaces, METH_VARARGS},
   {"mergeEdges", K_OCC::mergeEdges, METH_VARARGS},
   {"removeFaces", K_OCC::removeFaces, METH_VARARGS},
