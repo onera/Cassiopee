@@ -16,7 +16,7 @@ def mapClosePoints(points, decimals=5):
             new2Old[j] = i; j += 1
     print('seen', seen)
     return old2New, new2Old
-  
+
 # convert a hook to a python CBL file
 # IN: din: input dictionary
 def convertCAD2CBL(hook, fileName, din):
@@ -123,7 +123,7 @@ def convertCAD2CBL(hook, fileName, din):
                 l += f"ellipse{ie} = T1.Ellipse('ellipse{ie}', P{ip0}, {axis}, {R1}, {R2})\n"
                 ip += 1
                 ie += 1
-                
+
     __LOG__.write(l)
 
     # write sketch to log
