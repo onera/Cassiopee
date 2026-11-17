@@ -1652,6 +1652,8 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   hsize_t start[2]; hsize_t scount[2];
   E_Int* ngon = NULL; E_Int* ngonOffset = NULL; E_Int npolyFaces = -1;
   E_Int* nface = NULL; E_Int* nfaceOffset = NULL; E_Int npolyCells = -1;
+  E_Int minFaceNGon = 0; // min face ngon (for BCs)
+  E_Int maxFaceNGon = 0; // max face ngon (for BCs)
 
   for (size_t i = 0; i < connects.size(); i++)
   {
@@ -1797,6 +1799,8 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     {
       ngon = ecv;
       npolyFaces = size0;
+      minFaceNGon = erv[0];
+      maxFaceNGon = erv[1];
       PyObject* off = K_PYTREE::getNodeFromName1(connects[i], "ElementStartOffset");
       if (off != NULL)
       {
@@ -1850,25 +1854,28 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       {
         E_Int* erv = K_PYTREE::getValueAI(er, hook);
         //printf("BC %d: %d %d\n", count, erv[0], erv[1]);
-        for (E_Int j = erv[0]; j <= erv[1]; j++)
+        if (minFaceNGon == 0 || erv[0] < minFaceNGon || erv[0] > maxFaceNGon) // check if BC is NGon or ME
         {
-          //off = j-1-nvol;
-          off = newIndex2(j, oldStart, oldEnd, newStart)-possurf;
-          if (off < ntri) 
+          for (E_Int j = erv[0]; j <= erv[1]; j++)
           {
-            off = std::min(off, ntri-1);
-            off = std::max(off, E_Int(0));
-            markersTri[off] = count;
+            //off = j-1-nvol;
+            off = newIndex2(j, oldStart, oldEnd, newStart)-possurf;
+            if (off < ntri) 
+            {
+              off = std::min(off, ntri-1);
+              off = std::max(off, E_Int(0));
+              markersTri[off] = count;
+            }
+            else 
+            {
+              off = off-ntri;
+              off = std::min(off, nquad-1);
+              off = std::max(off, E_Int(0));
+              markersQuad[off] = count;
+            }
+            //if (off != j-1-nvol) 
+            //printf("off=%d %d -> count=%d\n", off, j-1-nvol, count);
           }
-          else 
-          {
-            off = off-ntri;
-            off = std::min(off, nquad-1);
-            off = std::max(off, E_Int(0));
-            markersQuad[off] = count;
-          }
-          //if (off != j-1-nvol) 
-          //printf("off=%d %d -> count=%d\n", off, j-1-nvol, count);
         }
       }
 
@@ -1878,25 +1885,28 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       {
         E_Int ni, nj;
         E_Int* plv = K_PYTREE::getValueAI(pl, ni, nj, hook);
-        for (E_Int j = 0; j < ni*nj; j++)
+        if (minFaceNGon == 0 || plv[0] < minFaceNGon || plv[0] > maxFaceNGon) // check if BC is NGon or ME
         {
-          //off = plv[j]-1-nvol;
-          off = newIndex2(plv[j], oldStart, oldEnd, newStart)-possurf;
-          if (off < ntri) 
-          { 
-            off = std::min(off, ntri-1);
-            off = std::max(off, E_Int(0));
-            markersTri[off] = count;
-          }
-          else 
+          for (E_Int j = 0; j < ni*nj; j++)
           {
-            off = off-ntri;
-            off = std::min(off, nquad-1);
-            off = std::max(off, E_Int(0));
-            markersQuad[off] = count;
+            //off = plv[j]-1-nvol;
+            off = newIndex2(plv[j], oldStart, oldEnd, newStart)-possurf;
+            if (off < ntri) 
+            { 
+              off = std::min(off, ntri-1);
+              off = std::max(off, E_Int(0));
+              markersTri[off] = count;
+            }
+            else 
+            {
+              off = off-ntri;
+              off = std::min(off, nquad-1);
+              off = std::max(off, E_Int(0));
+              markersQuad[off] = count;
+            }
+            //printf("off=%d %d\n", off, plv[j]-1-nvol);
           }
-          //printf("off=%d %d\n", off, plv[j]-1-nvol);
-        }
+      }
       }
       count += 1;
     }
@@ -2142,21 +2152,27 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       {
         E_Int s0, s1;
         E_Int* p = K_PYTREE::getValueAI(pl, s0, s1, hook);
-        for (E_Int f = 0; f < s0*s1; f++)
+        if (p[0] >= minFaceNGon && p[0] <= maxFaceNGon) // NGon BC
         {
-          size += ngonOffset[p[f]]-ngonOffset[p[f]-1];
+          for (E_Int f = 0; f < s0*s1; f++)
+          {
+            size += ngonOffset[p[f]-(minFaceNGon-1)]-ngonOffset[p[f]-(minFaceNGon-1)-1];
+          }
+          nc += s0*s1;
         }
-        nc += s0*s1;
       }
       PyObject* pr = K_PYTREE::getNodeFromName1(BCs[i], "PointRange"); // face range
       if (pr != NULL)
       {
         E_Int* p = K_PYTREE::getValueAI(pr, hook);
-        for (E_Int f = p[0]; f < p[1]; f++) size += ngonOffset[f]-ngonOffset[f-1];
-        nc += p[1]-p[0]+1;
+        if (p[0] >= minFaceNGon && p[0] <= maxFaceNGon) // NGon BC
+        {
+          for (E_Int f = p[0]; f < p[1]; f++) size += ngonOffset[f]-ngonOffset[f-1];
+          nc += p[1]-p[0]+1;
+        }
       }
     }
-    
+
     int32_t* poly2dCount = new int32_t [nc];
     int32_t* poly2d = new int32_t [size];
     int32_t* marker = new int32_t [nc];
@@ -2170,27 +2186,33 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       {
         E_Int s0, s1;
         E_Int* p = K_PYTREE::getValueAI(pl, s0, s1, hook);
-        for (E_Int f = 0; f < s0*s1; f++) // pour chaque face
+        if (p[0] >= minFaceNGon && p[0] <= maxFaceNGon) // NGon BC
         {
-          E_Int size0 = ngonOffset[p[f]]-ngonOffset[p[f]-1];
-          poly2dCount[faceCount] = size0;
-          marker[faceCount] = bcCount;
-          for (E_Int j = ngonOffset[p[f]-1]; j < ngonOffset[p[f]]; j++) { poly2d[ptr] = ngon[j]-1; ptr++; }
-          faceCount++;
+          for (E_Int f = 0; f < s0*s1; f++) // pour chaque face
+          {
+            E_Int size0 = ngonOffset[p[f]-(minFaceNGon-1)]-ngonOffset[p[f]-(minFaceNGon-1)-1];
+            poly2dCount[faceCount] = size0;
+            marker[faceCount] = bcCount;
+            for (E_Int j = ngonOffset[p[f]-(minFaceNGon-1)-1]; j < ngonOffset[p[f]-(minFaceNGon-1)]; j++) { poly2d[ptr] = ngon[j]-1; ptr++; }
+            faceCount++;
+          }
         }
       }
       PyObject* pr = K_PYTREE::getNodeFromName1(BCs[i], "PointRange"); // face range
       if (pr != NULL)
       {
         E_Int* p = K_PYTREE::getValueAI(pr, hook);
-        for (E_Int f = p[0]; f < p[1]; f++) // pour chaque face 
+        if (p[0] >= minFaceNGon && p[0] <= maxFaceNGon) // NGon BC
         {
-          E_Int size0 = ngonOffset[f+1]-ngonOffset[f];
-          poly2dCount[faceCount] = size0;
-          marker[faceCount] = bcCount;
-          for (E_Int j = ngonOffset[f-1]; j < ngonOffset[f]; j++) { poly2d[ptr] = ngon[j]-1; ptr++; }
-          faceCount++;
-        }
+          for (E_Int f = p[0]; f < p[1]; f++) // pour chaque face 
+          {
+            E_Int size0 = ngonOffset[f+1]-ngonOffset[f];
+            poly2dCount[faceCount] = size0;
+            marker[faceCount] = bcCount;
+            for (E_Int j = ngonOffset[f-1]; j < ngonOffset[f]; j++) { poly2d[ptr] = ngon[j]-1; ptr++; }
+            faceCount++;
+          }
+      }
       }
       bcCount += 1;
     }

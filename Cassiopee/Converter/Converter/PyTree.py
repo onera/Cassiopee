@@ -1169,9 +1169,8 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
             NFaceElementsRange = Internal.getElementRange(z, 'NGonElements')
             for name in bcnames:
                 BC = Internal.getNodeFromNameAndType(z, name, 'BC_t')
-                PL = Internal.getNodeFromName(BC, 'PointList')[1]
-                minFace = numpy.min(PL)
-                if minFace >= NFaceElementsRange[0] and minFace <= NFaceElementsRange[1]:
+                PL = Internal.getNodeFromName(BC, 'PointList')[1][0] # PL is size (1,n)
+                if PL[0] >= NFaceElementsRange[0] and PL[0] <= NFaceElementsRange[1]:
                     Internal._rmNodesByNameAndType(zBE, name, 'BC_t')
                 else:
                     Internal._rmNodesByNameAndType(zNG, name, 'BC_t')
