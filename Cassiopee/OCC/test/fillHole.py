@@ -32,4 +32,3 @@ OCC._addLine(hook, (10,10,3), (0,10,0))
 OCC._addLine(hook, (0,10,0), (0,0,0))
 OCC._fillHole(hook, [1,2,3,4], [], 1)
 OCC.writeCAD(hook, "out4.step")
-
