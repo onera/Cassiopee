@@ -37,6 +37,7 @@
 #include "BRep_Builder.hxx"
 #include "ShapeUpgrade_ShapeDivideClosedEdges.hxx"
 #include "BRepBuilderAPI_Sewing.hxx"
+#include "BRepBuilderAPI_MakeEdge.hxx"
 
 //=====================================================================
 // Reverse edges/faces
@@ -71,7 +72,14 @@ PyObject* K_OCC::reverse(PyObject* self, PyObject* args)
       TopoDS_Edge E = TopoDS::Edge(edges(i+1));
       if (tage[i] == 1)
       {
-        E.Orientation(TopAbs::Complement(E.Orientation()));
+        //E.Orientation(TopAbs::Complement(E.Orientation()));
+        //E = TopoDS::Edge(E.Reversed());
+        Standard_Real first, last;
+        Handle(Geom_Curve) curve = BRep_Tool::Curve(E, first, last);
+        Handle(Geom_Curve) revCurve = curve->Reversed();
+        Standard_Real rfirst = curve->ReversedParameter(last);
+        Standard_Real rlast = curve->ReversedParameter(first);
+        E = BRepBuilderAPI_MakeEdge(revCurve, rfirst, rlast);
       }
       builder.Add(shc, E);
     }
@@ -155,6 +163,5 @@ PyObject* K_OCC::reverse(PyObject* self, PyObject* args)
   }
 
   Py_INCREF(Py_None);
-  printf("here3\n"); fflush(stdout);
   return Py_None;
 }

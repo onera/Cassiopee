@@ -85,13 +85,14 @@ class Transform:
 
     def __init__(self, name, part, position=None,
                  rotCenter=None, rotAxis=None, rotAngle=None,
-                 scaleCenter=None, scaleFactor=None):
+                 scaleCenter=None, scaleFactor=None, reverse=False):
         self.position = None
         self.rotCenter = None
         self.rotAxis = None
         self.rotAngle = None
         self.scaleCenter = None
         self.scaleFactor = None
+        self.reverse = reverse
         if position is not None:
             P = Vec3('%s.position'%name, (0.,0.,0.), part=part)
             self.position = P
@@ -198,6 +199,9 @@ class Transform:
             OCC._rotate(hook, self.rotCenter.v(), self.rotAxis.v(), self.rotAngle.v)
         if self.position is not None:
             OCC._translate(hook, self.position.v())
+        if self.reverse:
+            ne = OCC.getNbEdges(hook)
+            OCC._reverse(hook, [], [i+1 for i in range(ne)], method=0)
 
 #============================================================
 class Scalar( sympy.core.symbol.Symbol ):
@@ -1092,11 +1096,12 @@ class Sketch():
 
     def set(self, position=None,
             rotCenter=None, rotAxis=None, rotAngle=None,
-            scaleCenter=None, scaleFactor=None):
+            scaleCenter=None, scaleFactor=None, reverse=False):
         """Rigid transform sketch."""
         self.transforms.append(Transform(self.name, self.part, position=position,
                                          rotCenter=rotCenter, rotAxis=rotAxis, rotAngle=rotAngle,
-                                         scaleCenter=scaleCenter, scaleFactor=scaleFactor))
+                                         scaleCenter=scaleCenter, scaleFactor=scaleFactor,
+                                         reverse=reverse))
 
     # Update CAD hook from parameters
     def update(self):

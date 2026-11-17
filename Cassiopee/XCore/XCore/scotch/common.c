@@ -145,7 +145,11 @@ clockGet (void)
 #else /* defined (_POSIX_TIMERS) && (_POSIX_TIMERS >= 200112L) */
   struct timeval      tv;
 
+#ifndef _WIN32
   gettimeofday (&tv, NULL);
+#else
+  tv.tv_sec = 0.; tv.tv_usec = 0.;
+#endif
 
  return ((double) tv.tv_sec + (double) tv.tv_usec * 1.0e-6L);
 #endif /* defined (_POSIX_TIMERS) && (_POSIX_TIMERS >= 200112L) */
