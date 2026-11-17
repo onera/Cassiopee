@@ -41,6 +41,9 @@
 #include "TopTools_IndexedMapOfShape.hxx"
 #include "GeomAPI_ProjectPointOnSurf.hxx"
 #include "BRepAlgoAPI_Splitter.hxx"
+#include "BRepCheck_Analyzer.hxx"
+#include "gp_Pln.hxx"
+#include "BRepBuilderAPI_MakeFace.hxx"
 
 //=========================================================================
 // Creates an edge on a face's surface connecting two vertices via a 
@@ -91,28 +94,26 @@ TopoDS_Edge createParametricEdgeBetweenVertices(const TopoDS_Face& face,
 }
 
 //==========================================
-// Splits a face using two vertices.
+// Splits a face with edge
 //==========================================
-TopoDS_Shape splitFaceByTwoVertices(const TopoDS_Face& face, 
-                                    const TopoDS_Edge& cutEdge)
+TopoDS_Shape splitFaceByEdge(const TopoDS_Face& face, 
+                             const TopoDS_Edge& cutEdge)
 {
-  printf("start slice\n");
   //BRepFeat_SplitShape splitter(face);
   //splitter.Add(cutEdge, face);
 
-  BRepAlgoAPI_Splitter splitter;
-  NCollection_List<TopoDS_Shape> faces;
+  TopTools_ListOfShape faces;
   faces.Append(face);
-  NCollection_List<TopoDS_Shape> cuttings;
+  TopTools_ListOfShape cuttings;
   cuttings.Append(cutEdge);
 
+  BRepAlgoAPI_Splitter splitter;  
   splitter.SetArguments(faces);
   splitter.SetTools(cuttings);
-
-  printf("before build\n");
+  //splitter.SetRunParallel(Standard_True);
+  //splitter.SetFuzzyValue(1e-5);
   splitter.Build();
-  printf("after slice\n");
-
+  
   if (splitter.IsDone()) 
   {
     return splitter.Shape();
@@ -129,6 +130,38 @@ PyObject* K_OCC::splitFace(PyObject* self, PyObject* args)
   PyObject* hook; E_Int no; E_Float x1, y1, z1; E_Float x2, y2, z2;
   if (!PYPARSETUPLE_(args, O_ I_ TRRR_ TRRR_, &hook, &no,
                     &x1, &y1, &z1, &x2, &y2, &z2)) return NULL;
+
+  /*{
+    // 1. Create a bounded 100x100 planar face on XY plane
+    gp_Pln plane(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
+    TopoDS_Face face = BRepBuilderAPI_MakeFace(plane, 0.0, 100.0, 0.0, 100.0).Face();
+
+    // 2. Create a finite splitting edge lying on that plane
+    TopoDS_Edge cutEdge = BRepBuilderAPI_MakeEdge(gp_Pnt(0, 0, 0), gp_Pnt(100, 100, 0)).Edge();
+
+    // 3. Split
+    TopTools_ListOfShape args, tools;
+    args.Append(face);
+    tools.Append(cutEdge);
+
+    BRepAlgoAPI_Splitter splitter;
+    splitter.SetArguments(args);
+    splitter.SetTools(tools);
+    splitter.Build();
+
+    if (!splitter.IsDone()) {
+        std::cerr << "Splitter failed!" << std::endl;
+        return 1;
+    }
+
+    // 4. Count resulting faces (should print 2)
+    int faceCount = 0;
+    for (TopExp_Explorer exp(splitter.Shape(), TopAbs_FACE); exp.More(); exp.Next()) {
+        faceCount++;
+    }
+    std::cout << "Resulting faces: " << faceCount << std::endl;
+    return 0;
+  }*/
 
   GETPACKET;
   GETSHAPE;
@@ -170,11 +203,15 @@ PyObject* K_OCC::splitFace(PyObject* self, PyObject* args)
   projector2.LowerDistanceParameters(u2, v2);
   printf("params %g %g / %g %g\n", u1, v1, u2, v2);
 
-  TopoDS_Edge cutEdge = createParametricEdgeBetweenVertices(face, u1, v1, u2, v2);
+  // create cutting edge
+  //TopoDS_Edge cutEdge = createParametricEdgeBetweenVertices(face, u1, v1, u2, v2);
+  // DEBUG
+  TopoDS_Edge cutEdge = BRepBuilderAPI_MakeEdge(p1, p2).Edge();
 
-  printf("cut creation.\n");
-
-  TopoDS_Shape sh = splitFaceByTwoVertices(face, cutEdge);
+  // split face with cutting edge
+  TopoDS_Shape sh = splitFaceByEdge(face, cutEdge);
+  // DEBUG
+  //TopoDS_Shape sh;
 
   printf("split done.\n");
 
@@ -188,11 +225,11 @@ PyObject* K_OCC::splitFace(PyObject* self, PyObject* args)
     if (i != no) builder.Add(compound, F);
     else
     {
-      //for (TopExp_Explorer explorer(sh, TopAbs_FACE); explorer.More(); explorer.Next()) 
-      //{
-      //  TopoDS_Face F2 = TopoDS::Face(explorer.Current());
-      //  builder.Add(compound, F2);
-      //}
+      for (TopExp_Explorer explorer(sh, TopAbs_FACE); explorer.More(); explorer.Next()) 
+      {
+        TopoDS_Face F2 = TopoDS::Face(explorer.Current());
+        builder.Add(compound, F2);
+      }
     }
   }
   builder.Add(compound, cutEdge);

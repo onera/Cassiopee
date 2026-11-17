@@ -32,6 +32,7 @@
 #include "BRepFill_Filling.hxx"
 #include "ShapeUpgrade_ShapeDivideContinuity.hxx"
 #include "BRepBuilderAPI_Sewing.hxx"
+#include "BRepCheck_Analyzer.hxx"
 
 //=====================================================================
 // Fill hole in CAD
@@ -115,12 +116,15 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
     }
   }
 
-  // build Face with brepfill - for now no success for C1 or C2
+  // build Face with brepfill - only for C0 for now
   if (continuity > 0)
   {
+    // Parameters: Degree=3, NbPtsOnCur=15, NbIter=2, Anisotropie=false,
+    //             Tol2d=1e-5, Tol3d=1e-4, TolAng=1e-2, TolCurv=1e-1, MaxDeg=8, MaxSeg=9
+    BRepFill_Filling filler(3, 15, 2);
+
     try 
     {
-      BRepFill_Filling filler;
       for (E_Int no = 0; no < PyList_Size(listEdges); no++)
       {
         PyObject* noEdgeO = PyList_GetItem(listEdges, no);
@@ -156,7 +160,18 @@ PyObject* K_OCC::fillHole(PyObject* self, PyObject* args)
     }
     catch (StdFail_NotDone& e) { fail = true; }
     catch (Standard_Failure& e) { fail = true; }
-    
+
+    // quality check
+    if (BRepCheck_Analyzer(F).IsValid()) 
+    {
+      printf("Info: fillHole: face create with max error %g.\n", filler.G0Error());
+    } 
+    else 
+    {
+      printf("Warning: fillHole: resulting face is invalid.\n");
+      fail = true;
+    }
+
     if (fail)
     {
       PyErr_SetString(PyExc_TypeError, "fillHole: fail to generate face (notDone).");  
