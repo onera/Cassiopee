@@ -3555,6 +3555,14 @@ def getMeanRangeValue(t, var, rmin, rmax):
     if len(v) > 1: var = v[1]
     return Converter.getMeanRangeValue(A, var, rmin, rmax)
 
+# -- get stats
+def getStats(t, var):
+    """Return the stat of a var."""
+    minv = getMinValue(t, var)
+    maxv = getMinValue(t, var)
+    meanv = getMeanValue(t, var)
+    return {'min': minv, 'max': maxv, 'mean': meanv}
+
 #==============================================================================
 # -- Topology conversions --
 #==============================================================================

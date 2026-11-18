@@ -20,6 +20,8 @@ cpp_srcs = [
     'Converter/addVars.cpp',
     'Converter/randomizeVar.cpp',
     'Converter/Converter7.cpp',
+    'Converter/getMeanValue.cpp',
+    'Converter/getMeanRangeValue.cpp',
     'Converter/ediff.cpp',
     'Converter/norm.cpp',
     'Converter/normalize.cpp',

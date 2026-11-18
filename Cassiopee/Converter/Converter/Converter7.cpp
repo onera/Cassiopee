@@ -17,12 +17,8 @@
     along with Cassiopee.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// getArgMin, getMax, getMean values of an array
-// getNegativeValues, getSupValues of an array
+// getArgMin, getArgMax
 # include "converter.h"
-
-using namespace K_FUNC;
-using namespace K_FLD;
 
 //=============================================================================
 // Get array values where one of its variables is minimum
@@ -37,7 +33,7 @@ PyObject* K_CONVERTER::getArgMin(PyObject* self, PyObject* args)
   // Check array
   E_Int im, jm, km;
   char* varString; char* eltType;
-  FldArrayF* f; FldArrayI* cn;
+  K_FLD::FldArrayF* f; FldArrayI* cn;
   E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
                                      cn, eltType);
   E_Int posvar = -1;
@@ -196,129 +192,3 @@ PyObject* K_CONVERTER::getArgMax(PyObject* self, PyObject* args)
     return NULL;
   }
 }
-
-//=============================================================================
-/* Get mean value of an array */
-//=============================================================================
-PyObject* K_CONVERTER::getMeanValue(PyObject* self, PyObject* args)
-{
-  PyObject* array; char* varName;
-  if (!PYPARSETUPLE_(args, O_ S_, &array, &varName)) return NULL;
-
-  // Check array
-  E_Int im, jm, km;
-  char* varString; char* eltType;
-  FldArrayF* f; FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
-                                     cn, eltType);
-
-  E_Int posvar = -1;
-  if (res == 1 || res == 2)
-  {
-    posvar = K_ARRAY::isNamePresent(varName, varString);
-    if (posvar == -1)
-    {
-      RELEASESHAREDB(res, array, f, cn);
-      char error[256];
-      sprintf(error, "getMeanValue: variable %s is not present in array.", 
-              varName);
-      PyErr_SetString(PyExc_TypeError, error);
-      return NULL;
-    }
-    posvar++;
-
-    E_Int fsize = f->getSize();
-    if (fsize == 0)
-    {
-      RELEASESHAREDB(res, array, f, cn);
-      char error[256];
-      sprintf(error, "getArgMean: array for variable %s is empty.", varName);
-      PyErr_SetString(PyExc_TypeError, error);
-      return NULL;
-    }
-
-    E_Float* fp = f->begin(posvar);
-    E_Float meanVal = 0.;
-
-#pragma omp parallel for default(shared) reduction(+:meanVal) 
-    for (E_Int i = 0; i < fsize; i++) meanVal += fp[i];
-
-    meanVal = meanVal / E_Float(fsize);
-    RELEASESHAREDB(res, array, f, cn);
-    return Py_BuildValue(R_, meanVal);
-  }
-  else 
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "getMeanValue: argument is not an array.");
-    return NULL;
-  }
-}
-
-//=============================================================================
-/* Get mean value of a range in an array */
-//=============================================================================
-PyObject* K_CONVERTER::getMeanRangeValue(PyObject* self, PyObject* args)
-{
-  PyObject* array; char* varName;
-  E_Float rmin, rmax;
-  if (!PYPARSETUPLE_(args, O_ S_ RR_, &array, &varName, &rmin, &rmax)) return NULL;
-
-  // Check array
-  E_Int im, jm, km;
-  char* varString; char* eltType;
-  FldArrayF* f; FldArrayI* cn;
-  E_Int res = K_ARRAY::getFromArray3(array, varString, f, im, jm, km, 
-                                     cn, eltType);
-
-  E_Int posvar = -1;
-  if (res == 1 || res == 2)
-  {
-    posvar = K_ARRAY::isNamePresent(varName, varString);
-    if (posvar == -1)
-    {
-      RELEASESHAREDB(res, array, f, cn);
-      char error[256];
-      sprintf(error, "getMeanRangeValue: variable %s is not present in array.", 
-              varName);
-      PyErr_SetString(PyExc_TypeError, error);
-      return NULL;
-    }
-    posvar++;
-
-    E_Int fsize = f->getSize();
-    if (fsize == 0)
-    {
-      RELEASESHAREDB(res, array, f, cn);
-      char error[256];
-      sprintf(error, "getMeanRangeValue: array for variable %s is empty.", varName);
-      PyErr_SetString(PyExc_TypeError, error);
-      return NULL;
-    }
-
-    E_Float* fp = f->begin(posvar);
-    E_Float meanVal = 0.;
-    
-    std::vector<E_Float> vals;
-    vals.insert(vals.end(), fp, fp+fsize);
-    
-    std::sort(vals.begin(), vals.end());
-    
-    size_t sz1 = size_t(E_Float(fsize)*rmin);
-    size_t sz2 = size_t(E_Float(fsize)*rmax);
-    
-    for (size_t i = sz1; i < sz2; ++i) meanVal += vals[i];
-
-    meanVal = meanVal / E_Float(1+sz2-sz1);
-
-    RELEASESHAREDB(res, array, f, cn);
-    return Py_BuildValue(R_, meanVal);
-  }
-  else 
-  {
-    PyErr_SetString(PyExc_TypeError,
-                    "getMeanRangeValue: argument is not an array.");
-    return NULL;
-  }
-}
-

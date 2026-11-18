@@ -1222,6 +1222,13 @@ def getMeanRangeValue(array, varName, rmin, rmax):
     else:
         return converter.getMeanRangeValue(array, varName, rmin, rmax)
 
+def getStats(a, var):
+    """Return the stat of a var."""
+    minv = getMinValue(a, var)
+    maxv = getMinValue(a, var)
+    meanv = getMeanValue(a, var)
+    return {'min': minv, 'max': maxv, 'mean': meanv}
+
 def normL0(array, varName):
     """Get the L0 norm of the field defined by varName in the array.
     If celln exists in the array, the norm for blanked points is not computed.
