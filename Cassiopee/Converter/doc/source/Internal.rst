@@ -653,8 +653,6 @@ Acess nodes
 
     .. literalinclude:: ../build/Examples/Converter/getValPT.py
 
-    .. note:: new in version 3.2.
-
 ---------------------------------------------------------------------------------
 
 .. py:function:: Converter.Internal.getPath(t, node, pyCGNSLike=False)
@@ -766,8 +764,6 @@ Acess nodes
 
     .. literalinclude:: ../build/Examples/Converter/getChildFromNamePT.py
 
-    .. note:: new in version 3.2.
-
 -----------------------------------------------------------------------------
 
 .. py:function:: Converter.Internal.getNodesFromType(t, ntype)
@@ -852,8 +848,6 @@ Acess nodes
 
     .. literalinclude:: ../build/Examples/Converter/getChildFromTypePT.py
 
-    .. note:: new in version 3.2.
-
 ---------------------------------------------------------------------------------
 
 .. py:function:: Converter.Internal.getChildrenFromType(node)
@@ -871,8 +865,6 @@ Acess nodes
     * `Return children nodes of type (pyTree) <Examples/Converter/getChildrenFromTypePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/getChildrenFromTypePT.py
-
-    .. note:: new in version 3.3.
 
 -----------------------------------------------------------------------------
 
@@ -896,8 +888,6 @@ Acess nodes
 
     .. literalinclude:: ../build/Examples/Converter/getNodesFromNameAndTypePT.py
  
-    .. note:: new in version 2.7.
-
 -----------------------------------------------------------------------------------------------
 
 .. py:function:: Converter.Internal.getNodeFromNameAndType(t, name, ntype)
@@ -921,8 +911,6 @@ Acess nodes
 
     .. literalinclude:: ../build/Examples/Converter/getNodeFromNameAndTypePT.py
     
-    .. note:: new in version 2.7.
-
 -----------------------------------------------------------------------------------------------
 
 .. py:function:: Converter.Internal.getNodesFromValue(t, value)
@@ -996,8 +984,6 @@ Acess nodes
 
     .. literalinclude:: ../build/Examples/Converter/getParentFromTypePT.py
 
-    .. note:: new in version 2.7.
-
 -----------------------------------------------------------------------------------------------
 
 .. py:function:: Converter.Internal.getParentsFromType(t, node, parentType)
@@ -1021,8 +1007,6 @@ Acess nodes
 
     .. literalinclude:: ../build/Examples/Converter/getParentsFromTypePT.py
 
-    .. note:: new in version 2.7.
-
 -----------------------------------------------------------------------------------------------
 
 .. py:function:: Converter.Internal.getNodePosition(node, parent)
@@ -1043,8 +1027,6 @@ Acess nodes
     * `Return position of a node (pyTree) <Examples/Converter/getNodePositionPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/getNodePositionPT.py
-
-    .. note:: new in version 2.9.
 
 -----------------------------------------------------------------------------------------------
 
@@ -1152,8 +1134,6 @@ Acess nodes
 
     .. literalinclude:: ../build/Examples/Converter/getPathLeafPT.py
 
-    .. note:: New in version 2.5
-
 ------------------------------------------------------------------------------------
 
 .. py:function:: Converter.Internal.getPathAncestor(path, level=-1)
@@ -1172,8 +1152,6 @@ Acess nodes
     * `Return ancestor path (pyTree) <Examples/Converter/getPathAncestorPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/getPathAncestorPT.py
-
-    .. note:: New in version 2.5
 
 -----------------------------------------------------------------------------------------------
 
@@ -1194,8 +1172,6 @@ Acess nodes
     * `Return zone paths of tree (pyTree) <Examples/Converter/getZonePathsPT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/getZonePathsPT.py
-
-    .. note:: New in version 2.5
 
 ---------------------------------------------------------------------------
 
@@ -1848,8 +1824,8 @@ Modify nodes
 
 .. py:function:: Converter.Internal.groupBCByBCType(t, btype='BCWall', name='FamWall') 
 
-    For each base, gather all BCs of same BCType in a family named FamilyName.
-    The family node is created and the BC is tagged with BC family.
+    For each base, gather all BCs of type "btype" in a family named "name".
+    The family node is created and the BC is tagged with the BC family.
 
     Exists also as in place version (_groupBCByBCType) that modifies t and returns None.
 
@@ -1867,8 +1843,6 @@ Modify nodes
     * `Group BC from their types (pyTree) <Examples/Converter/groupBCByBCTypePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/groupBCByBCTypePT.py
-
-    .. note:: New in version 2.4
 
 ---------------------------------------------------------------------------
 

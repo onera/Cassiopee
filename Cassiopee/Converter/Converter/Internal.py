@@ -3632,52 +3632,6 @@ def convertDataNodes2Array3(nodes, dim, connects, loc=-1):
     if loc == 1: eltString = eltString.replace(',', '*,') + '*'
   return [vars, field, cr, eltString]
 
-def _groupByFamily(t, familyChilds=None, unique=False):
-  """Group all nodes of each base which have the same family name but not link to a family node."""
-  if familyChilds is None: familyChilds=[]
-  for b in getBases(t):
-    # Name of Nodes Family_t
-    familyNodeNames = [fam[0] for fam in getNodesFromType(b, 'Family_t')]
-    # All node BC_t not family specified
-    BCNotSpec = []
-    for bc in getNodesFromType3(b, 'BC_t'):
-      if not isValue(bc, 'FamilySpecified'):
-        childname = getNodeFromName1(bc, 'FamilyName')
-        if childname is not None: BCNotSpec.append(bc)
-    for bc in BCNotSpec:
-      FamNameNode = getNodeFromType1(bc, 'FamilyName_t')
-      FamilyName= getValue(FamNameNode)
-      solverBC = getNodeFromName1(bc, '.Solver#BC')
-      if not solverBC: solverBCChilds = []
-      else: solverBCChilds = solverBC[2]
-
-      # if a family node already exist
-      if FamilyName in familyNodeNames:
-        setValue(bc, 'FamilySpecified')
-      else:
-        familyNodeNames.append(FamilyName)
-        FamBC = createNode('FamilyBC', 'FamilyBC_t', getValue(bc))
-        children = familyChilds[:]+solverBCChilds[:]# faut il faire une deepcopy ? dans XTree c est le cas
-        if not unique: children.append(FamBC)
-        else:
-          e = -1
-          for child in children:
-            if isName(child,getName(FamBC)) and isType(child, 'Family_t'):
-              setValue(child,getValue(FamBC))
-              e = 0
-              break
-          if e == -1: children.append(FamBC)
-
-        nodep = createNode(FamilyName, 'Family_t', value=None, children=children, parent=b)
-        setValue(bc, 'FamilySpecified')
-        if solverBC: _rmNode(bc, solverBC)
-  return None
-
-def groupByFamily(t, familyChilds=None, unique=False):
-  tp = copyRef(t)
-  _groupByFamily(tp, familyChilds, unique)
-  return tp
-
 #==============================================================================
 # -- Get zone dims --
 #==============================================================================
@@ -4102,7 +4056,7 @@ def _groupBCByBCType(t, btype='BCWall', name='FamWall'):
   """Tag all BCs of given type with family named FamilyName."""
   for base in getBases(t):
     found = False
-    for bc in getNodesFromType3(base,'BC_t'):
+    for bc in getNodesFromType3(base, 'BC_t'):
       if isValue(bc, btype):
         found = True
         setValue(bc, 'FamilySpecified')
@@ -4111,6 +4065,53 @@ def _groupBCByBCType(t, btype='BCWall', name='FamWall'):
       bcvalue = createNode('FamilyBC', 'FamilyBC_t', value=btype)
       _createUniqueChild(base, name, 'Family_t', children=[bcvalue])
   return None
+
+def _groupByFamily(t, familyChilds=None, unique=False):
+  """Group all nodes of each base which have the same family name but not link to a family node."""
+  if familyChilds is None: familyChilds=[]
+  for b in getBases(t):
+    # Name of Nodes Family_t
+    familyNodeNames = [fam[0] for fam in getNodesFromType(b, 'Family_t')]
+    # All node BC_t not family specified
+    BCNotSpec = []
+    for bc in getNodesFromType3(b, 'BC_t'):
+      if not isValue(bc, 'FamilySpecified'):
+        childname = getNodeFromName1(bc, 'FamilyName')
+        if childname is not None: BCNotSpec.append(bc)
+    for bc in BCNotSpec:
+      FamNameNode = getNodeFromType1(bc, 'FamilyName_t')
+      FamilyName = getValue(FamNameNode)
+      solverBC = getNodeFromName1(bc, '.Solver#BC')
+      if not solverBC: solverBCChilds = []
+      else: solverBCChilds = solverBC[2]
+
+      # if a family node already exists
+      if FamilyName in familyNodeNames:
+        setValue(bc, 'FamilySpecified')
+      else:
+        familyNodeNames.append(FamilyName)
+        FamBC = createNode('FamilyBC', 'FamilyBC_t', getValue(bc))
+        children = familyChilds[:]+solverBCChilds[:] # faut il faire une deepcopy ? dans XTree c est le cas
+        if not unique: children.append(FamBC)
+        else:
+          e = -1
+          for child in children:
+            if isName(child,getName(FamBC)) and isType(child, 'Family_t'):
+              setValue(child,getValue(FamBC))
+              e = 0
+              break
+          if e == -1: children.append(FamBC)
+
+        createNode(FamilyName, 'Family_t', value=None, children=children, parent=b)
+        setValue(bc, 'FamilySpecified')
+        if solverBC: _rmNode(bc, solverBC)
+  return None
+
+def groupByFamily(t, familyChilds=None, unique=False):
+  """Group all nodes of each base which have the same family name but not link to a family node."""
+  tp = copyRef(t)
+  _groupByFamily(tp, familyChilds, unique)
+  return tp
 
 #==============================================================================
 # -- ElementConnectivity management --

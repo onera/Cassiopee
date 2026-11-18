@@ -277,8 +277,25 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
     if (im > 1) dim += 1;
     if (jm > 1) dim += 1;
     if (km > 1) dim += 1;
+    if (dim == 3)
+    {
+      RELEASESHAREDB(res, array, f, cn);
+      PyErr_SetString(PyExc_TypeError,
+                    "consSmooth: structured mesh must be of dimension 1 or 2.");
+      return NULL;
+    }
   }
-  else dim = cn->getDim(eltType);
+  else 
+  {
+    if (strcmp(eltType, "TRI") != 0 && strcmp(eltType, "BAR") != 0)
+    {
+      RELEASESHAREDB(res, array, f, cn);
+      PyErr_SetString(PyExc_TypeError,
+                    "consSmooth: unstructured mesh must be BAR or TRI.");
+      return NULL;
+    }
+    dim = cn->getDim(eltType);
+  }
 
   if (dim == 1) // 1d curves
   {
@@ -663,7 +680,7 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
   } 
   else if (dim == 2) // TRI surface
   {
-    //printf ("consSmooth: on surfaces.\n");
+    //printf ("consSmooth: on TRI surfaces.\n");
     tpl = K_ARRAY::buildArray3(f->getNfld(), varString,
                                 f->getSize(), cn->getSize(),
                                 eltType, false, f->getApi());

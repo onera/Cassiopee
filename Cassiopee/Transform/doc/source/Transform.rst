@@ -67,6 +67,7 @@ List of functions
     Transform.perturbate
     Transform.smooth
     Transform.smoothField
+    Transform.consSmooth
     Transform.dual
     Transform.breakElements
 
@@ -724,6 +725,38 @@ Mesh transformation
     .. literalinclude:: ../build/Examples/Transform/smoothFieldPT.py
 
 ---------------------------------------
+
+
+.. py:function:: Transform.consSmooth(a, sweeps, twoWays=False, omega=0.2)
+
+    Perform conservative smoothing of a TRI surface (3D) or a BAR curve (2D).
+    For a closed surface, the inner volume is conserved.
+
+    Exists also as an in-place version (_consSmooth) which modifies a and returns None.
+
+    :param a: input mesh
+    :type a: array or zone
+    :param sweeps: number of smoothing iteration
+    :type sweeps: int
+    :param twoWays: smooth in one way and then in the other (only for 2D)
+    :type twoWays: boolean
+    :param omega: power of smoothing (only for 3D)
+    :type omega: float
+    :return: mesh after smoothing
+    :rtype: array or zone
+
+    *Example of use:*
+
+    * `Conservative smoothing of a mesh (array) <Examples/Transform/consSmooth.py>`_:
+
+    .. literalinclude:: ../build/Examples/Transform/consSmooth.py
+
+    * `Conservative smoothing of a mesh (pyTree) <Examples/Transform/consSmoothPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Transform/consSmoothPT.py
+
+---------------------------------------
+
 
 .. py:function:: Transform.dual(a, extraPoints=1)
 

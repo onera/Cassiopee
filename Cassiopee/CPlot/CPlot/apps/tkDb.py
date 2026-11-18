@@ -260,11 +260,11 @@ if __name__ == "__main__":
         try:
             CTK.t = C.convertFile2PyTree(CTK.FILE)
             (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
-            CTK.display(CTK.t)
+            CTK.display(CTK.t, isoEdges=0.1)
         except: pass
 
     # Main window
-    (win, menu, file, tools) = CTK.minimal('tkDriver '+C.__version__)
+    (win, menu, file, tools) = CTK.minimal('tkDb '+C.__version__)
 
     createApp(win); showApp()
 
