@@ -18,6 +18,8 @@ echo 'Installing propre'
 cp propre "$INSTALLPATH"
 echo 'Installing locateSymbol'
 cp locateSymbol "$INSTALLPATH"
+echo 'Installing moveDist'
+cp moveDist "$INSTALLPATH"
 echo 'Installing codeExtract'
 cp codeExtract "$INSTALLPATH"
 cp codeExtract.py "$INSTALLPATH"
