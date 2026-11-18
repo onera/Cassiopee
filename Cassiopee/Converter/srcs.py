@@ -21,6 +21,7 @@ cpp_srcs = [
     'Converter/randomizeVar.cpp',
     'Converter/Converter7.cpp',
     'Converter/getMeanValue.cpp',
+    'Converter/getStandardDeviation.cpp',
     'Converter/getMeanRangeValue.cpp',
     'Converter/ediff.cpp',
     'Converter/norm.cpp',

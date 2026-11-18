@@ -53,6 +53,7 @@ namespace K_CONVERTER
   PyObject* getArgMin(PyObject* self, PyObject* args);
   PyObject* getArgMax(PyObject* self, PyObject* args);
   PyObject* getMeanValue(PyObject* self, PyObject* args);
+  PyObject* getStandardDeviation(PyObject* self, PyObject* args);
   PyObject* getMeanRangeValue(PyObject* self, PyObject* args);
   PyObject* normL0(PyObject* self, PyObject* args);
   PyObject* normL2(PyObject* self, PyObject* args);

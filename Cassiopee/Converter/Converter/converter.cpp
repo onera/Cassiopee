@@ -44,6 +44,7 @@ static PyMethodDef Pyconverter [] =
   {"getArgMin", K_CONVERTER::getArgMin, METH_VARARGS},
   {"getArgMax", K_CONVERTER::getArgMax, METH_VARARGS},
   {"getMeanValue", K_CONVERTER::getMeanValue, METH_VARARGS},
+  {"getStandardDeviation", K_CONVERTER::getStandardDeviation, METH_VARARGS},
   {"getMeanRangeValue", K_CONVERTER::getMeanRangeValue, METH_VARARGS},
   {"normL0", K_CONVERTER::normL0, METH_VARARGS},
   {"normL2", K_CONVERTER::normL2, METH_VARARGS},

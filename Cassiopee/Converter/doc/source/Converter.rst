@@ -218,6 +218,7 @@ List of functions
     Converter.getMinValue
     Converter.getMaxValue
     Converter.getMeanValue
+    Converter.getStandardDeviation
     Converter.getMeanRangeValue
     Converter.normL0
     Converter.normL2
@@ -2095,6 +2096,28 @@ Array / PyTree analysis
     * `Get the mean of F (pyTree) <Examples/Converter/getMeanValuePT.py>`_:
 
     .. literalinclude:: ../build/Examples/Converter/getMeanValuePT.py
+
+-----------------------------------------------------------------------------------
+
+.. py:function:: Converter.getStandardDeviation(a, var)
+
+    Return the standard deviation of field 'var' on input.
+
+    :param a: input data
+    :type a: [array, list of arrays] or [pyTree, base, zone, list of zones]
+    :param var: variable name
+    :type var: string
+    :rtype: standard deviation
+
+    *Example of use:*
+
+    * `Get the standard deviation of F (array) <Examples/Converter/getStandardDeviation.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getStandardDeviation.py
+
+    * `Get the standard deviation of F (pyTree) <Examples/Converter/getStandardDeviationPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Converter/getStandardDeviationPT.py
 
 -----------------------------------------------------------------------------------
 
