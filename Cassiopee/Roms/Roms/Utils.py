@@ -163,7 +163,7 @@ def convertCAD2CBL(hook, fileName, din):
             l += f"{k} = T1.Fill(sketch{s})"
             s += 1
     __LOG__.write(l)
-    
+
     # write end of file
     l = "T1.solve()\n"
     l += "T1.instantiate({'v1':1.})\n"
