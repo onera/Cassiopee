@@ -19,4 +19,3 @@ test.testT(tb,1)
 
 tbExtSym = G_AMR.createExtension__(tb)
 test.testT(tbExtSym,2)
-

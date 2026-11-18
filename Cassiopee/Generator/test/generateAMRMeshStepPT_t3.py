@@ -54,13 +54,13 @@ dfars = 10
 tb_noSym, tbExtSym, dir_sym = G_AMR.checkBaseSym__(tb, None, dim, check, LOCAL)
 if Cmpi.master:
     test.testT(tb_noSym,1)
-    
+
 snears, snearsTb, vmins, nbases  = G_AMR.checkSnearsVmins__(tb_noSym, tbox, snears, vmins, levelMax)
 if Cmpi.master:
     test.testO(snears, 2)
     test.testO(snearsTb, 3)
     test.testO(vmins, 4)
-    
+
 tb_tbox, tb_tbox_noSym, vmins, snears, nbases, nboxes = G_AMR.checkTbox__ (tb, tb_noSym, tbox, vmins, snears, nbases, vminsTbox, levelMax)
 if Cmpi.master:
     test.testT(tb_tbox, 5)
@@ -68,7 +68,7 @@ if Cmpi.master:
     test.testO(snears, 7)
     test.testO(snearsTb, 8)
     test.testO(vmins, 9)
-    
+
 tb_tbox, tb_tbox_noSym, vmins, snears, nbases, nboxes  = G_AMR.checkMultiSnears__(tb_noSym, tb_tbox, tb_tbox_noSym, vmins, snears, nbases, nboxes, dim, levelMax, check, LOCAL)
 if Cmpi.master:
     test.testT(tb_tbox, 10)
@@ -76,7 +76,7 @@ if Cmpi.master:
     test.testO(snears, 12)
     test.testO(snearsTb, 13)
     test.testO(vmins, 14)
-    
+
 o, tCartIn, levelMax, snears, dfars, vmins = G_AMR.generateCoarseGrid__(tb, tb_tbox_noSym, None, snears, snearsTb, nbases, vmins, dfars,
                                                                         dim, dir_sym, levelMax, octreeMode, NumMinDxLarge)
 if Cmpi.master:
@@ -84,8 +84,7 @@ if Cmpi.master:
     test.testO(vmins, 16)
     test.testO(snears, 17)
     test.testO(dfars, 18)
-   
+
 toffset = G_AMR.generateOffset__(tb_tbox, nbases, dfars, vmins, snears, dim, False, nboxes, tbExtSym, 'xray', tCartIn)
 if Cmpi.master:
     test.testT(toffset, 19)
-

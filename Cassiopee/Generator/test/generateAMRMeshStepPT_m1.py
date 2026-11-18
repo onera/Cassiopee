@@ -78,4 +78,3 @@ if Cmpi.master:
 toffset = G_AMR.generateOffset__(tb_tbox, nbases, dfars, vmins, snears, dim, False, nboxes, tbExtSym, 'xray', tCartIn)
 if Cmpi.master:
     test.testT(toffset, 14)
-
