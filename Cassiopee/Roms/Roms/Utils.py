@@ -1,3 +1,4 @@
+
 # Driver utilities
 import OCC
 
@@ -138,13 +139,32 @@ def convertCAD2CBL(hook, fileName, din):
                 lp += f"line{ie}, "
             elif dtype == "Circle":
                 lp += f"circle{ie}, "
+            elif dtype == "Spline1":
+                lp += f"spline{ie}, "
+            elif dtype == "Ellipse":
+                lp += f"ellipse{ie}, "
             ie += 1
         lp = lp[:-2]
         l += f"sketch{isk} = T1.Sketch('sketch{isk}', [{lp}])\n"
     __LOG__.write(l)
 
     # write surface to log
-
+    l = ''; s = 0
+    for k in din:
+        if 'loft' in k or 'sweep' in k:
+            l += f"{k} = T1.Loft(["
+            ns = len(data[k])
+            for i in range(ns):
+                l += f"sketch{i+s}, "
+            s += ns
+            l = l[:-2]
+            l += "]\n"
+        elif 'fill' in k:
+            l += f"{k} = T1.Fill(sketch{s})"
+            s += 1
+    __LOG__.write(l)
+    
+    # write end of file
     l = "T1.solve()\n"
     l += "T1.instantiate({'v1':1.})\n"
     l += "D.DRIVER.plot()\n"

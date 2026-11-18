@@ -165,7 +165,6 @@ PyObject* K_OCC::splitFace(PyObject* self, PyObject* args)
 
   GETPACKET;
   GETSHAPE;
-  GETMAPEDGES;
   GETMAPSURFACES;
 
   TopoDS_Face face = TopoDS::Face(surfaces(no)); // existing face

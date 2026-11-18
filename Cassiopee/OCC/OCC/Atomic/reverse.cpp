@@ -99,7 +99,7 @@ PyObject* K_OCC::reverse(PyObject* self, PyObject* args)
   }
   else if (method == 1) // by shape reverse
   {
-    TopoDS_Shape* newshp = NULL;
+    TopoDS_Shape* newshp = NULL; 
     if (listFaces == Py_None)
     {
       newshp = new TopoDS_Shape(shape->Reversed());
@@ -151,7 +151,7 @@ PyObject* K_OCC::reverse(PyObject* self, PyObject* args)
       BRepBuilderAPI_Sewing sewer(1.e-6);
       sewer.Add(shc2);
       sewer.Perform();
-      *newshp = sewer.SewedShape();
+      newshp = new TopoDS_Shape(sewer.SewedShape());
     }
 
     // export
