@@ -7,4 +7,4 @@ stdval = C.getStandardDeviation(a, 'CoordinateX'); print(stdval)
 #>> 3.1622776601683795
 C._initVars(a, '{centers:F}={centers:CoordinateX}')
 stdval = C.getStandardDeviation(a, 'centers:F'); print(stdval)
-#>> 0.0
+#>> 2.8722813232690143

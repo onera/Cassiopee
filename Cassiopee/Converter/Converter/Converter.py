@@ -29,6 +29,7 @@ __all__ = [
     'freeHook', 'getArgMax', 'getArgMin', 'getMaxValue', 'getMeanRangeValue',
     'getMeanValue', 'getMinValue', 'getNCells', 'getNPts', 'getValue',
     'getStandardDeviation',
+    'getStats',
     'getVarNames', 'identifyElements', 'identifyFaces', 'identifyNodes',
     'identifySolutions', 'initVars', '_initVars', 'isNamePresent', 'listen',
     'magnitude', 'nearestElements', 'nearestFaces', 'nearestNodes',
@@ -1243,11 +1244,12 @@ def getMeanRangeValue(array, varName, rmin, rmax):
         return converter.getMeanRangeValue(array, varName, rmin, rmax)
 
 def getStats(a, var):
-    """Return the stat of a var."""
+    """Return the stats of a var."""
     minv = getMinValue(a, var)
-    maxv = getMinValue(a, var)
+    maxv = getMaxValue(a, var)
     meanv = getMeanValue(a, var)
-    return {'min': minv, 'max': maxv, 'mean': meanv}
+    stdv = getStandardDeviation(a, var)
+    return {'min': minv, 'max': maxv, 'mean': meanv, 'stdv': stdv}
 
 def normL0(array, varName):
     """Get the L0 norm of the field defined by varName in the array.

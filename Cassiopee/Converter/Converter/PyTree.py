@@ -3566,11 +3566,12 @@ def getStandardDeviation(t, var):
 
 # -- get stats
 def getStats(t, var):
-    """Return the stat of a var."""
+    """Return the stats of a var."""
     minv = getMinValue(t, var)
-    maxv = getMinValue(t, var)
+    maxv = getMaxValue(t, var)
     meanv = getMeanValue(t, var)
-    return {'min': minv, 'max': maxv, 'mean': meanv}
+    stdv = getStandardDeviation(t, var)
+    return {'min': minv, 'max': maxv, 'mean': meanv, 'stdv': stdv}
 
 #==============================================================================
 # -- Topology conversions --
