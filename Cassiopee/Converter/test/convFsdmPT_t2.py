@@ -23,8 +23,9 @@ for z in [a,b,c,d]:
     e = P.exteriorFaces(zNG)
     e = T.splitSharpEdges(e, 75.)
     res = T.breakElements(e)
-    for r in res: C._addBC2Zone(z, 'farME%d'%ffcount, 'BCFarfield', subzone=r)
-    ffcount += 1
+    for r in res: 
+        C._addBC2Zone(z, 'farME%d'%ffcount, 'BCFarfield', subzone=r)
+        ffcount += 1
 
 BCInfo = C.getBCs([a,b,c,d])
 z = C.mergeConnectivity([a,b,c,d], None)
