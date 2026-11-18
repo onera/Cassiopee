@@ -1898,7 +1898,7 @@ getRegularityMap = getVolumeRatioMap # alias old name
 _getRegularityMap = _getVolumeRatioMap # alias old name
 
 #------------------------------------------------------------------------------
-# Mesh quality function: grid skewness (ex. getAngleRegularityMap)
+# Mesh quality function: grid skewness (ex. getGridSkewnessMap)
 # Returns the maximum inter-cell deviation angle between adjacent cells
 # This angle is formed at the face centroid, between the two
 # cell-centroid-to-face-centroid vectors

@@ -2428,7 +2428,7 @@ def getVolumeRatioMap(array):
 
 getRegularityMap = getVolumeRatioMap # alias old name
 
-# Mesh quality function: grid skewness (ex. getAngleRegularityMap)
+# Mesh quality function: grid skewness (ex. getGridSkewnessMap)
 def getGridSkewnessMap(array, normalized=False):
     """Return the grid skewness map in an array.
     Usage: getGridSkewnessMap(array)"""

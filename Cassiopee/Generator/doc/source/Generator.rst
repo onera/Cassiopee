@@ -137,9 +137,9 @@ List of functions
    Generator.getVolumeMap
    Generator.getNormalMap
    Generator.getSmoothNormalMap
-   Generator.getOrthogonalityMap
-   Generator.getRegularityMap
-   Generator.getAngleRegularityMap
+   Generator.getCellSkewnessMap
+   Generator.getVolumeRatioMap
+   Generator.getGridSkewnessMap
    Generator.getTriQualityMap
    Generator.getCellPlanarity
    Generator.getCircumCircleMap
@@ -2071,37 +2071,13 @@ Information on generated meshes
 
 ---------------------------------------
 
-.. py:function:: Generator.getOrthogonalityMap(a)
+.. py:function:: Generator.getCellSkewnessMap(a)
 
-    Return the orthogonality map of an array. The orthogonality map corresponds to the maximum deviation of all dihedral angles of an element. The orthogonality map is expressed in degree and located at centers. 
+    Return the skewness map of an array. The skewness map 
+    corresponds to the maximum deviation of all dihedral angles 
+    of an element. It is expressed in degree and located at centers. 
     
-    Exists also as in place version (_getOrthogonalityMap) that modifies a and returns None. 
-
-    :param a:  input mesh
-    :type  a:  array or pyTree
-    :return: modified reference copy of a
-    :rtype: array or pyTree
-
-    *Example of use:*
-
-    * `Computation of cells orthogonality (array) <Examples/Generator/getOrthogonalityMap.py>`_:
-
-    .. literalinclude:: ../build/Examples/Generator/getOrthogonalityMap.py
-
-    * `Computation of cells orthogonality (pyTree) <Examples/Generator/getOrthogonalityMapPT.py>`_:
-
-    .. literalinclude:: ../build/Examples/Generator/getOrthogonalityMapPT.py
-
----------------------------------------
-
-.. py:function:: Generator.getRegularityMap(a)
-
-    Return the regularity map of an array. The regularity map corresponds to the maximum deviation of 
-    the volume ratio of an element and all its neigbouring cells. The regularity map is located 
-    at centers in a field "regularity". 
-    
-    Exists also as in place version (_getRegularityMap) that modifies a and returns None. 
-    Exists also as parallel distributed version (G.Mpi.getRegularityMap).
+    Exists also as in place version (_getCellSkewnessMap) that modifies a and returns None. 
 
     :param a: input mesh
     :type  a: array or pyTree
@@ -2110,25 +2086,51 @@ Information on generated meshes
 
     *Example of use:*
 
-    * `Computation of cells regularity with respect to volumes (array) <Examples/Generator/getRegularityMap.py>`_:
+    * `Computation of cells skewness (array) <Examples/Generator/getCellSkewnessMap.py>`_:
 
-    .. literalinclude:: ../build/Examples/Generator/getRegularityMap.py
+    .. literalinclude:: ../build/Examples/Generator/getCellSkewnessMap.py
 
-    * `Computation of cells regularity with respect to volumes (pyTree) <Examples/Generator/getRegularityMapPT.py>`_:
+    * `Computation of cells skewness (pyTree) <Examples/Generator/getCellSkewnessMapPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Generator/getRegularityMapPT.py
+    .. literalinclude:: ../build/Examples/Generator/getCellSkewnessMapPT.py
 
 ---------------------------------------
 
-.. py:function:: Generator.getAngleRegularityMap(a)
+.. py:function:: Generator.getVolumeRatioMap(a)
+
+    Return the regularity map of an array. The regularity map corresponds to the maximum deviation of 
+    the volume ratio of an element and all its neigbouring cells. The regularity map is located 
+    at centers in a field "regularity". 
+    
+    Exists also as in place version (_getVolumeRatioMap) that modifies a and returns None. 
+    Exists also as parallel distributed version (G.Mpi.getVolumeRatioMap).
+
+    :param a: input mesh
+    :type  a: array or pyTree
+    :return: modified reference copy of a
+    :rtype: array or pyTree
+
+    *Example of use:*
+
+    * `Computation of cells regularity with respect to volumes (array) <Examples/Generator/getVolumeRatioMap.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/getVolumeRatioMap.py
+
+    * `Computation of cells regularity with respect to volumes (pyTree) <Examples/Generator/getVolumeRatioMapPT.py>`_:
+
+    .. literalinclude:: ../build/Examples/Generator/getVolumeRatioMapPT.py
+
+---------------------------------------
+
+.. py:function:: Generator.getGridSkewnessMap(a)
 
     Return the angle regularity map of an array. 
     The angle regularity map corresponds to the maximum angle difference between an element and its 
     neigbouring cells. The angle regularity map is expressed in degree and located at centers in 
     a field "regularityAngle".
     
-    Exists also as in place version (_getAngleRegularityMap) that modifies a and returns None. 
-    Exists also as parallel distributed version (G.Mpi.getAngleRegularityMap).
+    Exists also as in place version (_getGridSkewnessMap) that modifies a and returns None. 
+    Exists also as parallel distributed version (G.Mpi.getGridSkewnessMap).
 
     :param a: input mesh
     :type  a: array or pyTree
@@ -2137,13 +2139,13 @@ Information on generated meshes
 
     *Example of use:*
 
-    * `Computation of cells regularity with respect to angles (array) <Examples/Generator/getAngleRegularityMap.py>`_:
+    * `Computation of cells regularity with respect to angles (array) <Examples/Generator/getGridSkewnessMap.py>`_:
 
-    .. literalinclude:: ../build/Examples/Generator/getAngleRegularityMap.py
+    .. literalinclude:: ../build/Examples/Generator/getGridSkewnessMap.py
 
-    * `Computation of cells regularity with respect to angles (pyTree) <Examples/Generator/getAngleRegularityMapPT.py>`_:
+    * `Computation of cells regularity with respect to angles (pyTree) <Examples/Generator/getGridSkewnessMapPT.py>`_:
 
-    .. literalinclude:: ../build/Examples/Generator/getAngleRegularityMapPT.py
+    .. literalinclude:: ../build/Examples/Generator/getGridSkewnessMapPT.py
 
 ---------------------------------------
 
@@ -2292,13 +2294,13 @@ Information on generated meshes
 
 .. py:function:: Generator.checkMesh(m, critVol=0., critOrtho=15., critReg=0.1, critAngReg=15., addGC=False, verbose=0)
 
-    Return global information about a given mesh based on four unit tests. Two local tests are used (getVolumeMap and getOrthogonalityMap), as well as two global tests (getRegularityMap and getAngleRegularityMap) to assess the mesh quality.
+    Return global information about a given mesh based on four unit tests. Two local tests are used (getVolumeMap and getCellSkewnessMap), as well as two global tests (getVolumeRatioMap and getGridSkewnessMap) to assess the mesh quality.
     
     :param m:  input mesh
     :type  m:  array or pyTree
     :param critVol,...: critical values for each unit test. All critical values are used to check if a value is above a given threshold, except for the first unit test (getVolumeMap) for which we usually check for negative volume cells in the mesh
     :type  critVol,...:  floats
-    :param addGC: if True, add one layer of ghost cells to the pyTree. Useful for global tests (getAngleRegularityMap and getRegularityMap) in the case of multiple zones
+    :param addGC: if True, add one layer of ghost cells to the pyTree. Useful for global tests (getGridSkewnessMap and getVolumeRatioMap) in the case of multiple zones
     :type  addGC:  Boolean
     :param verbose: if 2, print mesh info per sub-zone (local min, max, mean values and percentage of critical cells per test). If 1, only print mesh info when critical cells are encountered. If 0, do not print anything
     :type  verbose:  int
