@@ -79,5 +79,6 @@ if srcs.ZFP:
 
 # Setup ======================================================================
 setup(
-    ext_modules=extensions
+    ext_modules=extensions,
+    **Dist.getPyprojectLicenseOptions()
 )

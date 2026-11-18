@@ -56,7 +56,7 @@ libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkCppLibs()
 libraryDirs += paths; libraries += libs
 
-# setup ======================================================================
+# Extensions =================================================================
 listExtensions = [
     Extension(
         'Intersector.intersector',
@@ -69,6 +69,8 @@ listExtensions = [
     )
 ]
 
+# setup ======================================================================
 setup(
-    ext_modules=listExtensions
+    ext_modules=listExtensions,
+    **Dist.getPyprojectLicenseOptions()
 )

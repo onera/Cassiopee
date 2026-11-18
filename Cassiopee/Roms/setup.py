@@ -50,5 +50,6 @@ listExtensions = [
 
 # setup ======================================================================
 setup(
-    ext_modules=listExtensions
+    ext_modules=listExtensions,
+    **Dist.getPyprojectLicenseOptions()
 )

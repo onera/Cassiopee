@@ -137,5 +137,6 @@ else:
 
 # setup ======================================================================
 setup(
-    ext_modules=listExtensions+cythonize(listExtensionsPyx, include_path=[paradigmaDir])
+    ext_modules=listExtensions+cythonize(listExtensionsPyx, include_path=[paradigmaDir]),
+    **Dist.getPyprojectLicenseOptions()
 )

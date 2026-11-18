@@ -36,7 +36,7 @@ libraryDirs += paths; libraries += libs
 (ok, libs, paths) = Dist.checkFortranLibs()
 libraryDirs += paths; libraries += libs
 
-# setup ======================================================================
+# Extensions =================================================================
 listExtensions = [
     Extension(
         'Distributor2.distributor2',
@@ -49,6 +49,8 @@ listExtensions = [
     )
 ]
 
+# Setup ======================================================================
 setup(
-    ext_modules=listExtensions
+    ext_modules=listExtensions,
+    **Dist.getPyprojectLicenseOptions()
 )

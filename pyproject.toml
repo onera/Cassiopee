@@ -36,9 +36,6 @@ maintainers = [
 ]
 description = "Computational Fluid Dynamics pre- and post-processing python modules"
 readme = "README.md"
-license = {text = "LGPLv3"}
-#license = "LGPL-3.0-or-later"
-#license-files = ["LICENSE"]
 keywords = [
   "CAD",
   "CFD",
@@ -46,9 +43,12 @@ keywords = [
   "Chimera",
   "Immersed Boundary Method",
   "Meshing",
+  "Overset",
   "Pre-processing",
-  "Post-processing"
+  "Post-processing",
+  "Visualization"
 ]
+dynamic = ["license"]
 
 [project.urls]
 Homepage = "https://github.com/onera/Cassiopee"
