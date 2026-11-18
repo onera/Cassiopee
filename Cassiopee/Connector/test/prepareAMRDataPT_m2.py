@@ -1,4 +1,5 @@
-# kpython -n 24 -t 4 test.py
+# - prepareAMRData (pyTree) -
+# IBM preprocessing
 import Converter.PyTree as C
 import Converter.Mpi as Cmpi
 import Converter.Internal as Internal
@@ -110,24 +111,22 @@ def prepareAMRDataFV__(t_case, t, IBM_parameters=None, check=False, dim=3, local
     return t
 
 ## =====================================================================================================
-t = C.convertFile2PyTree('tAMR3DMpi.cgns')
-tb = C.convertFile2PyTree('m6.cgns')
+t = Cmpi.convertFile2PyTree('tAMR2DMpi.cgns', proc=Cmpi.rank)
+tb = C.convertFile2PyTree('tb_NACA0012_singleSnear.cgns')
 
 ##Mesh
-snearReal  = 1.0e-4
-snear      = 50*snearReal #target:: 4.0e-4
-dFar       = 20
+snearReal  = 1.e-04
+snear      = 10.0*snearReal #target:: 1.0e-4
+dFar       = 15
 levelMax   = 20
-vmins      = [10,8,6] #number of points --- vmins+1 = number of cells || recall 2 is the minimum acceptable
-dim        = 3
-dir_sym    = 2
+dim        = 2
 
 ##IBM
 frontType    = 2
-Reynolds     = 11.72e6 
-yplus_target = 100
-Lref         = 0.801672959
-Aref         = 2.319399855
+Reynolds     = 6.0e06
+yplus_target = 100 #100*2.5
+Lref         = 1.0
+Aref         = 1.0
 ## =====================================================================================================
 
 
