@@ -3558,7 +3558,7 @@ def getMeanRangeValue(t, var, rmin, rmax):
 # -- getStandardDeviation
 def getStandardDeviation(t, var):
     """Get the standard deviation of the variable defined by varName in an array.
-    Usage: getStandardDeviation(array, varName)"""    
+    Usage: getStandardDeviation(array, varName)"""
     A = getField(var, t, api=3)
     v = var.split(':')
     if len(v) > 1: var = v[1]
