@@ -133,21 +133,21 @@ if [ $MODULE = "all" ]; then
     ln -s lib lib64
   fi
 
-  # Edit installPath (replace $CASSIOPEE by $DEST_CAS_PATH and edit prod. name)
-  cd "$TMP_DEST_PROD_PATH/$SITE_PACKAGES_PATH/KCore"
-  cp "$CASSIOPEE/Dist/bin/$ELSAPROD/$SITE_PACKAGES_PATH/KCore/installPath.py" .
-  s1=$(sed 's/[\/&]/\\&/g' <<< "$CASSIOPEE")
-  s2=$(sed 's/[\/&]/\\&/g' <<< "$DEST_CAS_PATH")
-  sed -i "s/$s1/$s2/g" installPath.py
-  if [ "$ELSAPROD" != "$NEW_ELSAPROD" ]; then
-    s1=$(sed 's/[\/&]/\\&/g' <<< "$ELSAPROD/$SITE_PACKAGES_PATH")
-    s2=$(sed 's/[\/&]/\\&/g' <<< "$NEW_ELSAPROD/$NEW_SITE_PACKAGES_PATH")
-    sed -i "s/$s1/$s2/g" installPath.py
-    s1=$(sed 's/[\/&]/\\&/g' <<< "$ELSAPROD/$PYLIB_PATH")
-    s2=$(sed 's/[\/&]/\\&/g' <<< "$NEW_ELSAPROD/$NEW_PYLIB_PATH")
-    sed -i "s/$s1/$s2/g" installPath.py
-  fi
-  cat installPath.py
+# Edit installPath (replace $CASSIOPEE by $DEST_CAS_PATH and edit prod. name) - deprecated
+#   cd "$TMP_DEST_PROD_PATH/$SITE_PACKAGES_PATH/KCore"
+#   cp "$CASSIOPEE/Dist/bin/$ELSAPROD/$SITE_PACKAGES_PATH/KCore/installPath.py" .
+#   s1=$(sed 's/[\/&]/\\&/g' <<< "$CASSIOPEE")
+#   s2=$(sed 's/[\/&]/\\&/g' <<< "$DEST_CAS_PATH")
+#   sed -i "s/$s1/$s2/g" installPath.py
+#   if [ "$ELSAPROD" != "$NEW_ELSAPROD" ]; then
+#     s1=$(sed 's/[\/&]/\\&/g' <<< "$ELSAPROD/$SITE_PACKAGES_PATH")
+#     s2=$(sed 's/[\/&]/\\&/g' <<< "$NEW_ELSAPROD/$NEW_SITE_PACKAGES_PATH")
+#     sed -i "s/$s1/$s2/g" installPath.py
+#     s1=$(sed 's/[\/&]/\\&/g' <<< "$ELSAPROD/$PYLIB_PATH")
+#     s2=$(sed 's/[\/&]/\\&/g' <<< "$NEW_ELSAPROD/$NEW_PYLIB_PATH")
+#     sed -i "s/$s1/$s2/g" installPath.py
+#   fi
+#   cat installPath.py
 
   # Copy temporary folder to the other machine
   if [[ "$BK_DEST_PROD_PATH" == *"@"* ]]; then
