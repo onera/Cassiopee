@@ -163,4 +163,4 @@ IBM_parameters = {
 
 t = prepareAMRDataFV__(tb, t, IBM_parameters=IBM_parameters, dim=dim, check=False, localDir=LOCAL)
 
-C.convertPyTree2File(t, 'check_t.cgns')
+#C.convertPyTree2File(t, 'check_t.cgns')
