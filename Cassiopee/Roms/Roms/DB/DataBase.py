@@ -303,6 +303,7 @@ class DataBase:
 
     # load data from query
     # return list of trees
+    # if query doesnt exist, return []
     def fetchTree(self, q):
         """Fetch a query and return tree."""
         ts = []; tref = None; refn = None

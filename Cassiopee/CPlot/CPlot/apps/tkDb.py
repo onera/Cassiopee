@@ -62,8 +62,14 @@ def update(event=None):
     updatePLB()
     q = DB.query(PARAMS)
     t = DB.fetchTree(q)
-    tp = T.scale(t, (1,0.00001,1)) # specific to 2D
-    CPlot.display(tp, bgColor=1)
+    if q == [] or t == []:
+        CTK.TXT.insert('START', 'Point not found in DB.\n')
+        CTK.TXT.insert('START', 'Error: ', 'Error')
+        return
+    CTK.t = T.scale(t[0], (1,0.00001,1)) # specific to 2D
+    (CTK.Nb, CTK.Nz) = CPlot.updateCPlotNumbering(CTK.t)
+    CTK.TXT.insert('START', 'DB loaded.\n')
+    CTK.display(CTK.t, bgColor=1)
 
 #==============================================================================
 def setParameterValueWithScaleNoAction(event=None):
@@ -91,7 +97,10 @@ def setParameterName(event=None):
     VARS[1].set(str(value))
     vmax = RANGEMAX[paramName]
     vmin = RANGEMIN[paramName]
-    v = (value-vmin)/(vmax-vmin)*100.
+    if abs(vmax-vmin) > 1.e-10: 
+        v = (value-vmin)/(vmax-vmin)*100.
+    else: 
+        v = 0.
     WIDGETS['valueSlider'].set(v)
     update()
 

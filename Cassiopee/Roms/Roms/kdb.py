@@ -81,12 +81,21 @@ def main():
     elif com == '-p' or com == '--plot': # plot
         import CPlot.Tk as CTK
         (win, menu, file, tools) = CTK.minimal("DataBase", mode=1)
+
         module = __import__("CPlot.apps.tkDb", fromlist=['tkDb'])
         CTK.TKMODULES["tkDb"] = module
         tools.add_command(label="tkDb", command=module.showApp)
         module.setDb(db)
         module.createApp(win)
         module.showApp()
+
+        module = __import__("CPlot.apps.tkView", fromlist=['tkView'])
+        CTK.TKMODULES["tkView"] = module
+        tools.add_command(label="tkView", command=module.showApp)
+        module.WIDGETS['frameMode'] = 1
+        module.createApp(win)
+        module.showApp()
+
         win.deiconify(); win.focus_set()
         win.mainloop()
 
