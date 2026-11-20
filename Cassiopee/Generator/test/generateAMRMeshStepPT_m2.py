@@ -7,13 +7,20 @@ import Generator.AMR as G_AMR
 import Generator.PyTree as G
 import Geom.PyTree as D
 import Geom.IBM as D_IBM
+import Post.PyTree as P
 import KCore.test as test
 
 LOCAL = test.getLocal()
 
 dimPb = 3
-tb = C.convertFile2PyTree('m6cleanDouble.cgns')
-tbox = C.convertFile2PyTree('m6tbox.cgns')
+tb1 = G.cart((0.,0.,0.), (0.1,0.1,0.1), (10,20,5))
+tb1 = P.exteriorFaces(tb1)
+tb2 = D.sphere((0.5,3.,0), 0.5, 20)
+tb = C.newPyTree(['Base', tb1, 'Base2', tb2])
+
+tb1 = D.box((2,1,-0.5), (3,2,0.5))
+tbox = C.newPyTree(['Base3', tb1])
+
 
 ##
 dim = dimPb
@@ -30,7 +37,7 @@ dfars = 20
 D_IBM._setDfar(tb,dfars)
 for bNum, b in enumerate(Internal.getBases(tb)):
     D_IBM._setSnear(b, snears*(bNum+1))
-D_IBM._symmetrizePb(tb, ['Base', 'Base.0'], snears, 2)
+D_IBM._symmetrizePb(tb, ['Base', 'Base2'], snears, 2)
 D_IBM._setSnear(tbox, 8*snears)
 
 #Note: the 3 next checks are inside G_AMR.checkInputIBM__
