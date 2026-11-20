@@ -1,7 +1,7 @@
 # test Driver surfaces
 import Roms.Driver as D
 
-TEST = 'union2'
+TEST = 'union1'
 
 T1 = D.Part('test')
 
@@ -158,19 +158,6 @@ elif TEST == 'sweep1':
     surface1 = T1.Sweep('surface1', sketch1, sketch2)
 
 elif TEST == 'union1':
-    line1 = T1.Line('line1', P1, P2)
-    line2 = T1.Line('line2', P2, P3)
-    line3 = T1.Line('line3', P3, P4)
-    line4 = T1.Line('line4', P4, P1)
-    sketch1 = T1.Sketch('sketch1', [line1,line2,line3,line4])
-    face1 = T1.Fill('face1', sketch1)
-    face2 = face1.Copy('face2')
-    face2.set(position=(0,0,1))
-    face3 = face1.Copy('face3')
-    face3.set(rotCenter=(0,0,0), rotAxis=(1,0,0), rotAngle=90.)
-    #surface = T1.Union('surface', [sphere1], [sphere2])
-
-elif TEST == 'union2':
     superellipse1 = T1.Ellipse('superellipse1', P2, v1, 1.)
     sketch1 = T1.Sketch('sketch1', [superellipse1])
     sketch2 = sketch1.Copy('sketch2')
@@ -184,7 +171,7 @@ elif TEST == 'union2':
     sketch4.set(rotCenter=(0,0,0), rotAxis=(1,0,0), rotAngle=-90., position=(0,5,2))
     surface2 = T1.Loft('surface2', [sketch3,sketch4])
 
-    #surface = T1.Union('surface', [surface1],[surface2])
+    surface = T1.Union('surface', [surface1],[surface2])
 
 T1.solve()
 T1.instantiate({'v1': 1.})

@@ -75,8 +75,22 @@ PyObject* K_OCC::boolean(PyObject* self, PyObject* args)
   sewingTool1.Add(compound1);
   sewingTool1.Perform();
   TopoDS_Shape sewedShape1 = sewingTool1.SewedShape();
+  if (sewedShape1.ShapeType() != TopAbs_SHELL)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "boolean: surface1 is not a shell.");
+    return NULL;
+  }
+
   TopoDS_Shell shell1 = TopoDS::Shell(sewedShape1);
-  TopoDS_Solid solid1 = BRepBuilderAPI_MakeSolid(shell1);
+  BRepBuilderAPI_MakeSolid builders1(shell1);
+  if (!builders1.IsDone())
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "boolean: surface1 is not a shell.");
+    return NULL;
+  }
+  TopoDS_Solid solid1 = builders1.Solid();
   if (rev1 == 1) solid1 = TopoDS::Solid(solid1.Reversed());
   
   // Get compound2
@@ -95,15 +109,61 @@ PyObject* K_OCC::boolean(PyObject* self, PyObject* args)
   BRepBuilderAPI_Sewing sewingTool2;
   sewingTool2.Add(compound2);
   sewingTool2.Perform();
-  TopoDS_Shape sewedShape2 = sewingTool2.SewedShape();
+  TopoDS_Shape sewedShape2 = sewingTool2.SewedShape();  
+  if (sewedShape2.ShapeType() != TopAbs_SHELL)
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "boolean: surface2 is not a shell.");
+    return NULL;
+  }
+
   TopoDS_Shell shell2 = TopoDS::Shell(sewedShape2);
-  TopoDS_Solid solid2 = BRepBuilderAPI_MakeSolid(shell2);
+  BRepBuilderAPI_MakeSolid builders2(shell2);
+  if (!builders2.IsDone())
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "boolean: surface2 is not a shell.");
+    return NULL;
+  }
+  TopoDS_Solid solid2 = builders2.Solid();
   if (rev2 == 1) solid2 = TopoDS::Solid(solid2.Reversed());
 
+  printf("before boolean\n"); fflush(stdout);
+
   TopoDS_Shape result;
-  if (op == 0) result = BRepAlgoAPI_Fuse(solid1, solid2);
-  else if (op == 1) result = BRepAlgoAPI_Cut(solid1, solid2);
-  else result = BRepAlgoAPI_Common(solid1, solid2);
+  if (op == 0) 
+  {
+    BRepAlgoAPI_Fuse builder(solid1, solid2);
+    if (!builder.IsDone())
+    {
+      PyErr_SetString(PyExc_TypeError,
+                    "boolean: operation fails.");
+      return NULL;
+    }
+    result = builder.Shape();
+  }
+  else if (op == 1) 
+  { 
+    BRepAlgoAPI_Cut builder(solid1, solid2);
+    if (!builder.IsDone())
+    {
+      PyErr_SetString(PyExc_TypeError,
+                    "boolean: operation fails.");
+      return NULL;
+    }
+    result = builder.Shape();
+  }
+  else 
+  {
+    BRepAlgoAPI_Common builder(solid1, solid2);
+    if (!builder.IsDone())
+    {
+      PyErr_SetString(PyExc_TypeError,
+                    "boolean: operation fails.");
+      return NULL;
+    }
+    result = builder.Shape();
+  }
 
   //ShapeUpgrade_UnifySameDomain unify(result);
   //unify.Build();

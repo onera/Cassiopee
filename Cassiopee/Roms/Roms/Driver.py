@@ -1482,7 +1482,7 @@ class Surface():
                 edgeList = [i for i in range(e+1, n1+1, ne)]
                 guideList = [i for i in range(n1+1, n1+4)]
                 #OCC.writeCAD(h, 'debug.step')
-                OCC._loft(h, edgeList, guideList)
+                OCC._loft(h, edgeList, guideList) # gordon
                 out.append(h)
             self.hook = OCC.mergeCAD(out)
 
@@ -1494,7 +1494,9 @@ class Surface():
                 OCC._reverse(h0)
                 OCC._fillHole(h1, edgeList1, [], 0)
                 self.hook = OCC.mergeCAD([h0,self.hook,h1])
-            OCC._sewing(self.hook)
+            if 'sewingTol' in self.data: tol = self.data['sewingTol'].v
+            else: tol = 1.e-3
+            OCC._sewing(self.hook, tol) # greater error beacause of gordon
 
         elif self.type == "loftSet": # by lofting linearly between sketches
             hooks = []
@@ -1523,6 +1525,9 @@ class Surface():
                 OCC._fillHole(h0, [i+1 for i in range(ne0)], [], 0)
                 OCC._fillHole(h1, [i+1 for i in range(ne1)], [], 0)
                 self.hook = OCC.mergeCAD([h0,self.hook,h1])
+            if 'sewingTol' in self.data: tol = self.data['sewingTol'].v
+            else: tol = 1.e-6
+            OCC._sewing(self.hook, tol)    
 
         elif self.type == "revolve": # by revolving sketches
             hooks = []
@@ -1536,6 +1541,9 @@ class Surface():
             hooks = []
             for e in self.surfaces: hooks.append(e.hook)
             self.hook = OCC.mergeCAD(hooks)
+            if 'sewingTol' in self.data:
+                tol = self.data['sewingTol']
+                if tol > 0.: OCC._sewing(self.hook, tol)
 
         elif self.type == "fill": # by filling sketch
             hooks = []
@@ -1889,22 +1897,25 @@ class Surface():
 
         return self.RefMesh
 
-def Loft(name="loft", listSketches=[], listGuides=[], close=True, degree=3, h=None, part=None):
+def Loft(name="loft", listSketches=[], listGuides=[], close=True, degree=3, sewingTol=1.e-3,
+         h=None, part=None):
     """Create a loft surface from sketches."""
     return Surface(name=name, listSketches=listSketches, listSketches2=listGuides,
-                   type="loft", data={'close':close, 'degree':degree}, h=h, part=part)
+                   type="loft", data={'close':close, 'degree':degree, 'sewingTol':sewingTol},
+                   h=h, part=part)
 
-def LoftSet(name="loftset", listSketches=[], listGuides=[], close=True, h=None, part=None):
+def LoftSet(name="loftset", listSketches=[], listGuides=[], close=True, sewingTol=1.e-6, h=None, part=None):
     """Create a set of loft surfaces from sketches."""
     return Surface(name=name, listSketches=listSketches, listSketches2=listGuides,
-                   type="loftSet", data={'close':close}, h=h, part=part)
+                   type="loftSet", data={'close':close,'sewingTol':sewingTol}, h=h, part=part)
 
-def Extrude(name="extrude", sketch=None, vector=(0,0,0), close=True, h=None, part=None):
+def Extrude(name="extrude", sketch=None, vector=(0,0,0), close=True, sewingTol=1.e-6, 
+            h=None, part=None):
     """Create a extruded surface from a sketch."""
     sketch1 = sketch.Copy()
     sketch1.shift(vector)
     return Surface(name=name, listSketches=[sketch,sketch1], listSketches2=[],
-                   type="loftSet", data={'close':close}, h=h, part=part)
+                   type="loftSet", data={'close':close,'sewingTol':sewingTol}, h=h, part=part)
 
 def Revolve(name='revolve', sketch=None, center=(0,0,0), axis=(0,0,1), angle=360., h=None, part=None):
     """Create a revolution surface from a sketch."""
@@ -1912,9 +1923,10 @@ def Revolve(name='revolve', sketch=None, center=(0,0,0), axis=(0,0,1), angle=360
                    data={'center':center, 'axis':axis, 'angle':angle},
                    type="revolve", h=h, part=part)
 
-def Merge(name="compound", listSurfaces=[], h=None, part=None):
+def Merge(name="compound", listSurfaces=[], sewingTol=-1., h=None, part=None):
     """Create a compound surface from a list of surfaces."""
     return Surface(name=name, listSurfaces=listSurfaces,
+                   data={'sewingTol':sewingTol},
                    type="merge", h=h, part=part)
 
 def MergeEdges(name="mergeEdges", listSketches=[], h=None, part=None):
@@ -2392,21 +2404,23 @@ class Part:
         s = Surface(name, listSketches, listSketches2, listSurfaces, listSurfaces2, data, h, type, part=self)
         return s
 
-    def Loft(self, name="loft", listSketches=[], listGuides=[], close=True, degree=3, h=None):
+    def Loft(self, name="loft", listSketches=[], listGuides=[], close=True, 
+             degree=3, sewingTol=1.e-3, h=None):
         s = Surface(name=name, listSketches=listSketches, listSketches2=listGuides,
-                    type="loft", data={'close':close, 'degree':degree}, h=h, part=self)
+                    type="loft", data={'close':close,'degree':degree,'sewingTol':sewingTol}, h=h, part=self)
         return s
 
-    def LoftSet(self, name="loftset", listSketches=[], listGuides=[], close=True, h=None):
+    def LoftSet(self, name="loftset", listSketches=[], listGuides=[], close=True, 
+                sewingTol=1.e-6, h=None):
         s = Surface(name=name, listSketches=listSketches, listSketches2=listGuides,
-                    type="loftSet", data={'close':close}, h=h, part=self)
+                    type="loftSet", data={'close':close,'sewingTol':sewingTol}, h=h, part=self)
         return s
 
     def Extrude(self, name="extrude", sketch=None, vector=(0,0,0), close=True, h=None, part=None):
         sketch1 = sketch.Copy()
         sketch1.shift(vector)
         s = Surface(name=name, listSketches=[sketch,sketch1], listSketches2=[],
-                    type="loftSet", data={'close':close}, h=h, part=self)
+                    type="loftSet", data={'close':close,'sewingTol':1.e-6}, h=h, part=self)
         return s
 
     def Revolve(self, name='revolve', sketch=None, center=(0,0,0), axis=(0,0,1), angle=360., h=None):
@@ -2415,8 +2429,9 @@ class Part:
                     type="revolve", h=h, part=self)
         return s
 
-    def Merge(self, name="compound", listSurfaces=[], h=None):
+    def Merge(self, name="compound", listSurfaces=[], sewingTol=-1., h=None):
         s = Surface(name=name, listSurfaces=listSurfaces,
+                    data={'sewingTol':sewingTol},
                     type="merge", h=h, part=self)
         return s
 
@@ -2995,7 +3010,7 @@ class Part:
             import Geom.PyTree as Geom
             Mesho = Internal.copyTree(Mesh)
             #zoneso = Internal.getZones(Mesho)
-            for c, f in enumerate(listVars):
+            for f in listVars:
                 # free vars value dict
                 d = {}
                 for q in self.freeParams:

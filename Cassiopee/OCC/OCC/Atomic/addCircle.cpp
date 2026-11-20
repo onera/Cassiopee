@@ -28,10 +28,10 @@
 #include "BRepBuilderAPI_MakeEdge.hxx"
 #include "BRepBuilderAPI_MakeWire.hxx"
 #include "BRepBuilderAPI_MakeFace.hxx"
-#include <gp_Ax2.hxx>
-#include <gp_Dir.hxx>
-#include <GC_MakeCircle.hxx>
-#include <Geom_Circle.hxx>
+#include "gp_Ax2.hxx"
+#include "gp_Dir.hxx"
+#include "GC_MakeCircle.hxx"
+#include "Geom_Circle.hxx"
 
 //=====================================================================
 // Add a circle to CAD hook

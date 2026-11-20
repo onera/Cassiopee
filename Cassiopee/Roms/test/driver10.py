@@ -29,20 +29,15 @@ T1.Eq(circle4.P[0].z, length)
 
 # surface2
 surface2 = T1.Loft('surface2', [sketch3, sketch4])
-surface2.rotAxis.x.v = 0
-surface2.rotAxis.y.v = 1
-surface2.rotAxis.z.v = 0
-surface2.rotAngle.v = 90.
-surface2.position.z.v = 2.
+surface2.set(rotCenter=(0,0,0), rotAxis = (0,1,0), rotAngle=90., position=(0,0,2))
 
 # surface finale
 #surface = T1.Merge('surface', listSurfaces=[surface1,surface2])
 surface = T1.Union('surface', listSurfaces1=[surface1], listSurfaces2=[surface2], h=[0.1,0.1,0.1])
 
-# test
+# instantiate
 T1.solve()
 T1.instantiate({'length': 10})
-
 surface.writeCAD('out.step')
 
 import CPlot, time

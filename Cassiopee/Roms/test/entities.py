@@ -74,6 +74,13 @@ elif TEST == 'arc':
     arc4 = arc1.Rotate('arc4', center=(0,0,0), alpha=-90.)
     sketch1 = T1.Sketch('sketch1', [arc1,arc2,arc3,arc4])
 
+elif TEST == 'ellipse':
+    ellipse1 = T1.Ellipse('ellipse1', P2, v1, 1.)
+    ellipse2 = ellipse1.Shift('ellipse2', vector=(0,3,0))
+    ellipse3 = ellipse1.Symm('ellipse3', plane='yz', center=(0,0,0))
+    ellipse4 = ellipse1.Rotate('ellipse4', center=(0,0,0), alpha=-90.)
+    sketch1 = T1.Sketch('sketch1', [ellipse1,ellipse2,ellipse3,ellipse4])    
+    
 elif TEST == 'superellipse':
     superellipse1 = T1.SuperEllipse('superellipse1', P2, v1, 1.)
     superellipse2 = superellipse1.Shift('superellipse2', vector=(0,3,0))
