@@ -29,7 +29,7 @@ T1.Eq(circle4.P[0].z, length)
 
 # surface2
 surface2 = T1.Loft('surface2', [sketch3, sketch4])
-surface2.set(rotCenter=(0,0,0), rotAxis = (0,1,0), rotAngle=90., position=(0,0,2))
+surface2.set(rotCenter=(0,0,0), rotAxis=(0,1,0), rotAngle=90., position=(0,0,2))
 
 # surface finale
 #surface = T1.Merge('surface', listSurfaces=[surface1,surface2])

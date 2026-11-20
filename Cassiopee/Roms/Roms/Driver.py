@@ -1527,7 +1527,7 @@ class Surface():
                 self.hook = OCC.mergeCAD([h0,self.hook,h1])
             if 'sewingTol' in self.data: tol = self.data['sewingTol'].v
             else: tol = 1.e-6
-            OCC._sewing(self.hook, tol)    
+            OCC._sewing(self.hook, tol)
 
         elif self.type == "revolve": # by revolving sketches
             hooks = []
@@ -1909,7 +1909,7 @@ def LoftSet(name="loftset", listSketches=[], listGuides=[], close=True, sewingTo
     return Surface(name=name, listSketches=listSketches, listSketches2=listGuides,
                    type="loftSet", data={'close':close,'sewingTol':sewingTol}, h=h, part=part)
 
-def Extrude(name="extrude", sketch=None, vector=(0,0,0), close=True, sewingTol=1.e-6, 
+def Extrude(name="extrude", sketch=None, vector=(0,0,0), close=True, sewingTol=1.e-6,
             h=None, part=None):
     """Create a extruded surface from a sketch."""
     sketch1 = sketch.Copy()
@@ -2404,13 +2404,13 @@ class Part:
         s = Surface(name, listSketches, listSketches2, listSurfaces, listSurfaces2, data, h, type, part=self)
         return s
 
-    def Loft(self, name="loft", listSketches=[], listGuides=[], close=True, 
+    def Loft(self, name="loft", listSketches=[], listGuides=[], close=True,
              degree=3, sewingTol=1.e-3, h=None):
         s = Surface(name=name, listSketches=listSketches, listSketches2=listGuides,
                     type="loft", data={'close':close,'degree':degree,'sewingTol':sewingTol}, h=h, part=self)
         return s
 
-    def LoftSet(self, name="loftset", listSketches=[], listGuides=[], close=True, 
+    def LoftSet(self, name="loftset", listSketches=[], listGuides=[], close=True,
                 sewingTol=1.e-6, h=None):
         s = Surface(name=name, listSketches=listSketches, listSketches2=listGuides,
                     type="loftSet", data={'close':close,'sewingTol':sewingTol}, h=h, part=self)
