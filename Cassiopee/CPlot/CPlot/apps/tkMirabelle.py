@@ -178,7 +178,7 @@ def showApp():
 def hideApp(event=None):
     frameMode = WIDGETS.get('frameMode', 0)
     if frameMode == 0: # on MeshNoteBook
-        CTK.WIDGETS['MeshNoteBook'].hide(WIDGETS['frame'])        
+        CTK.WIDGETS['MeshNoteBook'].hide(WIDGETS['frame'])
     else:
         WIDGETS['frame'].grid_forget()
 

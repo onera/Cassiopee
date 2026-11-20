@@ -334,7 +334,7 @@ def showApp():
     if frameMode == 0: # on SolverNoteBook
         try: CTK.WIDGETS['SolverNoteBook'].add(WIDGETS['frame'], text='tkFastSolver')
         except: pass
-        CTK.WIDGETS['SolverNoteBook'].select(WIDGETS['frame'])        
+        CTK.WIDGETS['SolverNoteBook'].select(WIDGETS['frame'])
     else:
         WIDGETS['frame'].grid(sticky=TK.NSEW)
 

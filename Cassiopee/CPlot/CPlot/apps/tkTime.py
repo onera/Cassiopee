@@ -225,7 +225,7 @@ def hideApp(event=None):
         CTK.WIDGETS['MotionNoteBook'].hide(WIDGETS['frame'])
     else:
         WIDGETS['frame'].grid_forget()
-        
+
 #==============================================================================
 # Update widgets when global pyTree t changes
 #==============================================================================

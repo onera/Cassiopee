@@ -170,10 +170,10 @@ def showApp():
 def hideApp(event=None):
     frameMode = WIDGETS.get('frameMode', 0)
     if frameMode == 0: # on VisuNoteBook
-        CTK.WIDGETS['SurfNoteBook'].hide(WIDGETS['frame'])        
+        CTK.WIDGETS['SurfNoteBook'].hide(WIDGETS['frame'])
     else:
         WIDGETS['frame'].grid_forget()
-        
+
 #==============================================================================
 # Update widgets when global pyTree t changes
 #==============================================================================

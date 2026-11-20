@@ -506,7 +506,7 @@ def hideApp(event=None):
         CTK.WIDGETS['BlockNoteBook'].hide(WIDGETS['frame'])
     else:
         WIDGETS['frame'].grid_forget()
-        
+
 #==============================================================================
 def updateApp(): return
 

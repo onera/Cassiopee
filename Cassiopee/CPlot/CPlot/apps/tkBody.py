@@ -203,7 +203,7 @@ def showApp():
     if frameMode == 0: # on MeshNoteBook
         try: CTK.WIDGETS['MeshNoteBook'].add(WIDGETS['frame'], text='tkMeshQual')
         except: pass
-        CTK.WIDGETS['MeshNoteBook'].select(WIDGETS['frame'])        
+        CTK.WIDGETS['MeshNoteBook'].select(WIDGETS['frame'])
     else:
         WIDGETS['frame'].grid(sticky=TK.NSEW)
 
@@ -213,7 +213,7 @@ def showApp():
 def hideApp(event=None):
     frameMode = WIDGETS.get('frameMode', 0)
     if frameMode == 0: # on MeshNoteBook
-        CTK.WIDGETS['MeshNoteBook'].hide(WIDGETS['frame'])        
+        CTK.WIDGETS['MeshNoteBook'].hide(WIDGETS['frame'])
     else:
         WIDGETS['frame'].grid_forget()
 

@@ -118,7 +118,7 @@ def showApp():
 def hideApp(event=None):
     frameMode = WIDGETS.get('frameMode', 0)
     if frameMode == 0: # on StateNoteBook
-        CTK.WIDGETS['StateNoteBook'].hide(WIDGETS['frame'])        
+        CTK.WIDGETS['StateNoteBook'].hide(WIDGETS['frame'])
     else:
         WIDGETS['frame'].grid_forget()
 

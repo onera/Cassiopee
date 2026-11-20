@@ -140,7 +140,7 @@ def showApp():
     if frameMode == 0: # on SurfNoteBook
         try: CTK.WIDGETS['SurfNoteBook'].add(WIDGETS['frame'], text='tkBasicSurfs')
         except: pass
-        CTK.WIDGETS['SurfNoteBook'].select(WIDGETS['frame'])        
+        CTK.WIDGETS['SurfNoteBook'].select(WIDGETS['frame'])
     else:
         WIDGETS['frame'].grid(sticky=TK.NSEW)
 

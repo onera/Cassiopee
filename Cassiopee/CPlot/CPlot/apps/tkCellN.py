@@ -293,7 +293,7 @@ def hideApp(event=None):
         CTK.WIDGETS['VisuNoteBook'].hide(WIDGETS['frame'])
     else:
         WIDGETS['frame'].grid_forget()
-        
+
 #==============================================================================
 # Update widgets when global pyTree t changes
 #==============================================================================
