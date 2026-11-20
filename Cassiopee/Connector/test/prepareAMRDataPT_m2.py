@@ -4,6 +4,9 @@ import Converter.PyTree as C
 import Converter.Mpi as Cmpi
 import Converter.Internal as Internal
 import Generator.PyTree as G
+import Geom.PyTree as D
+import Geom.IBM as D_IBM
+import Generator.AMR as G_AMR
 import Generator.Mpi as Gmpi
 
 import Connector.AMR as X_AMR
@@ -111,8 +114,6 @@ def prepareAMRDataFV__(t_case, t, IBM_parameters=None, check=False, dim=3, local
     return t
 
 ## =====================================================================================================
-t = Cmpi.convertFile2PyTree('tAMR2DMpi.cgns', proc=Cmpi.rank)
-tb = C.convertFile2PyTree('tb_NACA0012_singleSnear.cgns')
 
 ##Mesh
 snearReal  = 1.e-04
@@ -128,6 +129,16 @@ yplus_target = 100 #100*2.5
 Lref         = 1.0
 Aref         = 1.0
 ## =====================================================================================================
+
+#2D
+a = D.naca(12.)
+dimPb = 2
+D_IBM._setSnear(a, snear)
+D_IBM._setIBCType(a,"Musker")
+D_IBM._setDfar(a, dFar)
+tb = C.newPyTree(["BODY",a])
+Cmpi.barrier()
+t = G_AMR.generateAMRMesh(tb, vmins=[[5,5]], dim=dimPb, check=False, localDir=LOCAL)
 
 
 depth_IP     = 1

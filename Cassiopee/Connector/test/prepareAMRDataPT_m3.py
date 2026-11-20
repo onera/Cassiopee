@@ -4,6 +4,9 @@ import Converter.PyTree as C
 import Converter.Mpi as Cmpi
 import Converter.Internal as Internal
 import Generator.PyTree as G
+import Geom.PyTree as D
+import Geom.IBM as D_IBM
+import Generator.AMR as G_AMR
 import Generator.Mpi as Gmpi
 
 import Connector.AMR as X_AMR
@@ -111,24 +114,32 @@ def prepareAMRDataFV__(t_case, t, IBM_parameters=None, check=False, dim=3, local
     return t
 
 ## =====================================================================================================
-t = C.convertFile2PyTree('tAMR3DMpi.cgns')
-tb = C.convertFile2PyTree('tb_m6.cgns')
 
 ##Mesh
-snear      = 1.0e-2
-dFar       = 20
-levelMax   = 20
+snear      = 2.0e-1
 dim        = 3
-dir_sym    = 2
 
 ##IBM
 frontType    = 2
-Reynolds     = 11.72e6 
+Reynolds     = 1.0e6 
 yplus_target = 100
-Lref         = 0.801672959
-Aref         = 2.319399855
+Lref         = 1
+Aref         = 1
 ## =====================================================================================================
 
+
+a = D.sphere((0.,0.,0.),0.5)
+dimPb = 3
+D_IBM._setSnear(a, snear)
+D_IBM._setIBCType(a, "Musker")
+D_IBM._setDfar(a, 5.)
+
+tb = C.newPyTree(["BODY",a])
+toffset = C.newPyTree(['R1'])
+toffset[2][1][2] = [D.sphere((0.,0.,0.),1.5),D.sphere((0.,0.,0.),2.5)]
+for i, z in enumerate(Internal.getZones(toffset)):
+    D_IBM._setSnear(z, snear*(i+1))
+t = G_AMR.generateAMRMesh(tb, toffset=toffset, vmins=[[5,5]], dim=dimPb, check=False, localDir=LOCAL, levelMax=2, octreeMode=1)
 
 depth_IP     = 1
 distance_IP  = G_IBM_Height.computeModelisationHeight(Re=Reynolds, yplus=yplus_target, L=Lref)
