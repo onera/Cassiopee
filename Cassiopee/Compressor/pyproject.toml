@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cassiopee-compressor"
-dynamic = ["version"]
+dynamic = ["version", "license"]
 dependencies = [
   "numpy>=1.23.3",
   "mpi4py>=3.1.3"
@@ -25,9 +25,6 @@ maintainers = [
 ]
 description = "Computational Fluid Dynamics pre- and post-processing python modules"
 readme = "README.md"
-license = {text = "LGPLv3"}
-#license = "LGPL-3.0-or-later"
-#license-files = ["LICENSE"]
 keywords = []
 classifiers = [
   "Programming Language :: Python",

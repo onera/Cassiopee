@@ -15,4 +15,4 @@ if prod is None:
 Dist.writeBuildInfo("Apps/App.py")
 
 # setup ======================================================================
-setup()
+setup(**Dist.getPyprojectLicenseOptions())

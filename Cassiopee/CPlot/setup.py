@@ -119,5 +119,6 @@ if OSMesa:
 
 # Setup ======================================================================
 setup(
-    ext_modules=extensions
+    ext_modules=extensions,
+    **Dist.getPyprojectLicenseOptions()
 )
