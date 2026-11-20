@@ -351,6 +351,13 @@ E_Int K_IO::GenIO::pngwrite(
                bit_depth, color_type, PNG_INTERLACE_NONE,
                PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
+  /* add text to metadata */
+  png_text text_comments[1];
+  text_comments[0].compression = PNG_TEXT_COMPRESSION_NONE;
+  text_comments[0].key = (char*)"Software";
+  text_comments[0].text = (char*)"Cassiopee/ONERA";
+  png_set_text(png_ptr, info_ptr, text_comments, 1);
+
   png_write_info(png_ptr, info_ptr);
 
   /* write bytes */

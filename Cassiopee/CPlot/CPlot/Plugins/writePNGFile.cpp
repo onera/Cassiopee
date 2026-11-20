@@ -88,13 +88,20 @@ void writePNGFile(Data* d, char* filename, char* buffer,
                bit_depth, color_type, PNG_INTERLACE_NONE,
                PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
+  /* add text to metadata */
+  png_text text_comments[1];
+  text_comments[0].compression = PNG_TEXT_COMPRESSION_NONE;
+  text_comments[0].key = (char*)"Software";
+  text_comments[0].text = (char*)"Cassiopee/ONERA";
+  png_set_text(png_ptr, info_ptr, text_comments, 1);
+
   png_write_info(png_ptr, info_ptr);
 
   /* write bytes */
   if (setjmp(png_jmpbuf(png_ptr))) return;
    
   row_pointers = new png_bytep [height];
-  for (int y = 0; y < height; y++)
+  for (E_Int y = 0; y < height; y++)
   {
     row_pointers[y] = (png_bytep)buffer + (height-1-y)*width*stride;
   }
