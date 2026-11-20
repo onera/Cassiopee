@@ -59,10 +59,8 @@ def airfoil(name=None):
     import KCore.Dist as Dist
     import Converter.PyTree as C
     import Converter.Internal as Internal
-    prodname = os.getenv("ELSAPROD")
-    libpath = Dist.getLibPath()
-    pos = libpath.rfind(prodname)
-    filepath = os.path.join(libpath[:pos], prodname, "UIUCAirfoils.cgns")
+    installPath = Dist.getInstallPath()
+    filepath = os.path.join(installPath, "Geom", "Data", "UIUCAirfoils.cgns")
     t = C.convertFile2PyTree(filepath)
     bases = Internal.getBases(t)
     if name is None:
