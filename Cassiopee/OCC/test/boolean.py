@@ -41,4 +41,3 @@ OCC._addBox2(hook, (0.8,0.8,0.8), (1.2,0.8,0.8), (1.2,1.2,0.8), (0.8,1.2,0.8),
              (0.8,0.8,1.2), (1.2,0.8,1.2), (1.2,1.2,1.2), (0.8,1.2, 1.2))
 OCC._boolean(hook, [i for i in range(1,7)], [i for i in range(7,13)], 1, 0, 0)
 OCC.writeCAD(hook, "box2.step")
-

@@ -631,7 +631,7 @@ class Entity:
     # Create a 1D parametric entity
     # IN: name: entity name (optional, auto-generated if None)
     # IN: listP: list of parameters (Scalars, Points, Vec2, Grids, or numeric values)
-    # IN: type: entity type ('line', 'polyline', 'spline1', 'spline2', 'spline3', 'circle', 
+    # IN: type: entity type ('line', 'polyline', 'spline1', 'spline2', 'spline3', 'circle',
     # 'arc', 'ellipse', 'superellipse', 'naca4')
     # IN: mesh: optional reference mesh for spline3 type
     def __init__(self, name=None, listP=[], type=None, mesh=None, part=None):
@@ -1356,9 +1356,9 @@ class Surface():
         listSurfaces2 = []
         for s in self.surfaces2:
             listSurfaces2.append(s.Copy())
-        S = Surface(name, listSketches, listSketches2, 
-                    listSurfaces, listSurfaces2, data=self.data, 
-                    h=self.h, type=self.type, part=self.part) 
+        S = Surface(name, listSketches, listSketches2,
+                    listSurfaces, listSurfaces2, data=self.data,
+                    h=self.h, type=self.type, part=self.part)
         return S
 
     def shift(self, vector=(0.,0.,0.)):

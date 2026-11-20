@@ -185,7 +185,7 @@ elif TEST == 'union2':
     surface2 = T1.Loft('surface2', [sketch3,sketch4])
 
     #surface = T1.Union('surface', [surface1],[surface2])
-    
+
 T1.solve()
 T1.instantiate({'v1': 1.})
 T1.writeCAD(TEST+'.step')
