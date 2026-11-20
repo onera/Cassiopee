@@ -1319,7 +1319,7 @@ def _relaxCGNSTypes__(t):
 def _upgradeTreeFsdm__(t):
     try: import Generator.PyTree as G
     except: raise ImportError("convertFile2PyTree: bin_fsdm format requires Generator module.")
-    
+
     # separate NGon and BE connectivities (if any)
     # and remove duplicated faces in NGon connectivities using G.close()
     b = Internal.getBases(t)[0]
