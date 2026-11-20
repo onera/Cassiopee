@@ -1150,6 +1150,7 @@ def convertFile2PyTree(fileName, format=None, nptsCurve=20, nptsLine=2,
         t = converter.convertFile2PyTreeFsdm(fileName, 'bin_fsdm')
         t = Internal.createRootNode(children=t[2])
         _upgradeTree(t, uncompress, upgrade)
+        _upgradeTreeFsdm__(t)
         return t
 
     elif format == 'unknown':
@@ -1312,6 +1313,62 @@ def _relaxCGNSTypes__(t):
     for z in zones:
         nodes = Internal.getNodesFromType1(z, "Rind_t")
         Internal._adaptValueType(nodes, Internal.E_NpyInt)
+    return None
+
+# Clean NGon connectivities after convertFile2PyTreeFsdm()
+def _upgradeTreeFsdm__(t):
+    try: import Generator.PyTree as G
+    except: raise ImportError("convertFile2PyTree: bin_fsdm format requires Generator module.")
+
+    # separate NGon and BE connectivities (if any)
+    # and remove duplicated faces in NGon connectivities using G.close()
+    b = Internal.getBases(t)[0]
+    z = Internal.getZones(b)[0]
+    e = Internal.getNodesByType(t, 'Elements_t')
+    enames = [Internal.eltNo2EltName(i[1][0])[0] for i in e]
+
+    if len(enames) > 2 and 'NGON' in enames: # both BE/ME and NGON elements in tree
+        bcnames = [n[0] for n in Internal.getNodesFromType(z, 'BC_t')]
+
+        zBE = Internal.copyTree(z)
+        zNG = z
+
+        # clean BCs
+        NFaceElementsRange = Internal.getElementRange(z, 'NGonElements')
+        for name in bcnames:
+            BC = Internal.getNodeFromNameAndType(z, name, 'BC_t')
+            PL = Internal.getNodeFromName(BC, 'PointList')[1][0] # PL is size (1,n)
+            if PL[0] >= NFaceElementsRange[0] and PL[0] <= NFaceElementsRange[1]:
+                Internal._rmNodesByNameAndType(zBE, name, 'BC_t')
+            else:
+                Internal._rmNodesByNameAndType(zNG, name, 'BC_t')
+
+        # clean BE zone
+        zBE[0] = 'zoneBE'
+        for name in ['NGonElements', 'NFaceElements']:
+            Internal._rmNodesByName(zBE, name)
+
+        # clean NGON zone
+        zNG[0] = 'zoneNG'
+        for name in ['Tri3', 'Quad4', 'Tetra4', 'Pyra5', 'Prism6', 'Hexa8']:
+            Internal._rmNodesByName(zNG, name)
+
+        # finalize tree
+        b[2] += [zBE]
+        for z in Internal.getZones(t):
+            BCInfo = getBCs(z)
+            G._close(z)
+            _recoverBCs(z, BCInfo=BCInfo)
+
+    elif 'NGON' in enames: # only NGon elements in tree
+        # close NGON zone
+        BCInfo = getBCs(z)
+        G._close(z)
+        _recoverBCs(z, BCInfo=BCInfo)
+
+    else: # BE/ME or Struct
+        pass
+
     return None
 
 # -- convertPyTree2File
