@@ -97,9 +97,9 @@ def setParameterName(event=None):
     VARS[1].set(str(value))
     vmax = RANGEMAX[paramName]
     vmin = RANGEMIN[paramName]
-    if abs(vmax-vmin) > 1.e-10: 
+    if abs(vmax-vmin) > 1.e-10:
         v = (value-vmin)/(vmax-vmin)*100.
-    else: 
+    else:
         v = 0.
     WIDGETS['valueSlider'].set(v)
     update()
