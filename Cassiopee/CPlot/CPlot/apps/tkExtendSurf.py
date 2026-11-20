@@ -136,13 +136,23 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.NSEW)
+    frameMode = WIDGETS.get('frameMode', 0)
+    if frameMode == 0: # on SurfNoteBook
+        try: CTK.WIDGETS['SurfNoteBook'].add(WIDGETS['frame'], text='tkBasicSurfs')
+        except: pass
+        CTK.WIDGETS['SurfNoteBook'].select(WIDGETS['frame'])
+    else:
+        WIDGETS['frame'].grid(sticky=TK.NSEW)
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    frameMode = WIDGETS.get('frameMode', 0)
+    if frameMode == 0: # on SurfNoteBook
+        CTK.WIDGETS['SurfNoteBook'].hide(WIDGETS['frame'])
+    else:
+        WIDGETS['frame'].grid_forget()
 
 #==============================================================================
 # Update widgets when global pyTree t changes

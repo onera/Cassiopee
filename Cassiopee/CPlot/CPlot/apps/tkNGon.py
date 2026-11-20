@@ -301,15 +301,21 @@ def createApp(win):
 
 #==============================================================================
 def showApp():
-    #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    try: CTK.WIDGETS['BlockNoteBook'].add(WIDGETS['frame'], text='tkNGon')
-    except: pass
-    CTK.WIDGETS['BlockNoteBook'].select(WIDGETS['frame'])
+    frameMode = WIDGETS.get('frameMode', 0)
+    if frameMode == 0: # on BlockNoteBook
+        try: CTK.WIDGETS['BlockNoteBook'].add(WIDGETS['frame'], text='tkNGon')
+        except: pass
+        CTK.WIDGETS['BlockNoteBook'].select(WIDGETS['frame'])
+    else:
+        WIDGETS['frame'].grid(sticky=TK.NSEW)
 
 #==============================================================================
 def hideApp(event=None):
-    #WIDGETS['frame'].grid_forget()
-    CTK.WIDGETS['BlockNoteBook'].hide(WIDGETS['frame'])
+    frameMode = WIDGETS.get('frameMode', 0)
+    if frameMode == 0: # on BlockNoteBook
+        CTK.WIDGETS['BlockNoteBook'].hide(WIDGETS['frame'])
+    else:
+        WIDGETS['frame'].grid_forget()
 
 #==============================================================================
 def updateApp(): return

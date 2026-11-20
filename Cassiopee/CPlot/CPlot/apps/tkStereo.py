@@ -75,17 +75,23 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    try: CTK.WIDGETS['RenderNoteBook'].add(WIDGETS['frame'], text='tkStereo')
-    except: pass
-    CTK.WIDGETS['RenderNoteBook'].select(WIDGETS['frame'])
+    frameMode = WIDGETS.get('frameMode', 0)
+    if frameMode == 0: # on RenderNoteBook
+        try: CTK.WIDGETS['RenderNoteBook'].add(WIDGETS['frame'], text='tkStereo')
+        except: pass
+        CTK.WIDGETS['RenderNoteBook'].select(WIDGETS['frame'])
+    else:
+        WIDGETS['frame'].grid(sticky=TK.NSEW)
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    #WIDGETS['frame'].grid_forget()
-    CTK.WIDGETS['RenderNoteBook'].hide(WIDGETS['frame'])
+    frameMode = WIDGETS.get('frameMode', 0)
+    if frameMode == 0: # on RenderNoteBook
+        CTK.WIDGETS['RenderNoteBook'].hide(WIDGETS['frame'])
+    else:
+        WIDGETS['frame'].grid_forget()
 
 #==============================================================================
 # Update widgets when global pyTree t changes

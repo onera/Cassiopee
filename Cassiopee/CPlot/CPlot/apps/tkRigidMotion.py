@@ -924,17 +924,23 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    try: CTK.WIDGETS['MotionNoteBook'].add(WIDGETS['frame'], text='tkRigidMotion')
-    except: pass
-    CTK.WIDGETS['MotionNoteBook'].select(WIDGETS['frame'])
+    frameMode = WIDGETS.get('frameMode', 0)
+    if frameMode == 0: # on MotionNoteBook
+        try: CTK.WIDGETS['MotionNoteBook'].add(WIDGETS['frame'], text='tkRigidMotion')
+        except: pass
+        CTK.WIDGETS['MotionNoteBook'].select(WIDGETS['frame'])
+    else:
+        WIDGETS['frame'].grid(sticky=TK.NSEW)
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    #WIDGETS['frame'].grid_forget()
-    CTK.WIDGETS['MotionNoteBook'].hide(WIDGETS['frame'])
+    frameMode = WIDGETS.get('frameMode', 0)
+    if frameMode == 0: # on MotionNoteBook
+        CTK.WIDGETS['MotionNoteBook'].hide(WIDGETS['frame'])
+    else:
+        WIDGETS['frame'].grid_forget()
 
 #==============================================================================
 # Update widgets when global pyTree t changes

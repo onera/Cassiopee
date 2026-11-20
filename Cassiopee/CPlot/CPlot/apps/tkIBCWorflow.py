@@ -464,13 +464,23 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    WIDGETS['frame'].grid(sticky=TK.NSEW); updateApp()
+    frameMode = WIDGETS.get('frameMode', 0)
+    if frameMode == 0: # on BCNoteBook
+        try: CTK.WIDGETS['BCNoteBook'].add(WIDGETS['frame'], text='tkIBC')
+        except: pass
+        CTK.WIDGETS['BCNoteBook'].select(WIDGETS['frame'])
+    else:
+        WIDGETS['frame'].grid(sticky=TK.NSEW); updateApp()
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    WIDGETS['frame'].grid_forget()
+    frameMode = WIDGETS.get('frameMode', 0)
+    if frameMode == 0: # on BCNoteBook
+        CTK.WIDGETS['BCNoteBook'].hide(WIDGETS['frame'])
+    else:
+        WIDGETS['frame'].grid_forget()
 
 #==============================================================================
 # Update widgets when global pyTree t changes

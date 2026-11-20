@@ -5,7 +5,6 @@ import CPlot.Ttk as TTK
 import Converter.PyTree as C
 import CPlot.PyTree as CPlot
 import CPlot.Tk as CTK
-import Geom.PyTree
 import Geom.Offset
 # local widgets list
 WIDGETS = {}; VARS = []
@@ -131,17 +130,23 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    try: CTK.WIDGETS['SurfNoteBook'].add(WIDGETS['frame'], text='tkOffset')
-    except: pass
-    CTK.WIDGETS['SurfNoteBook'].select(WIDGETS['frame'])
+    frameMode = WIDGETS.get('frameMode', 0)
+    if frameMode == 0: # on SurfNoteBook
+        try: CTK.WIDGETS['SurfNoteBook'].add(WIDGETS['frame'], text='tkOffset')
+        except: pass
+        CTK.WIDGETS['SurfNoteBook'].select(WIDGETS['frame'])
+    else:
+        WIDGETS['frame'].grid(sticky=TK.NSEW)
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    #WIDGETS['frame'].grid_forget()
-    CTK.WIDGETS['SurfNoteBook'].hide(WIDGETS['frame'])
+    frameMode = WIDGETS.get('frameMode', 0)
+    if frameMode == 0: # on SurfNoteBook
+        CTK.WIDGETS['SurfNoteBook'].hide(WIDGETS['frame'])
+    else:
+        WIDGETS['frame'].grid_forget()
 
 #==============================================================================
 # Update widgets when global pyTree t changes

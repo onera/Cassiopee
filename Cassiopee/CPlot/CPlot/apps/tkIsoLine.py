@@ -54,7 +54,7 @@ def drawIsoLines():
     nlevels = VARS[1].get()
 
     try: nlevels = int(nlevels)
-    except: levels = 30
+    except: nlevels = 30
     if nlevels < 2: nlevels = 2
 
     nzs = CPlot.getSelectedZones()
@@ -259,17 +259,23 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    try: CTK.WIDGETS['PostNoteBook'].add(WIDGETS['frame'], text='tkIsoLine')
-    except: pass
-    CTK.WIDGETS['PostNoteBook'].select(WIDGETS['frame'])
+    frameMode = WIDGETS.get('frameMode', 0)
+    if frameMode == 0: # on PostNoteBook
+        try: CTK.WIDGETS['PostNoteBook'].add(WIDGETS['frame'], text='tkIsoLine')
+        except: pass
+        CTK.WIDGETS['PostNoteBook'].select(WIDGETS['frame'])
+    else:
+        WIDGETS['frame'].grid(sticky=TK.NSEW)
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    #WIDGETS['frame'].grid_forget()
-    CTK.WIDGETS['PostNoteBook'].hide(WIDGETS['frame'])
+    frameMode = WIDGETS.get('frameMode', 0)
+    if frameMode == 0: # on PostNoteBook
+        CTK.WIDGETS['PostNoteBook'].hide(WIDGETS['frame'])
+    else:
+        WIDGETS['frame'].grid_forget()
 
 #==============================================================================
 # Update widgets when global pyTree t changes

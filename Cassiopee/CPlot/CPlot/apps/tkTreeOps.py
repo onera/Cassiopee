@@ -240,17 +240,23 @@ def createApp(win):
 # Called to display widgets
 #==============================================================================
 def showApp():
-    #WIDGETS['frame'].grid(sticky=TK.NSEW)
-    try: CTK.WIDGETS['TreeNoteBook'].add(WIDGETS['frame'], text='tkTreeOps')
-    except: pass
-    CTK.WIDGETS['TreeNoteBook'].select(WIDGETS['frame'])
+    frameMode = WIDGETS.get('frameMode', 0)
+    if frameMode == 0: # on TreeNoteBook
+        try: CTK.WIDGETS['TreeNoteBook'].add(WIDGETS['frame'], text='tkTreeOps')
+        except: pass
+        CTK.WIDGETS['TreeNoteBook'].select(WIDGETS['frame'])
+    else:
+        WIDGETS['frame'].grid(sticky=TK.NSEW)
 
 #==============================================================================
 # Called to hide widgets
 #==============================================================================
 def hideApp(event=None):
-    #WIDGETS['frame'].grid_forget()
-    CTK.WIDGETS['TreeNoteBook'].hide(WIDGETS['frame'])
+    frameMode = WIDGETS.get('frameMode', 0)
+    if frameMode == 0: # on TreeNoteBook
+        CTK.WIDGETS['TreeNoteBook'].hide(WIDGETS['frame'])
+    else:
+        WIDGETS['frame'].grid_forget()
 
 #==============================================================================
 # Update widgets when global pyTree t changes
