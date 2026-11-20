@@ -47,14 +47,34 @@ PyObject* K_OCC::addEllipse(PyObject* self, PyObject* args)
   GETPACKET; 
   GETSHAPE;
 
-  /* new circle */
+  if (R1 < 0.0 || R2 < 0.0) 
+  {
+    PyErr_SetString(PyExc_TypeError,
+                    "addEllipse: R1 and R2 must be positives.");
+    return NULL;
+
+  }
+
+  /* new ellipse */
   gp_Pnt pc(xc, yc, zc); // Center
   gp_Dir normal(ax, ay, az); // Normal vector
   gp_Ax2 axis(pc, normal);
 
-  gp_Elips ellipse(axis, R1, R2);
+  gp_Elips* ellipse;
+  if (R1 >= R2)
+  {
+    ellipse = new gp_Elips(axis, R1, R2);
+  }
+  else
+  {
+    // R1 < R2: rotate the coordinate system 90 degrees around its normal axis
+    // so that the new XAxis points along the larger radius direction (theR2).
+    gp_Ax2 axis2(axis);
+    axis2.Rotate(axis.Axis(), M_PI_2);
+    ellipse = new gp_Elips(axis2, R2, R1);
+  }
 
-  TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(ellipse);
+  TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(*ellipse);
   TopoDS_Wire wire = BRepBuilderAPI_MakeWire(edge);
   TopoDS_Face face = BRepBuilderAPI_MakeFace(wire);
 
@@ -100,6 +120,7 @@ PyObject* K_OCC::addEllipse(PyObject* self, PyObject* args)
   TopoDS_Shape* newshp = new TopoDS_Shape(compound);
     
   delete shape;
+  delete ellipse;
   SETSHAPE(newshp);
 
   printf("INFO: after addEllipse: Nb edges=%d\n", se->Extent());

@@ -12,6 +12,9 @@ Cassiopee/XCore/merge.l
 Cassiopee/Modeler/merge.l
 Cassiopee/Envs/sh_Cassiopee_user
 Cassiopee/CPlot/apps/Output
+Cassiopee/OCC/test/*.step
+Cassiopee/Roms/test/*.step
+Cassiopee/Roms/Roms/Parts/*.step
 ValidData*
 Data*
 *~
@@ -57,7 +60,6 @@ Data*
 *.foam/
 out_foam/
 chm000*
-out.step
 *.swp
 *.db
 tools/MigrationSVN

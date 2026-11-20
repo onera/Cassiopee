@@ -631,7 +631,8 @@ class Entity:
     # Create a 1D parametric entity
     # IN: name: entity name (optional, auto-generated if None)
     # IN: listP: list of parameters (Scalars, Points, Vec2, Grids, or numeric values)
-    # IN: type: entity type ('line', 'polyline', 'spline1', 'spline2', 'spline3', 'circle', 'arc', 'superellipse', 'naca4')
+    # IN: type: entity type ('line', 'polyline', 'spline1', 'spline2', 'spline3', 'circle', 
+    # 'arc', 'ellipse', 'superellipse', 'naca4')
     # IN: mesh: optional reference mesh for spline3 type
     def __init__(self, name=None, listP=[], type=None, mesh=None, part=None):
         # name
@@ -737,6 +738,9 @@ class Entity:
         elif self.type == "arc": # arc
             OCC._addArc(self.hook, self.P[0].v(), self.P[1].v(), self.P[2].v())
 
+        elif self.type == "ellipse": # ellipse
+            OCC._addEllipse(self.hook, self.P[0].v(), (0,0,1), self.P[1].v, self.P[2].v)
+
         elif self.type == "superellipse": # superellipse
             OCC._addSuperEllipse(self.hook, self.P[0].v(), self.P[1].v, self.P[2].v, self.P[3].v, self.P[4].v)
 
@@ -810,6 +814,9 @@ class Entity:
         elif self.type == "circle":
             C = self.P[0].Copy()
             return Circle(name, C, self.P[1], self.part)
+        elif self.type == "ellipse":
+            C = self.P[0].Copy()
+            return Ellipse(name, C, self.P[1], self.P[2], self.part)
         elif self.type == "superellipse":
             C = self.P[0].Copy()
             return SuperEllipse(name, C, self.P[1], self.P[2], self.P[3].v, self.P[4].v, self.part)
@@ -860,6 +867,9 @@ class Entity:
         elif self.type == "circle":
             C = self.P[0].Shift(vector=vector)
             return Circle(name, C, self.P[1], self.part)
+        elif self.type == "ellipse":
+            C = self.P[0].Shift(vector=vector)
+            return Ellipse(name, C, self.P[1], self.P[2], self.part)
         elif self.type == "superellipse":
             C = self.P[0].Shift(vector=vector)
             return SuperEllipse(name, C, self.P[1], self.P[2], self.P[3].v, self.P[4].v, self.part)
@@ -916,6 +926,9 @@ class Entity:
         elif self.type == "circle":
             C = self.P[0].Symm(plane=plane, center=center)
             return Circle(name, C, self.P[1], self.part)
+        elif self.type == "ellipse":
+            C = self.P[0].Symm(plane=plane, center=center)
+            return Ellipse(name, C, self.P[1], self.P[2], self.part)
         elif self.type == "superellipse":
             C = self.P[0].Symm(plane=plane, center=center)
             return SuperEllipse(name, C, self.P[1], self.P[2], self.P[3].v, self.P[4].v, self.part)
@@ -968,6 +981,9 @@ class Entity:
         elif self.type == "circle":
             C = self.P[0].Rotate(center=center, alpha=alpha)
             return Circle(name, C, self.P[1], self.part)
+        elif self.type == "ellipse":
+            C = self.P[0].Rotate(center=center, alpha=alpha)
+            return Ellipse(name, C, self.P[1], self.P[2], self.part)
         elif self.type == "superellipse":
             C = self.P[0].Rotate(center=center, alpha=alpha)
             return SuperEllipse(name, C, self.P[1], self.P[2], self.P[3].v, self.P[4].v, self.part)
@@ -1014,6 +1030,11 @@ def Spline3(name=None, PGrid=None, mesh=None, part=None):
 def Circle(name=None, C=(0.,0.,0.), R=1., part=None):
     """Define parametric circle."""
     return Entity(name, [C, R], type="circle", part=part)
+
+# ellipse from parametric center and R1, R2
+def Ellipse(name=None, C=(0.,0.,0.), R1=1., R2=1., part=None):
+    """Define parametric ellipse."""
+    return Entity(name, [C, R1, R2], type="ellipse", part=part)
 
 # superellipse from parametric center and R1, R2
 def SuperEllipse(name=None, C=(0.,0.,0.), R1=1., R2=1., N=4, samples=36, part=None):
@@ -1115,8 +1136,7 @@ class Sketch():
             else: hooks.append(e.hook)
         self.hook = OCC.mergeCAD(hooks)
         # global positionning
-        for t in self.transforms:
-            t.update(self.hook)
+        for t in self.transforms: t.update(self.hook)
 
     # Check if parameters are valid
     # OUT: 0 if all parameters are valid, 1 if any parameter is invalid
@@ -1298,26 +1318,10 @@ class Surface():
             c += 1
         # hook
         self.hook = None
-        # global position parameters (always added)
-        P = Vec3('%s.position'%self.name, (0,0,0))
-        self.P.append(P)
-        self.position = P
-        P = Point('%s.rotCenter'%self.name, (0,0,0), part=part)
-        self.P.append(P)
-        self.rotCenter = P
-        P = Vec3('%s.rotAxis'%self.name, (0,0,1), part=part)
-        self.P.append(P)
-        self.rotAxis = P
-        P = Scalar('%s.rotAngle'%self.name, 0., part=part)
-        self.P.append(P)
-        self.rotAngle = P
-        P = Point('%s.scaleCenter'%self.name, (0.,0.,0.), part=part)
-        self.P.append(P)
-        self.scaleCenter = P
-        P = Scalar('%s.scaleFactor'%self.name, 1., part=part)
-        self.P.append(P)
-        self.scaleFactor = P
+        # global position
+        self.transforms = []
         # register
+        self.part = part
         if part is not None: part.registerSurface(self)
         # meshing: (hmin,hmax,hausd). supersedes sketch settings.
         self.h = None
@@ -1336,6 +1340,47 @@ class Surface():
     def add(self, sketch):
         """Add a sketch to the surface definition."""
         self.sketches.append(sketch)
+
+    def Copy(self, name=None):
+        """Copy a sketch, return a new sketch."""
+        if name is None: name = getName(self.name+'C')
+        listSketches = []
+        for s in self.sketches:
+            listSketches.append(s.Copy())
+        listSketches2 = []
+        for s in self.sketches2:
+            listSketches2.append(s.Copy())
+        listSurfaces = []
+        for s in self.surfaces:
+            listSurfaces.append(s.Copy())
+        listSurfaces2 = []
+        for s in self.surfaces2:
+            listSurfaces2.append(s.Copy())
+        S = Surface(name, listSketches, listSketches2, 
+                    listSurfaces, listSurfaces2, data=self.data, 
+                    h=self.h, type=self.type, part=self.part) 
+        return S
+
+    def shift(self, vector=(0.,0.,0.)):
+        """Shift sketch of vector."""
+        self.transforms.append(Transform(self.name, self.part, position=vector))
+
+    def rotate(self, center=(0,0,0), alpha=90.):
+        """Rotate sketch."""
+        self.transforms.append(Transform(self.name, self.part, rotCenter=center, rotAxis=(0,0,1), rotAngle=alpha))
+
+    def scale(self, center=(0,0,0), factor=1.):
+        """Scale sketch."""
+        self.transforms.append(Transform(self.name, self.part, scaleCenter=center, scaleFactor=factor))
+
+    def set(self, position=None,
+            rotCenter=None, rotAxis=None, rotAngle=None,
+            scaleCenter=None, scaleFactor=None, reverse=False):
+        """Rigid transform sketch."""
+        self.transforms.append(Transform(self.name, self.part, position=position,
+                                         rotCenter=rotCenter, rotAxis=rotAxis, rotAngle=rotAngle,
+                                         scaleCenter=scaleCenter, scaleFactor=scaleFactor,
+                                         reverse=reverse))
 
     # Update CAD from parameters based on surface type
     def update(self):
@@ -1516,9 +1561,9 @@ class Surface():
                 hooks.append(e.hook)
             self.hook = OCC.mergeCAD(hooks)
             if 'rev1' in self.data: rev1 = self.data['rev1'].v
-            else: rev1 = 1
+            else: rev1 = 0
             if 'rev2' in self.data: rev2 = self.data['rev2'].v
-            else: rev2 = 1
+            else: rev2 = 0
             OCC._boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 0, rev1, rev2)
 
         elif self.type == "inter": # by boolean intersection
@@ -1531,9 +1576,9 @@ class Surface():
                 hooks.append(e.hook)
             self.hook = OCC.mergeCAD(hooks)
             if 'rev1' in self.data: rev1 = self.data['rev1'].v
-            else: rev1 = 1
+            else: rev1 = 0
             if 'rev2' in self.data: rev2 = self.data['rev2'].v
-            else: rev2 = 1
+            else: rev2 = 0
             OCC._boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 2, rev1, rev2)
 
         elif self.type == "sub": # by boolean substraction
@@ -1546,9 +1591,9 @@ class Surface():
                 hooks.append(e.hook)
             self.hook = OCC.mergeCAD(hooks)
             if 'rev1' in self.data: rev1 = self.data['rev1'].v
-            else: rev1 = 1
+            else: rev1 = 0
             if 'rev2' in self.data: rev2 = self.data['rev2'].v
-            else: rev2 = 1
+            else: rev2 = 0
             OCC._boolean(self.hook, [i for i in range(1,n1+1)], [i for i in range(n1+1,n1+n2+1)], 1, rev1, rev2)
 
         elif self.type == "sphere":
@@ -1583,8 +1628,7 @@ class Surface():
                 OCC._sewing(self.hook)
 
         # global positionning
-        OCC._rotate(self.hook, self.rotCenter.v(), self.rotAxis.v(), self.rotAngle.v)
-        OCC._translate(self.hook, self.position.v())
+        for t in self.transforms: t.update(self.hook)
 
     # Print surface information
     # IN: shift: number of blank characters left to print (default: 0)
@@ -2318,6 +2362,10 @@ class Part:
 
     def Circle(self, name=None, C=(0.,0.,0.), R=1.):
         s = Entity(name, [C, R], type="circle", part=self)
+        return s
+
+    def Ellipse(self, name=None, C=(0.,0.,0.), R1=1., R2=1.):
+        s = Entity(name, [C, R1, R2], type="ellipse", part=self)
         return s
 
     def SuperEllipse(self, name=None, C=(0.,0.,0.), R1=1., R2=1., N=4, samples=36):

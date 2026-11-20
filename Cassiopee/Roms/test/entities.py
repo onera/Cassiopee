@@ -94,4 +94,5 @@ elif TEST == 'airfoil':
 T1.solve()
 T1.instantiate({'v1': 1.})
 
+T1.writeCAD(TEST+'.step')
 D.DRIVER.plot()

@@ -43,6 +43,6 @@ sketch3.set(scaleCenter=(0,0,0), scaleFactor=0.5, reverse=True)
 
 T1.solve()
 T1.instantiate({'v1': 1.})
+T1.writeCAD(TEST+'.step')
 
-T1.writeCAD('out.step')
 D.DRIVER.plot()
