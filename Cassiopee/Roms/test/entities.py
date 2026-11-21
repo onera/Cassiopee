@@ -1,7 +1,7 @@
 # test Driver entities
 import Roms.Driver as D
 
-TEST = 'line'
+TEST = 'superellipse'
 
 T1 = D.Part('test')
 
@@ -75,7 +75,7 @@ elif TEST == 'arc':
     sketch1 = T1.Sketch('sketch1', [arc1,arc2,arc3,arc4])
 
 elif TEST == 'ellipse':
-    ellipse1 = T1.Ellipse('ellipse1', P2, v1, 1.)
+    ellipse1 = T1.Ellipse('ellipse1', P2, v1, 1.5)
     ellipse2 = ellipse1.Shift('ellipse2', vector=(0,3,0))
     ellipse3 = ellipse1.Symm('ellipse3', plane='yz', center=(0,0,0))
     ellipse4 = ellipse1.Rotate('ellipse4', center=(0,0,0), alpha=-90.)

@@ -72,6 +72,7 @@ def exportEdges(edges):
 
 # if h is None, return h from hook analysis
 def getH(h, hook):
+    if hook is None: return [1.,1.,1.]
     if h is None:
         (hmin,hmax,hausd) = OCC.occ.analyseEdges(hook)
         h = (hmin, 2*hmax, 0.1*hausd)
@@ -1172,6 +1173,7 @@ class Sketch():
     # OUT: list of meshed edge arrays
     def mesh(self, method=1):
         """Mesh edges."""
+        if self.hook is None: return []
         self.h = getH(self.h, self.hook)
         if self.distribs is not None:
             edges = []
@@ -1664,6 +1666,7 @@ class Surface():
     # OUT: list of meshed face arrays
     def mesh(self, close=True, method=1):
         """Mesh surface."""
+        if self.hook is None: return []
         self.h = getH(self.h, self.hook)
         (hmin,hmax,hausd) = self.h
         if method == 1: # isotropic hmin,hmax,hausd

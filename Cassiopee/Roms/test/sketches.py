@@ -1,7 +1,7 @@
 # test Driver sketches
 import Roms.Driver as D
 
-TEST = 'superellipse'
+TEST = 'line'
 
 T1 = D.Part('test')
 

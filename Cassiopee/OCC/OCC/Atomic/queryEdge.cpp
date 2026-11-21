@@ -97,23 +97,35 @@ PyObject* queryEdge1(const TopoDS_Edge& E)
       printf("Info: queryEdge: edge is a spline.\n");
       Handle(Geom_BSplineCurve) bspline = adaptor.BSpline();
       Standard_Integer nbPoles = bspline->NbPoles();
-            
+
       TColgp_Array1OfPnt poles(1, nbPoles);
       bspline->Poles(poles); // Extracts the control points (poles)
 
-      PyObject* array = K_NUMPY::buildNumpyArray(nbPoles, 3, 0);
+      //if (bspline->IsPeriodic()) // add a pole and set the first one back 
+      if (bspline->IsPeriodic()) printf("periodic\n");
+      if (bspline->IsClosed()) printf("closed\n");
+      E_Int nbPoles2 = nbPoles;
+      if (bspline->IsPeriodic() && bspline->IsClosed()) nbPoles2 = nbPoles+1;
+
+      PyObject* array = K_NUMPY::buildNumpyArray(nbPoles2, 3, 0);
       E_Float* ap; E_Int size;
       K_NUMPY::getFromNumpyArray(array, ap, size);
   
       for (E_Int i = 1; i <= nbPoles; i++) 
       {
         ap[i-1] = poles(i).X();
-        ap[i-1+nbPoles] = poles(i).Y();
-        ap[i-1+2*nbPoles] = poles(i).Z();
+        ap[i-1+nbPoles2] = poles(i).Y();
+        ap[i-1+2*nbPoles2] = poles(i).Z();
         //ap[3*(i-1)] = poles(i).X();
         //ap[3*(i-1)+1] = poles(i).Y();
         //ap[3*(i-1)+2] = poles(i).Z();
         //printf("pole %g %g %g\n", poles(i).X(), poles(i).Y(), poles(i).Z());
+      }
+      if (bspline->IsPeriodic() && bspline->IsClosed())
+      {
+        ap[nbPoles] = poles(1).X();
+        ap[nbPoles+nbPoles2] = poles(1).Y();
+        ap[nbPoles+2*nbPoles2] = poles(1).Z();
       }
       E_Int degree = bspline->Degree();
       dict = Py_BuildValue("{s:s, s:O, s:i}", 
