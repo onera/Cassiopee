@@ -116,7 +116,9 @@ Cassiopee/Converter/
     └── function_t1.py
 ```
 
-# Function creation
+## Possible tasks
+
+### Function creation
 To create a function, you should mimic an existing function architecture.
 A good example is Converter.getMeanValue.
 The function exists in Converter/Converter.py (array interface) and COnverter/PyTree.py (pytree interface).
@@ -125,12 +127,22 @@ The C function takes generally an array as input and uses getFromArray3
 to get pointers on the data. To generate an array, you should use
 buildArray3.
 
-# Installation
-To install a module, you should go in the module directory and type "install".
+### Function modification (optimization)
+You must modify the function.cpp or module.py to complete the described task.
+
+## Running commands
+If you want to run "python", the bash environement is already set
+to use the Cassiopee modules. Dont try to install third party modules
+or another installation system.
+
+You can run standard bash commands in it also.
+The system is msys, you van use linux style file paths.
+
+## Installation
+To install a module, you should go in the module directory and simply type "install".
 You should fix compilation problems.
 
-
-# Testing
+## Testing
 When creating a new function in a module, you should create a test in module/test
 using the function name. For example for function getMinValue, for the
 array interface, you should create getMinValue.py and getMinValue_t1.py.
@@ -139,5 +151,9 @@ the different input types.
 The _t1 file use test to register the result of the function for the validation.
 For the pytree interface, you should create getMinValuePT.py and getMinValuePT_t1.py.
 
-# Adding the documentation
-Finaly you should add the documentation of the new function in the module/doc/module.rst file. You should not try to build the documentation.
+When modifying a function, you should use the already existing test and execute it.
+The test should pass. When your modification add a new functionality, you should add a 
+new test with _t2, _t3, ... to cover the new development.
+
+## Adding the documentation
+Finaly, when creating a new function, you should add the documentation of the new function in the module/doc/module.rst file. You should not try to build the documentation.

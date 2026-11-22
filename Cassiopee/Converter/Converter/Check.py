@@ -1,5 +1,5 @@
 # - check -
-"""Check pyTree integrity."""""
+"""Check pyTree integrity."""
 
 from . import Internal
 from . import PyTree as C
@@ -105,7 +105,7 @@ CGNSTypes = {
 # OUT: error = [problematic node, message]
 #==============================================================================
 def checkPyTree(t, level=-20):
-    """Check different conformity in tree."""
+    """Check pyTree conformity."""
     errors = []
     if level <= 0 or level == 0:
         # check version node
@@ -156,11 +156,11 @@ def checkPyTree(t, level=-20):
     if level <= -10 or level == 10:
         # check valid CGNS var name
         errors += checkCGNSVarNames(t)
+    if level <= -11 or level == 11:
         # check Coordinates in fields
         #errors += checkCoordinatesInFields(t)
-        # check field dimension
-        #errors += checkFieldConformity(t)
-    if level <= -11 or level == 11:
+        # check field dimensions
+        errors += checkFieldConformity(t)
         # check NAN or infinite in fields
         errors += checkNAN(t)
     if level <= -12 or level == 12:
@@ -225,10 +225,10 @@ def _correctPyTree(t, level=-20):
     # Corrects non-CGNS variable names
     if level <= -10 or level == 10:
         _correctCGNSVarNames(t)
-        #_correctCoordinatesInFields(t)
-        #_correctFieldConformity(t)
-    # Removes NANs in fields
+    # Correct field conformity and remove NANs in fields
     if level <= -11 or level == 11:
+        #_correctCoordinatesInFields(t)
+        _correctFieldConformity(t)
         _correctNAN(t)
     # Truncates names > 32 chars
     if level <= -12 or level == 12:
@@ -291,6 +291,7 @@ def checkNodes(node):
 
 #==============================================================================
 def checkNode__(node, parent, errors):
+    """Check node conformity recursively."""
     sons = []
     # node must be a list
     if isinstance(node, list):
@@ -398,6 +399,7 @@ def _correctNameLength(t):
 # Optimized for Base, Zone, BC and GC
 #==============================================================================
 def checkUniqueNames(t, ntype):
+    """Verify unique names for given node type."""
     nameServer = {}
     errors = []
 
@@ -463,6 +465,7 @@ def checkUniqueNames(t, ntype):
 # Change node name if already defined
 #==============================================================================
 def _correctNames(t, ntype):
+    """Rename nodes with non-unique names by appending an index."""
     nameServer = {}
     if ntype == 'CGNSBase_t': nodes = Internal.getBases(t)
     elif ntype == 'Zone_t': nodes = Internal.getZones(t)
@@ -493,6 +496,7 @@ def _correctNames(t, ntype):
 #==============================================================================
 # Corrects occurrences of a zone name in BCs
 def _correctDonors(t, ntype, zoneDonors):
+    """Update donor zone names in connectivity nodes."""
     zones = Internal.getZones(t)
     for z in zones:
         nodes = Internal.getNodesFromType2(z, ntype)
@@ -512,6 +516,7 @@ def _correctDonors(t, ntype, zoneDonors):
 # Corrects the shape of ranges if it's in C order
 #==============================================================================
 def checkBCRanges(t, ntype):
+    """Check BC range validity for structured zones."""
     errors = []
     if ntype == 'BC_t': ctype = 'ZoneBC_t'
     else: ctype = 'ZoneGridConnectivity_t'
@@ -553,6 +558,7 @@ def checkBCRanges(t, ntype):
     return errors
 
 def checkBCFaces(t, ntype):
+    """Verify BC faces are contained in zone elements."""
     errors = []
     if ntype == 'BC_t': ctype = 'ZoneBC_t'
     else: ctype = 'ZoneGridConnectivity_t'
@@ -581,6 +587,7 @@ def checkBCFaces(t, ntype):
 # Verifies that the donor range is contained in the donor grid
 #==============================================================================
 def checkDonorRanges(t, ntype):
+    """Check donor BC range validity for structured zones."""
     errors = []
     if ntype == 'BC_t': ctype = 'ZoneBC_t'
     else: ctype = 'ZoneGridConnectivity_t'
@@ -626,6 +633,7 @@ def checkDonorRanges(t, ntype):
     return errors
 
 def checkDonorFaces(t, ntype):
+    """Verify donor BC faces are contained in zone elements."""
     errors = []
     if ntype == 'BC_t': ctype = 'ZoneBC_t'
     else: ctype = 'ZoneGridConnectivity_t'
@@ -654,6 +662,7 @@ def checkDonorFaces(t, ntype):
 # Removes BCs of given type with invalid ranges
 #==============================================================================
 def _correctBCRanges(t, ntype):
+    """Remove BC nodes with invalid ranges."""
     errors = checkBCRanges(t, ntype)
     le = len(errors)//3
     for e in range(le):
@@ -667,6 +676,7 @@ def _correctBCRanges(t, ntype):
 # Removes BCs with invalid donor ranges
 #==============================================================================
 def _correctDonorRanges(t, ntype):
+    """Remove BC donor nodes with invalid ranges."""
     errors = checkDonorRanges(t, ntype)
     le = len(errors)//3
     for e in range(le):
@@ -681,6 +691,7 @@ def _correctDonorRanges(t, ntype):
 # is negative - to be compliant by the standard (connectMatch always do min/max)
 #==============================================================================
 def _reorderBCMatchPointRange(t):
+    """Reorder BCMatch PointRange min/max for negative Transform indices."""
     for z in Internal.getZones(t):
         for gc in Internal.getNodesFromType2(z, 'GridConnectivity1to1_t'):
             TR = Internal.getNodeFromName1(gc, 'Transform')
@@ -705,6 +716,7 @@ def _reorderBCMatchPointRange(t):
 # IN: ntype: GridConnectivity1to1_t or GridConnectivity_t
 #==============================================================================
 def checkOppositRanges(t, ntype):
+    """Verify opposite window ranges for BCMatch and BCNearMatch nodes."""
     errors = []
     delta = numpy.empty(3, Internal.E_NpyInt); deltaopp = numpy.empty(3, Internal.E_NpyInt)
     zones = Internal.getZones(t)
@@ -815,6 +827,7 @@ def checkOppositRanges(t, ntype):
 #                whose donor doesn't have the reciprocal node
 #==============================================================================
 def _correctOppositRanges(t, ntype):
+    """Remove GC nodes without valid opposite donors or coherent ranges."""
     errors = checkOppositRanges(t, ntype)
     le = len(errors)//3
     for e in range(le):
@@ -916,7 +929,9 @@ def checkBaseZonesDim(t):
 # if splitBases: enforce bases to have homogenous cellDims by splitting base
 #==============================================================================
 def _correctBaseZonesDim(t, splitBases=False):
+    """Correct base dimensions and optionally split bases."""
     bases = Internal.getBases(t)
+    if len(bases) == 0: return None
     for b in bases:
         zones = Internal.getZones(b)
         z1 = []; z2 = []; z3 = [] # zones of dim 1,2,3
@@ -1088,6 +1103,7 @@ def checkCGNSType(node):
     return errors
 
 def checkCGNSType__(node, parent, errors):
+    """Check if node type is valid recursively."""
     ntype = node[3]
     if ntype not in CGNSTypes:
         errors += [node, parent, 'Unknown CGNS type %s for node %s.\n'%(ntype, node[0])]
@@ -1116,6 +1132,7 @@ def _correctCGNSType(t):
 # no negative faces
 #==============================================================================
 def checkElementNodes(t):
+    """Check element nodes recursively."""
     errors = []
     bases = Internal.getBases(t)
     for b in bases:
@@ -1174,6 +1191,7 @@ def checkElementNodes(t):
 # Applies abs(index) for NFaces
 #==============================================================================
 def _correctElementNodes(t):
+    """Correct element nodes and fix connectivity."""
     _correctElementBoundaryNodes(t)
     _cleanBEConnect(t)
     errors = checkElementNodes(t)
@@ -1199,6 +1217,7 @@ def _correctElementNodes(t):
 # Corrects boundary connectivity that are at zero (GE[1][1])
 #===============================================================================
 def _correctElementBoundaryNodes(t):
+    """Correct element boundary nodes with zero coordinates."""
     #_correctBCPL2ER(t)
 
     zones = Internal.getZones(t)
@@ -1228,6 +1247,7 @@ def _correctElementBoundaryNodes(t):
 #  2/ or if BC is defined by a PointList= a set of face centers
 #==========================================================================================
 def _correctBCPL2ER(t):
+    """Convert BC PointList to ElementRange for boundary faces."""
     import Post.PyTree as P
     for z in Internal.getZones(t):
         zdim = Internal.getZoneDim(z)
@@ -1275,6 +1295,7 @@ def _correctBCPL2ER(t):
 #  In a NGON mesh, removes BE connectivities
 #===============================================================================
 def _cleanBEConnect(t):
+    """Remove BE connectivities from NGON zones."""
     for z in Internal.getZones(t):
         zdim = Internal.getZoneDim(z)
         if zdim[0] == 'Unstructured':
@@ -1289,6 +1310,7 @@ def _cleanBEConnect(t):
 # shift=1: add nface shift if possible
 # shift=-1: subtract nface shift if possible
 def _shiftParentElements(t, shift=1):
+    """Shift ParentElements indices by nface."""
     for z in Internal.getZones(t):
         ngon = Internal.getNGonNode(z)
         if ngon is not None:
@@ -1315,6 +1337,7 @@ def _shiftParentElements(t, shift=1):
 # Check non CGNS varnames in FlowSolution_t and BCDataSet
 #===============================================================================
 def checkCGNSVarNames(t):
+    """Check CGNS variable names in FlowSolution_t and BCDataSet."""
     errors = []
     zones = Internal.getZones(t)
     for z in zones:
@@ -1335,6 +1358,7 @@ def checkCGNSVarNames(t):
     return errors
 
 def _correctCGNSVarNames(t):
+    """Correct invalid CGNS variable names."""
     errors = checkCGNSVarNames(t)
     for e in range(len(errors)//3):
         node = errors[3*e]
@@ -1346,6 +1370,7 @@ def _correctCGNSVarNames(t):
 # Check if Coordinates are in fields, change name with + F
 #===============================================================================
 def checkCoordinatesInFields(t):
+    """Check coordinates and rename if in FlowSolution_t."""
     errors = []
     zones = Internal.getZones(t)
     for z in zones:
@@ -1376,6 +1401,7 @@ def checkCoordinatesInFields(t):
     return errors
 
 def _correctCoordinatesInFields(t):
+    """Rename coordinate variables with 'F' suffix."""
     errors = checkCoordinatesInFields(t)
     for e in range(len(errors)//3):
         node = errors[3*e]
@@ -1387,9 +1413,11 @@ def _correctCoordinatesInFields(t):
 # Check field conformity and location
 #===============================================================================
 def checkFieldConformity(t):
+    """Check field conformity and location."""
     errors = []
     zones = Internal.getZones(t)
     for z in zones:
+        zdim = Internal.getZoneDim(z)
         npts = C.getNPts(z)
         ncells = C.getNCells(z)
         # Change on container
@@ -1397,27 +1425,58 @@ def checkFieldConformity(t):
         for c in cont:
             loc = Internal.getNodeFromType1(c, 'GridLocation_t')
             if loc is None: loc = npts
-            elif Internal.getValue(loc) == 'Centers': loc = ncells
+            elif Internal.getValue(loc) == 'CellCenter': loc = ncells
             elif Internal.getValue(loc) == 'Vertex': loc = npts
+            else: loc = npts
             datas = Internal.getNodesFromType1(c, 'DataArray_t')
             for d in datas:
+                if d[1] is None: continue # not loaded
                 if d[1].size != loc:
                     errors += [d, c, '%s has not the right size for field in zone %s.'%(d[0],z[0])]
+                elif zdim[0] == 'Structured': # check numpy shape
+                    shape = d[1].shape # actual shape
+                    if zdim[4] == 3 and len(shape) != 3:
+                        shapet = (zdim[1],zdim[2],zdim[3]) # target shape
+                        errors += [d, c, '%s has not the right shape %s for field in structured zone %s.'%(d[0],str(shapet),z[0])]
+                    elif zdim[4] == 2 and len(shape) != 2:
+                        shapet = (zdim[1],zdim[2]) # target shape
+                        errors += [d, c, '%s has not the right %s shape for field in structured zone %s.'%(d[0],str(shapet),z[0])]
+                    elif zdim[4] == 1 and len(shape) != 1:
+                        shapet = (zdim[1]) # target shape
+                        errors += [d, c, '%s has not the right shape %s for field in structured zone %s.'%(d[0],str(shapet),z[0])]
+                    elif loc == npts and (shape[0] != zdim[1] or shape[1] != zdim[2] or shape[1] != zdim[3]):
+                        errors += [d, c, '%s has not the right shape %s for field in structured zone %s.'%(d[0],str(shapet),z[0])]
+                    elif loc == ncells and (shape[0] != zdim[1]-1 or shape[1] != zdim[2]-1 or shape[1] != max(zdim[3]-1,1)):
+                        errors += [d, c, '%s has not the right shape %s for field in structured zone %s.'%(d[0],str(shapet),z[0])]
+                elif zdim[0] == 'Unstructured': # check numpy shape
+                    shape = d[1].shape
+                    if len(shape) != 1:
+                        errors += [d, c, '%s has not the right shape %s for field in structured zone %s.'%(d[0],str(shapet),z[0])]
     return errors
 
 def _correctFieldConformity(t):
+    """Fix field size and location mismatches."""
     errors = checkFieldConformity(t)
     for e in range(len(errors)//3):
         node = errors[3*e]
         parent = errors[3*e+1]
-        c = Internal.getNodePosition(node, parent)
-        del parent[2][c]
+        msg = errors[3*e+2]
+        if 'not the right shape' in msg:
+            import re, ast
+            match = re.search(r"\((.*?)\)", msg)
+            tuplestr = match.group(0)
+            sh = ast.literal_eval(tuplestr)
+            node[1] = node[1].reshape(sh)
+        else:
+            c = Internal.getNodePosition(node, parent)
+            del parent[2][c]
     return None
 
 #===============================================================================
 # Check NAN in fields
 #===============================================================================
 def checkNAN(t):
+    """Check for NaN values in fields."""
     errors = []
     zones = Internal.getZones(t)
     for z in zones:
@@ -1430,6 +1489,7 @@ def checkNAN(t):
     return errors
 
 def _correctNAN(t):
+    """Replace NaN values with zeros."""
     errors = checkNAN(t)
     for e in range(len(errors)//3):
         node = errors[3*e]
