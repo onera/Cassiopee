@@ -14,6 +14,7 @@ from .Boxes import box
 # IN: h: height of screw
 #==============================================================================
 def hexaScrew(X, r, h, chamfer=-1):
+    """Screw with an hexa head."""
     if chamfer < 0:
         a = D.circle(X, r, N=7)
         b = T.translate(a, (0,0,h))
@@ -45,6 +46,7 @@ def hexaScrew(X, r, h, chamfer=-1):
 # IN: drive: type of drive. 0: None, 1: straight
 #==============================================================================
 def roundScrew(X, r, h, drive=0):
+    """Screw with a rounded head."""
     p = D.polyline([(X[0],X[1],X[2]+h), (X[0]+0.8*r,X[1],X[2]+h*0.8), (X[0]+r,X[1],X[2])])
     p = D.spline(p, N=10)
     p = D.axisym(p, X, axis=(0,0,1), Ntheta=20)

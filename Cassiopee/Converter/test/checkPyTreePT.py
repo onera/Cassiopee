@@ -33,5 +33,5 @@ errors += Internal.checkPyTree(t, level=9); print(errors)
 # Introduce errors (on purpose!)
 n = Internal.getNodeFromType2(t, 'Zone_t')
 Internal.setType(n, 'Zon_t')
-errors = Internal.checkPyTree(t, level=8); print(errors)
-#>> [['cart', array(..), [..], 'Zon_t'], 'Unknown CGNS type Zon_t for node cart.\n']
+errors = Internal.checkPyTree(t, level=8)
+#>> Unknown CGNS type Zon_t for node cart.]

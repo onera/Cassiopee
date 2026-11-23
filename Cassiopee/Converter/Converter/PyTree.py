@@ -3729,6 +3729,15 @@ def _convertArray2NGon(t, recoverBC=True, api=1, method="geometric"):
 
             # Delete BC Element connectivities
             Internal._rmElementBoundaryNodes(z)
+
+    # Fix field shape for structured + fields in centers + api=3
+    zones = Internal.getZones(t)
+    for z in zones:
+        ztype = Internal.getZoneType(z)
+        if ztype == 1 and api == 3:
+            cont = Internal.getNodeFromame1(z, Internal.__FlowSolutionCenters__)
+            for d in Internal.getNodesFromType(cont, 'DataArray_t'):
+                d[1] = d[1].reshape(-1)
     return None
 
 # -- convertPenta2Strand
