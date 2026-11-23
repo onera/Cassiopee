@@ -317,7 +317,7 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
 
       if (isOpen)
       {
-        printf("Info: consSmooth: open geometry: fixed nodes " SF_D_ " and " SF_D_ ".\n", 0, npts-1);
+        printf("Info: consSmooth: open geometry: fixed nodes 0 and " SF_D_ ".\n", npts-1);
       }
       else
       {
@@ -508,11 +508,11 @@ PyObject* K_TRANSFORM::consSmooth(PyObject* self, PyObject* args)
         if (isOpen == 0)
         {
           // CASE 2: mesh is topologically OPEN, but geometrically CLOSED.
-          printf("Info: consSmooth: closed geometry with double points: %d and %d.\n", n1, n2);
+          printf("Info: consSmooth: closed geometry with double points: " SF_D_ " and " SF_D_ ".\n", n1, n2);
         }
         else // CASE 3: mesh is OPEN (extremities will stay fixed)
         {
-          printf("Info: consSmooth: open geometry: fixed nodes %d and %d.\n", n1, n2);
+          printf("Info: consSmooth: open geometry: fixed nodes " SF_D_ " and " SF_D_ ".\n", n1, n2);
         } 
       }
       else 

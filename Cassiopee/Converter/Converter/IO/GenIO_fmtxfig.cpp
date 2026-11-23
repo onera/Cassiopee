@@ -555,7 +555,7 @@ E_Int K_IO::GenIO::xfigwrite(
       E_Int elt = eltTypes[zone][n];   
       if (elt != 1 && elt != 2 && elt != 3 && elt != 4 && elt != 6 && elt != 7)
       {                       
-        printf("Error: fig: unrecognised element type: %d.\n", elt);
+        printf("Error: fig: unrecognised element type: " SF_D_ ".\n", elt);
         continue;
       }
 

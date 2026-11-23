@@ -128,7 +128,7 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
     if (posx == -1 || posy == -1 || posz == -1)
     {
       RELEASESHAREDB(resc, coordObj, fc, cnc);
-      printf("Warning: integNormProduct: coordinates not found in array %d.", i+1);
+      printf("Warning: integNormProduct: coordinates not found in array " SF_D_ ".", i+1);
       printf(" Array skipped...\n");
       goto next; 
     }    
@@ -149,7 +149,7 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
     {
       if (ff->getNfld() != 3)
       {
-        printf("Warning: integNormProduct: vector array %d must be 3D.\n", i+1);
+        printf("Warning: integNormProduct: vector array " SF_D_ " must be 3D.\n", i+1);
         RELEASESHAREDB(resc, coordObj, fc, cnc);
         RELEASESHAREDB(resf, FObj, ff, cnf);
         goto next;
@@ -161,7 +161,7 @@ PyObject* K_POST::integNormProduct(PyObject* self, PyObject* args)
     {
       if (ff->getNfld() != nFld)
       {
-        printf("Warning: integNormProduct: invalid number of variables for field array %d.", i+1);
+        printf("Warning: integNormProduct: invalid number of variables for field array " SF_D_ ".", i+1);
         printf(" Array skipped...\n");
         RELEASESHAREDB(resc, coordObj, fc, cnc);
         RELEASESHAREDB(resf, FObj, ff, cnf);

@@ -51,7 +51,7 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
   if (PyList_Check(FArrays) == 0)
   {
     PyErr_SetString( PyExc_TypeError, 
-                     "integMomentNorm : second argument must be a list.");
+                     "integMomentNorm: second argument must be a list.");
     return NULL;
   }
   if (PyList_Check(ratioArrays) == 0)
@@ -129,7 +129,7 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
     E_Int posz = K_ARRAY::isCoordinateZPresent(varStringc);
     if (posx == -1 || posy == -1 || posz == -1)
     {
-      printf("Warning: integMomentNorm: coordinates not found in array %d. Array skipped...\n",i+1);
+      printf("Warning: integMomentNorm: coordinates not found in array " SF_D_ ". Array skipped...\n",i+1);
       RELEASESHAREDB(resc, coordObj, fc, cnc);
       goto next;
     }
@@ -228,7 +228,7 @@ PyObject* K_POST::integMomentNorm(PyObject* self, PyObject* args)
         if (resr != 1)
         {
           RELEASESHAREDB(resr, ratioObj, ratio, cnr);
-          printf("Warning: integMomentNorm: ratio %d is an invalid array. Set to 1.", i+1);
+          printf("Warning: integMomentNorm: ratio " SF_D_ " is an invalid array. Set to 1.", i+1);
           ratio = new FldArrayF(sizef);
           ratio->setAllValuesAt(1.);
         }
