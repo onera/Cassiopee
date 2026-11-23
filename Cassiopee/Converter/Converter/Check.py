@@ -1604,7 +1604,7 @@ def checkFieldConformity(t, verbose=True):
                         msg = 'Field %s has not the right shape %s for field in structured zone %s.'%(d[0],str(shapet),z[0])
                         errors += [d, c, msg]
                         if verbose: print(msg)
-        
+
         # Check BCDataSet (if any)
         bcs = Internal.getNodesFromType2(z, 'BC_t')
         for b in bcs:
