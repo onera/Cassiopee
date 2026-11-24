@@ -2150,7 +2150,7 @@ def _renameVars(a, varsPrev, varsNew):
 
 # Statistique de cellN=1 par rapport au nombre total de pt des zones
 def checkOccupancyCellN(lowerLimit, t):
-    """Check cellN occupancy"""
+    """Check cellN occupancy."""
     import Converter.Mpi as Cmpi
     total_cells = 0
 
@@ -2162,17 +2162,17 @@ def checkOccupancyCellN(lowerLimit, t):
 
     for z in Internal.getZones(t):
         cells_zone = 0
-        sol        = Internal.getNodeFromName(z, 'FlowSolution#Centers')
-        celN       = Internal.getNodeFromName(sol, 'cellN')[1]
+        sol = Internal.getNodeFromName(z, 'FlowSolution#Centers')
+        celN = Internal.getNodeFromName(sol, 'cellN')[1]
 
         total_cell_zone= C.getNCells(z)
-        cells_zone_0   = numpy.count_nonzero(celN==0)
-        cells_zone_1   = numpy.count_nonzero(celN==1)
-        cells_zone_2   = numpy.count_nonzero(celN==2)
+        cells_zone_0 = numpy.count_nonzero(celN==0)
+        cells_zone_1 = numpy.count_nonzero(celN==1)
+        cells_zone_2 = numpy.count_nonzero(celN==2)
 
-        cells_zone     = cells_zone_1
+        cells_zone = cells_zone_1
 
-        total_cells  += cells_zone
+        total_cells += cells_zone
         occupancy_rate=float(cells_zone)/float(total_cell_zone)*100
 
         list_zones.append(z[0])
@@ -2201,7 +2201,7 @@ def checkOccupancyCellN(lowerLimit, t):
     return list_zones,list_occupancy,list_zones_below
 
 def printMinMaxAndErrors(t, printErrors=False, listVars=[]):
-    """Check min/max of given fields"""
+    """Check min/max of given fields."""
     if printErrors:
         errors = Internal.checkPyTree(t)
         print("Printing Errors")
@@ -2210,10 +2210,10 @@ def printMinMaxAndErrors(t, printErrors=False, listVars=[]):
     if listVars:
         for z in Internal.getZones(t):
             print("______________________")
-            #check max & min values of each zone
+            # check max & min values of each zone
             for i in listVars: print('Zone=',z[0],'|',i,':', C.getMinValue(z, i), C.getMaxValue(z, i))
         print("______________________")
-        #check max & min values
+        # check max & min values
         for i in listVars: print('Tree|',i,':', C.getMinValue(t, i), C.getMaxValue(t, i))
     else:
         print("Warning: printMinMaxAndErrors: List of variables to print min & max values is EMPTY.")
@@ -2221,15 +2221,15 @@ def printMinMaxAndErrors(t, printErrors=False, listVars=[]):
 
 # Ecrit la taille des zones de t
 def printSizeZones(t, withGhost=False, isNCells=False, printFinal=False):
-    """Print zone stats - Ncells per zone & full Tree"""
+    """Print zone stats - Ncells per zone & full Tree."""
     import Converter.Mpi as Cmpi
-    list_save_zones  =[]
-    list_save_ncells =[]
+    list_save_zones = []
+    list_save_ncells = []
 
     if not withGhost: Internal._rmGhostCells(t, t, 2, adaptBCs=0)
 
     total_cells = 0
-    dict_cell_zone={}
+    dict_cell_zone = {}
     for z in Internal.getZones(t):
         if isNCells:var_loc = C.getNCells(z)
         else: var_loc = C.getNPts(z)
@@ -2245,16 +2245,16 @@ def printSizeZones(t, withGhost=False, isNCells=False, printFinal=False):
             f.write(string2write)
 
         if printFinal:
-            string2write='Ncells Total='+str(total_cells/1.e06)
+            string2write = 'Ncells Total='+str(total_cells/1.e06)
             f.write(string2write)
     return None
 
-# probeLocations [CB:RR] - redondant peut-etre avec probe
+# probeLocations - redondant peut-etre avec probe
 def probeLocations(tprobe, tcase):
     import Connector.PyTree as X
     import Converter.Mpi as Cmpi
     ##Create list of Probes for tprobe
-    interDict = X.getIntersectingDomains(tprobe,tcase)
+    interDict = X.getIntersectingDomains(tprobe, tcase)
 
     list_save_zones = []
     list_save_i = []
@@ -2270,20 +2270,15 @@ def probeLocations(tprobe, tcase):
         y_loc = Internal.getValue(ynode)
         z_loc = Internal.getValue(znode)
 
-        isave = 0
-        jsave = 0
-        ksave = 0
         z = interDict[p[0]]
 
         if z:
-            z2=Internal.getNodeFromName(tcase, z[0])
-            C._initVars(z2,'dist=sqrt(({CoordinateX}-%g)**2+({CoordinateY}-%g)**2+({CoordinateZ}-%g)**2)'%(x_loc,y_loc,z_loc))
+            z2 = Internal.getNodeFromName(tcase, z[0])
+            C._initVars(z2, 'dist=sqrt(({CoordinateX}-%g)**2+({CoordinateY}-%g)**2+({CoordinateZ}-%g)**2)'%(x_loc,y_loc,z_loc))
             dist_array = Internal.getNodeByName(z2,'dist')[1]
 
             dim = Internal.getZoneDim(z2)
-            ni = dim[1]
-            nj = dim[2]
-            nk = dim[3]
+            ni = dim[1]; nj = dim[2]; nk = dim[3]
             pnt = numpy.where(dist_array == numpy.amin(dist_array))
 
             list_save_zones.append(z[0])
@@ -2293,7 +2288,7 @@ def probeLocations(tprobe, tcase):
 
     with open('probes_locations_ijk_MPIrank_'+str(Cmpi.rank)+'.txt', 'w') as f:
         for i in range(len(list_save_zones)):
-            string2write=list_save_zones[i]  + '  '+ \
+            string2write = list_save_zones[i]  + '  '+ \
                 str(list_save_i[i])+ '  '+ \
                 str(list_save_j[i])+ '  '+ \
                 str(list_save_k[i])+ '\n'
@@ -2301,9 +2296,8 @@ def probeLocations(tprobe, tcase):
 
     return None
 
-
-def cgns2tecplot(t,isRmGhost=False,isSet2Zero=False):
-    listNameRemove=['CoordinateX', 'CoordinateY', 'CoordinateZ', 'TurbulentDistance', 'cellN']
+def cgns2tecplot(t, isRmGhost=False, isSet2Zero=False):
+    listNameRemove = ['CoordinateX', 'CoordinateY', 'CoordinateZ', 'TurbulentDistance', 'cellN']
     t = C.node2Center(t)
     if isRmGhost: t = Internal.rmGhostCells(t, t, 2, adaptBCs=0)
     if isSet2Zero:
@@ -2316,18 +2310,18 @@ def cgns2tecplot(t,isRmGhost=False,isSet2Zero=False):
             dist2walls = Internal.getNodeFromName(sol,'TurbulentDistance')[1]
             sh = numpy.shape(dist2walls)
             for namem in varNames:
-                if 'P1' in namem or 'M1' in namem:continue
-                var = Internal.getNodeFromName(sol,namem)[1]
+                if 'P1' in namem or 'M1' in namem: continue
+                var = Internal.getNodeFromName(sol, namem)[1]
 
                 if len(sh) == 2:
                     for j in range(sh[1]):
                         for i in range(sh[0]):
                             if dist2walls[i,j]<0:
-                                var[i,j]=0
+                                var[i,j] = 0
                 else:
                     for k in range(sh[2]):
                         for j in range(sh[1]):
                             for i in range(sh[0]):
                                 if dist2walls[i,j]<0:
-                                    var[i,j,k]=0
+                                    var[i,j,k] = 0
     return t

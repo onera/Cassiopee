@@ -47,7 +47,7 @@ packages = ["Geom"]
 [tool.setuptools.package-data]
 Geom = [
   "buildInfo.json",
-  "Data"
+  "UIUCAirfoils.cgns"
 ]
 
 [tool.setuptools.dynamic]

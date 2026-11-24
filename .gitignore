@@ -11,9 +11,10 @@ buildInfo.json
 Cassiopee/XCore/merge.l
 Cassiopee/Modeler/merge.l
 Cassiopee/Envs/sh_Cassiopee_user
-Cassiopee/CPlot/apps/Output
+Cassiopee/CPlot/CPlot/apps/Output
 Cassiopee/OCC/test/*.step
 Cassiopee/Roms/test/*.step
+Cassiopee/Roms/test/log.py
 Cassiopee/Roms/Roms/Parts/*.step
 ValidData*
 Data*

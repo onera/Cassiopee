@@ -345,16 +345,16 @@ PyObject* K_GENERATOR::tetgen(PyObject* self, PyObject* args)
   {
     fx[i] = pt[0]; fy[i] = pt[1]; fz[i] = pt[2]; pt += 3;
   }
-  E_Int* cp1 = cout->begin(1); E_Int* cp2 = cout->begin(2); 
-  E_Int* cp3 = cout->begin(3); E_Int* cp4 = cout->begin(4);
+  // (i,k) access: the connectivity is strided with api 2 and 3
+  FldArrayI& co = *cout;
   E_Int ind = 0;
   int* tl = out.tetrahedronlist;
   for (E_Int i = 0; i < ne; i++)
   { 
-    cp1[i] = tl[ind] + 1;
-    cp2[i] = tl[ind+1] + 1;
-    cp3[i] = tl[ind+2] + 1;
-    cp4[i] = tl[ind+3] + 1;
+    co(i,1) = tl[ind] + 1;
+    co(i,2) = tl[ind+1] + 1;
+    co(i,3) = tl[ind+2] + 1;
+    co(i,4) = tl[ind+3] + 1;
     ind += 4;
   }
 

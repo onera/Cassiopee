@@ -1930,8 +1930,8 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       }
     }
 
-    int32_t* poly2dCount = new int32_t [nc];
-    int32_t* poly2d = new int32_t [size];
+    E_Int* poly2dCount = new E_Int [nc];
+    E_Int* poly2d = new E_Int [size];
     int32_t* marker = new int32_t [nc];
 
     // Remplissage poly2d

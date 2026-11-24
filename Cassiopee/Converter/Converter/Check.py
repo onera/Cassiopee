@@ -1,5 +1,5 @@
 # - check -
-"""Check pyTree integrity."""""
+"""Check pyTree integrity."""
 
 from . import Internal
 from . import PyTree as C
@@ -102,72 +102,73 @@ CGNSTypes = {
 # 8 (invalid CGNS Types), 9 (invalid connectivity),
 # 10 (invalid field names), 11 NAN in fields, 12 name length
 # if level=-n, perform check from 0 to n
+# IN: verbose: print error messages when errors are found
 # OUT: error = [problematic node, message]
 #==============================================================================
-def checkPyTree(t, level=-20):
-    """Check different conformity in tree."""
+def checkPyTree(t, level=-20, verbose=True):
+    """Check pyTree conformity."""
     errors = []
     if level <= 0 or level == 0:
         # check version node
-        errors += checkVersionNode(t)
+        errors += checkVersionNode(t, verbose=verbose)
     if level <= -1 or level == 1:
         # check nodes conformity
-        errors += checkNodes(t)
+        errors += checkNodes(t, verbose=verbose)
     if level <= -2 or level == 2:
         # check unique base names
-        errors += checkUniqueNames(t, 'CGNSBase_t')
+        errors += checkUniqueNames(t, 'CGNSBase_t', verbose=verbose)
     if level <= -3 or level == 3:
         # check unique zone names
-        errors += checkUniqueNames(t, 'Zone_t')
+        errors += checkUniqueNames(t, 'Zone_t', verbose=verbose)
     if level <= -4 or level == 4:
         # check unique BC names
-        errors += checkUniqueNames(t, 'BC_t')
+        errors += checkUniqueNames(t, 'BC_t', verbose=verbose)
         # check unique BCMatch names
-        errors += checkUniqueNames(t, 'GridConnectivity1to1_t')
+        errors += checkUniqueNames(t, 'GridConnectivity1to1_t', verbose=verbose)
         # check unique BCNearMatch/BCOverlap names
-        errors += checkUniqueNames(t, 'GridConnectivity_t')
+        errors += checkUniqueNames(t, 'GridConnectivity_t', verbose=verbose)
     if level <= -5 or level == 5:
         # check BC range
-        errors += checkBCRanges(t, 'BC_t')
+        errors += checkBCRanges(t, 'BC_t', verbose=verbose)
         # check BCMatch range
-        errors += checkBCRanges(t, 'GridConnectivity1to1_t')
+        errors += checkBCRanges(t, 'GridConnectivity1to1_t', verbose=verbose)
         # check BCMatch opposite range
-        errors += checkDonorRanges(t, 'GridConnectivity1to1_t')
+        errors += checkDonorRanges(t, 'GridConnectivity1to1_t', verbose=verbose)
         # check BCNearMatch/Overlap range
-        errors += checkBCRanges(t, 'GridConnectivity_t')
+        errors += checkBCRanges(t, 'GridConnectivity_t', verbose=verbose)
         # check BCNearMatch opposite range
-        errors += checkDonorRanges(t, 'GridConnectivity_t')
+        errors += checkDonorRanges(t, 'GridConnectivity_t', verbose=verbose)
     if level <= -6 or level == 6:
         # check BCMatch opposite range
-        errors += checkOppositRanges(t, 'GridConnectivity1to1_t')
+        errors += checkOppositRanges(t, 'GridConnectivity1to1_t', verbose=verbose)
         # check BCNearMatch/Overlap opposite range
-        errors += checkOppositRanges(t, 'GridConnectivity_t')
+        errors += checkOppositRanges(t, 'GridConnectivity_t', verbose=verbose)
     if level <= -7 or level == 7:
         # check zone family
-        errors += checkZoneFamily(t)
+        errors += checkZoneFamily(t, verbose=verbose)
         # check BC family
-        errors += checkBCFamily(t)
+        errors += checkBCFamily(t, verbose=verbose)
     if level <= -8 or level == 8:
         # check CGNS type for each node
-        errors += checkCGNSType(t)
+        errors += checkCGNSType(t, verbose=verbose)
     if level <= -9 or level == 9:
         # check element nodes (connectivity)
-        errors += checkElementNodes(t)
+        errors += checkElementNodes(t, verbose=verbose)
     if level <= -10 or level == 10:
         # check valid CGNS var name
-        errors += checkCGNSVarNames(t)
+        errors += checkCGNSVarNames(t, verbose=verbose)
+    if level <= -11 or level == 11:
         # check Coordinates in fields
         #errors += checkCoordinatesInFields(t)
-        # check field dimension
-        #errors += checkFieldConformity(t)
-    if level <= -11 or level == 11:
+        # check field dimensions
+        errors += checkFieldConformity(t, verbose=verbose)
         # check NAN or infinite in fields
-        errors += checkNAN(t)
+        errors += checkNAN(t, verbose=verbose)
     if level <= -12 or level == 12:
         # check if some names are longer than 32 chars
-        errors += checkNameLength(t)
+        errors += checkNameLength(t, verbose=verbose)
     if level <= -13 or level == 13:
-        errors += checkBaseZonesDim(t)
+        errors += checkBaseZonesDim(t, verbose=verbose)
     # Returns only the node and the message in errors
     retErrors = []
     for i in range(len(errors)//3): retErrors += [errors[3*i], errors[3*i+2]]
@@ -225,10 +226,10 @@ def _correctPyTree(t, level=-20):
     # Corrects non-CGNS variable names
     if level <= -10 or level == 10:
         _correctCGNSVarNames(t)
-        #_correctCoordinatesInFields(t)
-        #_correctFieldConformity(t)
-    # Removes NANs in fields
+    # Correct field conformity and remove NANs in fields
     if level <= -11 or level == 11:
+        #_correctCoordinatesInFields(t)
+        _correctFieldConformity(t)
         _correctNAN(t)
     # Truncates names > 32 chars
     if level <= -12 or level == 12:
@@ -244,15 +245,24 @@ def _correctPyTree(t, level=-20):
 # Check version node
 # Must be first in the tree and not duplicated.
 #==============================================================================
-def checkVersionNode(t):
+def checkVersionNode(t, verbose=True):
     """Check version node."""
     errors = []
     if len(t) == 4 and t[3] == 'CGNSTree_t':
         version = Internal.getNodesFromType1(t, 'CGNSLibraryVersion_t')
-        if version == []: errors += [None, t, 'Missing CGNS version node.']
-        elif t[2][0] != version[0]: errors += [version[0], t, 'CGNS version node must be first in tree sons.']
+        if version == []:
+            msg = 'Missing CGNS version node.'
+            errors += [None, t, msg]
+            if verbose: print(msg)
+        elif t[2][0] != version[0]:
+            msg = 'CGNS version node must be first in tree sons.'
+            errors += [version[0], t, msg]
+            if verbose: print(msg)
         if len(version) > 1:
-            for v in version[1:]: errors += [v, t, 'Only one CGNS version node is allowed.']
+            for v in version[1:]:
+                msg = 'Only one CGNS version node is allowed.'
+                errors += [v, t, msg]
+                if verbose: print(msg)
     return errors
 
 #==============================================================================
@@ -280,17 +290,18 @@ def _correctVersionNode(t):
 # CheckNodes also modifies nodes having as value strings
 # with spaces at the beginning or end
 #==============================================================================
-def checkNodes(node):
+def checkNodes(node, verbose=True):
     """Check basic node conformity."""
     errors = []
     isStd = Internal.isStdNode(node)
     if isStd >= 0:
-        for c in node[isStd:]: checkNode__(c, node, errors)
-    else: checkNode__(node, node, errors)
+        for c in node[isStd:]: checkNode__(c, node, errors, verbose)
+    else: checkNode__(node, node, errors, verbose)
     return errors
 
 #==============================================================================
-def checkNode__(node, parent, errors):
+def checkNode__(node, parent, errors, verbose=True):
+    """Check node conformity recursively."""
     sons = []
     # node must be a list
     if isinstance(node, list):
@@ -306,23 +317,35 @@ def checkNode__(node, parent, errors):
 
             # node[0] (name) is a string or None
             if not isinstance(node[0], str) and node[0] is None:
-                errors += [node, parent, "Node[0] of node %s must be a string designing node name."%node[0]]
+                msg = "Node[0] of node %s must be a string designing node name."%node[0]
+                errors += [node, parent, msg]
+                if verbose: print(msg)
 
             # node[2] (children list) must be a list
             if not isinstance(node[2], list):
-                errors += [node, parent, "Node[2] of node %s must be a list of sons."%node[0]]
+                msg = "Node[2] of node %s must be a list of sons."%node[0]
+                errors += [node, parent, msg]
+                if verbose: print(msg)
             else: sons = node[2]
 
             # node[3] must be a string ending with _t ...
             if not isinstance(node[3], str):
-                errors += [node, parent, "Node[3] of node %s must be a string designing the node type."%node[0]]
+                msg = "Node[3] of node %s must be a string designing the node type."%node[0]
+                errors += [node, parent, msg]
+                if verbose: print(msg)
             #if node[3][-2:] != '_t' and node[3] != "int[IndexDimension]":
             #    errors += [node, parent, "Node[3] of node %s must be a string designing the node type."%node[0]]
 
-        else: errors += [node, parent, "Node %s has a length != 4."%node[0]]
-    else: errors += [node, parent, "Node is not a list."]
+        else:
+            msg = "Node %s has a length != 4."%node[0]
+            errors += [node, parent, msg]
+            if verbose: print(msg)
+    else:
+        msg = "Node is not a list."
+        errors += [node, parent, msg]
+        if verbose: print(msg)
 
-    for n in sons: checkNode__(n, node, errors)
+    for n in sons: checkNode__(n, node, errors, verbose)
 
 #==============================================================================
 # Deletes non-conform nodes
@@ -342,21 +365,23 @@ def _correctNodes(t):
 # Check name length
 # Check if node[0] has less than 32 chars (legacy constraint for cgnsview)
 #==============================================================================
-def checkNameLength(node):
+def checkNameLength(node, verbose=True):
     """Check node[0] length. Must be < 32 chars."""
     errors = []
     isStd = Internal.isStdNode(node)
     if isStd >= 0:
-        for c in node[isStd:]: checkNameLength__(c, node, errors)
-    else: checkNameLength__(node, node, errors)
+        for c in node[isStd:]: checkNameLength__(c, node, errors, verbose)
+    else: checkNameLength__(node, node, errors, verbose)
     return errors
 
 #==============================================================================
-def checkNameLength__(node, parent, errors):
+def checkNameLength__(node, parent, errors, verbose=True):
     sons = []
     if len(node[0]) > 32:
-        errors += [node, parent, "Node name %s has a length > 32."%node[0]]
-    for n in sons: checkNameLength__(n, node, errors)
+        msg = "Node name %s has a length > 32."%node[0]
+        errors += [node, parent, msg]
+        if verbose: print(msg)
+    for n in sons: checkNameLength__(n, node, errors, verbose)
 
 #==============================================================================
 # Truncate > 32 node names
@@ -397,7 +422,8 @@ def _correctNameLength(t):
 # Verifies that node names of given type are unique
 # Optimized for Base, Zone, BC and GC
 #==============================================================================
-def checkUniqueNames(t, ntype):
+def checkUniqueNames(t, ntype, verbose=True):
+    """Verify unique names for given node type."""
     nameServer = {}
     errors = []
 
@@ -406,7 +432,10 @@ def checkUniqueNames(t, ntype):
         for n in nodes:
             name = n[0]
             if name not in nameServer: nameServer[name] = 0
-            else: errors += [n, t, "Base name %s is already used."%n[0]]
+            else:
+                msg = "Base name %s is already used."%n[0]
+                errors += [n, t, msg]
+                if verbose: print(msg)
 
     elif ntype == 'Zone_t':
         bases = Internal.getBases(t)
@@ -415,7 +444,10 @@ def checkUniqueNames(t, ntype):
             for n in nodes:
                 name = n[0]
                 if name not in nameServer: nameServer[name] = 0
-                else: errors += [n, b, "Zone name %s is already used."%n[0]]
+                else:
+                    msg = "Zone name %s is already used."%n[0]
+                    errors += [n, b, msg]
+                    if verbose: print(msg)
 
     elif ntype == 'BC_t':
         zones = Internal.getZones(t)
@@ -426,7 +458,10 @@ def checkUniqueNames(t, ntype):
                 for n in nodes:
                     name = n[0]
                     if name not in nameServer: nameServer[name] = 0
-                    else: errors += [n, zbc, "BC name %s (zone %s) is already used."%(n[0],z[0])]
+                    else:
+                        msg = "BC name %s (zone %s) is already used."%(n[0],z[0])
+                        errors += [n, zbc, msg]
+                        if verbose: print(msg)
 
     elif ntype == 'GridConnectivity_1to1_t':
         zones = Internal.getZones(t)
@@ -437,7 +472,10 @@ def checkUniqueNames(t, ntype):
                 for n in nodes:
                     name = n[0]
                     if name not in nameServer: nameServer[name] = 0
-                    else: errors += [n, gc, "BCMatch name %s (zone %s) is already used."%(n[0],z[0])]
+                    else:
+                        msg = "BCMatch name %s (zone %s) is already used."%(n[0],z[0])
+                        errors += [n, gc, msg]
+                        if verbose: print(msg)
 
     elif ntype == 'GridConnectivity_t':
         zones = Internal.getZones(t)
@@ -448,7 +486,10 @@ def checkUniqueNames(t, ntype):
                 for n in nodes:
                     name = n[0]
                     if name not in nameServer: nameServer[name] = 0
-                    else: errors += [n, gc, "GridConnectivity name %s (zone %s) is already used."%(n[0],z[0])]
+                    else:
+                        msg = "GridConnectivity name %s (zone %s) is already used."%(n[0],z[0])
+                        errors += [n, gc, msg]
+                        if verbose: print(msg)
     else:
         nodes = Internal.getNodesFromType(t, ntype)
         for n in nodes:
@@ -456,13 +497,16 @@ def checkUniqueNames(t, ntype):
             if name not in nameServer: nameServer[name] = 0
             else:
                 (p,c) = Internal.getParentOfNode(t, n)
-                errors += [n, p, "Node name %s is already used."%n[0]]
+                msg = "Node name %s is already used."%n[0]
+                errors += [n, p, msg]
+                if verbose: print(msg)
     return errors
 
 #==============================================================================
 # Change node name if already defined
 #==============================================================================
 def _correctNames(t, ntype):
+    """Rename nodes with non-unique names by appending an index."""
     nameServer = {}
     if ntype == 'CGNSBase_t': nodes = Internal.getBases(t)
     elif ntype == 'Zone_t': nodes = Internal.getZones(t)
@@ -493,6 +537,7 @@ def _correctNames(t, ntype):
 #==============================================================================
 # Corrects occurrences of a zone name in BCs
 def _correctDonors(t, ntype, zoneDonors):
+    """Update donor zone names in connectivity nodes."""
     zones = Internal.getZones(t)
     for z in zones:
         nodes = Internal.getNodesFromType2(z, ntype)
@@ -511,7 +556,8 @@ def _correctDonors(t, ntype, zoneDonors):
 # Verifies that the window is not volumetric
 # Corrects the shape of ranges if it's in C order
 #==============================================================================
-def checkBCRanges(t, ntype):
+def checkBCRanges(t, ntype, verbose=True):
+    """Check BC range validity for structured zones."""
     errors = []
     if ntype == 'BC_t': ctype = 'ZoneBC_t'
     else: ctype = 'ZoneGridConnectivity_t'
@@ -549,10 +595,13 @@ def checkBCRanges(t, ntype):
                         if win[5] < 0 or win[5] > dim[3]: error = 1
 
                     if error == 1:
-                        errors += [n, bc, "Range of BC %s is invalid for zone %s."%(n[0],z[0])]
+                        msg = "Range of BC %s is invalid for zone %s."%(n[0],z[0])
+                        errors += [n, bc, msg]
+                        if verbose: print(msg)
     return errors
 
-def checkBCFaces(t, ntype):
+def checkBCFaces(t, ntype, verbose=True):
+    """Verify BC faces are contained in zone elements."""
     errors = []
     if ntype == 'BC_t': ctype = 'ZoneBC_t'
     else: ctype = 'ZoneGridConnectivity_t'
@@ -571,7 +620,9 @@ def checkBCFaces(t, ntype):
                     faces1 = faces[faces > nfaces]
                     faces2 = faces[faces < 1]
                     if faces1.size > 0 or faces2.size > 0:
-                        errors += [n, bc, "Faces of BC %s is invalid for zone %s."%(n[0],z[0])]
+                        msg = "Faces of BC %s is invalid for zone %s."%(n[0],z[0])
+                        errors += [n, bc, msg]
+                        if verbose: print(msg)
     return errors
 
 #==============================================================================
@@ -580,7 +631,8 @@ def checkBCFaces(t, ntype):
 # IN: ntype: type of BC node to check (BC_t,...)
 # Verifies that the donor range is contained in the donor grid
 #==============================================================================
-def checkDonorRanges(t, ntype):
+def checkDonorRanges(t, ntype, verbose=True):
+    """Check donor BC range validity for structured zones."""
     errors = []
     if ntype == 'BC_t': ctype = 'ZoneBC_t'
     else: ctype = 'ZoneGridConnectivity_t'
@@ -616,16 +668,23 @@ def checkDonorRanges(t, ntype):
                             if win[5] < 0 or win[5] > dim[3]: error = 1
 
                             if error == 1:
-                                errors += [n, bc, "Range of donor BC %s is invalid for zone %s."%(n[0],z[0])]
+                                msg = "Range of donor BC %s is invalid for zone %s."%(n[0],z[0])
+                                errors += [n, bc, msg]
+                                if verbose: print(msg)
 
                     elif all([Internal.getType(d) == 'Family_t' for d in donors]):
                         if not all([Internal.getName(d) == donorName for d in donors]):
-                            errors += [n, bc, "Type donor %s %s is invalid for zone %s."%(ntype,n[0],z[0])]
+                            msg = "Type donor %s %s is invalid for zone %s."%(ntype,n[0],z[0])
+                            errors += [n, bc, msg]
+                            if verbose: print(msg)
                     else:
-                        errors += [n, bc, "Type donor %s %s is invalid for zone %s."%(ntype,n[0],z[0])]
+                        msg = "Type donor %s %s is invalid for zone %s."%(ntype,n[0],z[0])
+                        errors += [n, bc, msg]
+                        if verbose: print(msg)
     return errors
 
-def checkDonorFaces(t, ntype):
+def checkDonorFaces(t, ntype, verbose=True):
+    """Verify donor BC faces are contained in zone elements."""
     errors = []
     if ntype == 'BC_t': ctype = 'ZoneBC_t'
     else: ctype = 'ZoneGridConnectivity_t'
@@ -647,13 +706,16 @@ def checkDonorFaces(t, ntype):
                         faces1 = faces[faces > nfaces]
                         faces2 = faces[faces < 1]
                         if faces1.size > 0 or faces2.size > 0:
-                            errors += [n, bc, "Faces of donor BC %s is invalid for zone %s."%(n[0],z[0])]
+                            msg = "Faces of donor BC %s is invalid for zone %s."%(n[0],z[0])
+                            errors += [n, bc, msg]
+                            if verbose: print(msg)
     return errors
 
 #==============================================================================
 # Removes BCs of given type with invalid ranges
 #==============================================================================
 def _correctBCRanges(t, ntype):
+    """Remove BC nodes with invalid ranges."""
     errors = checkBCRanges(t, ntype)
     le = len(errors)//3
     for e in range(le):
@@ -667,6 +729,7 @@ def _correctBCRanges(t, ntype):
 # Removes BCs with invalid donor ranges
 #==============================================================================
 def _correctDonorRanges(t, ntype):
+    """Remove BC donor nodes with invalid ranges."""
     errors = checkDonorRanges(t, ntype)
     le = len(errors)//3
     for e in range(le):
@@ -681,6 +744,7 @@ def _correctDonorRanges(t, ntype):
 # is negative - to be compliant by the standard (connectMatch always do min/max)
 #==============================================================================
 def _reorderBCMatchPointRange(t):
+    """Reorder BCMatch PointRange min/max for negative Transform indices."""
     for z in Internal.getZones(t):
         for gc in Internal.getNodesFromType2(z, 'GridConnectivity1to1_t'):
             TR = Internal.getNodeFromName1(gc, 'Transform')
@@ -704,7 +768,8 @@ def _reorderBCMatchPointRange(t):
 # The donor must exist and ranges must be coherent
 # IN: ntype: GridConnectivity1to1_t or GridConnectivity_t
 #==============================================================================
-def checkOppositRanges(t, ntype):
+def checkOppositRanges(t, ntype, verbose=True):
+    """Verify opposite window ranges for BCMatch and BCNearMatch nodes."""
     errors = []
     delta = numpy.empty(3, Internal.E_NpyInt); deltaopp = numpy.empty(3, Internal.E_NpyInt)
     zones = Internal.getZones(t)
@@ -723,7 +788,9 @@ def checkOppositRanges(t, ntype):
                 zdonorname = Internal.getValue(n)
                 zdonor = Internal.getNodesFromName2(t, zdonorname)
                 if zdonor == []:
-                    errors += [n, bc, "Donor zone %s of BC %s (zone %s) does not exist."%(zdonorname,n[0],z[0])]
+                    msg = "Donor zone %s of BC %s (zone %s) does not exist."%(zdonorname,n[0],z[0])
+                    errors += [n, bc, msg]
+                    if verbose: print(msg)
                 else:
                     if mtype != 'Overset' and prange != [] and prangedonor != []:
                         for z in zdonor:
@@ -755,7 +822,9 @@ def checkOppositRanges(t, ntype):
                                     rangezoppd = Internal.range2Window(prangedonoropp[0][1])
                                     if rangez == rangezoppd and rangezd == rangezopp: error = 0
                         if error == 1:
-                            errors += [n, bc, "Opposite window from zone %s of BC %s (zone %s) does not exist."%(zdonorname,n[0],zname)]
+                            msg = "Opposite window from zone %s of BC %s (zone %s) does not exist."%(zdonorname,n[0],zname)
+                            errors += [n, bc, msg]
+                            if verbose: print(msg)
                         # Check of ranges
                         for ropp in prangedonor:
                             if ropp[1].shape == (2,3):
@@ -772,7 +841,9 @@ def checkOppositRanges(t, ntype):
                             if winopp[4] < 0 or winopp[4] > dim[3]: error = 1
                             if winopp[5] < 0 or winopp[5] > dim[3]: error = 1
                             if error == 1:
-                                errors += [n, bc, "Donor range of BC %s is invalid for zone %s."%(n[0],z[0])]
+                                msg = "Donor range of BC %s is invalid for zone %s."%(n[0],z[0])
+                                errors += [n, bc, msg]
+                                if verbose: print(msg)
                             else:
                                 if ntype == 'GridConnectivity1to1_t': # BCMatch only
                                     # check consistency of current and donor windows in each direction, taking into account Transform
@@ -798,15 +869,21 @@ def checkOppositRanges(t, ntype):
                                             if ((delta[0] != deltaopp[abs(transform[0])-1]) or
                                                 (delta[1] != deltaopp[abs(transform[1])-1]) or
                                                     (delta[2] != deltaopp[abs(transform[2])-1])):
-                                                errors += [n, bc, "window of BC %s for zone %s does not match with its opposite window."%(n[0],z[0])]
+                                                msg = "window of BC %s for zone %s does not match with its opposite window."%(n[0],z[0])
+                                                errors += [n, bc, msg]
+                                                if verbose: print(msg)
                                         elif dimZone == 2:
                                             if ((delta[0] != deltaopp[abs(transform[0])-1]) or
                                                     (delta[1] != deltaopp[abs(transform[1])-1])):
-                                                errors += [n, bc, "window of BC %s for zone %s does not match with its opposite window."%(n[0],z[0])]
+                                                msg = "window of BC %s for zone %s does not match with its opposite window."%(n[0],z[0])
+                                                errors += [n, bc, msg]
+                                                if verbose: print(msg)
 
                                         elif dimZone == 1:
                                             if delta[0] != deltaopp[abs(transform[0])-1]:
-                                                errors += [n, bc, "window of BC %s for zone %s does not match with its opposite window."%(n[0],z[0])]
+                                                msg = "window of BC %s for zone %s does not match with its opposite window."%(n[0],z[0])
+                                                errors += [n, bc, msg]
+                                                if verbose: print(msg)
     return errors
 
 #==============================================================================
@@ -815,6 +892,7 @@ def checkOppositRanges(t, ntype):
 #                whose donor doesn't have the reciprocal node
 #==============================================================================
 def _correctOppositRanges(t, ntype):
+    """Remove GC nodes without valid opposite donors or coherent ranges."""
     errors = checkOppositRanges(t, ntype)
     le = len(errors)//3
     for e in range(le):
@@ -828,7 +906,7 @@ def _correctOppositRanges(t, ntype):
 # If a zone is tagged with a family, the family must be declared
 # in its base
 #==============================================================================
-def checkZoneFamily(t):
+def checkZoneFamily(t, verbose=True):
     errors = []
     bases = Internal.getBases(t)
     for b in bases:
@@ -841,9 +919,13 @@ def checkZoneFamily(t):
                 # Check for family
                 ref = Internal.getNodeFromName1(b, name)
                 if ref is None:
-                    errors += [b, t, 'FamilyZone %s (referenced by zone %s) is not defined in base.'%(name,z[0])]
+                    msg = 'FamilyZone %s (referenced by zone %s) is not defined in base.'%(name,z[0])
+                    errors += [b, t, msg]
+                    if verbose: print(msg)
                 elif ref[3] != 'Family_t':
-                    errors += [b, t, 'FamilyZone %s (referenced by zone %s) is not defined in base.'%(name,z[0])]
+                    msg = 'FamilyZone %s (referenced by zone %s) is not defined in base.'%(name,z[0])
+                    errors += [b, t, msg]
+                    if verbose: print(msg)
     return errors
 
 #==============================================================================
@@ -863,7 +945,7 @@ def _correctZoneFamily(t):
 # If a zone uses a familyBC, the family must be declared
 # in its base
 #==============================================================================
-def checkBCFamily(t):
+def checkBCFamily(t, verbose=True):
     errors = []
     bases = Internal.getBases(t)
     for base in bases:
@@ -879,9 +961,13 @@ def checkBCFamily(t):
                     for ref in refs:
                         if ref[3] != 'Family_t': refs.remove(ref)
                     if refs == []:
-                        errors += [base, t, 'FamilyBC %s (referenced by zone %s) is not defined in base.'%(name,z[0])]
+                        msg = 'FamilyBC %s (referenced by zone %s) is not defined in base.'%(name,z[0])
+                        errors += [base, t, msg]
+                        if verbose: print(msg)
                     elif refs[0][3] != 'Family_t':
-                        errors += [base, t, 'FamilyBC %s (referenced by zone %s) is not defined in base.'%(name,z[0])]
+                        msg = 'FamilyBC %s (referenced by zone %s) is not defined in base.'%(name,z[0])
+                        errors += [base, t, msg]
+                        if verbose: print(msg)
     return errors
 
 #==============================================================================
@@ -900,7 +986,7 @@ def _correctBCFamily(t):
 #==============================================================================
 # Verifies that in a base, all zones have the same cellDim as the base
 #==============================================================================
-def checkBaseZonesDim(t):
+def checkBaseZonesDim(t, verbose=True):
     errors = []
     bases = Internal.getBases(t)
     for b in bases:
@@ -908,7 +994,10 @@ def checkBaseZonesDim(t):
         zones = Internal.getNodesFromType1(b, 'Zone_t')
         for z in zones:
             dim = Internal.getZoneDim(z)
-            if dim[4] != dimBase: errors += [b, b, "Zone %s cellDim (%d) is inconsistent with base %s cellDim (%d)."%(z[0],dim[4],b[0],dimBase)]
+            if dim[4] != dimBase:
+                msg = "Zone %s cellDim (%d) is inconsistent with base %s cellDim (%d)."%(z[0],dim[4],b[0],dimBase)
+                errors += [b, b, msg]
+                if verbose: print(msg)
     return errors
 
 #==============================================================================
@@ -916,7 +1005,9 @@ def checkBaseZonesDim(t):
 # if splitBases: enforce bases to have homogenous cellDims by splitting base
 #==============================================================================
 def _correctBaseZonesDim(t, splitBases=False):
+    """Correct base dimensions and optionally split bases."""
     bases = Internal.getBases(t)
+    if len(bases) == 0: return None
     for b in bases:
         zones = Internal.getZones(b)
         z1 = []; z2 = []; z3 = [] # zones of dim 1,2,3
@@ -961,7 +1052,7 @@ def _correctBaseZonesDim(t, splitBases=False):
 # check if the PointRanges for a zone z (ZoneBC or ZoneGridConnectivity) are
 # compatible with multigrid
 #===============================================================================
-def checkMGForBCRanges(z, ntype, multigrid, sizemin):
+def checkMGForBCRanges(z, ntype, multigrid, sizemin, verbose=True):
     puiss = 2**(multigrid)
     errors = []
     nodes = Internal.getNodesFromType2(z, ntype)
@@ -972,28 +1063,43 @@ def checkMGForBCRanges(z, ntype, multigrid, sizemin):
             if imin != imax:
                 di = (imax-imin)
                 res = (di+1)/puiss
-                if di%puiss != 0 : errors+=[n,"BC %s of zone %s is not multigrid of level %d in direction i."%(n[0],z[0],multigrid)]
+                if di%puiss != 0:
+                    msg = "BC %s of zone %s is not multigrid of level %d in direction i."%(n[0],z[0],multigrid)
+                    errors+=[n,msg]
+                    if verbose: print(msg)
                 elif res < sizemin:
-                    errors+=[n,"PointRange for BC %s of zone %s: not enough points on coarse grid in direction i."%(n[0],z[0])]
+                    msg = "PointRange for BC %s of zone %s: not enough points on coarse grid in direction i."%(n[0],z[0])
+                    errors+=[n,msg]
+                    if verbose: print(msg)
             if jmin != jmax:
                 dj = (jmax-jmin)
                 res = (dj+1)/puiss
-                if dj%puiss != 0: errors+=[n,"BC %s of zone %s is not multigrid of level %d in direction j."%(n[0],z[0],multigrid)]
+                if dj%puiss != 0:
+                    msg = "BC %s of zone %s is not multigrid of level %d in direction j."%(n[0],z[0],multigrid)
+                    errors+=[n,msg]
+                    if verbose: print(msg)
                 elif res < sizemin:
-                    errors+=[n,"PointRange for BC %s of zone %s: not enough points on coarse grid in direction j."%(n[0],z[0])]
+                    msg = "PointRange for BC %s of zone %s: not enough points on coarse grid in direction j."%(n[0],z[0])
+                    errors+=[n,msg]
+                    if verbose: print(msg)
             if kmin != kmax:
                 dk = (kmax-kmin)
                 res = (dk+1)/puiss
-                if dk%puiss != 0 : errors+=[n,"BC %s of zone %s is not multigrid of level %d in direction k."%(n[0],z[0],multigrid)]
+                if dk%puiss != 0:
+                    msg = "BC %s of zone %s is not multigrid of level %d in direction k."%(n[0],z[0],multigrid)
+                    errors+=[n,msg]
+                    if verbose: print(msg)
                 elif res < sizemin:
-                    errors+=[n,"PointRange for BC %s of zone %s: not enough points on coarse grid in direction k."%(n[0],z[0])]
+                    msg = "PointRange for BC %s of zone %s: not enough points on coarse grid in direction k."%(n[0],z[0])
+                    errors+=[n,msg]
+                    if verbose: print(msg)
     return errors
 
 #===============================================================================
 # check if the PointRangeDonor for a zone z (ZoneBC or ZoneGridConnectivity)
 # are compatible with multigrid
 #===============================================================================
-def checkMGForDonorBCRanges(z, ntype, multigrid, sizemin):
+def checkMGForDonorBCRanges(z, ntype, multigrid, sizemin, verbose=True):
     puiss = 2**(multigrid)
     errors = []
     nodes = Internal.getNodesFromType2(z, ntype)
@@ -1005,29 +1111,42 @@ def checkMGForDonorBCRanges(z, ntype, multigrid, sizemin):
                 di = (imax-imin)
                 res = (di+1)/puiss
                 if di%puiss != 0:
-                    errors+=[n,"PointRangeDonor for GC %s of zone %s is not multigrid of level %d in direction i."%(n[0],z[0],multigrid)]
+                    msg = "PointRangeDonor for GC %s of zone %s is not multigrid of level %d in direction i."%(n[0],z[0],multigrid)
+                    errors+=[n,msg]
+                    if verbose: print(msg)
                 elif res < sizemin:
-                    errors+=[n,"PointRangeDonor for GC %s of zone %s: not enough points on coarse grid in direction i."%(n[0],z[0])]
+                    msg = "PointRangeDonor for GC %s of zone %s: not enough points on coarse grid in direction i."%(n[0],z[0])
+                    errors+=[n,msg]
+                    if verbose: print(msg)
             if jmin != jmax:
                 dj = (jmax-jmin)
                 res = (dj+1)/puiss
                 if dj%puiss != 0:
-                    errors+=[n,"PointRangeDonor for GC %s of zone %s is not multigrid of level %d in direction j."%(n[0],z[0],multigrid)]
+                    msg = "PointRangeDonor for GC %s of zone %s is not multigrid of level %d in direction j."%(n[0],z[0],multigrid)
+                    errors+=[n,msg]
+                    if verbose: print(msg)
                 elif res < sizemin:
-                    errors+=[n,"PointRangeDonor for GC %s of zone %s: not enough points on coarse grid in direction j."%(n[0],z[0])]
+                    msg = "PointRangeDonor for GC %s of zone %s: not enough points on coarse grid in direction j."%(n[0],z[0])
+                    errors+=[n,msg]
+                    if verbose: print(msg)
             if kmin != kmax:
                 dk = (kmax-kmin)
                 res = (dk+1)/puiss
                 if dk%puiss != 0:
-                    errors+=[n,"PointRangeDonor for GC %s of zone %s is not multigrid of level %d in direction k."%(n[0],z[0],multigrid)]
-                elif res < sizemin: errors+=[n,"PointRangeDonor for GC %s of zone %s: not enough points on coarse grid in direction i."%(n[0],z[0])]
+                    msg = "PointRangeDonor for GC %s of zone %s is not multigrid of level %d in direction k."%(n[0],z[0],multigrid)
+                    errors+=[n,msg]
+                    if verbose: print(msg)
+                elif res < sizemin:
+                    msg = "PointRangeDonor for GC %s of zone %s: not enough points on coarse grid in direction i."%(n[0],z[0])
+                    errors+=[n,msg]
+                    if verbose: print(msg)
     return errors
 
 #==============================================================================
 # check if the tree is compatible with multigrid (zones, BC and connectivities)
 # level is the MG level that must be ensured: N = 2^level+1
 #==============================================================================
-def checkMultigrid(t, level=1, nbMinCoarseB=5, nbMinCoarseW=3):
+def checkMultigrid(t, level=1, nbMinCoarseB=5, nbMinCoarseW=3, verbose=True):
     """Check multigrid validity (zones, BC and connectivities)."""
     errors = []
     if level == 0: return errors
@@ -1040,31 +1159,45 @@ def checkMultigrid(t, level=1, nbMinCoarseB=5, nbMinCoarseW=3):
             ni = dims[1]; nj = dims[2]; nk = dims[3]
             res = (ni-1)/puiss
             if (ni-1)%puiss != 0:
-                errors+=[z,"Zone %s is not multigrid of level %d in direction i."%(z[0],level)]
+                msg = "Zone %s is not multigrid of level %d in direction i."%(z[0],level)
+                errors+=[z,msg]
+                if verbose: print(msg)
             elif res < nbMinCoarseB:
-                errors+=[z,"Zone %s: not enough points on coarse grid for level %d in direction i."%(z[0],level)]
+                msg = "Zone %s: not enough points on coarse grid for level %d in direction i."%(z[0],level)
+                errors+=[z,msg]
+                if verbose: print(msg)
             res = (nj-1)/puiss
-            if (nj-1)%puiss != 0: errors+=[z,"Zone %s is not multigrid of level %d in direction j."%(z[0],level)]
+            if (nj-1)%puiss != 0:
+                msg = "Zone %s is not multigrid of level %d in direction j."%(z[0],level)
+                errors+=[z,msg]
+                if verbose: print(msg)
             elif res < nbMinCoarseB:
-                errors+=[z,"Zone %s: not enough points on coarse grid for level %d in direction j."%(z[0],level)]
+                msg = "Zone %s: not enough points on coarse grid for level %d in direction j."%(z[0],level)
+                errors+=[z,msg]
+                if verbose: print(msg)
             res = (nk-1)/puiss
-            if (nk-1)%puiss != 0: errors+=[z,"Zone %s is not multigrid of level %d in direction k."%(z[0],level)]
+            if (nk-1)%puiss != 0:
+                msg = "Zone %s is not multigrid of level %d in direction k."%(z[0],level)
+                errors+=[z,msg]
+                if verbose: print(msg)
             elif res < nbMinCoarseB:
-                errors+=[z,"Zone %s: not enough points on coarse grid for level %d in direction k."%(z[0],level)]
+                msg = "Zone %s: not enough points on coarse grid for level %d in direction k."%(z[0],level)
+                errors+=[z,msg]
+                if verbose: print(msg)
 
             # check BC ranges (receptors)
-            errors += checkMGForBCRanges(z,'BC_t',level,nbMinCoarseW)
-            errors += checkMGForBCRanges(z,'GridConnectivity1to1_t',level,nbMinCoarseW)
-            errors += checkMGForBCRanges(z,'GridConnectivity_t',level,nbMinCoarseW)
+            errors += checkMGForBCRanges(z, 'BC_t', level, nbMinCoarseW, verbose)
+            errors += checkMGForBCRanges(z, 'GridConnectivity1to1_t', level, nbMinCoarseW, verbose)
+            errors += checkMGForBCRanges(z, 'GridConnectivity_t', level, nbMinCoarseW, verbose)
             # check BC ranges (donors)
-            errors += checkMGForDonorBCRanges(z,'GridConnectivity1to1_t',level,nbMinCoarseW)
-            errors += checkMGForDonorBCRanges(z,'GridConnectivity_t',level,nbMinCoarseW)
+            errors += checkMGForDonorBCRanges(z, 'GridConnectivity1to1_t', level,nbMinCoarseW, verbose)
+            errors += checkMGForDonorBCRanges(z, 'GridConnectivity_t', level,nbMinCoarseW, verbose)
     return errors
 
 #=============================================================================
 # Check if the number of points of a zone does not exceed sizeMax
 #=============================================================================
-def checkSize(t, sizeMax=100000000):
+def checkSize(t, sizeMax=100000000, verbose=True):
     """Check if the number of points of zones dont exceed sizeMax."""
     errors = []
     for z in Internal.getZones(t):
@@ -1072,27 +1205,33 @@ def checkSize(t, sizeMax=100000000):
         if dims[0] == 'Structured':
             npts = dims[1]*dims[2]*dims[3]
         else: npts = dims[1]
-        if npts > sizeMax: errors += [z,"Zone %s exceeds the maximum number of points (Npts=%d)."%(z[0],npts)]
+        if npts > sizeMax:
+            msg = "Zone %s exceeds the maximum number of points (Npts=%d)."%(z[0],npts)
+            errors += [z,msg]
+            if verbose: print(msg)
     return errors
 
 #==============================================================================
 # Verifies that the node type is in CGNSTypes
 #==============================================================================
-def checkCGNSType(node):
+def checkCGNSType(node, verbose=True):
     """Check if all node are of a valid CGNS type."""
     errors = []
     isStd = Internal.isStdNode(node)
     if isStd >= 0:
-        for c in node[isStd:]: checkCGNSType__(c, node, errors)
-    else: checkCGNSType__(node, node, errors)
+        for c in node[isStd:]: checkCGNSType__(c, node, errors, verbose)
+    else: checkCGNSType__(node, node, errors, verbose)
     return errors
 
-def checkCGNSType__(node, parent, errors):
+def checkCGNSType__(node, parent, errors, verbose=True):
+    """Check if node type is valid recursively."""
     ntype = node[3]
     if ntype not in CGNSTypes:
-        errors += [node, parent, 'Unknown CGNS type %s for node %s.\n'%(ntype, node[0])]
+        msg = 'Unknown CGNS type %s for node %s.\n'%(ntype, node[0])
+        errors += [node, parent, msg]
+        if verbose: print(msg)
     sons = node[2]
-    for n in sons: checkCGNSType__(n, node, errors)
+    for n in sons: checkCGNSType__(n, node, errors, verbose)
 
 #==============================================================================
 # Deletes nodes of invalid CGNS types
@@ -1115,7 +1254,8 @@ def _correctCGNSType(t):
 # referenced vertices exist for element and ngon
 # no negative faces
 #==============================================================================
-def checkElementNodes(t):
+def checkElementNodes(t, verbose=True):
+    """Check element nodes recursively."""
     errors = []
     bases = Internal.getBases(t)
     for b in bases:
@@ -1135,7 +1275,9 @@ def checkElementNodes(t):
             if len(iNFaces) > 1:
                 print("Warning: CheckPyTree: multiple NFACE connectivity for zone %s. Please merge NFACE connectivities."%z[0])
             if len(iNGons) == 1 and len(iNFaces) == 0:
-                errors += [z, b, 'NFace is missing for zone %s.'%z[0]]
+                msg = 'NFace is missing for zone %s.'%z[0]
+                errors += [z, b, msg]
+                if verbose: print(msg)
 
             #if len(BE) > 1:
             #    errors += [z, b, 'Multiple BE connectivity for zone %s.'%z[0]]
@@ -1148,14 +1290,19 @@ def checkElementNodes(t):
                     minv = numpy.min(c[1]); maxv = numpy.max(c[1])
                     npts = C.getNPts(z)
                     if minv < 1 or maxv > npts:
-                        errors += [z, b, 'Element connectivity referenced unexisting vertices in zone %s.'%z[0]]
+                        msg = 'Element connectivity referenced unexisting vertices in zone %s.'%z[0]
+                        errors += [z, b, msg]
+                        if verbose: print(msg)
 
             for iNFace in iNFaces: # check positive faces
                 c = Internal.getNodeFromName1(connects[iNFace], 'ElementConnectivity')
                 if c[1] is None: print("Warning: CheckPyTree: ElementConnectivity is None (may not be loaded).")
                 else:
                     minv = numpy.min(c[1])
-                    if minv < 1: errors += [c, connects[iNFace], 'Negative NFace index']
+                    if minv < 1:
+                        msg = 'Negative NFace index'
+                        errors += [c, connects[iNFace], msg]
+                        if verbose: print(msg)
 
             for iNGon in iNGons: # check existing vertices
                 c = Internal.getNodeFromName1(connects[iNGon], 'ElementConnectivity')
@@ -1165,7 +1312,9 @@ def checkElementNodes(t):
                     minv = numpy.min(c[1]); maxv = numpy.max(c[1])
                     npts = C.getNPts(z)
                     if minv < 1 or maxv > npts:
-                        errors += [z, b, 'NGON connectivity referenced unexisting vertices in zone %s.'%z[0]]
+                        msg = 'NGON connectivity referenced unexisting vertices in zone %s.'%z[0]
+                        errors += [z, b, msg]
+                        if verbose: print(msg)
     return errors
 
 #==============================================================================
@@ -1174,6 +1323,7 @@ def checkElementNodes(t):
 # Applies abs(index) for NFaces
 #==============================================================================
 def _correctElementNodes(t):
+    """Correct element nodes and fix connectivity."""
     _correctElementBoundaryNodes(t)
     _cleanBEConnect(t)
     errors = checkElementNodes(t)
@@ -1199,6 +1349,7 @@ def _correctElementNodes(t):
 # Corrects boundary connectivity that are at zero (GE[1][1])
 #===============================================================================
 def _correctElementBoundaryNodes(t):
+    """Correct element boundary nodes with zero coordinates."""
     #_correctBCPL2ER(t)
 
     zones = Internal.getZones(t)
@@ -1228,6 +1379,7 @@ def _correctElementBoundaryNodes(t):
 #  2/ or if BC is defined by a PointList= a set of face centers
 #==========================================================================================
 def _correctBCPL2ER(t):
+    """Convert BC PointList to ElementRange for boundary faces."""
     import Post.PyTree as P
     for z in Internal.getZones(t):
         zdim = Internal.getZoneDim(z)
@@ -1275,6 +1427,7 @@ def _correctBCPL2ER(t):
 #  In a NGON mesh, removes BE connectivities
 #===============================================================================
 def _cleanBEConnect(t):
+    """Remove BE connectivities from NGON zones."""
     for z in Internal.getZones(t):
         zdim = Internal.getZoneDim(z)
         if zdim[0] == 'Unstructured':
@@ -1289,6 +1442,7 @@ def _cleanBEConnect(t):
 # shift=1: add nface shift if possible
 # shift=-1: subtract nface shift if possible
 def _shiftParentElements(t, shift=1):
+    """Shift ParentElements indices by nface."""
     for z in Internal.getZones(t):
         ngon = Internal.getNGonNode(z)
         if ngon is not None:
@@ -1314,7 +1468,8 @@ def _shiftParentElements(t, shift=1):
 #===============================================================================
 # Check non CGNS varnames in FlowSolution_t and BCDataSet
 #===============================================================================
-def checkCGNSVarNames(t):
+def checkCGNSVarNames(t, verbose=True):
+    """Check CGNS variable names in FlowSolution_t and BCDataSet."""
     errors = []
     zones = Internal.getZones(t)
     for z in zones:
@@ -1324,17 +1479,24 @@ def checkCGNSVarNames(t):
             datas = Internal.getNodesFromType1(c, 'DataArray_t')
             for d in datas:
                 n = Internal.getCGNSName(d[0])
-                if n != d[0]: errors += [d, c, '%s not a valid CGNS variable name for zone %s.'%(d[0],z[0])]
+                if n != d[0]:
+                    msg = '%s not a valid CGNS variable name for zone %s.'%(d[0],z[0])
+                    errors += [d, c, msg]
+                    if verbose: print(msg)
         # Change on BCDataSet (if any)
         bcs = Internal.getNodesFromType2(z, 'BC_t')
         for b in bcs:
             datas = Internal.getBCDataSet(z, b)
             for d in datas:
                 n = Internal.getCGNSName(d[0])
-                if n != d[0]: errors += [d, b, '%s not a valid CGNS variable name for BCDataSet in zone %s.'%(d[0],z[0])]
+                if n != d[0]:
+                    msg = '%s not a valid CGNS variable name for BCDataSet in zone %s.'%(d[0],z[0])
+                    errors += [d, b, msg]
+                    if verbose: print(msg)
     return errors
 
 def _correctCGNSVarNames(t):
+    """Correct invalid CGNS variable names."""
     errors = checkCGNSVarNames(t)
     for e in range(len(errors)//3):
         node = errors[3*e]
@@ -1346,6 +1508,7 @@ def _correctCGNSVarNames(t):
 # Check if Coordinates are in fields, change name with + F
 #===============================================================================
 def checkCoordinatesInFields(t):
+    """Check coordinates and rename if in FlowSolution_t."""
     errors = []
     zones = Internal.getZones(t)
     for z in zones:
@@ -1376,6 +1539,7 @@ def checkCoordinatesInFields(t):
     return errors
 
 def _correctCoordinatesInFields(t):
+    """Rename coordinate variables with 'F' suffix."""
     errors = checkCoordinatesInFields(t)
     for e in range(len(errors)//3):
         node = errors[3*e]
@@ -1386,38 +1550,99 @@ def _correctCoordinatesInFields(t):
 #===============================================================================
 # Check field conformity and location
 #===============================================================================
-def checkFieldConformity(t):
+def checkFieldConformity(t, verbose=True):
+    """Check field conformity and location."""
     errors = []
     zones = Internal.getZones(t)
     for z in zones:
+        zdim = Internal.getZoneDim(z)
         npts = C.getNPts(z)
         ncells = C.getNCells(z)
-        # Change on container
+        # Check FlowSolution containers
         cont = Internal.getNodesFromType1(z, 'FlowSolution_t')
         for c in cont:
             loc = Internal.getNodeFromType1(c, 'GridLocation_t')
             if loc is None: loc = npts
-            elif Internal.getValue(loc) == 'Centers': loc = ncells
+            elif Internal.getValue(loc) == 'CellCenter': loc = ncells
             elif Internal.getValue(loc) == 'Vertex': loc = npts
+            else: loc = npts
             datas = Internal.getNodesFromType1(c, 'DataArray_t')
             for d in datas:
+                if d[1] is None: continue # not loaded
                 if d[1].size != loc:
-                    errors += [d, c, '%s has not the right size for field in zone %s.'%(d[0],z[0])]
+                    msg = 'Field %s has not the right size for field in zone %s.'%(d[0],z[0])
+                    errors += [d, c, msg]
+                    if verbose: print(msg)
+                elif zdim[0] == 'Structured': # check numpy shape
+                    shape = d[1].shape # actual shape
+                    if zdim[4] == 3 and len(shape) != 3:
+                        shapet = (zdim[1],zdim[2],zdim[3]) # target shape
+                        msg = 'Field %s has not the right shape %s for field in structured zone %s.'%(d[0],str(shapet),z[0])
+                        errors += [d, c, msg]
+                        if verbose: print(msg)
+                    elif zdim[4] == 2 and len(shape) != 2:
+                        shapet = (zdim[1],zdim[2]) # target shape
+                        msg = 'Field %s has not the right %s shape for field in structured zone %s.'%(d[0],str(shapet),z[0])
+                        errors += [d, c, msg]
+                        if verbose: print(msg)
+                    elif zdim[4] == 1 and len(shape) != 1:
+                        shapet = (zdim[1]) # target shape
+                        msg = 'Field %s has not the right shape %s for field in structured zone %s.'%(d[0],str(shapet),z[0])
+                        errors += [d, c, msg]
+                        if verbose: print(msg)
+                    elif loc == npts and (shape[0] != zdim[1] or shape[1] != zdim[2] or shape[1] != zdim[3]):
+                        msg = 'Field %s has not the right shape %s for field in structured zone %s.'%(d[0],str(shapet),z[0])
+                        errors += [d, c, msg]
+                        if verbose: print(msg)
+                    elif loc == ncells and (shape[0] != zdim[1]-1 or shape[1] != zdim[2]-1 or shape[1] != max(zdim[3]-1,1)):
+                        msg = 'Field %s has not the right shape %s for field in structured zone %s.'%(d[0],str(shapet),z[0])
+                        errors += [d, c, msg]
+                        if verbose: print(msg)
+                elif zdim[0] == 'Unstructured': # check numpy shape
+                    shape = d[1].shape
+                    if len(shape) != 1:
+                        msg = 'Field %s has not the right shape %s for field in structured zone %s.'%(d[0],str(shapet),z[0])
+                        errors += [d, c, msg]
+                        if verbose: print(msg)
+
+        # Check BCDataSet (if any)
+        bcs = Internal.getNodesFromType2(z, 'BC_t')
+        for b in bcs:
+            datas = Internal.getBCDataSet(z, b)
+            for d in datas:
+                if d[1] is None: continue
+                sh = d[1].shape
+                if len(sh) != 1 or sh[0] != d[1].size:
+                    msg = 'BCDataSet %s has incorrect shape %s for field in structured zone %s.'%(d[0],z[0])
+                    errors += [d, c, msg]
+                    if verbose: print(msg)
     return errors
 
 def _correctFieldConformity(t):
+    """Fix field size and location mismatches."""
     errors = checkFieldConformity(t)
     for e in range(len(errors)//3):
         node = errors[3*e]
         parent = errors[3*e+1]
-        c = Internal.getNodePosition(node, parent)
-        del parent[2][c]
+        msg = errors[3*e+2]
+        if 'not the right shape' in msg: # field
+            import re, ast
+            match = re.search(r"\((.*?)\)", msg)
+            tuplestr = match.group(0)
+            sh = ast.literal_eval(tuplestr)
+            node[1] = node[1].reshape(sh)
+        elif 'incorrect shape' in msg: # bcdataset
+            node[1] = node[1].reshape(-1)
+        else:
+            c = Internal.getNodePosition(node, parent)
+            del parent[2][c]
     return None
 
 #===============================================================================
 # Check NAN in fields
 #===============================================================================
-def checkNAN(t):
+def checkNAN(t, verbose=True):
+    """Check for NaN values in fields."""
     errors = []
     zones = Internal.getZones(t)
     for z in zones:
@@ -1426,10 +1651,13 @@ def checkNAN(t):
             isFinite = C.isFinite(z, v)
             if not isFinite:
                 d = Internal.getZoneName2(z, v)
-                errors += [d, v, 'Field %s of zone %s has NAN.'%(v,z[0])]
+                msg = 'Field %s of zone %s has NAN values.'%(v,z[0])
+                errors += [d, v, msg]
+                if verbose: print(msg)
     return errors
 
 def _correctNAN(t):
+    """Replace NaN values with zeros."""
     errors = checkNAN(t)
     for e in range(len(errors)//3):
         node = errors[3*e]

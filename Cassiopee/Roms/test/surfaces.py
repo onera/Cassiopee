@@ -1,7 +1,7 @@
 # test Driver surfaces
 import Roms.Driver as D
 
-TEST = 'union1'
+TEST = 'loft1'
 
 T1 = D.Part('test')
 

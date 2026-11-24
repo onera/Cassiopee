@@ -541,13 +541,12 @@ PyObject* K_GENERATOR::netgen1(PyObject* self, PyObject* args)
   }
 
   /* Ajoute les connectivites */
+  // (i,k) access: the connectivity is strided with api 2 and 3
+  FldArrayI& cm = *(cn->getConnect(0));
   E_Int ne = cn->getSize();
-  E_Int* cn1 = cn->begin(1);
-  E_Int* cn2 = cn->begin(2);
-  E_Int* cn3 = cn->begin(3);
   for (E_Int i = 0; i < ne; i++) 
   {
-    trig[0] = cn1[i]; trig[1] = cn2[i]; trig[2] = cn3[i];
+    trig[0] = cm(i,1); trig[1] = cm(i,2); trig[2] = cm(i,3);
     //printf("%d %d %d\n", trig[0], trig[1], trig[2]);
     nglib::Ng_AddSurfaceElement(mesh, nglib::NG_TRIG, trig);
   }
@@ -557,7 +556,7 @@ PyObject* K_GENERATOR::netgen1(PyObject* self, PyObject* args)
   E_Int ret = nglib::Ng_GenerateVolumeMesh(mesh);
   if (ret != 0)
   {
-    printf("meshing failed (%d).\n", ret);
+    printf("meshing failed (" SF_D_ ").\n", ret);
     nglib::Ng_DeleteMesh(mesh);
     RELEASESHAREDU(array, f, cn);
     if (ret == 1)
@@ -586,17 +585,19 @@ PyObject* K_GENERATOR::netgen1(PyObject* self, PyObject* args)
   PyObject* out = NULL;
   // TETRA mesh output
   np = nglib::Ng_GetNP(mesh);
-  printf("Generate %d points.\n",np);
+  printf("Generate " SF_D_ " points.\n", np);
   ne = nglib::Ng_GetNE(mesh);
-  printf("Generate %d elements.\n",ne);
+  printf("Generate " SF_D_ " elements.\n", ne);
   
   /* Build output array */
-  out = K_ARRAY::buildArray3(3, "x,y,z", np, ne, "TETRA", api);
-  E_Float* fp = K_ARRAY::getFieldPtr(out);
-  E_Float* fx = fp; E_Float* fy = fp+np; E_Float* fz = fp+2*np;
-  E_Int* cp = K_ARRAY::getConnectPtr(out);
-  E_Int* cp1 = cp; E_Int* cp2 = cp+ne; 
-  E_Int* cp3 = cp+2*ne; E_Int* cp4 = cp+3*ne; 
+  out = K_ARRAY::buildArray3(3, "x,y,z", np, ne, "TETRA", false, api);
+  FldArrayF* fout; FldArrayI* cout;
+  K_ARRAY::getFromArray3(out, fout, cout);
+  E_Float* fx = fout->begin(1);
+  E_Float* fy = fout->begin(2);
+  E_Float* fz = fout->begin(3);
+  // (i,k) access: the connectivity is strided with api 2 and 3
+  FldArrayI& co = *cout;
 
   for (E_Int i = 0; i < np; i++)
   {
@@ -608,10 +609,11 @@ PyObject* K_GENERATOR::netgen1(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < ne; i++)
   {
     nglib::Ng_GetVolumeElement (mesh, i+1, tet);
-    cp1[i] = tet[0]; cp2[i] = tet[1];
-    cp3[i] = tet[2]; cp4[i] = tet[3];
+    co(i,1) = tet[0]; co(i,2) = tet[1];
+    co(i,3) = tet[2]; co(i,4) = tet[3];
     //printf("%d %d %d %d\n", cp1[i], cp2[i], cp3[i], cp4[i]);
   }
+  RELEASESHAREDU(out, fout, cout);
  
   nglib::Ng_DeleteMesh(mesh);
 
@@ -727,12 +729,14 @@ PyObject* K_GENERATOR::netgen2(PyObject* self, PyObject* args)
    printf("Generate " SF_D_ " elements.\n", ne);
   
   /* Build output array */
-  out = K_ARRAY::buildArray3(3, "x,y,z", np, ne, "TETRA", api);
-  E_Float* fp = K_ARRAY::getFieldPtr(out);
-  E_Float* fx = fp; E_Float* fy = fp+np; E_Float* fz = fp+2*np;
-  E_Int* cp = K_ARRAY::getConnectPtr(out);
-  E_Int* cp1 = cp; E_Int* cp2 = cp+ne; 
-  E_Int* cp3 = cp+2*ne; E_Int* cp4 = cp+3*ne; 
+  out = K_ARRAY::buildArray3(3, "x,y,z", np, ne, "TETRA", false, api);
+  FldArrayF* fout; FldArrayI* cout;
+  K_ARRAY::getFromArray3(out, fout, cout);
+  E_Float* fx = fout->begin(1);
+  E_Float* fy = fout->begin(2);
+  E_Float* fz = fout->begin(3);
+  // (i,k) access: the connectivity is strided with api 2 and 3
+  FldArrayI& co = *cout;
 
   for (E_Int i = 0; i < np; i++)
   {
@@ -744,10 +748,11 @@ PyObject* K_GENERATOR::netgen2(PyObject* self, PyObject* args)
   for (E_Int i = 0; i < ne; i++)
   {
     nglib::Ng_GetVolumeElement (mesh, i+1, tet);
-    cp1[i] = tet[0]; cp2[i] = tet[1];
-    cp3[i] = tet[2]; cp4[i] = tet[3];
+    co(i,1) = tet[0]; co(i,2) = tet[1];
+    co(i,3) = tet[2]; co(i,4) = tet[3];
     //printf("%d %d %d %d\n", cp1[i], cp2[i], cp3[i], cp4[i]);
   }
+  RELEASESHAREDU(out, fout, cout);
  
   nglib::Ng_DeleteMesh(mesh);
 

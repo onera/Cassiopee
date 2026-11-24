@@ -1413,7 +1413,7 @@ Check nodes
 
 -----------------------------------------------------------------------------------------------
 
-.. py:function:: Converter.Internal.checkPyTree(t, level=-20) 
+.. py:function:: Converter.Internal.checkPyTree(t, level=-20, verbose=True) 
 
     Check pyTree t following level (0: valid version node,
     1: node conformity, 2: unique base name,
@@ -1424,14 +1424,17 @@ Check nodes
     12: node name length < 32 chars, 13: all zones of same cellDim in bases).
     If level=-20, all previous checks are performed.
     
-    Return a list of pairs of invalid nodes and error message.
+    Return a list of tuple of invalid nodes, position in parent child list and error message.
    
-    :param t:  input pyTree
-    :type  t:  pyTree node or list of pyTree nodes
-    :param level:  level of check
-    :type  level:  int
-    :return: [(node, 'errror message')]
-    :rtype: list of tuple (node, 'error')
+    :param t: input pyTree
+    :type  t: pyTree node or list of pyTree nodes
+    :param level: level of check
+    :type  level: int
+    :param verbose: print message to screen if true
+    :type  level: boolean
+
+    :return: [(node, pos, 'error message')]
+    :rtype: list of tuple (node, pos, 'error')
 
     *Example of use:*
 
