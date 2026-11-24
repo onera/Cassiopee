@@ -367,9 +367,6 @@ E_Int createGridElementsNGon(hid_t fid, E_Int istart,
   npy_dim_vals[0] = (nface2NodeBC+nface2Node);
   PyArrayObject* r3 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], E_NPY_INT, 1);
   E_INT_TYPE* pp3 = (E_INT_TYPE*)PyArray_DATA(r3);
-  //H5Dread(did, tid, mid, sid, H5P_DEFAULT, pp3);
-  for (E_Int i = 0; i < nface2NodeBC; i++) pp3[i] = f2n2[i]; // start with BC faces
-  for (E_Int i = nface2NodeBC; i < nface2NodeBC+nface2Node; i++) pp3[i] = f2n[i-nface2NodeBC];
   PyObject* children3 = PyList_New(0);
   PyObject* ec = Py_BuildValue("[sOOs]", "ElementConnectivity", r3, children3, "DataArray_t");
   PyList_Append(children1, ec); Py_DECREF(ec);
@@ -636,7 +633,7 @@ E_Int K_IO::GenIO::hdffsdmread(char* file, PyObject*& tree)
   hid_t id = 0; PyObject* GE;
   E_Int ncells = 0; E_Int istart = 1; E_Int n3dcells = 0; 
   std::map<E_Int, E_Int> tagmap; // map of bc tags
-  int32_t* bct = NULL; size = 0; // bc tag merged # TODO
+  int32_t* bct = NULL; size = 0; // bc tag merged
 
   if (H5Lexists(fid, "/FS:Mesh/UnstructuredCells/Tetra4", H5P_DEFAULT) > 0)
   {
