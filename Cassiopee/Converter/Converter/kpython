@@ -49,8 +49,10 @@ ARGS=""
 SANITIZE="0"
 # GDB (-g)
 GDB="0"
+# Module-name
+MODULE="0"
 
-while getopts :hpsgn:t:a: OPTION
+while getopts :hpsgn:t:a:m OPTION
 do
     case $OPTION in
         h)
@@ -83,6 +85,9 @@ do
         g)
             GDB="1"
             ;;
+        m)
+            MODULE="1"
+            ;;
         \?)
             PYARGS+=$OPTARG
             ;;
@@ -90,7 +95,11 @@ do
 done
 shift $((OPTIND-1))
 # Remaining script name and arguments
-SCRIPT=$*
+if [ "$MODULE" = "1" ]; then
+    SCRIPT="-m $*"
+else
+    SCRIPT=$*
+fi
 
 # Machine avec remote GL (utilisant virtual GL)
 #if command -v xdpyinfo &> /dev/null
