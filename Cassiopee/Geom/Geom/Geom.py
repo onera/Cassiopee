@@ -60,7 +60,7 @@ def airfoil(name=None):
     import Converter.PyTree as C
     import Converter.Internal as Internal
     installPath = Dist.getInstallPath()
-    filepath = os.path.join(installPath, "Geom", "Data", "UIUCAirfoils.cgns")
+    filepath = os.path.join(installPath, "Geom", "UIUCAirfoils.cgns")
     t = C.convertFile2PyTree(filepath)
     bases = Internal.getBases(t)
     if name is None:
