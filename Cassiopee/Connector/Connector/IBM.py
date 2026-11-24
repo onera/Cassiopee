@@ -2250,7 +2250,7 @@ def _prepOutputProject__(outputProjection, typeValue, arrayLocal, allCorrectedPt
     return None
 
 # Write CGNS file with the IBM points that have a type 3 and type 4 projection
-def _writeOutputProject__(outputProjection, tLocal, nameZone = ['IBM', 'Wall', 'Image']):
+def _writeOutputProject__(outputProjection, tLocal, nameZone=['IBM', 'Wall', 'Image']):
     for i in range(3):
         size     = len(outputProjection[i*3])
         coordxPC = numpy.array(outputProjection[i*3  ])

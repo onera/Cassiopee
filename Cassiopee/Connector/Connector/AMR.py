@@ -27,13 +27,13 @@ def outputTime(startTime,functionName='FunctionName'):
     return None
 
 def printMeshInfo(t, message=''):
-    Nzones = len(Internal.getZones(t))
-    Nzones = Cmpi.allreduce(Nzones, op=Cmpi.SUM)
-    NCells = Cmpi.getNCells(t)
+    nzones = len(Internal.getZones(t))
+    nzones = Cmpi.allreduce(nzones, op=Cmpi.SUM)
+    ncells = Cmpi.getNCells(t)
     if Cmpi.master:
         header = '' if message == '' else message + ' '
-        print('%s Total number of zones=%d.'%(header, Nzones), flush=True)
-        print('%s Final number of cells=%5.4f millions.'%(header, NCells*1e-6), flush=True)
+        print('%s Total number of zones=%d.'%(header, nzones), flush=True)
+        print('%s Final number of cells=%5.4f millions.'%(header, ncells*1e-6), flush=True)
 
     return None
 
