@@ -1504,7 +1504,7 @@ def checkCGNSVarNames(t, verbose=True):
                     if verbose: print(msg)
     return errors
 
-def _correctCGNSVarNames(t, verbose = True):
+def _correctCGNSVarNames(t, verbose=True):
     """Correct invalid CGNS variable names."""
     errors = checkCGNSVarNames(t, verbose)
     le = len(errors)//3
