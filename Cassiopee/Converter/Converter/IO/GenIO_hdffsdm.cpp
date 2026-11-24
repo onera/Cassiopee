@@ -214,7 +214,6 @@ E_Int createGridElementsNGon(hid_t fid, E_Int istart,
     H5Sget_simple_extent_dims(sid, dims, NULL);
     nfacesBC = 1;
     for (E_Int i = 0; i < ndims; i++) nfacesBC *= dims[i];
-    npy_dim_vals[0] = nfacesBC;
 #ifdef E_DOUBLEINT
       tid = H5Tcopy(H5T_NATIVE_INT64); H5Tset_precision(tid, 64);
 #else
@@ -232,7 +231,6 @@ E_Int createGridElementsNGon(hid_t fid, E_Int istart,
     H5Sget_simple_extent_dims(sid, dims, NULL);
     nface2NodeBC = 1;
     for (E_Int i = 0; i < ndims; i++) nface2NodeBC *= dims[i];
-    npy_dim_vals[0] = nface2NodeBC;
 #ifdef E_DOUBLEINT  
       tid = H5Tcopy(H5T_NATIVE_INT64); H5Tset_precision(tid, 64);
 #else
@@ -409,9 +407,6 @@ E_Int createGridElementsNGon(hid_t fid, E_Int istart,
   PyArrayObject* r3 = (PyArrayObject*)PyArray_EMPTY(1, &npy_dim_vals[0], NPY_INT32, 1);  
   int32_t* pp3 = (int32_t*)PyArray_DATA(r3);
 #endif
-  //H5Dread(did, tid, mid, sid, H5P_DEFAULT, pp3);
-  for (E_Int i = 0; i < nface2NodeBC; i++) pp3[i] = f2n2[i]; // start with BC faces
-  for (E_Int i = nface2NodeBC; i < nface2NodeBC+nface2Node; i++) pp3[i] = f2n[i-nface2NodeBC];
   PyObject* children3 = PyList_New(0);
   PyObject* ec = Py_BuildValue("[sOOs]", "ElementConnectivity", r3, children3, "DataArray_t");
   PyList_Append(children1, ec); Py_DECREF(ec);
@@ -2173,8 +2168,8 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
       }
     }
 
-    int32_t* poly2dCount = new int32_t [nc];
-    int32_t* poly2d = new int32_t [size];
+    E_Int* poly2dCount = new E_Int [nc];
+    E_Int* poly2d = new E_Int [size];
     int32_t* marker = new int32_t [nc];
 
     // Remplissage poly2d
