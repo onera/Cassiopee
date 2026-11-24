@@ -229,13 +229,14 @@ E_Int K_CONNECTOR::compCharacteristics(
     nambig = comp; comp = 0;
     niter++;
   }
-  // Check if some faces are ambiguous
-  comp = nambig;
-  if (comp > 0) return -1;
-  
   // Compact storage : reorder the Z array, enforce parity condition
+  // Done even if some faces remain ambiguous, so that indir and Z are always
+  // consistent for the callers (blankCells used them uninitialized before)
   compactZ(isNot, elevationDir, delta, tol, 
            xmin, ymin, zmin, xmax, ymax, zmax, p);
+
+  // Check if some faces are ambiguous
+  if (nambig > 0) return -1;
   return 1;
 }
 //=============================================================================

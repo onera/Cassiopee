@@ -880,18 +880,20 @@ void K_POST::doIsoSurfMCQuads(
       if (edgeVal == 0) goto endc;
     
       /* Find the vertices where the surface intersects the cube */
-      if (edgeVal & 1)    { np += 4; }
-      if (edgeVal & 2)    { np += 4; }
-      if (edgeVal & 4)    { np += 4; }
-      if (edgeVal & 8)    { np += 4; }
-      if (edgeVal & 16)   { np += 4; }
-      if (edgeVal & 32)   { np += 4; }
-      if (edgeVal & 64)   { np += 4; }
-      if (edgeVal & 128)  { np += 4; }
-      if (edgeVal & 256)  { np += 4; }
-      if (edgeVal & 512)  { np += 4; }
-      if (edgeVal & 1024) { np += 4; }
-      if (edgeVal & 2048) { np += 4; }
+      // one point per cut edge (vertexInterp): with 4 per edge, 3/4 of the
+      // output points were left uninitialized and seen by cleanConnectivity
+      if (edgeVal & 1)    { np += 1; }
+      if (edgeVal & 2)    { np += 1; }
+      if (edgeVal & 4)    { np += 1; }
+      if (edgeVal & 8)    { np += 1; }
+      if (edgeVal & 16)   { np += 1; }
+      if (edgeVal & 32)   { np += 1; }
+      if (edgeVal & 64)   { np += 1; }
+      if (edgeVal & 128)  { np += 1; }
+      if (edgeVal & 256)  { np += 1; }
+      if (edgeVal & 512)  { np += 1; }
+      if (edgeVal & 1024) { np += 1; }
+      if (edgeVal & 2048) { np += 1; }
       /* Create the quadrangle */
       qt = quadTable[cubeindex];
       for (E_Int j = 0; qt[j] != -1; j += 4)

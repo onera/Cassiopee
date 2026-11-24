@@ -1218,9 +1218,11 @@ void K_CONNECTOR::blankCellsUnstr(
   E_Float xmin, ymin, zmin, xmax, ymax, zmax;
   E_Float xminz, yminz, zminz, xmaxz, ymaxz, zmaxz;
 
-  compCharacteristics(isNot, elevationDir, dim1, dim2, tol, delta,
+  E_Int okMask = compCharacteristics(isNot, elevationDir, dim1, dim2, tol, delta,
                       posxb, posyb, poszb, fieldsb, cnb, planes,
                       xmin, ymin, zmin, xmax, ymax, zmax);
+  if (okMask == -1)
+    printf("Warning: blankCells: X-Ray mask has ambiguous faces, blanking may be wrong on some rays.\n");
   xmin = xmin - delta; xmax = xmax + delta;
   ymin = ymin - delta; ymax = ymax + delta;
   zmin = zmin - delta; zmax = zmax + delta;
@@ -1305,9 +1307,11 @@ void K_CONNECTOR::blankCellsStruct(
   E_Float xmin, ymin, zmin, xmax, ymax, zmax;
   E_Float xminz, yminz, zminz, xmaxz, ymaxz, zmaxz;
 
-  compCharacteristics(isNot, elevationDir, dim1, dim2, tol, delta,
+  E_Int okMask = compCharacteristics(isNot, elevationDir, dim1, dim2, tol, delta,
                       posxb, posyb, poszb, fieldsb, cnb, planes,
                       xmin, ymin, zmin, xmax, ymax, zmax);
+  if (okMask == -1)
+    printf("Warning: blankCells: X-Ray mask has ambiguous faces, blanking may be wrong on some rays.\n");
 
   xmin = xmin - delta; xmax = xmax + delta;
   ymin = ymin - delta; ymax = ymax + delta;
