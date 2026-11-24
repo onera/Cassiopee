@@ -556,7 +556,7 @@ PyObject* K_GENERATOR::netgen1(PyObject* self, PyObject* args)
   E_Int ret = nglib::Ng_GenerateVolumeMesh(mesh);
   if (ret != 0)
   {
-    printf("meshing failed (%d).\n", ret);
+    printf("meshing failed (" SF_D_ ").\n", ret);
     nglib::Ng_DeleteMesh(mesh);
     RELEASESHAREDU(array, f, cn);
     if (ret == 1)
@@ -585,9 +585,9 @@ PyObject* K_GENERATOR::netgen1(PyObject* self, PyObject* args)
   PyObject* out = NULL;
   // TETRA mesh output
   np = nglib::Ng_GetNP(mesh);
-  printf("Generate %d points.\n",np);
+  printf("Generate " SF_D_ " points.\n", np);
   ne = nglib::Ng_GetNE(mesh);
-  printf("Generate %d elements.\n",ne);
+  printf("Generate " SF_D_ " elements.\n", ne);
   
   /* Build output array */
   out = K_ARRAY::buildArray3(3, "x,y,z", np, ne, "TETRA", false, api);
