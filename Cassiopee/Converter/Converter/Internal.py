@@ -3811,17 +3811,17 @@ def checkPyTree(t, level=-20, verbose=True):
   return Check.checkPyTree(t, level, verbose)
 
 # -- correctPyTree
-def correctPyTree(t, level=-20):
+def correctPyTree(t, level=-20, verbose=True):
   """Correct a pyTree.
-  Usage: correctPyTree(t, level)"""
+  Usage: correctPyTree(t, level, verbose)"""
   from . import Check
-  return Check.correctPyTree(t, level)
+  return Check.correctPyTree(t, level, verbose)
 
-def _correctPyTree(t, level=-20):
+def _correctPyTree(t, level=-20, verbose=True):
   """Correct a pyTree.
-  Usage: correctPyTree(t, level)"""
+  Usage: correctPyTree(t, level, verbose)"""
   from . import Check
-  Check._correctPyTree(t, level)
+  Check._correctPyTree(t, level, verbose)
   return None
 
 # -- checkMultigrid

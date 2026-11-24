@@ -177,63 +177,63 @@ def checkPyTree(t, level=-20, verbose=True):
 #==============================================================================
 # Correct pyTree
 #==============================================================================
-def correctPyTree(t, level=-20):
+def correctPyTree(t, level=-20, verbose=True):
     """Correct non conformities in tree."""
     tp = Internal.copyRef(t)
-    _correctPyTree(tp, level)
+    _correctPyTree(tp, level, verbose)
     return tp
 
-def _correctPyTree(t, level=-20):
+def _correctPyTree(t, level=-20, verbose=True):
     """Correct non conformities in tree."""
     # Corrects the version node
     if level <= 0 or level == 0:
-        _correctVersionNode(t)
+        _correctVersionNode(t, verbose)
     # Removes non-conform nodes
     if level <= -1 or level == 1:
-        _correctNodes(t)
+        _correctNodes(t, verbose)
     # Renames bases
     if level <= -2 or level == 2:
-        _correctNames(t, 'CGNSBase_t')
+        _correctNames(t, 'CGNSBase_t', verbose)
     # Renames zones
     if level <= -3 or level == 3:
-        _correctNames(t, 'Zone_t')
+        _correctNames(t, 'Zone_t', verbose)
     # Renames BCs
     if level <= -4 or level == 4:
-        _correctNames(t, 'BC_t')
-        _correctNames(t, 'GridConnectivity1to1_t')
-        _correctNames(t, 'GridConnectivity_t')
+        _correctNames(t, 'BC_t', verbose)
+        _correctNames(t, 'GridConnectivity1to1_t', verbose)
+        _correctNames(t, 'GridConnectivity_t', verbose)
     # Removes BCs with invalid ranges
     if level <= -5 or level == 5:
-        _correctBCRanges(t, 'BC_t')
-        _correctBCRanges(t, 'GridConnectivity1to1_t')
-        _correctDonorRanges(t, 'GridConnectivity1to1_t')
-        _correctBCRanges(t, 'GridConnectivity_t')
-        _correctDonorRanges(t, 'GridConnectivity_t')
+        _correctBCRanges(t, 'BC_t', verbose)
+        _correctBCRanges(t, 'GridConnectivity1to1_t', verbose)
+        _correctDonorRanges(t, 'GridConnectivity1to1_t', verbose)
+        _correctBCRanges(t, 'GridConnectivity_t', verbose)
+        _correctDonorRanges(t, 'GridConnectivity_t', verbose)
     # Removes BCs with invalid opposite windows
     if level <= -6 or level == 6:
-        _correctOppositRanges(t, 'GridConnectivity1to1_t')
-        _correctOppositRanges(t, 'GridConnectivity_t')
+        _correctOppositRanges(t, 'GridConnectivity1to1_t', verbose)
+        _correctOppositRanges(t, 'GridConnectivity_t', verbose)
     # Corrects forgotten families
     if level <= -7 or level == 7:
-        _correctZoneFamily(t)
-        _correctBCFamily(t)
+        _correctZoneFamily(t, verbose)
+        _correctBCFamily(t, verbose)
     # Corrects nodes with wrong CGNS type
     if level <= -8 or level == 8:
-        _correctCGNSType(t)
+        _correctCGNSType(t, verbose)
     # Corrects element nodes (connectivity)
     if level <= -9 or level == 9:
-        _correctElementNodes(t)
+        _correctElementNodes(t, verbose)
     # Corrects non-CGNS variable names
     if level <= -10 or level == 10:
-        _correctCGNSVarNames(t)
+        _correctCGNSVarNames(t, verbose)
     # Correct field conformity and remove NANs in fields
     if level <= -11 or level == 11:
         #_correctCoordinatesInFields(t)
-        _correctFieldConformity(t)
-        _correctNAN(t)
+        _correctFieldConformity(t, verbose)
+        _correctNAN(t, verbose)
     # Truncates names > 32 chars
     if level <= -12 or level == 12:
-        _correctNameLength(t)
+        _correctNameLength(t, verbose)
     # Corrects the base dimension
     if level <= -13 or level == 13:
         _correctBaseZonesDim(t, splitBases=True)
@@ -268,9 +268,9 @@ def checkVersionNode(t, verbose=True):
 #==============================================================================
 # Correct version node, creates one or removes extras
 #==============================================================================
-def _correctVersionNode(t):
+def _correctVersionNode(t, verbose=True):
     """Correct version node."""
-    errors = checkVersionNode(t)
+    errors = checkVersionNode(t, verbose=verbose)
     le = len(errors)//3
     added = 0
     for e in range(le):
@@ -283,6 +283,7 @@ def _correctVersionNode(t):
                     del t[2][c]; break
                 c += 1
             if added == 0: t[2].insert(0, node); added = 1
+    if le > 0 and verbose: print("Node corrected.")
     return None
 
 #==============================================================================
@@ -350,15 +351,16 @@ def checkNode__(node, parent, errors, verbose=True):
 #==============================================================================
 # Deletes non-conform nodes
 #==============================================================================
-def _correctNodes(t):
+def _correctNodes(t, verbose=True):
     """Delete non conform nodes."""
-    errors = checkNodes(t)
+    errors = checkNodes(t, verbose)
     le = len(errors)//3
     for e in range(le):
         node = errors[3*e]
         parent = errors[3*e+1]
         c = Internal.getNodePosition(node, parent)
         del parent[2][c]
+    if le > 0 and verbose: print("Nodes deleted.")
     return None
 
 #==============================================================================
@@ -386,9 +388,9 @@ def checkNameLength__(node, parent, errors, verbose=True):
 #==============================================================================
 # Truncate > 32 node names
 #==============================================================================
-def _correctNameLength(t):
+def _correctNameLength(t, verbose=True):
     """Truncate node names if necessary."""
-    errors = checkNameLength(t)
+    errors = checkNameLength(t, verbose)
     le = len(errors)//3
     for e in range(le):
         node = errors[3*e]
@@ -415,7 +417,7 @@ def _correctNameLength(t):
         else:
             node[0] = name[0:32]
 
-        print("INFO: replacing %s with %s."%(name, node[0]))
+        if verbose: print("Replacing %s with %s."%(name, node[0]))
     return None
 
 #==============================================================================
@@ -505,7 +507,7 @@ def checkUniqueNames(t, ntype, verbose=True):
 #==============================================================================
 # Change node name if already defined
 #==============================================================================
-def _correctNames(t, ntype):
+def _correctNames(t, ntype, verbose=True):
     """Rename nodes with non-unique names by appending an index."""
     nameServer = {}
     if ntype == 'CGNSBase_t': nodes = Internal.getBases(t)
@@ -714,29 +716,31 @@ def checkDonorFaces(t, ntype, verbose=True):
 #==============================================================================
 # Removes BCs of given type with invalid ranges
 #==============================================================================
-def _correctBCRanges(t, ntype):
+def _correctBCRanges(t, ntype, verbose=True):
     """Remove BC nodes with invalid ranges."""
-    errors = checkBCRanges(t, ntype)
+    errors = checkBCRanges(t, ntype, verbose)
     le = len(errors)//3
     for e in range(le):
         node = errors[3*e]
         parent = errors[3*e+1]
         c = Internal.getNodePosition(node, parent)
         del parent[2][c]
+    if le and verbose: print("Non conform BCs removed.")
     return None
 
 #==============================================================================
 # Removes BCs with invalid donor ranges
 #==============================================================================
-def _correctDonorRanges(t, ntype):
+def _correctDonorRanges(t, ntype, verbose=True):
     """Remove BC donor nodes with invalid ranges."""
-    errors = checkDonorRanges(t, ntype)
+    errors = checkDonorRanges(t, ntype, verbose)
     le = len(errors)//3
     for e in range(le):
         node = errors[3*e]
         parent = errors[3*e+1]
         c = Internal.getNodePosition(node, parent)
         del parent[2][c]
+    if le and verbose: print("Non conform BCs removed.")
     return None
 
 #==============================================================================
@@ -891,15 +895,16 @@ def checkOppositRanges(t, ntype, verbose=True):
 #                that have incoherent ranges
 #                whose donor doesn't have the reciprocal node
 #==============================================================================
-def _correctOppositRanges(t, ntype):
+def _correctOppositRanges(t, ntype, verbose=True):
     """Remove GC nodes without valid opposite donors or coherent ranges."""
-    errors = checkOppositRanges(t, ntype)
+    errors = checkOppositRanges(t, ntype, verbose)
     le = len(errors)//3
     for e in range(le):
         node = errors[3*e]
         parent = errors[3*e+1]
         c = Internal.getNodePosition(node, parent)
         del parent[2][c]
+    if le and verbose: print("Non conform GCs remmoved.")
     return None
 
 #==============================================================================
@@ -931,14 +936,15 @@ def checkZoneFamily(t, verbose=True):
 #==============================================================================
 # If a family is not declared, we add it to the base
 #==============================================================================
-def _correctZoneFamily(t):
-    errors = checkZoneFamily(t)
+def _correctZoneFamily(t, verbose=True):
+    errors = checkZoneFamily(t, verbose)
     le = len(errors)//3
     for e in range(le):
         node = errors[3*e]
         name = errors[3*e+2]
         name = name.split(' '); name = name[1]
         C._addFamily2Base(node, name)
+    if le > 0 and verbose: print("Families added to base.")
     return None
 
 #==============================================================================
@@ -973,14 +979,15 @@ def checkBCFamily(t, verbose=True):
 #==============================================================================
 # If a BC family is not declared, we add it to the base
 #==============================================================================
-def _correctBCFamily(t):
-    errors = checkBCFamily(t)
+def _correctBCFamily(t, verbose=True):
+    errors = checkBCFamily(t, verbose)
     le = len(errors)//3
     for e in range(le):
         node = errors[3*e]
         name = errors[3*e+2]
         name = name.split(' '); name = name[1]
         C._addFamily2Base(node, name, bndType='UserDefined')
+    if le > 0 and verbose: print("Families added to base.")
     return None
 
 #==============================================================================
@@ -1065,29 +1072,29 @@ def checkMGForBCRanges(z, ntype, multigrid, sizemin, verbose=True):
                 res = (di+1)/puiss
                 if di%puiss != 0:
                     msg = "BC %s of zone %s is not multigrid of level %d in direction i."%(n[0],z[0],multigrid)
-                    errors+=[n,msg]
+                    errors += [n,msg]
                     if verbose: print(msg)
                 elif res < sizemin:
                     msg = "PointRange for BC %s of zone %s: not enough points on coarse grid in direction i."%(n[0],z[0])
-                    errors+=[n,msg]
+                    errors += [n,msg]
                     if verbose: print(msg)
             if jmin != jmax:
                 dj = (jmax-jmin)
                 res = (dj+1)/puiss
                 if dj%puiss != 0:
                     msg = "BC %s of zone %s is not multigrid of level %d in direction j."%(n[0],z[0],multigrid)
-                    errors+=[n,msg]
+                    errors += [n,msg]
                     if verbose: print(msg)
                 elif res < sizemin:
                     msg = "PointRange for BC %s of zone %s: not enough points on coarse grid in direction j."%(n[0],z[0])
-                    errors+=[n,msg]
+                    errors += [n,msg]
                     if verbose: print(msg)
             if kmin != kmax:
                 dk = (kmax-kmin)
                 res = (dk+1)/puiss
                 if dk%puiss != 0:
                     msg = "BC %s of zone %s is not multigrid of level %d in direction k."%(n[0],z[0],multigrid)
-                    errors+=[n,msg]
+                    errors += [n,msg]
                     if verbose: print(msg)
                 elif res < sizemin:
                     msg = "PointRange for BC %s of zone %s: not enough points on coarse grid in direction k."%(n[0],z[0])
@@ -1112,33 +1119,33 @@ def checkMGForDonorBCRanges(z, ntype, multigrid, sizemin, verbose=True):
                 res = (di+1)/puiss
                 if di%puiss != 0:
                     msg = "PointRangeDonor for GC %s of zone %s is not multigrid of level %d in direction i."%(n[0],z[0],multigrid)
-                    errors+=[n,msg]
+                    errors += [n,msg]
                     if verbose: print(msg)
                 elif res < sizemin:
                     msg = "PointRangeDonor for GC %s of zone %s: not enough points on coarse grid in direction i."%(n[0],z[0])
-                    errors+=[n,msg]
+                    errors += [n,msg]
                     if verbose: print(msg)
             if jmin != jmax:
                 dj = (jmax-jmin)
                 res = (dj+1)/puiss
                 if dj%puiss != 0:
                     msg = "PointRangeDonor for GC %s of zone %s is not multigrid of level %d in direction j."%(n[0],z[0],multigrid)
-                    errors+=[n,msg]
+                    errors += [n,msg]
                     if verbose: print(msg)
                 elif res < sizemin:
                     msg = "PointRangeDonor for GC %s of zone %s: not enough points on coarse grid in direction j."%(n[0],z[0])
-                    errors+=[n,msg]
+                    errors += [n,msg]
                     if verbose: print(msg)
             if kmin != kmax:
                 dk = (kmax-kmin)
                 res = (dk+1)/puiss
                 if dk%puiss != 0:
                     msg = "PointRangeDonor for GC %s of zone %s is not multigrid of level %d in direction k."%(n[0],z[0],multigrid)
-                    errors+=[n,msg]
+                    errors += [n,msg]
                     if verbose: print(msg)
                 elif res < sizemin:
                     msg = "PointRangeDonor for GC %s of zone %s: not enough points on coarse grid in direction i."%(n[0],z[0])
-                    errors+=[n,msg]
+                    errors += [n,msg]
                     if verbose: print(msg)
     return errors
 
@@ -1160,29 +1167,29 @@ def checkMultigrid(t, level=1, nbMinCoarseB=5, nbMinCoarseW=3, verbose=True):
             res = (ni-1)/puiss
             if (ni-1)%puiss != 0:
                 msg = "Zone %s is not multigrid of level %d in direction i."%(z[0],level)
-                errors+=[z,msg]
+                errors += [z,msg]
                 if verbose: print(msg)
             elif res < nbMinCoarseB:
                 msg = "Zone %s: not enough points on coarse grid for level %d in direction i."%(z[0],level)
-                errors+=[z,msg]
+                errors += [z,msg]
                 if verbose: print(msg)
             res = (nj-1)/puiss
             if (nj-1)%puiss != 0:
                 msg = "Zone %s is not multigrid of level %d in direction j."%(z[0],level)
-                errors+=[z,msg]
+                errors += [z,msg]
                 if verbose: print(msg)
             elif res < nbMinCoarseB:
                 msg = "Zone %s: not enough points on coarse grid for level %d in direction j."%(z[0],level)
-                errors+=[z,msg]
+                errors += [z,msg]
                 if verbose: print(msg)
             res = (nk-1)/puiss
             if (nk-1)%puiss != 0:
                 msg = "Zone %s is not multigrid of level %d in direction k."%(z[0],level)
-                errors+=[z,msg]
+                errors += [z,msg]
                 if verbose: print(msg)
             elif res < nbMinCoarseB:
                 msg = "Zone %s: not enough points on coarse grid for level %d in direction k."%(z[0],level)
-                errors+=[z,msg]
+                errors += [z,msg]
                 if verbose: print(msg)
 
             # check BC ranges (receptors)
@@ -1236,15 +1243,16 @@ def checkCGNSType__(node, parent, errors, verbose=True):
 #==============================================================================
 # Deletes nodes of invalid CGNS types
 #==============================================================================
-def _correctCGNSType(t):
+def _correctCGNSType(t, verbose=True):
     """Delete nodes of invalid CGNS types."""
-    errors = checkCGNSType(t)
+    errors = checkCGNSType(t, verbose)
     le = len(errors)//3
     for e in range(le):
         node = errors[3*e]
         parent = errors[3*e+1]
         c = Internal.getNodePosition(node, parent)
         del parent[2][c]
+    if le > 0 and verbose: print("Invalid nodes deleted.")
     return None
 
 #==============================================================================
@@ -1322,11 +1330,11 @@ def checkElementNodes(t, verbose=True):
 # Adds the Face node if we have a PE and no NFace
 # Applies abs(index) for NFaces
 #==============================================================================
-def _correctElementNodes(t):
+def _correctElementNodes(t, verbose=True):
     """Correct element nodes and fix connectivity."""
     _correctElementBoundaryNodes(t)
     _cleanBEConnect(t)
-    errors = checkElementNodes(t)
+    errors = checkElementNodes(t, verbose)
     le = len(errors)//3
     for e in range(le):
         zone = errors[3*e]
@@ -1343,6 +1351,7 @@ def _correctElementNodes(t):
             PE = Internal.getNodeFromName2(zone, 'ParentElements')
             if PE is not None:
                 Internal._adaptPE2NFace(zone, remove=False)
+    if le > 0 and verbose: print("Element node corrected.")
     return None
 
 #===============================================================================
@@ -1424,7 +1433,7 @@ def _correctBCPL2ER(t):
     return None
 
 #===============================================================================
-#  In a NGON mesh, removes BE connectivities
+# In a NGON mesh, removes BE connectivities
 #===============================================================================
 def _cleanBEConnect(t):
     """Remove BE connectivities from NGON zones."""
@@ -1495,19 +1504,21 @@ def checkCGNSVarNames(t, verbose=True):
                     if verbose: print(msg)
     return errors
 
-def _correctCGNSVarNames(t):
+def _correctCGNSVarNames(t, verbose = True):
     """Correct invalid CGNS variable names."""
-    errors = checkCGNSVarNames(t)
-    for e in range(len(errors)//3):
+    errors = checkCGNSVarNames(t, verbose)
+    le = len(errors)//3
+    for e in range(le):
         node = errors[3*e]
         n = Internal.getCGNSName(node[0])
         node[0] = n
+    if le > 0 and verbose: print("CGNS varnames corrected.")
     return None
 
 #===============================================================================
 # Check if Coordinates are in fields, change name with + F
 #===============================================================================
-def checkCoordinatesInFields(t):
+def checkCoordinatesInFields(t, verbose=True):
     """Check coordinates and rename if in FlowSolution_t."""
     errors = []
     zones = Internal.getZones(t)
@@ -1520,7 +1531,9 @@ def checkCoordinatesInFields(t):
             for d in datas:
                 if d[1] is None: print("CheckPyTree: coordinates is None (may not be loaded).")
                 elif d[1].shape != npts:
-                    errors += [d, c, 'zone %s has coordinates of wrong size.'%(z[0])]
+                    msg = 'zone %s has coordinates of wrong size.'%(z[0])
+                    errors += [d, c, msg]
+                    if verbose: print(msg)
 
         # Check if coordinates are in a FlowSolution_t
         cont = Internal.getNodesFromType1(z, 'FlowSolution_t')
@@ -1528,23 +1541,29 @@ def checkCoordinatesInFields(t):
             datas = Internal.getNodesFromType1(c, 'DataArray_t')
             for d in datas:
                 if d[0] == 'CoordinateX' or d[0] == 'CoordinateY' or d[0] == 'CoordinateZ':
-                    errors += [d, c, 'zone %s contains Coordinates in Field.'%(z[0])]
+                    msg = 'zone %s contains Coordinates in Field.'%(z[0])
+                    errors += [d, c, msg]
+                    if verbose: print(msg)
         # Change on BCDataSet (if any)
         bcs = Internal.getNodesFromType2(z, 'BC_t')
         for b in bcs:
             datas = Internal.getBCDataSet(z, b)
             for d in datas:
                 if d[0] == 'CoordinateX' or d[0] == 'CoordinateY' or d[0] == 'CoordinateZ':
-                    errors += [d, b, 'zone %s contains Coordinates in BCDataSet.'%(z[0])]
+                    msg = 'zone %s contains Coordinates in BCDataSet.'%(z[0])
+                    errors += [d, b, msg]
+                    if verbose: print(msg)
     return errors
 
-def _correctCoordinatesInFields(t):
+def _correctCoordinatesInFields(t, verbose=True):
     """Rename coordinate variables with 'F' suffix."""
-    errors = checkCoordinatesInFields(t)
-    for e in range(len(errors)//3):
+    errors = checkCoordinatesInFields(t, verbose)
+    le = len(errors)//3
+    for e in range(le):
         node = errors[3*e]
         n = node[0]+'F'
         node[0] = n
+    if le > 0 and verbose: print("Move Coordinates to CoordinatesF in fields.")
     return None
 
 #===============================================================================
@@ -1613,15 +1632,16 @@ def checkFieldConformity(t, verbose=True):
                 if d[1] is None: continue
                 sh = d[1].shape
                 if len(sh) != 1 or sh[0] != d[1].size:
-                    msg = 'BCDataSet %s has incorrect shape %s for field in structured zone %s.'%(d[0],z[0])
+                    msg = 'BCDataSet %s has incorrect shape for field in structured zone %s.'%(d[0], z[0])
                     errors += [d, c, msg]
                     if verbose: print(msg)
     return errors
 
-def _correctFieldConformity(t):
+def _correctFieldConformity(t, verbose=True):
     """Fix field size and location mismatches."""
-    errors = checkFieldConformity(t)
-    for e in range(len(errors)//3):
+    errors = checkFieldConformity(t, verbose)
+    le = len(errors)//3
+    for e in range(le):
         node = errors[3*e]
         parent = errors[3*e+1]
         msg = errors[3*e+2]
@@ -1636,6 +1656,7 @@ def _correctFieldConformity(t):
         else:
             c = Internal.getNodePosition(node, parent)
             del parent[2][c]
+    if le > 0 and verbose: print("Changed shape or deleted field.")
     return None
 
 #===============================================================================
@@ -1656,10 +1677,12 @@ def checkNAN(t, verbose=True):
                 if verbose: print(msg)
     return errors
 
-def _correctNAN(t):
+def _correctNAN(t, verbose=True):
     """Replace NaN values with zeros."""
-    errors = checkNAN(t)
-    for e in range(len(errors)//3):
+    errors = checkNAN(t, verbose)
+    le = len(errors)//3
+    for e in range(le):
         node = errors[3*e]
         field = errors[3*e+1]
         C._setNANValuesAt(node, field, 0.)
+    if le > 0 and verbose: print("NAN values replaced with zeros.")
