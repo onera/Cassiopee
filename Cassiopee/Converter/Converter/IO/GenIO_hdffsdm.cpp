@@ -1459,7 +1459,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
   E_Int phexa=1, ptetra=nhexa+1, ppenta=nhexa+ntetra+1, ppyra=nhexa+ntetra+npenta+1;
   E_Int ptri=nhexa+ntetra+npenta+npyra+1, pquad=nhexa+ntetra+npenta+npyra+ntri+1;
   hsize_t start[2]; hsize_t scount[2];
-  E_Int* ngon = NULL; E_Int* ngonOffset = NULL; E_Int npolyFaces = -1;
+  E_Int* ngon = NULL; E_Int* ngonOffset = NULL; //E_Int npolyFaces = -1;
   E_Int* nface = NULL; E_Int* nfaceOffset = NULL; E_Int npolyCells = -1;
   E_Int minFaceNGon = 0; // min face ngon (for BCs)
   E_Int maxFaceNGon = 0; // max face ngon (for BCs)
@@ -1583,7 +1583,7 @@ E_Int K_IO::GenIO::hdffsdmwrite(char* file, PyObject* tree)
     else if (eltType == 22) // NGON
     {
       ngon = ecv;
-      npolyFaces = size0;
+      //npolyFaces = size0;
       minFaceNGon = erv[0];
       maxFaceNGon = erv[1];
       PyObject* off = K_PYTREE::getNodeFromName1(connects[i], "ElementStartOffset");

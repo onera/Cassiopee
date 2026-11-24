@@ -126,9 +126,6 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
   E_Int nelts = cn.getSize();
   E_Int nfld = f.getNfld();
   E_Float* fp = f.begin(posf);
-  E_Int* cn1 = cn.begin(1); E_Int* cn2 = cn.begin(2);
-  E_Int* cn3 = cn.begin(3); E_Int* cn4 = cn.begin(4);
-
   E_Int nthreads = __NUMTHREADS__;
 
   // Dimensionnement: npts et ntri (par thread)
@@ -145,7 +142,7 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
 #pragma omp for
   for (E_Int i = 0; i < nelts; i++)
   {
-    ind0 = cn1[i]-1; ind1 = cn2[i]-1; ind2 = cn3[i]-1; ind3 = cn4[i]-1;
+    ind0 = cn(i,1)-1; ind1 = cn(i,2)-1; ind2 = cn(i,3)-1; ind3 = cn(i,4)-1;
     f0 = fp[ind0]; f1 = fp[ind1]; f2 = fp[ind2]; f3 = fp[ind3];
     triindex = 0;
     if (f0 < value) triindex |= 1;
@@ -237,15 +234,12 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
   E_Int npt = 0; // nombre de pts dans l'iso
   
   FldArrayI& cisop = *cisos[ithread];
-  E_Int* ciso1 = cisop.begin(1);
-  E_Int* ciso2 = cisop.begin(2);
-  E_Int* ciso3 = cisop.begin(3);
   FldArrayF& fisop = *fisos[ithread];
 
 #pragma omp for
   for (E_Int i = 0; i < nelts; i++)
   {
-    ind0 = cn1[i]-1; ind1 = cn2[i]-1; ind2 = cn3[i]-1; ind3 = cn4[i]-1;
+    ind0 = cn(i,1)-1; ind1 = cn(i,2)-1; ind2 = cn(i,3)-1; ind3 = cn(i,4)-1;
     f0 = fp[ind0]; f1 = fp[ind1]; f2 = fp[ind2]; f3 = fp[ind3];
 
     triindex = 0;
@@ -271,9 +265,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f0, f3, ind0, ind3,
                      fisop, npt);
-        ciso1[ntri] = npt;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt-2;
+        cisop(ntri, 1) = npt;
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt-2;
         ntri++;
         break;
 
@@ -287,9 +281,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f0, f3, ind0, ind3,
                      fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
+        cisop(ntri, 1) = npt-2;
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt;
         ntri++;
         break;
 
@@ -303,9 +297,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f1, f2, ind1, ind2,
                      fisop, npt);
-        ciso1[ntri] = npt;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt-2;
+        cisop(ntri, 1) = npt;
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt-2;
         ntri++;
       break;
 
@@ -319,9 +313,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f1, f2, ind1, ind2,
                      fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
+        cisop(ntri, 1) = npt-2;
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt;
         ntri++;
       break;
 
@@ -335,9 +329,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f1, f3, ind1, ind3,
                      fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
+        cisop(ntri, 1) = npt-2;
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt;
         ntri++;
         
         vertexInterp(nfld, value, f, poscellN,
@@ -349,9 +343,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f0, f2, ind0, ind2,
                      fisop, npt);
-        ciso1[ntri] = npt;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt-2;
+        cisop(ntri, 1) = npt;
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt-2;
         ntri++;
         break;
 
@@ -365,9 +359,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f1, f3, ind1, ind3,
                      fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
+        cisop(ntri, 1) = npt-2;
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt;
         ntri++;
         
         vertexInterp(nfld, value, f, poscellN,
@@ -379,9 +373,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f0, f2, ind0, ind2,
                      fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
+        cisop(ntri, 1) = npt-2;
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt;
         ntri++;
         break;
 
@@ -395,9 +389,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f2, f3, ind2, ind3,
                      fisop, npt);
-        ciso1[ntri] = npt;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt-2;
+        cisop(ntri, 1) = npt;
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt-2;
         ntri++;
         break;
 
@@ -411,9 +405,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f2, f3, ind2, ind3,
                      fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
+        cisop(ntri, 1) = npt-2;
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt;
         ntri++;
         break;
 
@@ -427,9 +421,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f0, f3, ind0, ind3,
                      fisop, npt);
-        ciso1[ntri] = npt;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt-2;
+        cisop(ntri, 1) = npt;
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt-2;
         ntri++;
 
         vertexInterp(nfld, value, f, poscellN,
@@ -441,9 +435,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f2, f3, ind2, ind3,
                      fisop, npt);
-        ciso1[ntri] = npt;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt-2;
+        cisop(ntri, 1) = npt;
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt-2;
         ntri++;
         break;
 
@@ -457,9 +451,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f0, f3, ind0, ind3,
                      fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
+        cisop(ntri, 1) = npt-2;
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt;
         ntri++;
 
         vertexInterp(nfld, value, f, poscellN,
@@ -471,9 +465,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f2, f3, ind2, ind3,
                      fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
+        cisop(ntri, 1) = npt-2;
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt;
         ntri++;
         break;
 
@@ -487,9 +481,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f2, f3, ind2, ind3,
                      fisop, npt);
-        ciso1[ntri] = npt; // OK
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt-2;
+        cisop(ntri, 1) = npt; // OK
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt-2;
         ntri++;
 
         vertexInterp(nfld, value, f, poscellN,
@@ -501,9 +495,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f2, f3, ind2, ind3,
                      fisop, npt);
-        ciso1[ntri] = npt-2; // OK
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
+        cisop(ntri, 1) = npt-2; // OK
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt;
         ntri++;
       break;
 
@@ -517,9 +511,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f2, f3, ind2, ind3,
                      fisop, npt);
-        ciso1[ntri] = npt-2; // OK
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
+        cisop(ntri, 1) = npt-2; // OK
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt;
         ntri++;
 
         vertexInterp(nfld, value, f, poscellN,
@@ -531,9 +525,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f2, f3, ind2, ind3,
                      fisop, npt);
-        ciso1[ntri] = npt;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt-2;
+        cisop(ntri, 1) = npt;
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt-2;
         ntri++;
       break;
 
@@ -547,9 +541,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f3, f1, ind3, ind1,
                      fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
+        cisop(ntri, 1) = npt-2;
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt;
         ntri++;
         break;
 
@@ -563,9 +557,9 @@ void K_POST::doIsoSurf(FldArrayF& f, FldArrayI& cn, E_Int posf, E_Float value,
         vertexInterp(nfld, value, f, poscellN,
                      f3, f1, ind3, ind1,
                      fisop, npt);
-        ciso1[ntri] = npt-2;
-        ciso2[ntri] = npt-1;
-        ciso3[ntri] = npt;
+        cisop(ntri, 1) = npt-2;
+        cisop(ntri, 2) = npt-1;
+        cisop(ntri, 3) = npt;
         ntri++;
         break;
     }

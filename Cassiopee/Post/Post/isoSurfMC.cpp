@@ -671,7 +671,6 @@ PyObject* K_POST::isoSurfMC(PyObject* self, PyObject* args)
   return t;
 }
 
-
 //=============================================================================
 /* Genere une isoSurface en utilisant des marching cubes avec une sortie TRI
 */
@@ -696,20 +695,15 @@ void K_POST::doIsoSurfMC(
   E_Int* ciso1 = ciso.begin(1);
   E_Int* ciso2 = ciso.begin(2);
   E_Int* ciso3 = ciso.begin(3);
-  E_Int* cn1 = cn.begin(1); E_Int* cn2 = cn.begin(2); 
-  E_Int* cn3 = cn.begin(3); E_Int* cn4 = cn.begin(4);
-  E_Int* cn5 = cn.begin(5); E_Int* cn6 = cn.begin(6); 
-  E_Int* cn7 = cn.begin(7); E_Int* cn8 = cn.begin(8);
-
   int indir[12];
   int edgeVal;
   int *tt;
 
   for (E_Int i = 0; i < nelts; i++)
   {
-    ind0 = cn1[i]-1; ind1 = cn2[i]-1; ind2 = cn3[i]-1; 
-    ind3 = cn4[i]-1; ind4 = cn5[i]-1; ind5 = cn6[i]-1;
-    ind6 = cn7[i]-1; ind7 = cn8[i]-1;
+    ind0 = cn(i,1)-1; ind1 = cn(i,2)-1; ind2 = cn(i,3)-1; 
+    ind3 = cn(i,4)-1; ind4 = cn(i,5)-1; ind5 = cn(i,6)-1;
+    ind6 = cn(i,7)-1; ind7 = cn(i,8)-1;
 
     f0 = fp[ind0]; f1 = fp[ind1];
     f2 = fp[ind2]; f3 = fp[ind3];
@@ -824,11 +818,6 @@ void K_POST::doIsoSurfMCQuads(
   E_Int nelts = cn.getSize();
   E_Int nfld = f.getNfld();
   E_Float* fp = f.begin(posf);
-  E_Int* cn1 = cn.begin(1); E_Int* cn2 = cn.begin(2); 
-  E_Int* cn3 = cn.begin(3); E_Int* cn4 = cn.begin(4);
-  E_Int* cn5 = cn.begin(5); E_Int* cn6 = cn.begin(6); 
-  E_Int* cn7 = cn.begin(7); E_Int* cn8 = cn.begin(8);
-
   E_Int nthreads = __NUMTHREADS__;
  
   E_Int npartition = 10*nthreads;
@@ -855,15 +844,15 @@ void K_POST::doIsoSurfMCQuads(
     E_Int np = 0; E_Int nquad = 0;
     for (E_Int i = ideb; i < ifin; i++)
     {
-      ind0 = cn1[i]-1; ind1 = cn2[i]-1; ind2 = cn3[i]-1; 
-      ind3 = cn4[i]-1; ind4 = cn5[i]-1; ind5 = cn6[i]-1;
-      ind6 = cn7[i]-1; ind7 = cn8[i]-1;
+      ind0 = cn(i,1)-1; ind1 = cn(i,2)-1; ind2 = cn(i,3)-1;
+      ind3 = cn(i,4)-1; ind4 = cn(i,5)-1; ind5 = cn(i,6)-1;
+      ind6 = cn(i,7)-1; ind7 = cn(i,8)-1;
 
       f0 = fp[ind0]; f1 = fp[ind1];
       f2 = fp[ind2]; f3 = fp[ind3];
       f4 = fp[ind4]; f5 = fp[ind5];
       f6 = fp[ind6]; f7 = fp[ind7];
-    
+
       cubeindex = 0;
       if (f0 < value) cubeindex |= 1;
       if (f1 < value) cubeindex |= 2;
@@ -924,12 +913,6 @@ void K_POST::doIsoSurfMCQuads(
   E_Int ind0, ind1, ind2, ind3, ind4, ind5, ind6, ind7;
   int cubeindex;
 
-  
-  E_Int* ciso1_glob = ciso.begin(1);
-  E_Int* ciso2_glob = ciso.begin(2);
-  E_Int* ciso3_glob = ciso.begin(3);
-  E_Int* ciso4_glob = ciso.begin(4);
-
   int indir[12]; int* qt;
   E_Int nptSav; int edgeVal;
 
@@ -948,15 +931,15 @@ void K_POST::doIsoSurfMCQuads(
 
     for (E_Int i = ideb; i < ifin; i++)
     {
-      ind0 = cn1[i]-1; ind1 = cn2[i]-1; ind2 = cn3[i]-1; 
-      ind3 = cn4[i]-1; ind4 = cn5[i]-1; ind5 = cn6[i]-1;
-      ind6 = cn7[i]-1; ind7 = cn8[i]-1;
+      ind0 = cn(i,1)-1; ind1 = cn(i,2)-1; ind2 = cn(i,3)-1;
+      ind3 = cn(i,4)-1; ind4 = cn(i,5)-1; ind5 = cn(i,6)-1;
+      ind6 = cn(i,7)-1; ind7 = cn(i,8)-1;
 
       f0 = fp[ind0]; f1 = fp[ind1];
       f2 = fp[ind2]; f3 = fp[ind3];
       f4 = fp[ind4]; f5 = fp[ind5];
       f6 = fp[ind6]; f7 = fp[ind7];
-    
+
       cubeindex = 0;
       if (f0 < value) cubeindex |= 1;
       if (f1 < value) cubeindex |= 2;
@@ -1039,10 +1022,10 @@ void K_POST::doIsoSurfMCQuads(
     
       for (E_Int j = 0; qt[j] != -1; j += 4)
       {
-        ciso1_glob[nquad + pglob] = nptSav + indir[qt[j  ]] ;
-        ciso2_glob[nquad + pglob] = nptSav + indir[qt[j+1]] ;
-        ciso3_glob[nquad + pglob] = nptSav + indir[qt[j+2]] ;
-        ciso4_glob[nquad + pglob] = nptSav + indir[qt[j+3]] ;
+        ciso(nquad + pglob,1) = nptSav + indir[qt[j  ]];
+        ciso(nquad + pglob,2) = nptSav + indir[qt[j+1]];
+        ciso(nquad + pglob,3) = nptSav + indir[qt[j+2]];
+        ciso(nquad + pglob,4) = nptSav + indir[qt[j+3]];
         nquad++;
       }
     end: ;

@@ -1223,6 +1223,7 @@ void K_CONNECTOR::blankCellsUnstr(
                       xmin, ymin, zmin, xmax, ymax, zmax);
   if (okMask == -1)
     printf("Warning: blankCells: X-Ray mask has ambiguous faces, blanking may be wrong on some rays.\n");
+  
   xmin = xmin - delta; xmax = xmax + delta;
   ymin = ymin - delta; ymax = ymax + delta;
   zmin = zmin - delta; zmax = zmax + delta;
