@@ -20,6 +20,7 @@
 // Onera v3d binary file support
 
 # include "GenIO.h"
+# include <vector>
 # include "Array/Array.h"
 # include "String/kstring.h"
 
@@ -318,8 +319,15 @@ E_Int K_IO::GenIO::v3dread(
       fread(&ib, si, 1, ptrFile); // Sep
       readInt(s, si,
               ptrFile, _convertEndian, si, si2);
-      E_Int sizeBytes = ip*jp*kp*sizeof(E_Float);
-      if (s != sizeBytes)
+      // the record size gives the real precision of the file (float or
+      // double): a file written by a build of the other precision is read
+      // and converted to E_Float
+      E_Int npts3 = ip*jp*kp;
+      E_Int fsize = 0;
+      if (s == npts3*(E_Int)sizeof(float)) fsize = sizeof(float);
+      else if (s == npts3*(E_Int)sizeof(double)) fsize = sizeof(double);
+      E_Int sizeBytes = s;
+      if (fsize == 0)
       {
         printf("Warning: v3dread: binary file corrupted.\n");
         fclose(ptrFile);
@@ -327,7 +335,38 @@ E_Int K_IO::GenIO::v3dread(
       }
     
       // read data
-      fread(buf->begin(currentVar+1), sizeof(E_Float), ip*jp*kp, ptrFile);
+      if (fsize == (E_Int)sizeof(E_Float))
+        fread(buf->begin(currentVar+1), sizeof(E_Float), npts3, ptrFile);
+      else
+      {
+        E_Float* dst = buf->begin(currentVar+1);
+        if (fsize == (E_Int)sizeof(double))
+        {
+          std::vector<double> tmp(npts3);
+          fread(&tmp[0], sizeof(double), npts3, ptrFile);
+          for (E_Int i = 0; i < npts3; i++)
+          { double v = tmp[i]; if (_convertEndian == true) v = DBE(v); dst[i] = (E_Float)v; }
+        }
+        else
+        {
+          std::vector<float> tmp(npts3);
+          fread(&tmp[0], sizeof(float), npts3, ptrFile);
+          for (E_Int i = 0; i < npts3; i++)
+          { float v = tmp[i]; if (_convertEndian == true) v = FBE(v); dst[i] = (E_Float)v; }
+        }
+        // the whole field is endian-converted at the end: pre-swap these values
+        if (_convertEndian == true)
+        {
+          for (E_Int i = 0; i < npts3; i++)
+          {
+#ifdef E_DOUBLEREAL
+            dst[i] = DBE(dst[i]);
+#else
+            dst[i] = FBE(dst[i]);
+#endif
+          }
+        }
+      }
 
       readInt(s, si,
               ptrFile, _convertEndian, si, si2);

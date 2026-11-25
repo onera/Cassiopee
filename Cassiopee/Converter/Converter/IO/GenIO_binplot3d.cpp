@@ -27,6 +27,61 @@ using namespace K_ARRAY;
 using namespace K_FLD;
 using namespace std;
 
+// Read n reals of realLength bytes (4 or 8) from the file into an E_Float
+// array. The bytes are swapped in the type of the file (convertEndian), then
+// the values are converted to E_Float.
+static void readReals(FILE* ptrFile, E_Float* dst, E_Int n, E_Int realLength,
+                      E_Bool convertEndian)
+{
+  if (realLength == 8)
+  {
+    double* buf = new double [n];
+    fread(buf, sizeof(double), n, ptrFile);
+    if (convertEndian == true)
+      for (E_Int i = 0; i < n; i++) dst[i] = (E_Float)DBE(buf[i]);
+    else
+      for (E_Int i = 0; i < n; i++) dst[i] = (E_Float)buf[i];
+    delete [] buf;
+  }
+  else
+  {
+    float* buf = new float [n];
+    fread(buf, sizeof(float), n, ptrFile);
+    if (convertEndian == true)
+      for (E_Int i = 0; i < n; i++) dst[i] = (E_Float)FBE(buf[i]);
+    else
+      for (E_Int i = 0; i < n; i++) dst[i] = (E_Float)buf[i];
+    delete [] buf;
+  }
+}
+
+// Read n integers of intLength bytes (4 or 8) from the file into an E_Float
+// array (iblank stored as cellN)
+static void readIntsAsReals(FILE* ptrFile, E_Float* dst, E_Int n,
+                            E_Int intLength, E_Bool convertEndian)
+{
+  if (intLength == 8)
+  {
+    E_LONG* buf = new E_LONG [n];
+    fread(buf, sizeof(E_LONG), n, ptrFile);
+    if (convertEndian == true)
+      for (E_Int i = 0; i < n; i++) dst[i] = (E_Float)LBE(buf[i]);
+    else
+      for (E_Int i = 0; i < n; i++) dst[i] = (E_Float)buf[i];
+    delete [] buf;
+  }
+  else
+  {
+    int* buf = new int [n];
+    fread(buf, sizeof(int), n, ptrFile);
+    if (convertEndian == true)
+      for (E_Int i = 0; i < n; i++) dst[i] = (E_Float)IBE(buf[i]);
+    else
+      for (E_Int i = 0; i < n; i++) dst[i] = (E_Float)buf[i];
+    delete [] buf;
+  }
+}
+
 //=============================================================================
 /* 
    Find xyz, q, and f file name if they exists in file.
@@ -500,39 +555,13 @@ E_Int K_IO::GenIO::xyzread(
     if (iblank == true)
     {
       f = new FldArrayF(ipjpkp, 4);
-      if (_realLength == 8)
-        fread(f->begin(), sizeof(E_Float), 3*ipjpkp, ptrFile);
-      else
-      {
-        float* buf = new float[3*ipjpkp];
-        fread(buf, sizeof(float), 3*ipjpkp, ptrFile);
-        E_Float* pf = f->begin();
-        for (E_Int ind = 0; ind < 3*ipjpkp; ind++) pf[ind] = buf[ind];
-        delete [] buf;
-      }
-      if (_intLength == 8)
-      {
-        E_LONG* blank = new E_LONG[ipjpkp];
-        fread(blank, sizeof(E_LONG), ipjpkp, ptrFile);
-        E_Float* pf = f->begin();
-        for (E_Int ind = 0; ind < ipjpkp; ind++)
-          pf[3*ipjpkp+ind] = blank[ind];
-        delete [] blank;
-      }
-      else
-      {
-        int* blank = new int[ipjpkp];
-        fread(blank, sizeof(int), ipjpkp, ptrFile);
-        E_Float* pf = f->begin();
-        for (E_Int ind = 0; ind < ipjpkp; ind++)
-          pf[3*ipjpkp+ind] = blank[ind];
-        delete [] blank;
-      }
+      readReals(ptrFile, f->begin(), 3*ipjpkp, _realLength, _convertEndian);
+      readIntsAsReals(ptrFile, f->begin(4), ipjpkp, _intLength, _convertEndian);
     }
     else
     {
       f = new FldArrayF(ipjpkp, 3);
-      fread(f->begin(), sizeof(E_Float), 3*ipjpkp, ptrFile);
+      readReals(ptrFile, f->begin(), 3*ipjpkp, _realLength, _convertEndian);
     }
     field.push_back(f);
     
@@ -676,19 +705,22 @@ E_Int K_IO::GenIO::p3dqread(
   {
     readInt(s, si, 
             ptrFile, _convertEndian, si, si2);
-    if (s != 4*sizeof(E_Float)) // sep 4 * taille float
+    E_Int realLength = 0; // precision of the file, from the separator (4 reals)
+    if (s == 4*8) realLength = 8;
+    else if (s == 4*4) realLength = 4;
+    else // sep 4 * taille float
     {
       printf("Warning: binary file corrupted.\n");
       fclose(ptrFile);
       return 1;
     }
 
-    for (E_Int p = 0; p < 8; p++)
+    for (E_Int p = 0; p < 4*realLength/si; p++)
       fread(&ib, si, 1, ptrFile); // Mach, etc..
     
     readInt(s, si, 
             ptrFile, _convertEndian, si, si2);
-    if (s != 4*sizeof(E_Float)) // sep 4 * taille float
+    if (s != 4*realLength) // sep 4 * taille float
     {
       printf("Warning: binary file corrupted.\n");
       fclose(ptrFile);
@@ -700,7 +732,7 @@ E_Int K_IO::GenIO::p3dqread(
     E_Int kp = nk[i];
     readInt(s, si, 
             ptrFile, _convertEndian, si, si2);
-    E_Int sizeBytes = 5*sizeof(E_Float)*ip*jp*kp;
+    E_Int sizeBytes = 5*realLength*ip*jp*kp;
     if (s != sizeBytes) // sep 5 * taille float * taille ndom
     {
       printf("Warning: binary file corrupted.\n");
@@ -720,16 +752,17 @@ E_Int K_IO::GenIO::p3dqread(
       E_Int size = f->getSize();
       E_Int nfld = f->getNfld();
       f->reAlloc(size, 5+nfld);
+      start = nfld+1;
       if (nfld == 4)
       {
-        // Deplacement de cellN a la fin
+        // Deplacement de cellN a la fin, les variables prennent sa place
         E_Float* pf = f->begin();
         for (E_Int p = 0; p < size; p++)
           pf[8*size+p] = pf[3*size+p];
+        start = nfld;
       }
-      start = nfld;
     }
-    fread(field[i]->begin(start), sizeof(E_Float), 5*ip*jp*kp, ptrFile);
+    readReals(ptrFile, field[i]->begin(start), 5*ip*jp*kp, realLength, _convertEndian);
     fread(&ib, si, 1, ptrFile); // sep taille dom * 5 * taille float
   }
   fclose(ptrFile);
@@ -756,7 +789,6 @@ E_Int K_IO::GenIO::p3dfread(
   vector<FldArrayF*>& field)
 {
   FILE* ptrFile;
-  int s;
   int ib;
   vector<E_Int> nvar;
 
@@ -776,9 +808,9 @@ E_Int K_IO::GenIO::p3dfread(
       cellN = true;
   }
   
-  /* Constantes */
+  /* Constants */
   E_Int si = sizeof(int);
-  E_Int si2 = sizeof(int);
+  E_Int si2 = sizeof(E_LONG);
   
   // Check endianess
   E_Int ret = v3dCheckEndian(file); // similar to v3d
@@ -817,24 +849,10 @@ E_Int K_IO::GenIO::p3dfread(
   ptrFile = fopen(file, "rb");
 
   // Read number of zones in file
-  fread(&ib, si, 1, ptrFile); // sep
+  fread(&ib, si, 1, ptrFile); // sep taille int
   E_Int nzones;
-  if (_intLength == 4)
-  {
-    fread(&ib, si, 1, ptrFile);
-    if (_convertEndian == true)
-      nzones = IBE(ib);
-    else
-      nzones = ib;
-  }
-  else
-  {
-    fread(&s, si2, 1, ptrFile);
-    if (_convertEndian == true)
-      nzones = LBE(s);
-    else
-      nzones = s;
-  }
+  readInt(nzones, _intLength, 
+          ptrFile, _convertEndian, si, si2);
 
   // Coherence
   if (xyzdone == true)
@@ -845,66 +863,16 @@ E_Int K_IO::GenIO::p3dfread(
   }
 
   fread(&ib, si, 1, ptrFile); // sep taille int
-  fread(&ib, si, 1, ptrFile); // sep nombre de zones * 3 * taille int
+  fread(&ib, si, 1, ptrFile); // sep nombre de zones * 4 * taille int
   
-  // Read dimensions of zones
+  // Read dimensions and number of variables of zones
   for (E_Int i = 0; i < nzones; i++)
   {
-    E_Int ip;
-    if (_intLength == 4)
-    {
-      fread(&ib, si, 1, ptrFile);
-      if (_convertEndian == true) ip = IBE(ib);
-      else ip = ib;
-    }
-    else
-    {
-      fread(&s, si2, 1, ptrFile);
-      if (_convertEndian == true) ip = LBE(s);
-      else ip = s;
-    } 
-    
-    E_Int jp;
-    if (_intLength == 4)
-    {
-      fread(&ib, si, 1, ptrFile);
-      if (_convertEndian == true) jp = IBE(ib);
-      else jp = ib;
-    }
-    else
-    {
-      fread(&s, si2, 1, ptrFile);
-      if (_convertEndian == true) jp = LBE(s);
-      else jp = s;
-    }
-    
-    E_Int kp;
-    if (_intLength == 4)
-    {
-      fread(&ib, si, 1, ptrFile);
-      if (_convertEndian == true) kp = IBE(ib);
-      else kp = ib;
-    }
-    else
-    {
-      fread(&s, si2, 1, ptrFile);
-      if (_convertEndian == true) kp = LBE(s);
-      else kp = s;
-    }
-
-    E_Int nv;
-    if (_intLength == 4)
-    {
-      fread(&ib, si, 1, ptrFile);
-      if (_convertEndian == true) nv = IBE(ib);
-      else nv = ib;
-    }
-    else
-    {
-      fread(&s, si2, 1, ptrFile);
-      if (_convertEndian == true) nv = LBE(s);
-      else nv = s;
-    }
+    E_Int ip, jp, kp, nv;
+    readInt(ip, _intLength, ptrFile, _convertEndian, si, si2);
+    readInt(jp, _intLength, ptrFile, _convertEndian, si, si2);
+    readInt(kp, _intLength, ptrFile, _convertEndian, si, si2);
+    readInt(nv, _intLength, ptrFile, _convertEndian, si, si2);
     nvar.push_back(nv);
 
     // Coherence
@@ -920,27 +888,25 @@ E_Int K_IO::GenIO::p3dfread(
   }
   
   // Sep
-  //E_Int sep;
   fread(&ib, si, 1, ptrFile); // sep nombre de zone * taille int * 4
-  //if (_convertEndian == true) sep = IBE(ib);
-  //else sep = ib;
 
   // Read additional variables
   for (E_Int i = 0; i < nzones; i++)
   {
-    
-    fread(&ib, si, 1, ptrFile); // sep taille dom * nvar * taille float
-    //if (_convertEndian == true) sep = IBE(ib);
-    //else sep = ib;
+    E_Int sep;
+    readInt(sep, si, ptrFile, _convertEndian, si, si2); // sep taille dom * nvar * taille float
 
     E_Int ip = ni[i];
     E_Int jp = nj[i];
     E_Int kp = nk[i];
     E_Int nv = nvar[i];
+    // precision of the file from the size of the data block (4 or 8 bytes per real)
+    E_Int realLength = (nv*ip*jp*kp > 0) ? sep/(nv*ip*jp*kp) : (E_Int)sizeof(E_Float);
+    if (realLength != 4 && realLength != 8) realLength = sizeof(E_Float);
     E_Int start = 1;
     if (xyzdone == false)
     {
-      FldArrayF* f = new FldArrayF(ip*jp*kp, 5);
+      FldArrayF* f = new FldArrayF(ip*jp*kp, nv);
       field.push_back(f);
     }
     else
@@ -949,19 +915,18 @@ E_Int K_IO::GenIO::p3dfread(
       E_Int size = f->getSize();
       E_Int nfld = f->getNfld();
       f->reAlloc(size, nv+nfld);
+      start = nfld+1;
       if (cellN == true)
       {
-        // Deplacement de cellN a la fin
+        // Deplacement de cellN a la fin, les variables prennent sa place
         E_Float* pf = f->begin();
         for (E_Int p = 0; p < size; p++)
-          pf[(nfld-1)*size+p] = pf[(nfld+nv-1)*size+p]; 
+          pf[(nfld+nv-1)*size+p] = pf[(nfld-1)*size+p];
+        start = nfld;
       }
-      start = nfld;
     }
-    fread(field[i]->begin(start), sizeof(E_Float), nv*ip*jp*kp, ptrFile);
-    fread(&ib, si, 1, ptrFile); // sep taille dom * 3 * taille float
-    //if (_convertEndian == true) sep = IBE(ib);
-    //else sep = ib;
+    readReals(ptrFile, field[i]->begin(start), nv*ip*jp*kp, realLength, _convertEndian);
+    fread(&ib, si, 1, ptrFile); // sep taille dom * nvar * taille float
   }
   fclose(ptrFile);
 
@@ -1053,11 +1018,7 @@ E_Int K_IO::GenIO::plot3dread(
     delete [] fFile;
   }
 
-  // Endian conversion of field
-  if (_convertEndian == true && fieldSize > 0)
-  {
-    for (E_Int i = 0; i < fieldSize; i++) convertEndianField(*field[i]);
-  } 
+  // Byte order: values are converted on read, in the type of each file
   return 0;
 }
 
@@ -1151,21 +1112,27 @@ E_Int K_IO::GenIO::xyzwrite(
     
     if (resCellN != -1)
     {
+      // iblank from the unswapped cellN, then swapped as an integer
+      E_Float* pf = field[i]->begin(resCellN+1);
       if (isize == si)
       {
         int* iblank = new int[ni[i]*nj[i]*nk[i]];
-        E_Float* pf = buf.begin(resCellN+1);
         for (E_Int ind = 0; ind < ni[i]*nj[i]*nk[i]; ind++)
+        {
           iblank[ind] = (int)pf[ind];
+          if (convertEndian == true) iblank[ind] = IBE(iblank[ind]);
+        }
         fwrite(iblank, isize, ni[i]*nj[i]*nk[i], ptrFile);
         delete [] iblank;
       }
       else
       {
         E_LONG* iblank = new E_LONG[ni[i]*nj[i]*nk[i]];
-        E_Float* pf = buf.begin(resCellN+1);
         for (E_Int ind = 0; ind < ni[i]*nj[i]*nk[i]; ind++)
+        {
           iblank[ind] = (E_LONG)pf[ind];
+          if (convertEndian == true) iblank[ind] = LBE(iblank[ind]);
+        }
         fwrite(iblank, isize, ni[i]*nj[i]*nk[i], ptrFile);
         delete [] iblank;
       }
@@ -1332,8 +1299,36 @@ E_Int K_IO::GenIO::ffwrite(
   writeInt(isize, si,
            ptrFile, convertEndian, si, si2);
 
-  // Sep : nombre de zones * 3 * taille int
-  writeInt(nzones * isize * 3, si,
+  // Position des variables
+  E_Int resx = isCoordinateXPresent(varString);
+  E_Int resy = isCoordinateYPresent(varString);
+  E_Int resz = isCoordinateZPresent(varString);
+  E_Int res1 = isDensityPresent(varString);
+  E_Int res2 = isMomentumXPresent(varString);
+  E_Int res3 = isMomentumYPresent(varString);
+  E_Int res4 = isMomentumZPresent(varString);
+  E_Int res5 = isEnergyStagnationDensityPresent(varString);
+
+  // Variables written in the function file: all but the coordinates
+  // (and the conservative variables if they are written in the q file)
+  vector<E_Int> nvw(nzones);
+  for (E_Int i = 0; i < nzones; i++)
+  {
+    nvar = field[i]->getNfld();
+    E_Int c = 0;
+    for (E_Int nv = 1; nv <= nvar; nv++)
+    {
+      if (nv == resx+1 || nv == resy+1 || nv == resz+1) continue;
+      if (writeConservative == false && 
+          (nv == res1+1 || nv == res2+1 || nv == res3+1 ||
+           nv == res4+1 || nv == res5+1)) continue;
+      c++;
+    }
+    nvw[i] = c;
+  }
+
+  // Sep : nombre de zones * 4 * taille int
+  writeInt(nzones * isize * 4, si,
            ptrFile, convertEndian, si, si2);
 
   for (E_Int i = 0; i < nzones; i++)
@@ -1344,10 +1339,12 @@ E_Int K_IO::GenIO::ffwrite(
              ptrFile, convertEndian, si, si2);
     writeInt(nk[i], isize,
              ptrFile, convertEndian, si, si2);
+    writeInt(nvw[i], isize,
+             ptrFile, convertEndian, si, si2);
   }
   
-  // Sep : nombre de zones * 3 * taille int
-  writeInt(nzones * isize * 3, si,
+  // Sep : nombre de zones * 4 * taille int
+  writeInt(nzones * isize * 4, si,
            ptrFile, convertEndian, si, si2);
 
   for (E_Int i = 0; i < nzones; i++)
@@ -1357,56 +1354,23 @@ E_Int K_IO::GenIO::ffwrite(
     // Get buffer
     FldArrayF buf(*field[i]);
     if (convertEndian == true) convertEndianField(buf);
-    
-    // Sep : 4 * taille double
-    writeInt(4 * sizeof(E_Float), si,
+
+    // Sep : taille dom * nvar ecrites * taille float
+    writeInt(ni[i]*nj[i]*nk[i] * sizeof(E_Float) * nvw[i], si,
              ptrFile, convertEndian, si, si2);
-
-    // Mach,...
-    E_Float value = 0.;
-    fwrite(&value, sizeof(E_Float), 1, ptrFile);
-    fwrite(&value, sizeof(E_Float), 1, ptrFile);
-    fwrite(&value, sizeof(E_Float), 1, ptrFile);
-    fwrite(&value, sizeof(E_Float), 1, ptrFile);
-
-    // Sep : 4 * taille double
-    writeInt(4 * sizeof(E_Float), si,
-             ptrFile, convertEndian, si, si2);
-
-    // Sep : taille dom * 5 * taille float
-    writeInt(ni[i]*nj[i]*nk[i] * sizeof(E_Float) * nvar, si,
-             ptrFile, convertEndian, si, si2);
-
-    // Position des variables 
-    E_Int resx = isCoordinateXPresent(varString);
-    E_Int resy = isCoordinateYPresent(varString);
-    E_Int resz = isCoordinateZPresent(varString);
-    E_Int res1 = isDensityPresent(varString);
-    E_Int res2 = isMomentumXPresent(varString);
-    E_Int res3 = isMomentumYPresent(varString);
-    E_Int res4 = isMomentumZPresent(varString);
-    E_Int res5 = isEnergyStagnationDensityPresent(varString);
 
     for (E_Int nv = 1; nv <= nvar; nv++)
     {
-      if (writeConservative == false)
-      {
-        if (nv != resx && nv != resy && nv != resz &&
-            nv != res1 && nv != res2 && nv != res3 &&
-            nv != res4 && nv != res5)
-          fwrite(buf.begin(nv), sizeof(E_Float), 
-                 ni[i]*nj[i]*nk[i], ptrFile);
-      }
-      else
-      {
-        if (nv != resx && nv != resy && nv != resz)
-          fwrite(buf.begin(nv), sizeof(E_Float), 
-                 ni[i]*nj[i]*nk[i], ptrFile);
-      }
+      if (nv == resx+1 || nv == resy+1 || nv == resz+1) continue;
+      if (writeConservative == false && 
+          (nv == res1+1 || nv == res2+1 || nv == res3+1 ||
+           nv == res4+1 || nv == res5+1)) continue;
+      fwrite(buf.begin(nv), sizeof(E_Float), 
+             ni[i]*nj[i]*nk[i], ptrFile);
     }
 
-    // Sep : taille dom * nvar * taille float
-    writeInt(ni[i]*nj[i]*nk[i] * sizeof(E_Float) * nvar, si,
+    // Sep : taille dom * nvar ecrites * taille float
+    writeInt(ni[i]*nj[i]*nk[i] * sizeof(E_Float) * nvw[i], si,
              ptrFile, convertEndian, si, si2);
   }
 
@@ -1486,8 +1450,9 @@ E_Int K_IO::GenIO::plot3dwrite(
  
   if (fFile != NULL)
   {
-    E_Bool writeConservative = true;
-    if (qFile == NULL) writeConservative = false;
+    // conservative variables go to the function file when there is no q file
+    E_Bool writeConservative = false;
+    if (qFile == NULL) writeConservative = true;
     ffwrite(fFile, varString,
             ni, nj, nk, field, isize, rsize, convertEndian, 
             writeConservative); 
