@@ -1544,7 +1544,7 @@ class Surface():
             for e in self.surfaces: hooks.append(e.hook)
             self.hook = OCC.mergeCAD(hooks)
             if 'sewingTol' in self.data:
-                tol = self.data['sewingTol']
+                tol = self.data['sewingTol'].v
                 if tol > 0.: OCC._sewing(self.hook, tol)
 
         elif self.type == "fill": # by filling sketch
