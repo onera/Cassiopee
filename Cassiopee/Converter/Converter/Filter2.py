@@ -600,10 +600,10 @@ def createZoneBCFilter(zone, zonePath, hdfFilter):
                     dataShape = PLPRSize(bcds)
 
                 dataSpacePL = createDataArrayFilter(distribData, dataShape)
-                
+
                 # BCDataSet always use flat data array
                 dataSpace_array = createDataArrayFilter(distribData, [dataShape.prod()])
-                
+
                 applyDataspaceToPointlist(bcds, bcdsPath, dataSpacePL, hdfFilter)
                 for bcdata in Internal.getNodesFromType1(bcds, 'BCData_t'):
                     bcdataPath = bcdsPath + "/" + bcdata[0]
