@@ -643,6 +643,8 @@ def getAR():
     if Cppcompiler == "icl.exe": return 'ar.exe '
     elif Cppcompiler == "x86_64-w64-mingw32-gcc":
         return 'x86_64-w64-mingw32-ar'
+    elif getSystem()[0] == 'Darwin': # security: always use Apple ar on Darwin
+        return '/usr/bin/ar'
     else: return 'ar'
 
 #==============================================================================
