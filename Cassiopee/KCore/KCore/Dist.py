@@ -1584,7 +1584,7 @@ def checkOCC():
         return (False, i, l)
 
 # Return open-cascade module names depending on version
-def getOCCModules(OCCIncDir=None):
+def getOCCModules(OCCIncDir=None, OCCLibDir=None):
     #default
     if getSystem()[0] == 'mingw': version = (7, 8)
     else: version = (7, 5)
@@ -1665,6 +1665,9 @@ def getOCCModules(OCCIncDir=None):
             "TKXSDRAWOBJ", "TKXSDRAWPLY", "TKXSDRAWSTEP",
             "TKXSDRAWSTL", "TKXSDRAWVRML", "TKXml",
             "TKXmlL", "TKXmlTObj", "TKXmlXCAF", "TKernel"]
+
+    if OCCLibDir is not None: # keep only modules whose lib is actually present
+        allMods = [m for m in allMods if checkLibFile__('lib%s.so'%m, [OCCLibDir]) is not None]
     return allMods
 
 #=============================================================================
@@ -2566,6 +2569,15 @@ def checkLibFile__(file, additionalLibPaths):
         if a != []: return i+'64'
         a = glob.glob(i+'/'+file)
         if a != []: return i
+
+    if mySystem[0] == 'Darwin' and '.so' in file: # test .dylib extension after .so
+        file = file.replace('.so', '.dylib')
+        for i in p:
+            a = glob.glob(i+'64/'+file)
+            if a != []: return i+'64'
+            a = glob.glob(i+'/'+file)
+            if a != []: return i
+
     return None
 
 #==============================================================================
