@@ -71,6 +71,10 @@
 #define SCOTCH_VERSION_STRING       STRINGIFY (SCOTCH_VERSION) "." STRINGIFY (SCOTCH_RELEASE) "." STRINGIFY (SCOTCH_PATCHLEVEL)
 #endif /* SCOTCH_CODENAME */
 
+#if defined (__APPLE__) && ! defined (COMMON_OS_MACOS)
+#define COMMON_OS_MACOS
+#endif /* defined (__APPLE__) && ! defined (COMMON_OS_MACOS) */
+
 /*
 ** Handling of parallelism.
 */

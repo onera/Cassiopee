@@ -111,10 +111,14 @@ typedef struct {
 } SCOTCH_DgraphHaloReq;
 
 typedef struct {
+#ifdef SCOTCH_PTHREAD
+  double                    dummy[32];
+#else
 #ifdef G_DOUBLEINT
   double                    dummy[22];
 #else
   double                    dummy[20];
+#endif
 #endif
 } SCOTCH_Dmapping;
 
