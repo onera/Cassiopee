@@ -1138,6 +1138,11 @@ E_Int K_IO::GenIO::hdfcgnsread(char* file, PyObject*& tree, PyObject* dataShape,
                                PyObject* skipTypes)
 {
   tree = PyList_New(4);
+  // root node [name, value, children, type]: items 0, 1, 3 were left NULL
+  PyList_SetItem(tree, 0, PyUnicode_FromString("CGNSTree"));
+  Py_INCREF(Py_None); PyList_SetItem(tree, 1, Py_None);
+  PyList_SetItem(tree, 2, PyList_New(0));
+  PyList_SetItem(tree, 3, PyUnicode_FromString("CGNSTree_t"));
 
   /* Open file */
   hid_t fapl, fid;
