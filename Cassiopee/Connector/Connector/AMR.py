@@ -19,11 +19,11 @@ from Converter.Internal import E_NpyInt as E_NpyInt
 from .QuadratureDG import *
 
 __TOL__ = 1e-9
-def outputTime(startTime,functionName='FunctionName'):
-    endTime     = time.perf_counter()
+def outputTime(startTime, functionName='FunctionName'):
+    endTime = time.perf_counter()
     elapsedTime = endTime-startTime
     elapsedTime = Cmpi.allreduce(elapsedTime  ,op=Cmpi.MAX)
-    if Cmpi.rank==0: print('Elapsed Time: %s: %g [s] | %g [min] | %g [hr]'%(functionName,elapsedTime,elapsedTime/60,elapsedTime/3600),flush=True)
+    if Cmpi.rank==0: print('Elapsed Time: %s: %g [s] | %g [min] | %g [hr]'%(functionName, elapsedTime, elapsedTime/60, elapsedTime/3600), flush=True)
     return None
 
 def printMeshInfo(t, message=''):
@@ -379,7 +379,7 @@ def getBCs(t, tb2, dim):
 
 # ===============================================================================================================================
 def recoverBCs(t, frontIP, BCInfo):
-    bcNamesDomain = ['BCSymmetryPlane', 'BCFarfield']
+    bcnamesDomain = ['BCSymmetryPlane', 'BCFarfield']
     tp = Internal.copyRef(t)
     t_exteriorFaces = P.exteriorFaces(tp)
 
@@ -391,7 +391,7 @@ def recoverBCs(t, frontIP, BCInfo):
     C._recoverBCs(tp, (zbcs, bcnames, bctypes))
 
     #Join the separate BCs
-    for zname in bcNamesDomain:
+    for zname in bcnamesDomain:
         zbcsTmp = C.extractBCOfType(tp, zname)
         if zbcsTmp != []:
             Internal._rmNodesByName(tp, zname+'*')
@@ -400,11 +400,11 @@ def recoverBCs(t, frontIP, BCInfo):
             C._addBC2Zone(tp, zname, zname, subzone=zbc)
 
     #Clean the name of the BCs & add grid location
-    bcNodes = Internal.getNodesFromType(tp, 'BC_t')
-    for bc in bcNodes:
-        zbcName = Internal.getName(bc)
-        zbcName = zbcName.split('.')
-        bc[0] = zbcName[0]
+    bcnodes = Internal.getNodesFromType(tp, 'BC_t')
+    for bc in bcnodes:
+        zbcname = Internal.getName(bc)
+        zbcname = zbcname.split('.')
+        bc[0] = zbcname[0]
         Internal.createUniqueChild(bc, 'GridLocation', 'GridLocation_t', value='FaceCenter')
 
     zibc = recoverIBCs__(t_exteriorFaces, frontIP)
@@ -487,7 +487,7 @@ def recoverIBCs__(t_exteriorFaces, frontIP):
     else:
         # Needed for MPI all gather
         zibc = Internal.newZone(name="frontIP%d"%Cmpi.rank, zsize=[[0,0]], ztype="Unstructured")
-    outputTime(startTime,functionName='identifyElementsPrt2')
+    outputTime(startTime, functionName='recoverIBCs')
     Cmpi.trace(" Adding the IBC BC tag (per processor) for CFD solver [end]", master=True, cpu=False)
 
     return zibc
@@ -533,7 +533,6 @@ def getBodiesDist2wall__(tb):
         if ibctype == None:
             ibctype = 0
         elif isinstance(Internal.getValue(ibctype), str):
-            print(Internal.getValue(ibctype))
             ibctype = 0
         else:
             ibctype = ibctype[1][0]
