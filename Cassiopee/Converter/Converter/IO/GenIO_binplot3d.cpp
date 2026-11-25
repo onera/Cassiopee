@@ -27,6 +27,26 @@ using namespace K_ARRAY;
 using namespace K_FLD;
 using namespace std;
 
+// Read n reals of realLength bytes (4 or 8) from the file into an E_Float array
+static void readReals(FILE* ptrFile, E_Float* dst, E_Int n, E_Int realLength)
+{
+  if (realLength == (E_Int)sizeof(E_Float)) { fread(dst, sizeof(E_Float), n, ptrFile); return; }
+  if (realLength == 8)
+  {
+    double* buf = new double [n];
+    fread(buf, sizeof(double), n, ptrFile);
+    for (E_Int i = 0; i < n; i++) dst[i] = (E_Float)buf[i];
+    delete [] buf;
+  }
+  else
+  {
+    float* buf = new float [n];
+    fread(buf, sizeof(float), n, ptrFile);
+    for (E_Int i = 0; i < n; i++) dst[i] = (E_Float)buf[i];
+    delete [] buf;
+  }
+}
+
 //=============================================================================
 /* 
    Find xyz, q, and f file name if they exists in file.
@@ -500,16 +520,7 @@ E_Int K_IO::GenIO::xyzread(
     if (iblank == true)
     {
       f = new FldArrayF(ipjpkp, 4);
-      if (_realLength == 8)
-        fread(f->begin(), sizeof(E_Float), 3*ipjpkp, ptrFile);
-      else
-      {
-        float* buf = new float[3*ipjpkp];
-        fread(buf, sizeof(float), 3*ipjpkp, ptrFile);
-        E_Float* pf = f->begin();
-        for (E_Int ind = 0; ind < 3*ipjpkp; ind++) pf[ind] = buf[ind];
-        delete [] buf;
-      }
+      readReals(ptrFile, f->begin(), 3*ipjpkp, _realLength);
       if (_intLength == 8)
       {
         E_LONG* blank = new E_LONG[ipjpkp];
@@ -532,7 +543,7 @@ E_Int K_IO::GenIO::xyzread(
     else
     {
       f = new FldArrayF(ipjpkp, 3);
-      fread(f->begin(), sizeof(E_Float), 3*ipjpkp, ptrFile);
+      readReals(ptrFile, f->begin(), 3*ipjpkp, _realLength);
     }
     field.push_back(f);
     
@@ -676,19 +687,22 @@ E_Int K_IO::GenIO::p3dqread(
   {
     readInt(s, si, 
             ptrFile, _convertEndian, si, si2);
-    if (s != 4*sizeof(E_Float)) // sep 4 * taille float
+    E_Int realLength = 0; // precision of the file, from the separator (4 reals)
+    if (s == 4*8) realLength = 8;
+    else if (s == 4*4) realLength = 4;
+    else // sep 4 * taille float
     {
       printf("Warning: binary file corrupted.\n");
       fclose(ptrFile);
       return 1;
     }
 
-    for (E_Int p = 0; p < 8; p++)
+    for (E_Int p = 0; p < 4*realLength/si; p++)
       fread(&ib, si, 1, ptrFile); // Mach, etc..
     
     readInt(s, si, 
             ptrFile, _convertEndian, si, si2);
-    if (s != 4*sizeof(E_Float)) // sep 4 * taille float
+    if (s != 4*realLength) // sep 4 * taille float
     {
       printf("Warning: binary file corrupted.\n");
       fclose(ptrFile);
@@ -700,7 +714,7 @@ E_Int K_IO::GenIO::p3dqread(
     E_Int kp = nk[i];
     readInt(s, si, 
             ptrFile, _convertEndian, si, si2);
-    E_Int sizeBytes = 5*sizeof(E_Float)*ip*jp*kp;
+    E_Int sizeBytes = 5*realLength*ip*jp*kp;
     if (s != sizeBytes) // sep 5 * taille float * taille ndom
     {
       printf("Warning: binary file corrupted.\n");
@@ -729,7 +743,7 @@ E_Int K_IO::GenIO::p3dqread(
       }
       start = nfld;
     }
-    fread(field[i]->begin(start), sizeof(E_Float), 5*ip*jp*kp, ptrFile);
+    readReals(ptrFile, field[i]->begin(start), 5*ip*jp*kp, realLength);
     fread(&ib, si, 1, ptrFile); // sep taille dom * 5 * taille float
   }
   fclose(ptrFile);
@@ -930,13 +944,17 @@ E_Int K_IO::GenIO::p3dfread(
   {
     
     fread(&ib, si, 1, ptrFile); // sep taille dom * nvar * taille float
-    //if (_convertEndian == true) sep = IBE(ib);
-    //else sep = ib;
+    E_Int sep;
+    if (_convertEndian == true) sep = IBE(ib);
+    else sep = ib;
 
     E_Int ip = ni[i];
     E_Int jp = nj[i];
     E_Int kp = nk[i];
     E_Int nv = nvar[i];
+    // precision of the file from the size of the data block (4 or 8 bytes per real)
+    E_Int realLength = (nv*ip*jp*kp > 0) ? sep/(nv*ip*jp*kp) : (E_Int)sizeof(E_Float);
+    if (realLength != 4 && realLength != 8) realLength = sizeof(E_Float);
     E_Int start = 1;
     if (xyzdone == false)
     {
@@ -958,7 +976,7 @@ E_Int K_IO::GenIO::p3dfread(
       }
       start = nfld;
     }
-    fread(field[i]->begin(start), sizeof(E_Float), nv*ip*jp*kp, ptrFile);
+    readReals(ptrFile, field[i]->begin(start), nv*ip*jp*kp, realLength);
     fread(&ib, si, 1, ptrFile); // sep taille dom * 3 * taille float
     //if (_convertEndian == true) sep = IBE(ib);
     //else sep = ib;
