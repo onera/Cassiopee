@@ -550,7 +550,7 @@ def getFrontIP(t, IBM_parameters, localDir, check=False, VPM=False):
     turbDistanceTmp = Internal.getNodeFromName(frontIP, 'TurbulentDistance')[1]
     if len(turbDistanceTmp)>0: maxDistIP = C.getMaxValue(frontIP, 'TurbulentDistance')
     maxDistIP = Cmpi.allreduce(maxDistIP, op=Cmpi.MAX)
-    if Cmpi.master: print('extractFrontDP__ Info: maxDistanceFrontIP=%g'%maxDistIP, flush=True)
+    if Cmpi.master: print('extractFrontIP__ Info: maxDistanceFrontIP=%g'%maxDistIP, flush=True)
 
     frontIP = gatherFrontIP__(frontIP, localDir, check)
 
@@ -559,16 +559,14 @@ def getFrontIP(t, IBM_parameters, localDir, check=False, VPM=False):
 def extractFrontIP__(t, IBM_parameters, VPM=False):
     if VPM == False:
         frontTypeIP = IBM_parameters["integration points"]["front type"]
-        print("Rank: %d :: frontTypeIP=%d"%(Cmpi.rank, int(frontTypeIP)), flush=True)
 
         if frontTypeIP == "2":
             distance_IP = IBM_parameters["integration points"]["distance IntegrationPoints"]
-            C._initVars(t, 'distance_IP', distance_IP)
-            C._initVars(t, '{cellN}=({TurbulentDistance}>{distance_IP})*{cellN}')
+            C._initVars(t, '{cellN}=({TurbulentDistance}>%g)*{cellN}'%distance_IP)
     else:
         snear = IBM_parameters["IBM type"]["size elements body"]
-        C._initVars(t, 'distance_IP', 2*snear)
-        C._initVars(t, '{cellN}=1-({TurbulentDistance}<-{distance_IP})')
+
+        C._initVars(t, '{cellN}=1-({TurbulentDistance}<-%d)'%2*snear)
 
     frontIP = P.frontFaces(t, 'cellN')
     return frontIP
@@ -576,20 +574,20 @@ def extractFrontIP__(t, IBM_parameters, VPM=False):
 def gatherFrontIP__(frontIP, localDir, check):
     Cmpi.trace("Gathering front IP [start]", master=True, cpu=False)
     frontIP = Internal.getZones(frontIP)[0]
-    frontIP_gath = Cmpi.allgatherZones(frontIP)
-    frontIP_gath = C.newPyTree(["frontIP", frontIP_gath])
-    frontIP_gath = T.join(frontIP_gath)
-    frontIP_gath = G.close(frontIP_gath)
-    for node in Internal.getNodesFromType(frontIP_gath, "Elements_t"):
-        if node[0] != "GridElements": Internal._rmNode(frontIP_gath, node)
+    frontIP = Cmpi.allgatherZones(frontIP)
+    frontIP = C.newPyTree(["frontIP", frontIP])
+    frontIP = T.join(frontIP)
+    frontIP = G.close(frontIP)
+    for node in Internal.getNodesFromType(frontIP, "Elements_t"):
+        if node[0] != "GridElements": Internal._rmNode(frontIP, node)
     Cmpi.trace("Gathering front IP [end]  ", master=True, cpu=False)
 
     if Cmpi.master and check:
-        print("Exporting frontIP..", flush=True)
-        C.convertPyTree2File(frontIP_gath, localDir+"frontIP_gath.plt")
-        C.convertPyTree2File(frontIP_gath, localDir+"frontIP_gath.cgns")
+        print("Exporting frontIP...", flush=True)
+        C.convertPyTree2File(frontIP, localDir+"frontIP.plt")
+        C.convertPyTree2File(frontIP, localDir+"frontIP.cgns")
 
-    return frontIP_gath
+    return frontIP
 
 # ===============================================================================================================================
 def getFrontDP(t, tb, frontIP, dim, dir_sym, check, distIP, localDir='./', isFastApproach=True):
@@ -691,20 +689,20 @@ def extractFrontDP__(t, tb, frontIP_gath, dim, dir_sym, distIP, isFastApproach=T
 
 def gatherFrontDP__(frontDP, localDir, check, isFastApproach=True):
     Cmpi.trace("Gathering front DP [start]", master=True, cpu=False)
-    frontDP_gath = Cmpi.allgatherZones(frontDP)
-    C._deleteEmptyZones(frontDP_gath)
-    frontDP_gath = T.join(frontDP_gath)
-    frontDP_gath = C.newPyTree(["frontDP", frontDP_gath])
+    frontDP = Cmpi.allgatherZones(frontDP)
+    C._deleteEmptyZones(frontDP)
+    frontDP = T.join(frontDP)
+    frontDP = C.newPyTree(["frontDP", frontDP])
     if Cmpi.master and check:
         print("Exporting front DP...", flush=True)
         if isFastApproach:
-            C.convertPyTree2File(frontDP_gath, localDir+"frontDP_gath_FastApproach.cgns")
-            C.convertPyTree2File(frontDP_gath, localDir+"frontDP_gath_FastApproach.plt")
+            C.convertPyTree2File(frontDP, localDir+"frontDP_FastApproach.cgns")
+            C.convertPyTree2File(frontDP, localDir+"frontDP_FastApproach.plt")
         else:
-            C.convertPyTree2File(frontDP_gath, localDir+"frontDP_gath_RobustApproach.cgns")
-            C.convertPyTree2File(frontDP_gath, localDir+"frontDP_gath_RobustApproach.plt")
+            C.convertPyTree2File(frontDP, localDir+"frontDP_RobustApproach.cgns")
+            C.convertPyTree2File(frontDP, localDir+"frontDP_RobustApproach.plt")
 
-    return frontDP_gath
+    return frontDP
 
 # ===============================================================================================================================
 # To be replaced with Generator.AMR counterpart
