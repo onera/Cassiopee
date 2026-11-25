@@ -115,24 +115,6 @@ Cassiopee/Converter/
     └── function_t1.py
 ```
 
-## Possible tasks
-
-### Check rst documentation
-When told, you must carefully compare the signature of functions defined in the module.rst with the one defined in given module.py or PyTree.py.
-You can edit the .rst to correct non conformities. 
-You must not edit the source .py when completing this check.
-
-### Check docstrings
-When told, you must check that every functions in a file have a doc string.
-Function starting or ending with a "__" are not concerned since they are intended 
-to be fully internal.
-
-### Check in/out comments
-When told, you must add a header to python functions that reads like this for example:
-    # short description of function
-    # IN: t: input pytree
-    # OUT: t: output pytree
-
 ## Running commands
 If you want to run "python", the bash environement is already set
 to use the Cassiopee modules.
@@ -141,3 +123,34 @@ or another installation system.
 You can run standard bash commands in it also using linux style 
 and linux style paths.
 
+## Possible tasks
+
+### Check rst documentation
+When told to check documentation, you must carefully compare the 
+signature of functions defined in the module.rst with the one defined in given 
+module.py or PyTree.py.
+You can edit the .rst to correct non conformities. 
+You must not edit the source .py when completing this check.
+
+### Check docstrings
+When told to check docstrings, you must check that every functions in a 
+file have a doc string.
+Function starting or ending with a "__" are not concerned since they are intended 
+to be fully internal.
+
+### Check IN/OUT comments
+When told to check in/out comments, you must add a header to 
+python functions that reads like this for example:
+    # short description of function
+    # IN: t: input pytree
+    # OUT: t: output pytree
+
+### Translate comments
+When told to translate in english, you must translate french 
+comments in english for files specified by user.
+Do it by small batches.
+
+### Write tutorials
+When tols to write tutorials, you must write .md files describing 
+with simple functions what the user specify. You must place the .md file
+in doc/Tutorials.
