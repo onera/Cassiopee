@@ -789,7 +789,6 @@ E_Int K_IO::GenIO::p3dfread(
   vector<FldArrayF*>& field)
 {
   FILE* ptrFile;
-  int s;
   int ib;
   vector<E_Int> nvar;
 
@@ -809,9 +808,9 @@ E_Int K_IO::GenIO::p3dfread(
       cellN = true;
   }
   
-  /* Constantes */
+  /* Constants */
   E_Int si = sizeof(int);
-  E_Int si2 = sizeof(int);
+  E_Int si2 = sizeof(E_LONG);
   
   // Check endianess
   E_Int ret = v3dCheckEndian(file); // similar to v3d
@@ -850,24 +849,10 @@ E_Int K_IO::GenIO::p3dfread(
   ptrFile = fopen(file, "rb");
 
   // Read number of zones in file
-  fread(&ib, si, 1, ptrFile); // sep
+  fread(&ib, si, 1, ptrFile); // sep taille int
   E_Int nzones;
-  if (_intLength == 4)
-  {
-    fread(&ib, si, 1, ptrFile);
-    if (_convertEndian == true)
-      nzones = IBE(ib);
-    else
-      nzones = ib;
-  }
-  else
-  {
-    fread(&s, si2, 1, ptrFile);
-    if (_convertEndian == true)
-      nzones = LBE(s);
-    else
-      nzones = s;
-  }
+  readInt(nzones, _intLength, 
+          ptrFile, _convertEndian, si, si2);
 
   // Coherence
   if (xyzdone == true)
@@ -878,66 +863,16 @@ E_Int K_IO::GenIO::p3dfread(
   }
 
   fread(&ib, si, 1, ptrFile); // sep taille int
-  fread(&ib, si, 1, ptrFile); // sep nombre de zones * 3 * taille int
+  fread(&ib, si, 1, ptrFile); // sep nombre de zones * 4 * taille int
   
-  // Read dimensions of zones
+  // Read dimensions and number of variables of zones
   for (E_Int i = 0; i < nzones; i++)
   {
-    E_Int ip;
-    if (_intLength == 4)
-    {
-      fread(&ib, si, 1, ptrFile);
-      if (_convertEndian == true) ip = IBE(ib);
-      else ip = ib;
-    }
-    else
-    {
-      fread(&s, si2, 1, ptrFile);
-      if (_convertEndian == true) ip = LBE(s);
-      else ip = s;
-    } 
-    
-    E_Int jp;
-    if (_intLength == 4)
-    {
-      fread(&ib, si, 1, ptrFile);
-      if (_convertEndian == true) jp = IBE(ib);
-      else jp = ib;
-    }
-    else
-    {
-      fread(&s, si2, 1, ptrFile);
-      if (_convertEndian == true) jp = LBE(s);
-      else jp = s;
-    }
-    
-    E_Int kp;
-    if (_intLength == 4)
-    {
-      fread(&ib, si, 1, ptrFile);
-      if (_convertEndian == true) kp = IBE(ib);
-      else kp = ib;
-    }
-    else
-    {
-      fread(&s, si2, 1, ptrFile);
-      if (_convertEndian == true) kp = LBE(s);
-      else kp = s;
-    }
-
-    E_Int nv;
-    if (_intLength == 4)
-    {
-      fread(&ib, si, 1, ptrFile);
-      if (_convertEndian == true) nv = IBE(ib);
-      else nv = ib;
-    }
-    else
-    {
-      fread(&s, si2, 1, ptrFile);
-      if (_convertEndian == true) nv = LBE(s);
-      else nv = s;
-    }
+    E_Int ip, jp, kp, nv;
+    readInt(ip, _intLength, ptrFile, _convertEndian, si, si2);
+    readInt(jp, _intLength, ptrFile, _convertEndian, si, si2);
+    readInt(kp, _intLength, ptrFile, _convertEndian, si, si2);
+    readInt(nv, _intLength, ptrFile, _convertEndian, si, si2);
     nvar.push_back(nv);
 
     // Coherence
@@ -953,19 +888,13 @@ E_Int K_IO::GenIO::p3dfread(
   }
   
   // Sep
-  //E_Int sep;
   fread(&ib, si, 1, ptrFile); // sep nombre de zone * taille int * 4
-  //if (_convertEndian == true) sep = IBE(ib);
-  //else sep = ib;
 
   // Read additional variables
   for (E_Int i = 0; i < nzones; i++)
   {
-    
-    fread(&ib, si, 1, ptrFile); // sep taille dom * nvar * taille float
     E_Int sep;
-    if (_convertEndian == true) sep = IBE(ib);
-    else sep = ib;
+    readInt(sep, si, ptrFile, _convertEndian, si, si2); // sep taille dom * nvar * taille float
 
     E_Int ip = ni[i];
     E_Int jp = nj[i];
@@ -997,9 +926,7 @@ E_Int K_IO::GenIO::p3dfread(
       }
     }
     readReals(ptrFile, field[i]->begin(start), nv*ip*jp*kp, realLength, _convertEndian);
-    fread(&ib, si, 1, ptrFile); // sep taille dom * 3 * taille float
-    //if (_convertEndian == true) sep = IBE(ib);
-    //else sep = ib;
+    fread(&ib, si, 1, ptrFile); // sep taille dom * nvar * taille float
   }
   fclose(ptrFile);
 
