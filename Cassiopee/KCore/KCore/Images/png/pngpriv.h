@@ -515,10 +515,12 @@
 #  include <float.h>
 
 #  if (defined(__MWERKS__) && defined(macintosh)) || defined(applec) || \
-    defined(THINK_C) || defined(__SC__) || defined(TARGET_OS_MAC)
+    defined(THINK_C) || defined(__SC__) || \
+    (defined(TARGET_OS_MAC) && !defined(__clang__))
    /* We need to check that <math.h> hasn't already been included earlier
     * as it seems it doesn't agree with <fp.h>, yet we should really use
-    * <fp.h> if possible.
+    * <fp.h> if possible. On modern macOS envs, fp.h no longer exists.
+    * Exclude it for clang builds (Apple clang defines __clang__).
     */
 #    if !defined(__MATH_H__) && !defined(__MATH_H) && !defined(__cmath__)
 #      include <fp.h>

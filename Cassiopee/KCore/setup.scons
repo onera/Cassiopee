@@ -74,6 +74,15 @@ for i, f in enumerate(cpp_srcs3):
         #print('altering',f,flags)
         cpp_srcs3[i] = env.Object(f, CXXFLAGS=flags)
 
+# libpng: disable ARM NEON optimizations on Darwin via -DPNG_ARM_NEON_OPT=0
+# Apple clang defines __ARM_NEON__ but the bundled NEON code does not build with it
+if Dist.getSystem()[0] == 'Darwin':
+    pngFlags = Dist.getCArgs() + ['-DPNG_ARM_NEON_OPT=0']
+    for cs in (cpp_srcs1, cpp_srcs2, cpp_srcs3):
+        for i, f in enumerate(cs):
+            if 'Images/png' in f:
+                cs[i] = env.Object(f, CFLAGS=pngFlags)
+
 #==============================================================================
 
 myMod1 = env.StaticLibrary('kcore1', source=cpp_srcs1)
