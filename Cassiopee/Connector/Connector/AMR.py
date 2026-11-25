@@ -411,6 +411,7 @@ def recoverBCs(t, frontIP, BCInfo):
 
     return tp, zibc
 
+# Not currently used. To be deleted in the near future
 def _recoverBCs__(t, t_exteriorFaces, zbcs, bctypes, bcnames):
     meshgen = "AMR"
     f = None
