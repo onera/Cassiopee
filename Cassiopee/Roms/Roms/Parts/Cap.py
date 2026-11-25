@@ -38,9 +38,15 @@ def createPart(name):
     spline9 = spline3.Symm('spline9', plane='xy', center=(0,0,0))
     sketch3 = T1.Sketch('sketch3', [spline7,spline8,spline9])
 
+    spline10 = spline4.Symm('spline10', plane='xy', center=(0,0,0))
+    spline11 = spline5.Symm('spline11', plane='xy', center=(0,0,0))
+    spline12 = spline6.Symm('spline12', plane='xy', center=(0,0,0))
+    sketch4 = T1.Sketch('sketch4', [spline10,spline11,spline12])
+
     surface1 = T1.Fill('surface1', sketch1, continuity=1)
     surface2 = T1.Fill('surface2', sketch2, continuity=1)
     surface3 = T1.Fill('surface3', sketch3, continuity=1)
+    surface4 = T1.Fill('surface4', sketch4, continuity=1)
 
     # solve
     T1.solve()

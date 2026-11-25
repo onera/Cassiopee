@@ -66,7 +66,7 @@ namespace
         double du = (umax - umin) / static_cast<double>(n_values - 1);
 
         std::vector<double> result(n_values);
-        for (int i = 0; i < n_values; ++i) {
+        for (size_t i = 0; i < n_values; ++i) {
             result[i] = i * du + umin;
         }
 

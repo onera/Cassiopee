@@ -420,7 +420,7 @@ def createDataArrayFilter(distrib, dataShape=None):
     """
     if dataShape is None or len(dataShape) == 1: #Unstructured
         hdfDataSpace = createFlatDataspace(distrib)
-    elif len(dataShape) == 2 and dataShape[0] == 1:
+    elif len(dataShape) == 2 and dataShape[0] == 1: # 1,N
         hdfDataSpace = createPointlistDataspace(distrib)
     elif len(dataShape) == 2:
         hdfDataSpace = createFlatDataspace(distrib) # for pointrange (CB)
@@ -503,8 +503,6 @@ def loadElementConnectivityFromEso(elmt, zonePath, hdfFilter):
     endFaceVertex = eso[eso.shape[0]-1]
     dnFaceVertex = endFaceVertex - begFaceVertex
 
-    # print("begFaceVertex::", begFaceVertex)
-    # print("endFaceVertex::", endFaceVertex)
     distrib_n = None
     ecSize_n  = Internal.getNodeFromName1(elmt, 'ElementConnectivity#Size')
     if ecSize_n is not None:
@@ -513,8 +511,6 @@ def loadElementConnectivityFromEso(elmt, zonePath, hdfFilter):
         distribUd = getDistribution(elmt)
         distrib_n = Internal.getNodeFromName1(distribUd, "ElementConnectivity")
         nFaceVertex = distrib_n[1][2]
-
-    # print("nFaceVertex::", nFaceVertex)
 
     nFace = distribElmt[2]
     #dnFaceIndex = dnElmt + int(distribElmt[1] == nFace)
@@ -604,8 +600,10 @@ def createZoneBCFilter(zone, zonePath, hdfFilter):
                     dataShape = PLPRSize(bcds)
 
                 dataSpacePL = createDataArrayFilter(distribData, dataShape)
-                #BCDataSet always use flat data array
+                
+                # BCDataSet always use flat data array
                 dataSpace_array = createDataArrayFilter(distribData, [dataShape.prod()])
+                
                 applyDataspaceToPointlist(bcds, bcdsPath, dataSpacePL, hdfFilter)
                 for bcdata in Internal.getNodesFromType1(bcds, 'BCData_t'):
                     bcdataPath = bcdsPath + "/" + bcdata[0]
