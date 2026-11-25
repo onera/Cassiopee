@@ -80,12 +80,23 @@ if Cppcompiler.find('gcc') == 0 or Cppcompiler.find('g++') == 0 or Cppcompiler =
         if v in files:
             #print('altering', v,flags)
             srcs.cpp_srcs2[i] = env.Object(v, CXXFLAGS=flags+'-O0')
+elif Cppcompiler.find('clang') == 0 or Cppcompiler.find('clang++') == 0:
+    flags = ''
+    for i in cppOpts:
+        if i[0:2] != '-O': flags += i+' '
+    for i, v in enumerate(srcs.cpp_srcs2):
+        if v in files:
+            #print('altering', v,flags)
+            srcs.cpp_srcs2[i] = env.Object(v, CXXFLAGS=flags+'-O0')
 
 # Suppression vectorisation pour T3mesher et gapfixer
 files = ["Generator/T3mesher2D.cpp", "Generator/gapfixer.cpp"]
 flags = ''
 for i in cppOpts:
     if not Dist.isSimd(i): flags += i+' '
+if Cppcompiler.find('clang') == 0 or Cppcompiler.find('clang++') == 0:
+    # clang: disable FMA contraction (breaks exact predicates on ARM64)
+    flags += '-ffp-contract=off'
 for i, v in enumerate(srcs.cpp_srcs):
     if v in files:
        #print('altering',v,flags)

@@ -1024,7 +1024,13 @@ def getCArgs():
     elif Cppcompiler == "clang" or Cppcompiler == "clang++":
         if DEBUG(): options += ['-g', '-O0', '-Wall', '-D_GLIBCXX_DEBUG_PEDANTIC']
         else: options += ['-DNDEBUG', '-O3', '-Wall']
-        if useOMP == 1: options += ['-fopenmp']
+        if useOMP == 1:
+            # Apple clang on Darwin does not support -fopenmp directly,
+            # it must be passed via -Xclang to use libomp from homebrew
+            if mySystem[0] == 'Darwin':
+                options += ['-Xclang', '-fopenmp']
+            else:
+                options += ['-fopenmp']
         if useStatic == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
         else: options += ['-fPIC']
         options += simdOptions
@@ -1226,11 +1232,16 @@ def getLinkArgs():
         if useOMP == 1: out += ['-fopenmp']
     elif Cppcompiler == 'clang' or Cppcompiler == 'clang++':
         if useStatic == 1: out += ['-static']
-        else: out += ['-shared']
-        if useOMP == 1: out += ['-fopenmp']
-    mySystem = getSystem()[0]
-    if mySystem == 'Darwin':
-        if useStatic == 0: out += ['-dynamiclib']
+        elif getSystem()[0] != 'Darwin':
+            # on Darwin, Python's LDSHARED already passes -bundle
+            out += ['-shared']
+        if useOMP == 1:
+            # Apple clang on Darwin does not support -fopenmp directly,
+            # it must be passed via -Xclang to use libomp from homebrew
+            if getSystem()[0] == 'Darwin':
+                out += ['-Xclang', '-fopenmp']
+            else:
+                out += ['-fopenmp']
     return out
 
 #=============================================================================
@@ -2337,15 +2348,19 @@ def checkCppLibs():
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
 
-        l = checkLibFile__('libstdc++.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libstdc++.a', additionalLibPaths)
-        if l is not None:
-            libs += ['stdc++']; paths += [l]
-
+        if getSystem()[0] != 'Darwin':
+            # On Darwin with -stdlib=libc++, do NOT link libstdc++ (GCC) to avoid
+            # conflicts with libc++ (used by homebrew packages like opencascade)
+            l = checkLibFile__('libstdc++.so*', additionalLibPaths)
+            if l is None:
+                l = checkLibFile__('libstdc++.a', additionalLibPaths)
+            if l is not None:
+                libs += ['stdc++']; paths += [l]
         l = checkLibFile__('libc++.so*', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libc++.a', additionalLibPaths)
+        if l is None:
+            l = checkLibFile__('libc++.1.dylib', additionalLibPaths)
         if l is not None:
             libs += ['c++']; paths += [l]
 

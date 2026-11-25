@@ -72,6 +72,16 @@ if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
        	if 'Stream2/' in v:
            #print('altering', v, flags)
            srcs.cpp_srcs[i] = env.Object(v, CXXFLAGS=flags)
+elif Cppcompiler.find('clang') == 0 or Cppcompiler.find('clang++') == 0:
+    # clang: disable FMA contraction (breaks exact predicates on ARM64)
+    flags = ''
+    for i in cppOpts:
+        if i[0:2] != '-O': flags += i+' '
+    flags += '-ffp-contract=off -O1'
+    for i, v in enumerate(srcs.cpp_srcs):
+        if 'Stream2/' in v:
+           #print('altering', v, flags)
+           srcs.cpp_srcs[i] = env.Object(v, CXXFLAGS=flags)
 
 #==============================================================================
 

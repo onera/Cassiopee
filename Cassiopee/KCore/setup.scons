@@ -12,6 +12,7 @@ import Dist
 # Get prefix from command line
 prefix = ARGUMENTS.get('prefix', '')
 installPath = os.path.join(prefix, Dist.getInstallPathSuffix())
+Cppcompiler = Dist.getCppCompiler()
 f77compiler = Dist.getf77Compiler()
 additionalIncludePaths = Dist.getAdditionalIncludePaths()
 additionalLibPaths = Dist.getAdditionalLibPaths()
@@ -69,6 +70,9 @@ cppOpts = Dist.getCppArgs()
 flags = ''
 for i in cppOpts:
     if not Dist.isSimd(i): flags += i+' '
+if Cppcompiler.find('clang') == 0 or Cppcompiler.find('clang++') == 0:
+    # clang: disable FMA contraction (breaks exact predicates on ARM64)
+    flags += '-ffp-contract=off '
 for i, f in enumerate(cpp_srcs3):
     if "KCore/Nuga" in f:
         #print('altering',f,flags)
