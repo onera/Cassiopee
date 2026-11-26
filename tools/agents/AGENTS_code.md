@@ -116,6 +116,18 @@ Cassiopee/Converter/
     └── function_t1.py
 ```
 
+## Running commands
+If you want to run "python", the bash environement is already set
+to use the Cassiopee modules. Dont try to install third party modules
+or another installation system.
+
+You can run standard bash commands in it also.
+The system is msys, you van use linux style file paths.
+
+## Coding rules
+When writing scripts or c/c++ code, use camel case notation for functions and variables.
+
+
 ## Possible tasks
 
 ### Function creation
@@ -130,13 +142,6 @@ buildArray3.
 ### Function modification (optimization)
 You must modify the function.cpp or module.py to complete the described task.
 
-## Running commands
-If you want to run "python", the bash environement is already set
-to use the Cassiopee modules. Dont try to install third party modules
-or another installation system.
-
-You can run standard bash commands in it also.
-The system is msys, you van use linux style file paths.
 
 ## Installation
 To install a module, you should go in the module directory and simply type "install".

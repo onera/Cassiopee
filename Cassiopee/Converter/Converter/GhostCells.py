@@ -147,7 +147,7 @@ def _addGhostCellsStruct__(zp, bp, d, modified, nodesRef, validjoins, dictjoins,
 
     # 2. correct with bcdataset
     _setBCDataInGhostCellsStruct__(zp, dimZone, modified, d)
-    #Internal._rmNodesByType(zp,'BCDataSet_t')
+    #Internal._rmNodesByType(zp, 'BCDataSet_t')
 
     # 3. fill ghost cells for BCMatch and BCNearMatch
     return _fillGhostCellsForStructBCMatch__(zp, d, dimZone, modified, nodesRef, validjoins, dictjoins, indexjoin)
@@ -940,8 +940,7 @@ def _setBCDataInGhostCellsStruct__(z, dim, modified, d):
     if dim[0] == 'Unstructured':
         print('addGhostCells: _setBCDataInGhostCellsStruct__: not valid for unstructured zones.')
         return None
-    dimZone = dim[4]
-    imz = dim[1] ; jmz = dim[2] ; kmz = dim[3]
+    imz = dim[1]; jmz = dim[2]; kmz = dim[3]
     for name in modified:
         containers = Internal.getBCDataSetContainers(name, z)
         if containers is not None:
@@ -966,7 +965,7 @@ def _setBCDataInGhostCellsStruct__(z, dim, modified, d):
 #-----------------------------------------------------------------------------
 def _rmGhostCellsStruct__(z, dim, modified, d):
     dimZone = dim[4]
-    imz = dim[1] ; jmz = dim[2] ; kmz = dim[3]
+    imz = dim[1]; jmz = dim[2]; kmz = dim[3]
 
     for name in modified:
         containers, locations = getContainers__(name,z)

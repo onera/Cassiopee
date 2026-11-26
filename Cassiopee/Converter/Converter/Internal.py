@@ -5574,13 +5574,13 @@ def _mergeBCDataSets__(z, bcNode):
   for d in dataSets:
     loc = getNodeFromName1(d, 'GridLocation')
     if loc is not None:
-      if getValue(loc)=='FaceCenter': dataSetLocs.append(1)
+      if getValue(loc) == 'FaceCenter': dataSetLocs.append(1)
       else : dataSetLocs.append(0)
     else: dataSetLocs.append(0)
     dname = d[0]
     if dname == 'BCDataSet#EndOfRun': nod = no; break
-    elif dname==dataSetByPathName and dataSetByPathName is not None: nod = no; break
-    elif dname=='FFD72SurfaceSolution': nod = no; break
+    elif dname == dataSetByPathName and dataSetByPathName is not None: nod = no; break
+    elif dname == 'FFD72SurfaceSolution': nod = no; break
     no += 1
   if nod == -1: nod = 0 # other cases: first bc data set is kept
 
@@ -5589,7 +5589,7 @@ def _mergeBCDataSets__(z, bcNode):
   cont, c = getParentOfNode(z, bcdatas)
   for d in dataSets:
     if no != nod:
-      if dataSetLocs[nod]==locd:
+      if dataSetLocs[nod] == locd:
         parent,nop = getParentOfNode(z,d)
         datas = getNodesFromType2(d, 'DataArray_t')
         for data0 in datas:

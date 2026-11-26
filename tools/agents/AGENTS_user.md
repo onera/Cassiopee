@@ -129,6 +129,9 @@ Dont try to install third party modules.
 You can run standard bash commands in it also using linux style 
 and linux style paths.
 
+## Coding rules
+When writing scripts, use camel case notation for functions and variables.
+
 ## Possible tasks
 
 ### Create a parametric geometry
@@ -138,13 +141,20 @@ by the user. In this case, you must use only functions of module "Driver" of Rom
 module. You can find an example in Roms/test/driver2.py.
 You must choose the pertinent parameters that are key parameter to the shape
 and create Scalar accordingly.
-Then, create all entities you need (entities, sketches, surfaces),
-then call T1.solve only one time.
+Then, create all entities you need (entities, sketches, surfaces).
+In sketches, entities must form a closed wire to be used with Fill.
+Then call T1.solve only one time.
 Write the script until T1.solve. 
 Execute it and get the returned value of freevars.
 Then, set freevars in the script using T1.instantiate.
 Write an image of an instantiated geometry with cplot at the end.
 
 ### Write a generic script
-Otherwise, write a script using only the functions of Cassiopee. Test it by
-running it in terminal.
+Otherwise, write a script using only the functions of Cassiopee. 
+You can find documentation by reading the pyTree file of each modules
+and in the Module/test/*PT.py examples. You will find an example for
+each function of each module.
+Test it by running script in terminal.
+You can use Internal.printTree(t) to display a pyTree to screen.
+To access bases, use Internal.getBases(t).
+To access zones, use Internal.getZones(t).
