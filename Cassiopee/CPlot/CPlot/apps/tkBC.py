@@ -95,7 +95,7 @@ def updateBCNameList(event=None):
     lb.focus_set()
     varsbc = ['-All BC-']+getAllDefinedBC(CTK.t)
     lbvalues = lb.get(0, "end")
-    
+
     if len(varsbc) == len(lbvalues):
         identical = all(a == b for a, b in zip(varsbc, lbvalues))
         if identical: return # no need to update listbox
