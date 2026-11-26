@@ -727,6 +727,7 @@ Gnum * restrict     head /* [0:nbbuck+1] */)      /* Linked list structure      
   hmod     = MAX (1, nbbuck - 1);
   dmax     = 0;
   mem      = pfree - 1;
+  me       = 0;
   maxmem   = mem;
   mindeg   = 0;
   nbflag   = 0;

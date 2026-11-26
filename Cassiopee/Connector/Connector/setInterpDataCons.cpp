@@ -272,14 +272,14 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
       E_Int* ptrIndRcv = rcvInd1D->begin();
       E_Float* ptrCf = coefs->begin();
 
-      nocf = 0; noi = 0; E_Int nor = 0;
+      nocf = 0; noi = 0;
       for (E_Int noindR = 0; noindR < sizeOfRcvIndices; noindR++)
       {
         index = roids[noindR];
         ptrIndRcv[noindR] = indicesRcvOrig[index]-1;
         isInterpPtr[roids[noindR]]=1;
         ptrIndDnr[noi] = xr[noindR+1]-xr[noindR]; 
-        nor++; noi++;
+        noi++;
         for (E_Int no = xr[noindR]; no < xr[noindR+1]; no++)
         {
           index = dindices[no];          
@@ -288,7 +288,7 @@ PyObject* K_CONNECTOR::setInterpDataCons(PyObject* self, PyObject* args)
           noi++; nocf++;
         }
       }
-      //     donor indices + nb of donors per pt 
+      // donor indices + nb of donors per pt 
       listOfDonorTypes.push_back(donorType);
       listOfDonorInd1D.push_back(donorInd1D);
       listOfRcvInd1D.push_back(rcvInd1D);
