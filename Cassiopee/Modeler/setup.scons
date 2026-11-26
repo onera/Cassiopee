@@ -75,15 +75,16 @@ env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
 
 if Dist.getSystem()[0] == 'Darwin':
     # empty chunks are skipped on macOS (Apple ar rejects empty archives)
+    # len(cpp_srcs) >= 500 if TIXI=True and TIGL=True in Modeler/srcs.py else 1
     chunk = 100
-    modeler_libs = []
+    deps = []
     for i in range(0, len(srcs.cpp_srcs), chunk):
         n = i//chunk + 1
         env.StaticLibrary('modeler%d'%n, source=srcs.cpp_srcs[i:i+chunk])
-        modeler_libs.append('libmodeler%d.a'%n)
+        deps.append('libmodeler%d.a'%n)
 
     # Apple ar does not support MRI scripts (-M): merge with libtool.
-    env.Command('libmodeler.a', modeler_libs, "libtool -static -o $TARGET $SOURCES")
+    env.Command('libmodeler.a', deps, "libtool -static -o $TARGET $SOURCES")
 else:
     env.Command('merge.l', 'merge.ar', "sed -e s/ELSAPROD/%s/g merge.ar > merge.l"%ELSAPROD)
     env.Command('libmodeler.a', ['libmodeler1.a', 'libmodeler2.a', 'libmodeler3.a', 
