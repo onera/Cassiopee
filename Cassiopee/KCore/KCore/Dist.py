@@ -1648,12 +1648,12 @@ def getOCCModules(OCCIncDir=None, OCCLibDir=None):
     else:
         allMods = [
             "TKBO", "TKBRep", "TKBin", "TKBinL", "TKBinTObj",
-            "TKBinXCAF", "TKBool", "TKCAF", "TKCDF", "TKD3DHost",
-            "TKD3DHostTest", "TKDCAF", "TKDE", "TKDECascade", "TKDEGLTF",
+            "TKBinXCAF", "TKBool", "TKCAF", "TKCDF",
+            "TKDCAF", "TKDE", "TKDECascade", "TKDEGLTF",
             "TKDEIGES", "TKDEOBJ", "TKDEPLY", "TKDESTEP", "TKDESTL",
             "TKDEVRML", "TKDraw", "TKExpress", "TKFeat", "TKFillet",
             "TKG2d", "TKG3d", "TKGeomAlgo", "TKGeomBase",
-            "TKHLR", "TKIVtk", "TKIVtkDraw", "TKLCAF",
+            "TKHLR", "TKLCAF",
             "TKMath", "TKMesh", "TKMeshVS", "TKOffset",
             "TKOpenGl", "TKOpenGlTest", "TKPrim", "TKQADraw",
             "TKRWMesh", "TKService", "TKShHealing", "TKStd",
@@ -1666,8 +1666,11 @@ def getOCCModules(OCCIncDir=None, OCCLibDir=None):
             "TKXSDRAWSTL", "TKXSDRAWVRML", "TKXml",
             "TKXmlL", "TKXmlTObj", "TKXmlXCAF", "TKernel"]
 
-    if OCCLibDir is not None: # keep only modules whose lib is actually present
-        allMods = [m for m in allMods if checkLibFile__('lib%s.so'%m, [OCCLibDir]) is not None]
+        if getSystem()[0] == 'mingw': # Direct3D host: Windows only
+            allMods += ["TKD3DHost", "TKD3DHostTest"]
+        elif OCCLibDir is not None: # Darwin and Ubuntu: check for vtk libfiles before adding vtk modules to allMods
+            if checkLibFile__('libTKIVtk.so', [OCCLibDir]):
+                allMods += ["TKIVtk", "TKIVtkDraw"]
     return allMods
 
 #=============================================================================
