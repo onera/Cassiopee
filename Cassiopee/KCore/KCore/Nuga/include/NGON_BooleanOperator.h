@@ -2032,7 +2032,7 @@ if (_XPol != BOTH_SURFACE)
   if (nb_pg10 != wNG1.PGs.size())
   {
     E_Int nb_pgs = wNG1.PGs.size();
-    K_FLD::IntArray f2e(2, nb_pgs, IDX_NONE);
+    K_FLD::IntArray f2e(2, nb_pgs, E_Int(IDX_NONE));
     for (E_Int i = 0; i < nb_pgs; ++i)
     {
       E_Int ancPGi = wNG1.PGs._ancEs(0, i);
@@ -2046,7 +2046,7 @@ if (_XPol != BOTH_SURFACE)
   if (nb_pg20 != wNG2.PGs.size() && (F2E2.cols() != 0))
   {
     E_Int nb_pgs = wNG2.PGs.size();
-    K_FLD::IntArray f2e(E_Int(2), nb_pgs, IDX_NONE);
+    K_FLD::IntArray f2e(E_Int(2), nb_pgs, E_Int(IDX_NONE));
     for (E_Int i = 0; i < nb_pgs; ++i)
     {
       E_Int ancPGi = wNG2.PGs._ancEs(1, i);
