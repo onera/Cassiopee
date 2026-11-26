@@ -110,6 +110,11 @@ E_Int K_IO::GenIO::adfcgnsread(char* file, PyObject*& tree, int skeleton,
 {
   /* Open file */
   tree = PyList_New(4);
+  // root node [name, value, children, type]: items 0, 1, 3 were left NULL
+  PyList_SetItem(tree, 0, PyUnicode_FromString("CGNSTree"));
+  Py_INCREF(Py_None); PyList_SetItem(tree, 1, Py_None);
+  PyList_SetItem(tree, 2, PyList_New(0));
+  PyList_SetItem(tree, 3, PyUnicode_FromString("CGNSTree_t"));
   double rootId; int errorFlag;
   ADF_Database_Open(file, "READ_ONLY", "NATIVE", &rootId, &errorFlag);
   if (errorFlag > 0)
