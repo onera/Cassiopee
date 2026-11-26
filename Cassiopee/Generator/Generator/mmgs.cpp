@@ -20,6 +20,9 @@
 // Remaillage surfacique avec mmgs
 
 #include "generator.h"
+// Include <complex> before libmmgs.h: with clang/libc++, its extern "C" block
+// would re-parse C++ <complex> headers ("templates must have C++ linkage").
+#include <complex>
 #include "MMGS/libmmgs.h"
 
 using namespace std;

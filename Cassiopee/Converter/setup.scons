@@ -104,6 +104,14 @@ if Cppcompiler.find('icc') == 0 or Cppcompiler.find('icpc') == 0:
     flags += '-fp-model=strict -O2'
     for i, v in enumerate(srcs.cpp_srcs):
         if v in files: srcs.cpp_srcs[i] = env.Object(v, CXXFLAGS=flags)
+elif Cppcompiler.find('clang') == 0 or Cppcompiler.find('clang++') == 0:
+    # clang: disable FMA contraction (breaks exact predicates on ARM64)
+    flags = ''
+    for i in cppOpts:
+        if i[0:2] != '-O': flags += i+' '
+    flags += '-ffp-contract=off -O2'
+    for i, v in enumerate(srcs.cpp_srcs):
+        if v in files: srcs.cpp_srcs[i] = env.Object(v, CXXFLAGS=flags)
 
 # Suppression vectorisation pour certains fichiers
 files = ['Converter/cpyGhost2Real.cpp', 'Converter/fillCornerGhostCells.cpp',]
