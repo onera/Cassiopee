@@ -1574,11 +1574,10 @@ hid_t createDataSpaceEntry(hid_t nid, hsize_t *src_offset,
                                       hsize_t *src_count,
                                       hsize_t *src_block)
 {
-  //int       src_ndims;
-  //hsize_t   src_dim_vals[L3C_MAX_DIMS];
+  //int src_ndims;
+  //hsize_t src_dim_vals[L3C_MAX_DIMS];
   hid_t did, sid;
-  herr_t stat;
-  
+
   did = H5Dopen2(nid,L3S_DATA,H5P_DEFAULT);
   sid = H5Dget_space(did);
 
@@ -1587,8 +1586,8 @@ hid_t createDataSpaceEntry(hid_t nid, hsize_t *src_offset,
   //H5Sget_simple_extent_dims(sid, src_dim_vals, NULL);
   //src_dim_vals[src_ndims] = -1;
 
-  stat = H5Sselect_hyperslab(sid, H5S_SELECT_SET,
-                             src_offset, src_stride, src_count, src_block);
+  H5Sselect_hyperslab(sid, H5S_SELECT_SET,
+                      src_offset, src_stride, src_count, src_block);
 
   /* Fermeture */
   H5Dclose(did);
@@ -1612,7 +1611,6 @@ hid_t createDataSpaceOutput(hid_t nid, hsize_t *dst_dims,
   hsize_t dst_dim_vals[L3C_MAX_DIMS];
   hid_t /*yid,tid,*/mid;
   hssize_t dst_size;
-  herr_t stat;
   
   dst_size  = 1;
   dst_ndims = 0;
@@ -1628,8 +1626,8 @@ hid_t createDataSpaceOutput(hid_t nid, hsize_t *dst_dims,
 
   /* Create DataSpace */
   mid  = H5Screate_simple(dst_ndims, dst_dim_vals, NULL);
-  stat = H5Sselect_hyperslab(mid, H5S_SELECT_SET,
-                             dst_offset, dst_stride, dst_count, dst_block);
+  H5Sselect_hyperslab(mid, H5S_SELECT_SET,
+                      dst_offset, dst_stride, dst_count, dst_block);
 
   /* CAUTION - mid need to be closed after */
   return mid;
@@ -1647,7 +1645,6 @@ hid_t createDataSpaceEntryCombine(hid_t nid, std::vector<std::array<hsize_t, L3C
   //int src_ndims;
   //hsize_t   src_dim_vals[L3C_MAX_DIMS];
   hid_t did,sid;
-  herr_t stat;
 
   did = H5Dopen2(nid,L3S_DATA,H5P_DEFAULT);
   sid = H5Dget_space(did);
@@ -1657,17 +1654,17 @@ hid_t createDataSpaceEntryCombine(hid_t nid, std::vector<std::array<hsize_t, L3C
   //src_dim_vals[src_ndims] = -1;
 
   assert(src_offset.size() >= 1);
-  stat = H5Sselect_hyperslab(sid, H5S_SELECT_SET,
-                             src_offset[0].data(), src_stride[0].data(),
-                             src_count [0].data(), src_block [0].data());
+  H5Sselect_hyperslab(sid, H5S_SELECT_SET,
+                      src_offset[0].data(), src_stride[0].data(),
+                      src_count [0].data(), src_block [0].data());
 
   for (size_t i_data_space = 1; i_data_space < src_offset.size(); ++i_data_space)
   {
-    stat = H5Sselect_hyperslab(sid, H5S_SELECT_OR,
-                               src_offset[i_data_space].data(),
-                               src_stride[i_data_space].data(),
-                               src_count [i_data_space].data(),
-                               src_block [i_data_space].data());
+    H5Sselect_hyperslab(sid, H5S_SELECT_OR,
+                        src_offset[i_data_space].data(),
+                        src_stride[i_data_space].data(),
+                        src_count [i_data_space].data(),
+                        src_block [i_data_space].data());
   }
 
   /* Fermeture */
