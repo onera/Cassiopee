@@ -5529,6 +5529,8 @@ if( ADFI_stridx_c( status, "READ_ONLY" ) == 0 )
    f_ret = file_open( file, f_mode | O_RDONLY, 0666);
 #else
    f_ret = file_open( file, f_mode | O_RDONLY | O_NOATIME, 0666);
+   if (f_ret < 0) // if UID file != UID process O_NOATIME fails
+    f_ret = file_open( file, f_mode | O_RDONLY, 0666);
 #endif
 }
 else if( ADFI_stridx_c( status, "OLD" ) == 0 )

@@ -1027,10 +1027,8 @@ def getCArgs():
         if useOMP == 1:
             # Apple clang on Darwin does not support -fopenmp directly,
             # it must be passed via -Xclang to use libomp from homebrew
-            if mySystem[0] == 'Darwin':
-                options += ['-Xclang', '-fopenmp']
-            else:
-                options += ['-fopenmp']
+            if mySystem[0] == 'Darwin': options += ['-Xclang', '-fopenmp']
+            else: options += ['-fopenmp']
         if useStatic == 1: options += ['--static', '-static-libstdc++', '-static-libgcc']
         else: options += ['-fPIC']
         options += simdOptions
@@ -1232,16 +1230,16 @@ def getLinkArgs():
         if useOMP == 1: out += ['-fopenmp']
     elif Cppcompiler == 'clang' or Cppcompiler == 'clang++':
         if useStatic == 1: out += ['-static']
-        elif getSystem()[0] != 'Darwin':
-            # on Darwin, Python's LDSHARED already passes -bundle
-            out += ['-shared']
+        else:
+            if getSystem()[0] == 'Darwin':
+                # on Darwin, Python's LDSHARED already passes -bundle
+                pass
+            else: out += ['-shared']
         if useOMP == 1:
             # Apple clang on Darwin does not support -fopenmp directly,
             # it must be passed via -Xclang to use libomp from homebrew
-            if getSystem()[0] == 'Darwin':
-                out += ['-Xclang', '-fopenmp']
-            else:
-                out += ['-fopenmp']
+            if getSystem()[0] == 'Darwin': out += ['-Xclang', '-fopenmp']
+            else: out += ['-fopenmp']
     return out
 
 #=============================================================================
@@ -2344,13 +2342,14 @@ def checkCppLibs():
     if Cppcompiler.find('clang') == 0 or Cppcompiler.find('clang++') == 0:
         os.environ['CC'] = 'clang'
         os.environ['CXX'] = 'clang++'
-        cflags = sysconfig.get_config_var('CFLAGS')
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
 
-        if getSystem()[0] != 'Darwin':
+        if getSystem()[0] == 'Darwin':
             # On Darwin with -stdlib=libc++, do NOT link libstdc++ (GCC) to avoid
             # conflicts with libc++ (used by homebrew packages like opencascade)
+            pass
+        else:
             l = checkLibFile__('libstdc++.so*', additionalLibPaths)
             if l is None:
                 l = checkLibFile__('libstdc++.a', additionalLibPaths)
