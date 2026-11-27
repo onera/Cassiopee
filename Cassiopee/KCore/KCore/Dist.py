@@ -2446,13 +2446,14 @@ def checkLibFile__(file, additionalLibPaths):
     # check also .a
     if '.so' in file:
         file2 = file.replace('.so', '.a')
-        a = glob.glob(i+'64/'+file2)
-        if a != []: return i+'64'
-        a = glob.glob(i+'/'+file2)
-        if a != []: return i
+        for i in p:
+            a = glob.glob(i+'64/'+file2)
+            if a != []: return i+'64'
+            a = glob.glob(i+'/'+file2)
+            if a != []: return i
 
     # for darwin, check also dylib
-    if mySystem[0] == 'Darwin' and '.so' in file: # test .dylib extension after .so
+    if mySystem[0] == 'Darwin' and '.so' in file:
         file2 = file.replace('.so', '.dylib')
         for i in p:
             a = glob.glob(i+'64/'+file2)
@@ -2461,7 +2462,7 @@ def checkLibFile__(file, additionalLibPaths):
             if a != []: return i
 
     # for msys, check also .dll.a
-    if mySystem[0] == 'mingw' and '.so' in file: # test .dylib extension after .so
+    if mySystem[0] == 'mingw' and '.so' in file:
         file2 = file.replace('.so', '.dll.a')
         for i in p:
             a = glob.glob(i+'64/'+file2)
