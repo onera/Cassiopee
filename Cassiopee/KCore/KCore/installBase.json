@@ -41,6 +41,35 @@
         "NvccAdditionalOptions": []
     },
 
+    "macos": {
+        "description": "macOS (Apple Silicon)",
+        "f77compiler": "gfortran",
+        "f90compiler": "gfortran",
+        "Cppcompiler": "clang++",
+        "CppAdditionalOptions": [],
+        "f77AdditionalOptions": [],
+        "useOMP": true,
+        "static": false,
+        "additionalIncludePaths": [
+            "/opt/X11/include",
+            "/opt/homebrew/include",
+            "/opt/homebrew/opt/open-mpi/include",
+            "/opt/homebrew/opt/libomp/include",
+            "/opt/homebrew/opt/opencascade/include"
+        ],
+        "additionalLibs": ["omp", "gfortran"],
+        "additionalLibPaths": [
+            "/opt/X11/lib",
+            "/opt/homebrew/lib",
+            "/opt/homebrew/opt/open-mpi/lib",
+            "/opt/homebrew/opt/libomp/lib",
+            "/opt/homebrew/opt/opencascade/lib",
+            "/opt/homebrew/opt/gcc/lib/gcc/current"
+        ],
+        "useCuda": false,
+        "NvccAdditionalOptions": []
+    },
+
     "WDAAA161Z": {
         "description": "Windows win64+msys2 (CB-ONERA)",
         "f77compiler": "gfortran",
