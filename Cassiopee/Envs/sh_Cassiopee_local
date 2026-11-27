@@ -772,14 +772,14 @@ fi
 
 getSupportedMachines() {
     local script_path="$1"
-    grep -E '^\s*(if|elif)\s*\[\s*"\$MAC"\s*=\s*"' "$script_path" \
-      | sed -E 's/.*"\$MAC"\s*=\s*"([^"]+)".*/\1/'
+    grep -E '^[[:space:]]*(if|elif)[[:space:]]*\[[[:space:]]*"\$MAC"[[:space:]]*=[[:space:]]*"' "$script_path" \
+      | sed -E 's/.*"\$MAC"[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/'
 }
 
 if [ -z $ELSAPROD ]; then
     echo 'Error: your machine was not found in Envs.'
     # Check names of all listed MACHINEs in this file and in sh_Cassiopee_user
-    SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+    SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)/$(basename "${BASH_SOURCE[0]:-$0}")"
     MACS_LOCAL=$(getSupportedMachines "$SCRIPT_PATH")
     SCRIPT_PATH="${SCRIPT_PATH:0:-5}user"
     echo 'Supported MACHINE values are:'
@@ -806,7 +806,7 @@ if [ "$PYTHONEXE" = "python3" ]; then
     alias python=python3
 else
     pyenv=$($PYTHONEXE -c 'import sys; print("pyenv" in sys.executable)' 2>/dev/null)
-    pyversion="python"`python -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
+    pyversion="python"`"${PYTHONEXE:-python}" -c "import sys; print('.'.join(str(n) for n in sys.version_info[:2]))"`
     if [ "$MAC" = "ubuntu" ] && [ "$pyenv" == "False" ]; then
         pybin="local/bin"
         pylib="local/lib"
@@ -848,10 +848,14 @@ else
 fi
 
 # Remove empty paths
-for var in PATH PATHL LD_LIBRARY_PATH LD_LIBRARY_PATHL PYTHONPATH PYTHONPATHL; do
-    value="${!var}"
-    value=$(printf '%s' "$value" | sed -e 's/::\+/:/g' -e 's/^://' -e 's/:$//')
-    printf -v "$var" '%s' "$value"
-done
+cleanPath() {
+    printf '%s' "$1" | sed -E 's/::+/:/g; s/^://; s/:$//'
+}
+PATH=$(cleanPath "$PATH")
+PATHL=$(cleanPath "$PATHL")
+LD_LIBRARY_PATH=$(cleanPath "$LD_LIBRARY_PATH")
+LD_LIBRARY_PATHL=$(cleanPath "$LD_LIBRARY_PATHL")
+PYTHONPATH=$(cleanPath "$PYTHONPATH")
+PYTHONPATHL=$(cleanPath "$PYTHONPATHL")
 
 echo '>> Hello from '$MAC', '$ELSAPROD' production is set.'
