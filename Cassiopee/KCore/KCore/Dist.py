@@ -1441,8 +1441,6 @@ def checkGL():
     additionalIncludePaths = getAdditionalIncludePaths()
     additionalLibPaths = getAdditionalLibPaths()
     l = checkLibFile__('libGL.so', additionalLibPaths)
-    if l is None:
-        l = checkLibFile__('libGL.a', additionalLibPaths)
     i = checkIncFile__('GL/gl.h', additionalIncludePaths)
     if i is not None and l is not None:
         print('Info: openGL detected at '+l+'.')
@@ -1460,9 +1458,7 @@ def checkGlut():
     additionalLibPaths = getAdditionalLibPaths()
     l = checkLibFile__('libglut.so', additionalLibPaths)
     if l is None:
-        l = checkLibFile__('libglut.a', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libfreeglut.a', additionalLibPaths)
+        l = checkLibFile__('libfreeglut.so', additionalLibPaths)
     i = checkIncFile__('GL/glut.h', additionalIncludePaths)
     if i is not None and l is not None:
         print('Info: glut detected at '+l+'.')
@@ -1481,9 +1477,7 @@ def checkGlew():
     additionalLibPaths = getAdditionalLibPaths()
     l = checkLibFile__('libGLEW.so', additionalLibPaths)
     if l is None:
-        l = checkLibFile__('libGLEW.a', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libglew32.a', additionalLibPaths)
+        l = checkLibFile__('libglew32.so', additionalLibPaths)
     i = checkIncFile__('GL/glew.h', additionalIncludePaths)
 
     if i is not None and l is not None:
@@ -1504,14 +1498,8 @@ def checkOSMesa():
     libname = 'OSMesa'
     l = checkLibFile__('libOSMesa.so', additionalLibPaths)
     if l is None:
-        l = checkLibFile__('libOSMesa.a', additionalLibPaths)
-    if l is None:
-        l = checkLibFile__('libosmesa.a', additionalLibPaths)
+        l = checkLibFile__('libosmesa.so', additionalLibPaths)
         if l is not None: libname = 'osmesa'
-    if l is None:
-        l = checkLibFile__('osmesa.dll.a', additionalLibPaths)
-        if l is not None: libname = 'osmesa'
-
     i = checkIncFile__('GL/osmesa.h', additionalIncludePaths)
     if i is not None and l is not None:
         print('Info: libOSmesa detected at %s.'%l)
@@ -1536,10 +1524,6 @@ def checkAdolc():
     additionalLibPaths = getAdditionalLibPaths()
     libname = 'adolc'
     l = checkLibFile__('libadolc.so', additionalLibPaths)
-    if l is None:
-        l = checkLibFile__('libadolc.a', additionalLibPaths)
-    if l is None:
-        l = checkLibFile__('adolc.dll.a', additionalLibPaths)
 
     i = checkIncFile__('adolc/adolc.h', additionalIncludePaths)
     if i is not None and l is not None:
@@ -1566,10 +1550,6 @@ def checkOCC():
     additionalIncludePaths = getAdditionalIncludePaths()
     additionalLibPaths = getAdditionalLibPaths()
     l = checkLibFile__('libTKernel.so', additionalLibPaths)
-    if l is None:
-        l = checkLibFile__('libTKernel.a', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libTKernel.dll.a', additionalLibPaths)
     i = checkIncFile__('oce/TopTools.hxx', additionalIncludePaths)
     if i is not None: i = i+'/oce'
     if i is None:
@@ -1584,7 +1564,7 @@ def checkOCC():
         return (False, i, l)
 
 # Return open-cascade module names depending on version
-def getOCCModules(OCCIncDir=None, OCCLibDir=None):
+def getOCCModules(OCCIncDir=None):
     #default
     if getSystem()[0] == 'mingw': version = (7, 8)
     else: version = (7, 5)
@@ -1599,6 +1579,7 @@ def getOCCModules(OCCIncDir=None, OCCLibDir=None):
                     version = version.split('.')
                     version = (int(version[0]), int(version[1]))
 
+    #print("version", version)
     if version[0] <= 6:
         allMods = [
             "FWOSPlugin", "TKPLCAF", "PTKernel", "TKPrim",
@@ -1631,20 +1612,33 @@ def getOCCModules(OCCIncDir=None, OCCLibDir=None):
             "TKXDEIGES", "TKXDESTEP", "TKXMesh", "TKXmlL", "TKXml", "TKXmlTObj",
             "TKXmlXCAF", "TKXSBase", "TKXSDRAW"]
     elif version[0] == 7 and version[1] == 6:
+        #allMods = [
+        #    "TKBin", "TKBinL", "TKBinTObj", "TKBinXCAF", "TKBO",
+        #    "TKBool", "TKBRep", "TKCAF", "TKCDF", "TKernel",
+        #    "TKFeat", "TKFillet", "TKG2d", "TKG3d", "TKGeomAlgo",
+        #    "TKGeomBase", "TKHLR", "TKIGES", "TKLCAF", "TKMath",
+        #    "TKMesh", "TKMeshVS", "TKOffset", "TKOpenGl",
+        #    "TKPrim", "TKService",
+        #    "TKShHealing", "TKStdLSchema",
+        #    "TKStdSchema", "TKSTEP", "TKSTEP209", "TKSTEPAttr",
+        #    "TKSTEPBase", "TKSTL", "TKTObj", "TKTopAlgo",
+        #    "TKV3d", "TKVoxel", "TKVRML", "TKXCAF", "TKXCAFSchema",
+        #    "TKXDEIGES", "TKXDESTEP", "TKXMesh", "TKXml",
+        #    "TKXmlL", "TKXmlTObj", "TKXmlXCAF", "TKXSBase",
+        #    "TKPCAF", "TKPLCAF", "TKNIS", "TKPShape", "TKShapeSchema"]
         allMods = [
-            "TKBin", "TKBinL", "TKBinTObj", "TKBinXCAF", "TKBO",
-            "TKBool", "TKBRep", "TKCAF", "TKCDF", "TKernel",
-            "TKFeat", "TKFillet", "TKG2d", "TKG3d", "TKGeomAlgo",
-            "TKGeomBase", "TKHLR", "TKIGES", "TKLCAF", "TKMath",
-            "TKMesh", "TKMeshVS", "TKOffset", "TKOpenGl",
-            "TKPrim", "TKService",
-            "TKShHealing", "TKStdLSchema",
-            "TKStdSchema", "TKSTEP", "TKSTEP209", "TKSTEPAttr",
-            "TKSTEPBase", "TKSTL", "TKTObj", "TKTopAlgo",
-            "TKV3d", "TKVoxel", "TKVRML", "TKXCAF", "TKXCAFSchema",
-            "TKXDEIGES", "TKXDESTEP", "TKXMesh", "TKXml",
-            "TKXmlL", "TKXmlTObj", "TKXmlXCAF", "TKXSBase",
-            "TKPCAF", "TKPLCAF", "TKNIS", "TKPShape", "TKShapeSchema"]
+            "TKBinL", "TKBin", "TKBinTObj", "TKBinXCAF", "TKBool",
+            "TKBO", "TKBRep", "TKCAF", "TKCDF", "TKDCAF", "TKDraw",
+            "TKernel", "TKFeat", "TKFillet", "TKG2d", "TKG3d",
+            "TKGeomAlgo", "TKGeomBase", "TKHLR", "TKIGES",
+            "TKLCAF", "TKMath", "TKMesh", "TKMeshVS", "TKOffset",
+            "TKPrim", "TKQADraw", "TKRWMesh", "TKService",
+            "TKShHealing", "TKStdL", "TKStd", "TKSTEP209",
+            "TKSTEPAttr", "TKSTEPBase", "TKSTEP", "TKSTL",
+            "TKTObj", "TKTopAlgo", "TKV3d", "TKVCAF",
+            "TKVRML", "TKXCAF", "TKXDEIGES", "TKXDESTEP", "TKXMesh",
+            "TKXmlL", "TKXml", "TKXmlTObj", "TKXmlXCAF", "TKXSBase"
+        ]
     else:
         allMods = [
             "TKBO", "TKBRep", "TKBin", "TKBinL", "TKBinTObj",
@@ -1665,12 +1659,6 @@ def getOCCModules(OCCIncDir=None, OCCLibDir=None):
             "TKXSDRAWOBJ", "TKXSDRAWPLY", "TKXSDRAWSTEP",
             "TKXSDRAWSTL", "TKXSDRAWVRML", "TKXml",
             "TKXmlL", "TKXmlTObj", "TKXmlXCAF", "TKernel"]
-
-        if getSystem()[0] == 'mingw': # Direct3D host: Windows only
-            allMods += ["TKD3DHost", "TKD3DHostTest"]
-        elif OCCLibDir is not None: # Darwin and Ubuntu: check for vtk libfiles before adding vtk modules to allMods
-            if checkLibFile__('libTKIVtk.so', [OCCLibDir]):
-                allMods += ["TKIVtk", "TKIVtkDraw"]
     return allMods
 
 #=============================================================================
@@ -1684,10 +1672,6 @@ def checkPng():
     additionalIncludePaths = getAdditionalIncludePaths()
     additionalLibPaths = getAdditionalLibPaths()
     l = checkLibFile__('libpng.so', additionalLibPaths)
-    if l is None:
-        l = checkLibFile__('libpng.a', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libpng.dll.a', additionalLibPaths)
     i = checkIncFile__('png.h', additionalIncludePaths)
     if i is not None and l is not None:
         print('Info: png detected at %s.'%l)
@@ -1711,10 +1695,6 @@ def checkMpeg():
     additionalIncludePaths = getAdditionalIncludePaths()
     additionalLibPaths = getAdditionalLibPaths()
     l = checkLibFile__('libavcodec.so', additionalLibPaths)
-    if l is None:
-        l = checkLibFile__('libavcodec.a', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libavcodec.dll.a', additionalLibPaths)
     i = checkIncFile__('libavcodec/avcodec.h', additionalIncludePaths)
     if i is not None:
         i = checkIncFile__('libavutil/mem.h', additionalIncludePaths)
@@ -1744,8 +1724,6 @@ def checkAdf():
     additionalIncludePaths = getAdditionalIncludePaths()
     additionalLibPaths = getAdditionalLibPaths()
     l = checkLibFile__('libcgns.so', additionalLibPaths)
-    if l is None:
-        l = checkLibFile__('libcgns.a', additionalLibPaths)
     i = checkIncFile__('adf/ADF.h', additionalIncludePaths)
     if i is not None and l is not None:
         print('Info: Adf detected at %s.'%l)
@@ -1766,9 +1744,6 @@ def checkHdf():
     libnames = []
     l = checkLibFile__('libhdf5.so', additionalLibPaths)
     if l is not None: libnames.append('hdf5')
-    if l is None:
-        l = checkLibFile__('libhdf5.a', additionalLibPaths)
-        if l is not None: libnames.append('hdf5')
     if l is None:
         l = checkLibFile__('libhdf5_openmpi.so', additionalLibPaths)
         if l is not None: libnames.append('hdf5_openmpi')
@@ -1801,9 +1776,6 @@ def checkNetcdf():
     libnames = []
     l = checkLibFile__('libnetcdf.so', additionalLibPaths)
     if l is not None: libnames.append('netcdf')
-    if l is None:
-        l = checkLibFile__('libnetcdf.a', additionalLibPaths)
-        if l is not None: libnames.append('netcdf')
     i = checkIncFile__('netcdf.h', additionalIncludePaths)
     if i is not None and l is not None:
         print('Info: netcdf detected at %s.'%l)
@@ -1831,9 +1803,6 @@ def checkMpi():
     libnames = []
     l = checkLibFile__('libmpi.so', additionalLibPaths)
     if l is not None: libnames.append('mpi')
-    if l is None:
-        l = checkLibFile__('libmpi.a', additionalLibPaths)
-        if l is not None: libnames.append('mpi')
     if l is None:
         l = checkLibFile__('msmpi.lib', additionalLibPaths)
         if l is not None: libnames.append('msmpi')
@@ -1980,8 +1949,6 @@ def checkParadigma():
     additionalIncludePaths = getAdditionalIncludePaths()
     additionalLibPaths = getAdditionalLibPaths()
     l = checkLibFile__('lipdm.so', additionalLibPaths)
-    if l is None:
-        l = checkLibFile__('libpdm.a', additionalLibPaths)
     i = checkIncFile__('pdm.h', additionalIncludePaths)
     if i is not None and l is not None:
         #print('Info: Paradigma detected at %s.'%l)
@@ -2010,20 +1977,14 @@ def checkBlas():
     libnames = []
     libname = 'openblas'
     l = checkLibFile__(libPrefix+'openblas*.so', additionalLibPaths)
-    if l is None:
-        l = checkLibFile__(libPrefix+'openblas*.a', additionalLibPaths)
     if l is not None: libnames.append(libname)
 
     if l is None: # search for blas and cblas
         libname = 'blas'; foundBlas = None
         l = checkLibFile__(libPrefix+'blas*.so', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__(libPrefix+'blas*.a', additionalLibPaths)
         if l is not None: libnames.append(libname); foundBlas = l
         libname = 'cblas'; foundCBlas = None
         l = checkLibFile__(libPrefix+'cblas*.so', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__(libPrefix+'blas*.a', additionalLibPaths)
         if l is not None: libnames.append(libname); foundCBlas = l
         l = None
         if foundBlas is not None: l = foundBlas
@@ -2067,22 +2028,16 @@ def checkLapack():
     # Check for openblas, it contains lapack generally
     libname = 'openblas'
     l = checkLibFile__(libPrefix+'openblas*.so', additionalLibPaths)
-    if l is None:
-        l = checkLibFile__(libPrefix+'openblas*.a', additionalLibPaths)
     if l is not None: libnames.append(libname) # no further search
 
     else: # Check lapack and lapacke
         libname = 'lapack'; foundLapack = None
         if l is None:
             l = checkLibFile__(libPrefix+'lapack*.so', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__(libPrefix+'lapack*.a', additionalLibPaths)
         if l is not None: libnames.append(libname); foundLapack = l; l = None
         libname = 'lapacke'; foundLapacke = None
         if l is None:
             l = checkLibFile__(libPrefix+'lapacke*.so', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__(libPrefix+'lapacke*.a', additionalLibPaths)
         if l is not None: libnames.append(libname); foundLapacke = l
 
         l = None
@@ -2147,16 +2102,11 @@ def checkFortranLibs():
     # gfortran (gfortran, gomp)
     if f77compiler == 'gfortran':
         l = checkLibFile__('libgfortran.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libgfortran.a', additionalLibPaths)
-
         if l is not None:
             libs += ['gfortran']; paths += [l]
 
         if useOMP:
             l = checkLibFile__('libgomp.so*', additionalLibPaths)
-            if l is None:
-                l = checkLibFile__('libgomp.a', additionalLibPaths)
             if l is not None:
                 libs += ['gomp']; paths += [l]
             else: ret = False
@@ -2164,36 +2114,25 @@ def checkFortranLibs():
     # ifort (ifcore, svml, irc, guide, iomp5)
     elif f77compiler == 'ifort':
         l = checkLibFile__('libifcore.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libifcore.a', additionalLibPaths)
-
         if l is not None:
             libs += ['ifcore']; paths += [l]
 
         l = checkLibFile__('libsvml.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libsvml.a', additionalLibPaths)
         if l is not None:
             libs += ['svml']; paths += [l]
 
         l = checkLibFile__('libirc.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libirc.a', additionalLibPaths)
         if l is not None:
             libs += ['irc']; paths += [l]
 
         if useOMP:
             # check guide
             l = checkLibFile__('libguide.so*', additionalLibPaths)
-            if l is None:
-                l = checkLibFile__('libguide.a', additionalLibPaths)
             if l is not None:
                 libs += ['guide']; paths += [l]
             # check iomp5
             if l is None:
                 l = checkLibFile__('libiomp5.so*', additionalLibPaths)
-                if l is None:
-                    l = checkLibFile__('libiomp5.a', additionalLibPaths)
                 if l is not None:
                     libs += ['iomp5']; paths += [l]
                 else: ret = False
@@ -2201,36 +2140,25 @@ def checkFortranLibs():
     # ifx (ifcore, svml, irc, guide, iomp5)
     elif f77compiler == 'ifx':
         l = checkLibFile__('libifcore.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libifcore.a', additionalLibPaths)
-
         if l is not None:
             libs += ['ifcore']; paths += [l]
 
         l = checkLibFile__('libsvml.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libsvml.a', additionalLibPaths)
         if l is not None:
             libs += ['svml']; paths += [l]
 
         l = checkLibFile__('libirc.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libirc.a', additionalLibPaths)
         if l is not None:
             libs += ['irc']; paths += [l]
 
         if useOMP:
             # check guide
             l = checkLibFile__('libguide.so*', additionalLibPaths)
-            if l is None:
-                l = checkLibFile__('libguide.a', additionalLibPaths)
             if l is not None:
                 libs += ['guide']; paths += [l]
             # check iomp5
             if l is None:
                 l = checkLibFile__('libiomp5.so*', additionalLibPaths)
-                if l is None:
-                    l = checkLibFile__('libiomp5.a', additionalLibPaths)
                 if l is not None:
                     libs += ['iomp5']; paths += [l]
                 else: ret = False
@@ -2238,15 +2166,11 @@ def checkFortranLibs():
     # pgfortran
     elif f77compiler == 'pgfortran':
         l = checkLibFile__('libnvf.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libnvf.a', additionalLibPaths)
         if l is not None:
             libs += ['nvf', 'rt']; paths += [l]
 
         if useOMP:
             l = checkLibFile__('libnvomp.so*', additionalLibPaths)
-            if l is None:
-                l = checkLibFile__('libnvomp.a', additionalLibPaths)
             if l is not None:
                 libs += ['nvomp']; paths += [l]
             else: ret = False
@@ -2254,15 +2178,11 @@ def checkFortranLibs():
     # nvfortran
     elif f77compiler == 'nvfortran':
         l = checkLibFile__('libnvf.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libnvf.a', additionalLibPaths)
         if l is not None:
             libs += ['nvf', 'rt']; paths += [l]
 
         if useOMP:
             l = checkLibFile__('libnvomp.so*', additionalLibPaths)
-            if l is None:
-                l = checkLibFile__('libnvomp.a', additionalLibPaths)
             if l is not None:
                 libs += ['nvomp']; paths += [l]
             else: ret = False
@@ -2270,15 +2190,11 @@ def checkFortranLibs():
     # crayftn
     elif f77compiler == 'crayftn':
         l = checkLibFile__('libf.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libf.a', additionalLibPaths)
         if l is not None:
             libs += ['f', 'rt']; paths += [l]
 
         #if useOMP:
         #    l = checkLibFile__('libomp.so*', additionalLibPaths)
-        #    if l is None:
-        #        l = checkLibFile__('libomp.a', additionalLibPaths)
         #    if l is not None:
         #        libs += ['omp']; paths += [l]
         #    else: ret = False
@@ -2321,25 +2237,17 @@ def checkCppLibs():
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
 
         l = checkLibFile__('libstdc++.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libstdc++.a', additionalLibPaths)
         if l is not None:
             libs += ['stdc++']; paths += [l]
 
         if DEBUG():
             l = checkLibFile__('libasan.so*', additionalLibPaths)
-            if l is None:
-                l = checkLibFile__('libasan.a', additionalLibPaths)
             if l is not None: libs += ["asan"]
             #l = checkLibFile__('libtsan.so*', additionalLibPaths)
-            #if l is None:
-            #    l = checkLibFile__('libtsan.a', additionalLibPaths)
             #if l is not None: libs += ["tsan"]
 
         if useOMP:
             l = checkLibFile__('libgomp.so*', additionalLibPaths)
-            if l is None:
-                l = checkLibFile__('libgomp.a', additionalLibPaths)
             if l is not None:
                 libs += ['gomp']; paths += [l]
             else: ret = False
@@ -2357,13 +2265,9 @@ def checkCppLibs():
             pass
         else:
             l = checkLibFile__('libstdc++.so*', additionalLibPaths)
-            if l is None:
-                l = checkLibFile__('libstdc++.a', additionalLibPaths)
             if l is not None:
                 libs += ['stdc++']; paths += [l]
         l = checkLibFile__('libc++.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libc++.a', additionalLibPaths)
         if l is None:
             l = checkLibFile__('libc++.1.dylib', additionalLibPaths)
         if l is not None:
@@ -2371,18 +2275,12 @@ def checkCppLibs():
 
         if DEBUG():
             l = checkLibFile__('libasan.so*', additionalLibPaths)
-            if l is None:
-                l = checkLibFile__('libasan.a', additionalLibPaths)
             if l is not None: libs += ["asan"]
             #l = checkLibFile__('libtsan.so*', additionalLibPaths)
-            #if l is None:
-            #    l = checkLibFile__('libtsan.a', additionalLibPaths)
             #if l is not None: libs += ["tsan"]
 
         if useOMP:
             l = checkLibFile__('libomp.so*', additionalLibPaths)
-            if l is None:
-                l = checkLibFile__('libomp.a', additionalLibPaths)
             if l is not None:
                 libs += ['omp']; paths += [l]
             else: ret = False
@@ -2395,31 +2293,19 @@ def checkCppLibs():
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
         l = checkLibFile__('libstdc++.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libstdc++.a', additionalLibPaths)
         if l is not None:
             libs += ['stdc++']; paths += [l]
-        #if DEBUG():
-        #    l = checkLibFile__('libchkpwrap.a', additionalLibPaths)
-        #    if l is not None:
-        #        libs += ['chkpwrap', 'chkp']; paths += [l]
 
         l = checkLibFile__('libirc.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libirc.a', additionalLibPaths)
         if l is not None:
             libs += ['irc']; paths += [l]
 
         if useOMP:
             l = checkLibFile__('libguide.so*', additionalLibPaths)
-            if l is None:
-                l = checkLibFile__('libguide.a', additionalLibPaths)
             if l is not None:
                 libs += ['guide']; paths += [l]
             if l is None:
                 l = checkLibFile__('libiomp5.so*', additionalLibPaths)
-                if l is None:
-                    l = checkLibFile__('libiomp5.a', additionalLibPaths)
                 if l is not None:
                     libs += ['iomp5']; paths += [l]
                 else: ret = False
@@ -2433,21 +2319,15 @@ def checkCppLibs():
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
         l = checkLibFile__('libstdc++.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libstdc++.a', additionalLibPaths)
         if l is not None:
             libs += ['stdc++']; paths += [l]
 
         if useOMP:
             l = checkLibFile__('libguide.so*', additionalLibPaths)
-            if l is None:
-                l = checkLibFile__('libguide.a', additionalLibPaths)
             if l is not None:
                 libs += ['guide']; paths += [l]
             if l is None:
                 l = checkLibFile__('libiomp5.so*', additionalLibPaths)
-                if l is None:
-                    l = checkLibFile__('libiomp5.a', additionalLibPaths)
                 if l is not None:
                     libs += ['iomp5']; paths += [l]
                 else: ret = False
@@ -2462,15 +2342,11 @@ def checkCppLibs():
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
 
         l = checkLibFile__('libnvc.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libnvc.a', additionalLibPaths)
         if l is not None:
             libs += ['nvc']; paths += [l]
 
         if useOMP:
             l = checkLibFile__('libnvomp.so*', additionalLibPaths)
-            if l is None:
-                l = checkLibFile__('libnvomp.a', additionalLibPaths)
             if l is not None:
                 libs += ['nvomp']; paths += [l]
             else: ret = False
@@ -2485,15 +2361,11 @@ def checkCppLibs():
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
 
         l = checkLibFile__('libnvc.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libnvc.a', additionalLibPaths)
         if l is not None:
             libs += ['nvc']; paths += [l]
 
         if useOMP:
             l = checkLibFile__('libnvomp.so*', additionalLibPaths)
-            if l is None:
-                l = checkLibFile__('libnvomp.a', additionalLibPaths)
             if l is not None:
                 libs += ['nvomp']; paths += [l]
             else: ret = False
@@ -2508,19 +2380,13 @@ def checkCppLibs():
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
 
         #l = checkLibFile__('libcraymp.so*', additionalLibPaths)
-        #if l is None:
-        #    l = checkLibFile__('libcraymp.a', additionalLibPaths)
         #if l is not None:
         #    libs += ['craymp']; paths += [l]
         l = checkLibFile__('libsci_cray.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libsci_cray.a', additionalLibPaths)
         if l is not None:
             libs += ['sci_cray']; paths += [l]
         #if useOMP:
         #    l = checkLibFile__('libomp.so*', additionalLibPaths)
-        #    if l is None:
-        #        l = checkLibFile__('libomp.a', additionalLibPaths)
         #    if l is not None:
         #        libs += ['omp']; paths += [l]
         #    else: ret = False
@@ -2534,8 +2400,6 @@ def checkCppLibs():
         sysconfig._config_vars['CFLAGS'] = '' # kill setup flags for CC
         sysconfig._config_vars['LDFLAGS'] = '' # kill setup flags for LD
         l = checkLibFile__('libsci_cray.so*', additionalLibPaths)
-        if l is None:
-            l = checkLibFile__('libsci_cray.a', additionalLibPaths)
         if l is not None:
             libs += ['sci_cray']; paths += [l]
 
@@ -2543,6 +2407,7 @@ def checkCppLibs():
 
 #==============================================================================
 # Check if file exists LD_LIBRARY_PATH dirs and specified lib dirs
+# file file ends with .so, also tries .a and .dylib for mac
 # additionalPaths est en premier pour pouvoir forcer une librairie par config.
 #==============================================================================
 def checkLibFile__(file, additionalLibPaths):
@@ -2551,6 +2416,7 @@ def checkLibFile__(file, additionalLibPaths):
     mySystem = getSystem()
     env = os.environ
 
+    # get paths to check
     if mySystem[0] == 'Windows':
         p1 = env.get('PATH', None)
         if p1 is not None: p += p1.split(';')
@@ -2564,21 +2430,43 @@ def checkLibFile__(file, additionalLibPaths):
         if p1 is not None: p += p1.split(':')
         p1 = env.get('PATH', None)
         if p1 is not None: p += p1.split(':')
+
+    # add cmake paths
     p1 = env.get('CMAKE_PREFIX_PATH', None)
     if p1 is not None: p += [path+'/lib' for path in p1.split(':')]
     #p += ['/usr/local/lib', '/opt/lib', '/usr/lib', '/opt/local/lib']
+
+    # check file in lib64, then lib
     for i in p:
         a = glob.glob(i+'64/'+file)
         if a != []: return i+'64'
         a = glob.glob(i+'/'+file)
         if a != []: return i
 
+    # check also .a
+    if '.so' in file:
+        file2 = file.replace('.so', '.a')
+        a = glob.glob(i+'64/'+file2)
+        if a != []: return i+'64'
+        a = glob.glob(i+'/'+file2)
+        if a != []: return i
+
+    # for darwin, check also dylib
     if mySystem[0] == 'Darwin' and '.so' in file: # test .dylib extension after .so
-        file = file.replace('.so', '.dylib')
+        file2 = file.replace('.so', '.dylib')
         for i in p:
-            a = glob.glob(i+'64/'+file)
+            a = glob.glob(i+'64/'+file2)
             if a != []: return i+'64'
-            a = glob.glob(i+'/'+file)
+            a = glob.glob(i+'/'+file2)
+            if a != []: return i
+
+    # for msys, check also .dll.a
+    if mySystem[0] == 'Darwin' and '.so' in file: # test .dylib extension after .so
+        file2 = file.replace('.so', '.dll.a')
+        for i in p:
+            a = glob.glob(i+'64/'+file2)
+            if a != []: return i+'64'
+            a = glob.glob(i+'/'+file2)
             if a != []: return i
 
     return None
