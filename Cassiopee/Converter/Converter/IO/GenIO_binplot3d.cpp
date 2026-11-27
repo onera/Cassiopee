@@ -752,14 +752,15 @@ E_Int K_IO::GenIO::p3dqread(
       E_Int size = f->getSize();
       E_Int nfld = f->getNfld();
       f->reAlloc(size, 5+nfld);
+      start = nfld+1;
       if (nfld == 4)
       {
-        // Deplacement de cellN a la fin
+        // Deplacement de cellN a la fin, les variables prennent sa place
         E_Float* pf = f->begin();
         for (E_Int p = 0; p < size; p++)
           pf[8*size+p] = pf[3*size+p];
+        start = nfld;
       }
-      start = nfld;
     }
     readReals(ptrFile, field[i]->begin(start), 5*ip*jp*kp, realLength, _convertEndian);
     fread(&ib, si, 1, ptrFile); // sep taille dom * 5 * taille float
@@ -976,7 +977,7 @@ E_Int K_IO::GenIO::p3dfread(
     E_Int start = 1;
     if (xyzdone == false)
     {
-      FldArrayF* f = new FldArrayF(ip*jp*kp, 5);
+      FldArrayF* f = new FldArrayF(ip*jp*kp, nv);
       field.push_back(f);
     }
     else
@@ -985,14 +986,15 @@ E_Int K_IO::GenIO::p3dfread(
       E_Int size = f->getSize();
       E_Int nfld = f->getNfld();
       f->reAlloc(size, nv+nfld);
+      start = nfld+1;
       if (cellN == true)
       {
-        // Deplacement de cellN a la fin
+        // Deplacement de cellN a la fin, les variables prennent sa place
         E_Float* pf = f->begin();
         for (E_Int p = 0; p < size; p++)
-          pf[(nfld-1)*size+p] = pf[(nfld+nv-1)*size+p]; 
+          pf[(nfld+nv-1)*size+p] = pf[(nfld-1)*size+p];
+        start = nfld;
       }
-      start = nfld;
     }
     readReals(ptrFile, field[i]->begin(start), nv*ip*jp*kp, realLength, _convertEndian);
     fread(&ib, si, 1, ptrFile); // sep taille dom * 3 * taille float
@@ -1370,8 +1372,36 @@ E_Int K_IO::GenIO::ffwrite(
   writeInt(isize, si,
            ptrFile, convertEndian, si, si2);
 
-  // Sep : nombre de zones * 3 * taille int
-  writeInt(nzones * isize * 3, si,
+  // Position des variables
+  E_Int resx = isCoordinateXPresent(varString);
+  E_Int resy = isCoordinateYPresent(varString);
+  E_Int resz = isCoordinateZPresent(varString);
+  E_Int res1 = isDensityPresent(varString);
+  E_Int res2 = isMomentumXPresent(varString);
+  E_Int res3 = isMomentumYPresent(varString);
+  E_Int res4 = isMomentumZPresent(varString);
+  E_Int res5 = isEnergyStagnationDensityPresent(varString);
+
+  // Variables written in the function file: all but the coordinates
+  // (and the conservative variables if they are written in the q file)
+  vector<E_Int> nvw(nzones);
+  for (E_Int i = 0; i < nzones; i++)
+  {
+    nvar = field[i]->getNfld();
+    E_Int c = 0;
+    for (E_Int nv = 1; nv <= nvar; nv++)
+    {
+      if (nv == resx+1 || nv == resy+1 || nv == resz+1) continue;
+      if (writeConservative == false && 
+          (nv == res1+1 || nv == res2+1 || nv == res3+1 ||
+           nv == res4+1 || nv == res5+1)) continue;
+      c++;
+    }
+    nvw[i] = c;
+  }
+
+  // Sep : nombre de zones * 4 * taille int
+  writeInt(nzones * isize * 4, si,
            ptrFile, convertEndian, si, si2);
 
   for (E_Int i = 0; i < nzones; i++)
@@ -1382,10 +1412,12 @@ E_Int K_IO::GenIO::ffwrite(
              ptrFile, convertEndian, si, si2);
     writeInt(nk[i], isize,
              ptrFile, convertEndian, si, si2);
+    writeInt(nvw[i], isize,
+             ptrFile, convertEndian, si, si2);
   }
   
-  // Sep : nombre de zones * 3 * taille int
-  writeInt(nzones * isize * 3, si,
+  // Sep : nombre de zones * 4 * taille int
+  writeInt(nzones * isize * 4, si,
            ptrFile, convertEndian, si, si2);
 
   for (E_Int i = 0; i < nzones; i++)
@@ -1395,56 +1427,23 @@ E_Int K_IO::GenIO::ffwrite(
     // Get buffer
     FldArrayF buf(*field[i]);
     if (convertEndian == true) convertEndianField(buf);
-    
-    // Sep : 4 * taille double
-    writeInt(4 * sizeof(E_Float), si,
+
+    // Sep : taille dom * nvar ecrites * taille float
+    writeInt(ni[i]*nj[i]*nk[i] * sizeof(E_Float) * nvw[i], si,
              ptrFile, convertEndian, si, si2);
-
-    // Mach,...
-    E_Float value = 0.;
-    fwrite(&value, sizeof(E_Float), 1, ptrFile);
-    fwrite(&value, sizeof(E_Float), 1, ptrFile);
-    fwrite(&value, sizeof(E_Float), 1, ptrFile);
-    fwrite(&value, sizeof(E_Float), 1, ptrFile);
-
-    // Sep : 4 * taille double
-    writeInt(4 * sizeof(E_Float), si,
-             ptrFile, convertEndian, si, si2);
-
-    // Sep : taille dom * 5 * taille float
-    writeInt(ni[i]*nj[i]*nk[i] * sizeof(E_Float) * nvar, si,
-             ptrFile, convertEndian, si, si2);
-
-    // Position des variables 
-    E_Int resx = isCoordinateXPresent(varString);
-    E_Int resy = isCoordinateYPresent(varString);
-    E_Int resz = isCoordinateZPresent(varString);
-    E_Int res1 = isDensityPresent(varString);
-    E_Int res2 = isMomentumXPresent(varString);
-    E_Int res3 = isMomentumYPresent(varString);
-    E_Int res4 = isMomentumZPresent(varString);
-    E_Int res5 = isEnergyStagnationDensityPresent(varString);
 
     for (E_Int nv = 1; nv <= nvar; nv++)
     {
-      if (writeConservative == false)
-      {
-        if (nv != resx && nv != resy && nv != resz &&
-            nv != res1 && nv != res2 && nv != res3 &&
-            nv != res4 && nv != res5)
-          fwrite(buf.begin(nv), sizeof(E_Float), 
-                 ni[i]*nj[i]*nk[i], ptrFile);
-      }
-      else
-      {
-        if (nv != resx && nv != resy && nv != resz)
-          fwrite(buf.begin(nv), sizeof(E_Float), 
-                 ni[i]*nj[i]*nk[i], ptrFile);
-      }
+      if (nv == resx+1 || nv == resy+1 || nv == resz+1) continue;
+      if (writeConservative == false && 
+          (nv == res1+1 || nv == res2+1 || nv == res3+1 ||
+           nv == res4+1 || nv == res5+1)) continue;
+      fwrite(buf.begin(nv), sizeof(E_Float), 
+             ni[i]*nj[i]*nk[i], ptrFile);
     }
 
-    // Sep : taille dom * nvar * taille float
-    writeInt(ni[i]*nj[i]*nk[i] * sizeof(E_Float) * nvar, si,
+    // Sep : taille dom * nvar ecrites * taille float
+    writeInt(ni[i]*nj[i]*nk[i] * sizeof(E_Float) * nvw[i], si,
              ptrFile, convertEndian, si, si2);
   }
 
@@ -1524,8 +1523,9 @@ E_Int K_IO::GenIO::plot3dwrite(
  
   if (fFile != NULL)
   {
-    E_Bool writeConservative = true;
-    if (qFile == NULL) writeConservative = false;
+    // conservative variables go to the function file when there is no q file
+    E_Bool writeConservative = false;
+    if (qFile == NULL) writeConservative = true;
     ffwrite(fFile, varString,
             ni, nj, nk, field, isize, rsize, convertEndian, 
             writeConservative); 
