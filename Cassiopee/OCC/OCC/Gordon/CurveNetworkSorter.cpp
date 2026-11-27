@@ -98,8 +98,8 @@ CurveNetworkSorter::CurveNetworkSorter(const std::vector<Handle (Geom_Curve)> &p
 
 {
     // check consistency of input data
-    size_t n_profiles = profiles.size();
-    size_t n_guides = guides.size();
+    Standard_Integer n_profiles = profiles.size();
+    Standard_Integer n_guides = guides.size();
 
     if (n_profiles != m_parmsIntersProfiles.RowNumber()) {
             throw error("Invalid row size of parmsIntersProfiles matrix.");
@@ -123,13 +123,13 @@ CurveNetworkSorter::CurveNetworkSorter(const std::vector<Handle (Geom_Curve)> &p
     assert(m_parmsIntersProfiles.UpperCol() == n_guides - 1);
 
     // create helper vectors with indices
-    for (size_t i = 0; i < n_profiles; ++i) {
+    for (Standard_Integer i = 0; i < n_profiles; ++i) {
         std::stringstream str;
         str << i;
         m_profIdx.push_back(str.str());
     }
 
-    for (size_t i = 0; i < n_guides; ++i) {
+    for (Standard_Integer i = 0; i < n_guides; ++i) {
         std::stringstream str;
         str << i;
         m_guidIdx.push_back(str.str());

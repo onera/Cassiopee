@@ -342,14 +342,14 @@ namespace
         return rowVector;
     }
 
-    Handle_TColgp_HArray1OfPnt pntArray2GetColumn(const TColgp_Array2OfPnt& matrix, int colIndex)
+    Handle(TColgp_HArray1OfPnt) pntArray2GetColumn(const TColgp_Array2OfPnt& matrix, int colIndex)
     {
-        return array2GetColumn<TColgp_Array2OfPnt, TColgp_HArray1OfPnt, Handle_TColgp_HArray1OfPnt>(matrix, colIndex);
+        return array2GetColumn<TColgp_Array2OfPnt, TColgp_HArray1OfPnt, Handle(TColgp_HArray1OfPnt)>(matrix, colIndex);
     }
 
-    Handle_TColgp_HArray1OfPnt pntArray2GetRow(const TColgp_Array2OfPnt& matrix, int rowIndex)
+    Handle(TColgp_HArray1OfPnt) pntArray2GetRow(const TColgp_Array2OfPnt& matrix, int rowIndex)
     {
-        return array2GetRow<TColgp_Array2OfPnt, TColgp_HArray1OfPnt, Handle_TColgp_HArray1OfPnt>(matrix, rowIndex);
+        return array2GetRow<TColgp_Array2OfPnt, TColgp_HArray1OfPnt, Handle(TColgp_HArray1OfPnt)>(matrix, rowIndex);
     }
     		
 } // namespace
@@ -782,7 +782,7 @@ Handle(Geom_BSplineSurface) BSplineAlgorithms::pointsToSurface(const TColgp_Arra
     // first interpolate all points by B-splines in u-direction
     std::vector<Handle(Geom_Curve)> uSplines;
     for (int cpVIdx = points.LowerCol(); cpVIdx <= points.UpperCol(); ++cpVIdx) {
-        Handle_TColgp_HArray1OfPnt points_u = pntArray2GetColumn(points, cpVIdx);
+        Handle(TColgp_HArray1OfPnt) points_u = pntArray2GetColumn(points, cpVIdx);
         PointsToBSplineInterpolation interpolationObject(points_u, uParams, 3, makeUDirClosed);
 
         Handle(Geom_Curve) curve = interpolationObject.Curve();
