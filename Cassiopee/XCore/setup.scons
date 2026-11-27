@@ -209,23 +209,27 @@ if srcs.ZOLTAN:
         deps.append('libzoltan.a')
 
 # merge
-command = "echo 'create build/%s/libxcore.a' > merge.l; "%ELSAPROD
-command += "echo 'addlib build/%s/libxcore1.a' >> merge.l; "%ELSAPROD
-if srcs.PARADIGMA != 0: 
-    command += "echo 'addlib build/%s/libpdm.a' >> merge.l; "%ELSAPROD
-if srcs.SCOTCH: 
-    command += "echo 'addlib build/%s/libscotch1.a' >> merge.l; "%ELSAPROD
-    command += "echo 'addlib build/%s/libscotch2.a' >> merge.l; "%ELSAPROD
-    if mpi:
-        command += "echo 'addlib build/%s/libptscotch.a' >> merge.l; "%ELSAPROD
-if srcs.ZOLTAN and mpi:
-    command += "echo 'addlib build/%s/libzoltan.a' >> merge.l; "%ELSAPROD
-command += "echo 'save' >> merge.l; "
-command += "echo 'end' >> merge.l"
-command = 'sh -c \"'+command+'\"'
+if Dist.getSystem()[0] == 'Darwin':
+    # Apple ar does not support MRI scripts (-M): merge with libtool.
+    env.Command('libxcore.a', deps, "libtool -static -o $TARGET $SOURCES")
+else:
+    command = "echo 'create build/%s/libxcore.a' > merge.l; "%ELSAPROD
+    command += "echo 'addlib build/%s/libxcore1.a' >> merge.l; "%ELSAPROD
+    if srcs.PARADIGMA != 0: 
+        command += "echo 'addlib build/%s/libpdm.a' >> merge.l; "%ELSAPROD
+    if srcs.SCOTCH: 
+        command += "echo 'addlib build/%s/libscotch1.a' >> merge.l; "%ELSAPROD
+        command += "echo 'addlib build/%s/libscotch2.a' >> merge.l; "%ELSAPROD
+        if mpi:
+            command += "echo 'addlib build/%s/libptscotch.a' >> merge.l; "%ELSAPROD
+    if srcs.ZOLTAN and mpi:
+        command += "echo 'addlib build/%s/libzoltan.a' >> merge.l; "%ELSAPROD
+    command += "echo 'save' >> merge.l; "
+    command += "echo 'end' >> merge.l"
+    command = 'sh -c \"'+command+'\"'
 
-env.Command('merge.l', 'merge.ar', command)
-env.Command('libxcore.a', deps+['merge.l'], "ar -M < merge.l")
+    env.Command('merge.l', 'merge.ar', command)
+    env.Command('libxcore.a', deps+['merge.l'], "ar -M < merge.l")
 
 # install deps
 env.Alias(target="install", source=['libxcore.a'])

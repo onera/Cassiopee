@@ -52,9 +52,14 @@ env.SConsignFile('build/'+ELSAPROD+'/.sconsign.dblite')
 
 #==============================================================================
 
-myMod = env.StaticLibrary('roms', source=srcs.cpp_srcs)
-
 modDir = 'build/'+ELSAPROD
+if Dist.getSystem()[0] == 'Darwin' and not srcs.cpp_srcs:
+    # Apple ar/libtool cannot create an empty archive: archive a dummy object
+    # so that setup.py can keep linking -lroms (no C++ sources in srcs.py yet).
+    env.Command('roms_dummy.o', ['setup.scons'], "echo 'int roms_dummy;' | $CC -x c -c - -o $TARGET")
+    myMod = env.Command('libroms.a', ['roms_dummy.o'], "libtool -static -o $TARGET $SOURCES")
+else:
+    myMod = env.StaticLibrary('roms', source=srcs.cpp_srcs)
 dp1 = env.Install(modDir, myMod)
 
 env.Alias(target="install", source=[dp1])

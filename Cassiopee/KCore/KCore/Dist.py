@@ -1584,7 +1584,7 @@ def checkOCC():
         return (False, i, l)
 
 # Return open-cascade module names depending on version
-def getOCCModules(OCCIncDir=None):
+def getOCCModules(OCCIncDir=None, OCCLibDir=None):
     #default
     if getSystem()[0] == 'mingw': version = (7, 8)
     else: version = (7, 5)
@@ -1648,12 +1648,12 @@ def getOCCModules(OCCIncDir=None):
     else:
         allMods = [
             "TKBO", "TKBRep", "TKBin", "TKBinL", "TKBinTObj",
-            "TKBinXCAF", "TKBool", "TKCAF", "TKCDF", "TKD3DHost",
-            "TKD3DHostTest", "TKDCAF", "TKDE", "TKDECascade", "TKDEGLTF",
+            "TKBinXCAF", "TKBool", "TKCAF", "TKCDF",
+            "TKDCAF", "TKDE", "TKDECascade", "TKDEGLTF",
             "TKDEIGES", "TKDEOBJ", "TKDEPLY", "TKDESTEP", "TKDESTL",
             "TKDEVRML", "TKDraw", "TKExpress", "TKFeat", "TKFillet",
             "TKG2d", "TKG3d", "TKGeomAlgo", "TKGeomBase",
-            "TKHLR", "TKIVtk", "TKIVtkDraw", "TKLCAF",
+            "TKHLR", "TKLCAF",
             "TKMath", "TKMesh", "TKMeshVS", "TKOffset",
             "TKOpenGl", "TKOpenGlTest", "TKPrim", "TKQADraw",
             "TKRWMesh", "TKService", "TKShHealing", "TKStd",
@@ -1665,6 +1665,12 @@ def getOCCModules(OCCIncDir=None):
             "TKXSDRAWOBJ", "TKXSDRAWPLY", "TKXSDRAWSTEP",
             "TKXSDRAWSTL", "TKXSDRAWVRML", "TKXml",
             "TKXmlL", "TKXmlTObj", "TKXmlXCAF", "TKernel"]
+
+        if getSystem()[0] == 'mingw': # Direct3D host: Windows only
+            allMods += ["TKD3DHost", "TKD3DHostTest"]
+        elif OCCLibDir is not None: # Darwin and Ubuntu: check for vtk libfiles before adding vtk modules to allMods
+            if checkLibFile__('libTKIVtk.so', [OCCLibDir]):
+                allMods += ["TKIVtk", "TKIVtkDraw"]
     return allMods
 
 #=============================================================================
@@ -2566,6 +2572,15 @@ def checkLibFile__(file, additionalLibPaths):
         if a != []: return i+'64'
         a = glob.glob(i+'/'+file)
         if a != []: return i
+
+    if mySystem[0] == 'Darwin' and '.so' in file: # test .dylib extension after .so
+        file = file.replace('.so', '.dylib')
+        for i in p:
+            a = glob.glob(i+'64/'+file)
+            if a != []: return i+'64'
+            a = glob.glob(i+'/'+file)
+            if a != []: return i
+
     return None
 
 #==============================================================================
