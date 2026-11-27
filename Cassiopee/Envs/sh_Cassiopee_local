@@ -199,13 +199,30 @@ elif [ "$MAC" = "ld_spack2" ]; then
     export XMODIFIERS="@im=none"
 
 elif [ "$MAC" = "macosx" ]; then
-#----------------------------- Mac OSX-----------------------------------------
+#----------------------------- Mac OSX -----------------------------------------
     export ELSAPROD=macosx
     export ELSAPROD=$ELSAPROD$EXT
     export OMP_NUM_THREADS=2
     export MACOSX_DEPLOYMENT_TARGET=10.10
     unset BUNDLE
     export DYLD_LIBRARY_PATH=$LD_LIBRARY_PATHL
+
+elif [ "$MAC" = "macos" ]; then
+#----------------------------- MacOS -------------------------------------------
+    export ELSAPROD=macos
+    export ELSAPROD=$ELSAPROD$EXT
+    export OMP_NUM_THREADS=4
+    export PYTHONEXE=/opt/homebrew/bin/python3.11
+    PROD_PATH=/opt/homebrew/opt/python@3.11/bin
+    PROD_LD_LIBRARY_PATH=/opt/homebrew/opt/python@3.11/lib
+    alias python3=$PYTHONEXE
+    alias python=$PYTHONEXE
+    export PRODMODE=3
+    export PIP_DISABLE_PIP_VERSION_CHECK=1
+    export XMODIFIERS="@im=none"
+    export PATH="$HOME/bin:/opt/homebrew/bin:$PATH"
+    export CC=clang
+    export CXX=clang++
 
 elif [ "$MAC" = "ubuntu" ]; then
 #-------------------------------- ubuntu --------------------------------------
