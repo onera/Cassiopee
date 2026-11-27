@@ -848,10 +848,14 @@ else
 fi
 
 # Remove empty paths
-for var in PATH PATHL LD_LIBRARY_PATH LD_LIBRARY_PATHL PYTHONPATH PYTHONPATHL; do
-    eval "value=\${$var}"
-    value=$(printf '%s' "$value" | sed -E 's/::+/:/g; s/^://; s/:$//')
-    eval "$var=\$value"
-done
+cleanPath() {
+    printf '%s' "$1" | sed -E 's/::+/:/g; s/^://; s/:$//'
+}
+PATH=$(cleanPath "$PATH")
+PATHL=$(cleanPath "$PATHL")
+LD_LIBRARY_PATH=$(cleanPath "$LD_LIBRARY_PATH")
+LD_LIBRARY_PATHL=$(cleanPath "$LD_LIBRARY_PATHL")
+PYTHONPATH=$(cleanPath "$PYTHONPATH")
+PYTHONPATHL=$(cleanPath "$PYTHONPATHL")
 
 echo '>> Hello from '$MAC', '$ELSAPROD' production is set.'
