@@ -122,7 +122,7 @@ to use the Cassiopee modules. Dont try to install third party modules
 or another installation system.
 
 You can run standard bash commands in it also.
-The system is msys, you van use linux style file paths.
+The system is msys, you can use linux style file paths.
 
 ## Coding rules
 When writing scripts or c/c++ code, use camel case notation for functions and variables.

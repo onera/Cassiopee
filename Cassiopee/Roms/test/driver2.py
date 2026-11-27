@@ -45,12 +45,10 @@ print("freevars=", freevars)
 # instantiate. You must set every variables in freevars
 T1.instantiate({'P3.x': 3, 'hauteur': 1.})
 
-#sketch1.writeCAD('out.step')
+# write only the sketch
+# sketch1.writeCAD('out.step')
+
+# write all part
 T1.writeCAD('out.step')
 
-# display in image
-import CPlot
-mesh = sketch1.mesh()
-CPlot.display(mesh, export="image.png", offscreen=2)
-CPlot.finalizeExport(2)
-import os; os._exit(0)
+#D.DRIVER.plot()

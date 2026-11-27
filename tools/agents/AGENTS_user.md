@@ -126,8 +126,9 @@ To test your script, you can run it in terminal directly
 using "python", the bash environement is already set
 to use the Cassiopee modules.
 Dont try to install third party modules.
-You can run standard bash commands in it also using linux style 
-and linux style paths.
+
+The system is msys, you can use linux style file paths and bash
+commands.
 
 ## Coding rules
 When writing scripts, use camel case notation for functions and variables.
@@ -147,7 +148,9 @@ Then call T1.solve only one time.
 Write the script until T1.solve. 
 Execute it and get the returned value of freevars.
 Then, set freevars in the script using T1.instantiate.
-Write an image of an instantiated geometry with cplot at the end.
+Finally add a CAD write and add a commented line
+calling driver.plot (for the user).
+
 
 ### Write a generic script
 Otherwise, write a script using only the functions of Cassiopee. 
