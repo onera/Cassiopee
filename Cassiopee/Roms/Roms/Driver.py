@@ -2657,19 +2657,29 @@ class Part:
         self.freeParams = freeParams
 
         return freeParams
+    
+    # Instantiate all parameters from given values of free parameters
+    def instantiate(self, paramValues):
+        if self.solution is None: # solve or solve2 has not been called before
+            if self.freeParams is None:
+                raise ValueError("instantiate: set freeParams manually or call solve or solve2.")
+            return self.instantiate2(paramValues)
+        else: # called after solve
+            return self.instantiate1(paramValues)
 
     # Instantiate all parameters from given values of free parameters
-    # solve must have been called before
+    # solve or solve2 must have been called before
     # IN: paramValues: dict of free parameters with their values
     # OUT: True if all values are valid (in range and satisfy inequations), False otherwise
-    def instantiate(self, paramValues):
+    def instantiate1(self, paramValues):
         """Instantiate all from given paramValues."""
         valid = True # return
         # set free params from input
-        error = False
+        error = False; msg = ''
         for f in self.freeParams:
             if f.name not in paramValues:
-                print("Error: instantiate: you should specify: ", f.name)
+                if msg != '': msg += 'ValueError: '
+                msg += "instantiate: you must specify: %s.\n"%f.name
                 error = True
             else:
                 self.scalars[f.name].v = paramValues[f.name]
@@ -2677,7 +2687,8 @@ class Part:
                 if self.scalars[f.name].check(): print('SET: => valid')
                 else: print('SET: => invalid'); valid = False
 
-        if error: raise ValueError("instantiate: stopping.")
+        if error:
+            raise ValueError(msg + "ValueError: instantiate: stopping.")
 
         # set other vars with equations
         soli = self.solution.copy()
@@ -2713,7 +2724,7 @@ class Part:
         # return True if valid in range and inequation constraints
         return valid
 
-    # Solve equations to get free parameters
+    # Solve equations to get free parameters, replace non linear functions by linear ones
     def solve2(self):
         """Solve equations to get free parameters."""
         # get params
@@ -2772,14 +2783,14 @@ class Part:
             freeParams.remove(s)
         print('SOLVE: free vars=', freeParams)
 
-        self.solution = None # solution is fake beacuase of replace
+        self.solution = None # solution is fake because of replace
         self.params = params
         self.freeParams = freeParams
 
         return freeParams
 
     # Instantiate2 all parameters from given free parameters value
-    # Solve dont have to be called, numerical solution
+    # Solve or solve2 dont have to be called, numerical solution
     def instantiate2(self, paramValues):
         """Instantiate all from given paramValues."""
         valid = True # return

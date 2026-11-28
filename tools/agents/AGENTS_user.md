@@ -137,19 +137,23 @@ When writing scripts, use camel case notation for functions and variables.
 
 ### Create a parametric geometry
 When told to create a parametric geometry, 
-you must the write a script that create a parametric surface specified
-by the user. In this case, you must use only functions of module "Driver" of Roms
-module. You can find an example in Roms/test/driver2.py.
-You must choose the pertinent parameters that are key parameter to the shape
-and create Scalar accordingly.
+you must the write a script that creates a parametric surface specified
+by the user. In this case, you must use only functions of 
+module "Driver" of Roms module (@Cassiopee/Roms/Driver.py). 
+You can find an example in @Cassiopee/Roms/test/driver2.py.
+You must choose the pertinent parameters that are key parameters 
+to the shape and create Scalar accordingly. When setting
+equations, you must use only linear formulas in equations.
 Then, create all entities you need (entities, sketches, surfaces).
 In sketches, entities must form a closed wire to be used with Fill.
+When possible, use "Symm" or "Shift" or "Rotate" functions to create 
+mirror, translated or rotated entities instead of creating a new entity.
 Then call T1.solve only one time.
 Write the script until T1.solve. 
 Execute it and get the returned value of freevars.
 Then, set freevars in the script using T1.instantiate.
 Finally add a CAD write and add a commented line
-calling driver.plot (for the user).
+calling driver.plot (for the user) at the end.
 
 
 ### Write a generic script

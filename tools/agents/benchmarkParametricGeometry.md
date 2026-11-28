@@ -9,6 +9,8 @@ Write all script and artifacs to directory @/tools/sandbox/circles.
 
 semia-small: FAIL
 semia-large: SUCCESS
+glm4.7-flash: SUCCESS (4 min)
+gemma4-small:  SUCCESS
 
 ## parametric 2D rocket
 
@@ -19,6 +21,8 @@ Write all scripts and artifacs to directory @/tools/sandbox/rocket.
 
 semia-small: 
 semia-large: SUCESS
+glm4.7-flash: FAIL
+gemma4-26b: FAIL
 
 ## parametric 2D Letter C
 
@@ -32,6 +36,7 @@ Write all scripts and artifacs to directory @/tools/sandbox/letterC.
 semia-small: overflow context, infinite loop, FAIL
 semia-large: SUCCESS (5 minutes)
 qwen3.5: FAIL
+gemma4-26b: SUCCESS 
 
 ## parametric 2D pacman shape
 
@@ -41,8 +46,9 @@ a 2D parametric sketch of a pacman shape.
 Choose the parameters to have 4 parameters that are key parameters to the shape.
 Write all scripts and artifacs to directory @/tools/sandbox/pacman.
 
-semia-small: SUCCESS (4 minutes)
-semia-large:
+semia-small: 
+semia-large: SUCCESS (4 minutes)
+gemma4-26b: FAIL
 
 ## parametric 2D smiley shape
 
@@ -56,6 +62,7 @@ Write all script and artifacs to @/tools/sandbox/smiley.
 
 semia-small: 
 semia-large: SUCCESS (4 minutes)
+gemma-26b: SUCCESS
 
 ## parametric 2D star
 
@@ -69,6 +76,7 @@ Write all script and artifacs to @/tools/sandbox/star.
 
 semia-small: 
 semia-large: FAIL (the trigo trick)
+gemma4-26b: FAIL
 
 ## parametric 2D two cubes
 
@@ -80,3 +88,4 @@ Write all script and artifacs to directory @/tools/sandbox/cubes.
 
 semia-small: 
 semia-large: SUCCESS (6 minutes)
+gamma4-26b: FAIL

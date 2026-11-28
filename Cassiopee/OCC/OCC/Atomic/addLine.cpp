@@ -42,9 +42,15 @@ PyObject* K_OCC::addLine(PyObject* self, PyObject* args)
   GETPACKET;
   GETSHAPE;
   
-  gp_Pnt p1(x1, y1, z1); // Bottom left
-  gp_Pnt p2(x2, y2, z2); // Bottom right
-  TopoDS_Edge edge = BRepBuilderAPI_MakeEdge(p1, p2);
+  gp_Pnt p1(x1, y1, z1); // First point of line
+  gp_Pnt p2(x2, y2, z2); // End point of line
+  BRepBuilderAPI_MakeEdge maker(p1, p2);
+  if (!maker.IsDone()) // can fail if P1=P2 for example 
+  {
+    Py_INCREF(Py_None);
+    return Py_None;
+  }
+  TopoDS_Edge edge = maker.Edge();
 
 #ifdef USEXCAF
 
