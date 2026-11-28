@@ -2657,7 +2657,7 @@ class Part:
         self.freeParams = freeParams
 
         return freeParams
-    
+
     # Instantiate all parameters from given values of free parameters
     def instantiate(self, paramValues):
         if self.solution is None: # solve or solve2 has not been called before
